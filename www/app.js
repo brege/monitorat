@@ -9,11 +9,8 @@ const privacyState = {
 document.addEventListener('DOMContentLoaded', async () => {
   const config = await loadConfig();
   
-  // Store privacy config
   privacyState.config = config.privacy;
   
-  
-  // Update page title and heading from config
   if (config.site?.name) {
     document.title = config.site.name;
   }
@@ -28,6 +25,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const widgetOrder = config.widgets?.enabled || ["network", "services", "metrics", "speedtest", "reminders", "wiki"];
   for (const widgetName of widgetOrder) {
     const widgetConfig = config.widgets?.[widgetName];
+    
+    // Skip disabled widgets but keep their placeholder in ordering
+    if (widgetConfig?.enabled === false) {
+      continue;
+    }
+ 
     const widgetType = widgetConfig?.type || widgetName;
     await initializeWidget(widgetName, widgetType, widgetConfig);
   }
@@ -60,19 +63,35 @@ async function initializeWidget(widgetName, widgetType, config) {
   }
   
   try {
+    if (config?.collapsible === true) {
+      setupCollapsibleWidget(container, widgetName, config);
+    }
+ 
+    const contentContainer = config?.collapsible === true 
+      ? container.querySelector('.widget-content')
+      : container;
+ 
     const widgetClass = window.widgets[widgetType];
     const widget = new widgetClass(config || {});
-    
-    // Special handling for different widget init signatures
+ 
+    const widgetConfig = config?.collapsible === true 
+      ? { ...config, _suppressHeader: true }
+      : config;
+ 
     if (widgetType === 'speedtest') {
-      await widget.init(container, {
-        preview_count: config?.preview ?? config?.min ?? 5,
-        history_limit: config?.history_limit ?? 200
+      await widget.init(contentContainer, {
+        preview_count: widgetConfig?.preview ?? widgetConfig?.min ?? 5,
+        history_limit: widgetConfig?.history_limit ?? 200,
+        _suppressHeader: widgetConfig?._suppressHeader
       });
     } else if (widgetType === 'wiki') {
-      await widget.init(container, config || {});
+      await widget.init(contentContainer, widgetConfig || {});
     } else {
-      await widget.init(container);
+      await widget.init(contentContainer, widgetConfig || {});
+    }
+    
+    if (config?.collapsible !== true) {
+      addHeaderAnchors(container, widgetName);
     }
   } catch (error) {
     const widgetDisplayName = config?.name || widgetName;
@@ -85,6 +104,58 @@ function createWidgetContainer(widgetName) {
   container.id = `${widgetName}-widget`;
   document.querySelector('.widget-stack').appendChild(container);
   return container;
+}
+
+function setupCollapsibleWidget(container, widgetName, config) {
+  const widgetTitle = config?.name || widgetName;
+  const isHidden = config?.hidden === true;
+  const anchorId = widgetName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  
+  container.innerHTML = `
+    <div class="widget-header">
+      <h2 class="widget-title" id="${anchorId}">
+        ${widgetTitle}
+        <a href="#${anchorId}" class="header-anchor" aria-hidden="true">#</a>
+      </h2>
+      <button type="button" class="widget-toggle" onclick="toggleWidget('${widgetName}')">
+        ${isHidden ? 'Show' : 'Hide'}
+      </button>
+    </div>
+    <div class="widget-content" style="display: ${isHidden ? 'none' : 'block'}"></div>
+  `;
+}
+
+function toggleWidget(widgetName) {
+  const container = document.getElementById(`${widgetName}-widget`);
+  if (!container) return;
+  
+  const content = container.querySelector('.widget-content');
+  const toggle = container.querySelector('.widget-toggle');
+  if (!content || !toggle) return;
+  
+  const isHidden = content.style.display === 'none';
+  content.style.display = isHidden ? 'block' : 'none';
+  toggle.textContent = isHidden ? 'Hide' : 'Show';
+}
+
+function addHeaderAnchors(container, widgetName) {
+  const headers = container.querySelectorAll('h1, h2, h3, h4, h5, h6');
+  headers.forEach((header, index) => {
+    const headerText = header.textContent || header.innerText || '';
+    const cleanText = headerText.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    const anchorId = cleanText ? `${widgetName}-${cleanText}` : `${widgetName}-header-${index}`;
+  
+    header.id = anchorId;
+  
+    const anchor = document.createElement('a');
+    anchor.href = `#${anchorId}`;
+    anchor.className = 'header-anchor';
+    anchor.setAttribute('aria-hidden', 'true');
+    anchor.textContent = '#';
+  
+    header.style.position = 'relative';
+    header.appendChild(anchor);
+  });
 }
 
 async function initializeNetworkWidget(config) {

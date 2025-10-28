@@ -26,15 +26,18 @@ class NetworkWidget {
     this.elements = {};
   }
 
-  async init(container) {
+  async init(container, config = {}) {
     this.container = container;
+    this.config = { ...this.config, ...config };
+    
     const response = await fetch('widgets/network/network.html');
     const html = await response.text();
     container.innerHTML = html;
     
-    // Update section title from config
     const title = container.querySelector('h2');
-    if (title && this.config.name !== null && this.config.name !== false) {
+    if (this.config._suppressHeader && title) {
+      title.remove();
+    } else if (title && this.config.name !== null && this.config.name !== false) {
       if (this.config.name) {
         title.textContent = this.config.name;
       }
@@ -306,7 +309,8 @@ class NetworkWidget {
         toggle.style.display = 'none';
       } else {
         toggle.style.display = '';
-        toggle.textContent = this.state.gapsExpanded ? 'Show less' : `Show ${filtered.length - this.config.gaps.maxVisible} more`;
+        const remaining = filtered.length - (this.config.gaps.maxVisible || 3);
+        toggle.textContent = this.state.gapsExpanded ? 'Show less' : `Show ${remaining} more`;
       }
     }
   }
@@ -316,11 +320,9 @@ function mergeNetworkConfig(config) {
   const cfg = config || {};
   const metrics = { show: cfg.metrics?.show !== false };
   
-  // Handle new config structure: max (pagination) and cadence (filtering)
   const maxRaw = Number(cfg.gaps?.max);
   const cadenceRaw = Number(cfg.gaps?.cadence);
   
-  // Defaults: show 3 gaps initially, filter outages < 0 minutes (show all)
   const maxVisible = Number.isFinite(maxRaw) ? Math.max(1, maxRaw) : 3;
   const cadenceMinutes = Number.isFinite(cadenceRaw) ? Math.max(0, cadenceRaw) : 0;
   const cadenceChecks = Math.max(0, Math.ceil(cadenceMinutes / NET_MINUTES_PER_CHECK));

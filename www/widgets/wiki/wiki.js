@@ -1,7 +1,7 @@
 class WikiWidget {
   constructor(config = {}) {
     this.container = null;
-    this.config = { display: 'open', ...config };
+    this.config = config;
   }
 
   async init(container, config = {}) {
@@ -12,9 +12,10 @@ class WikiWidget {
     const html = await response.text();
     container.innerHTML = html;
     
-    // Update section title from config
     const title = container.querySelector('h2');
-    if (title && this.config.name !== null && this.config.name !== false) {
+    if (this.config._suppressHeader && title) {
+      title.remove();
+    } else if (title && this.config.name !== null && this.config.name !== false) {
       if (this.config.name) {
         title.textContent = this.config.name;
       }
@@ -46,7 +47,6 @@ class WikiWidget {
       const notesElement = this.container.querySelector('#about-notes');
       if (notesElement) {
         notesElement.innerHTML = md.render(text);
-        this.applyDisplayPreference(notesElement);
       }
     } catch (error) {
       const notesElement = this.container.querySelector('#about-notes');
@@ -54,21 +54,6 @@ class WikiWidget {
         notesElement.innerHTML = `<p class="muted">Unable to load documentation: ${error.message}</p>`;
       }
     }
-  }
-
-  applyDisplayPreference(root) {
-    if (!root || !this.config.display) {
-      return;
-    }
-    const desired = String(this.config.display).toLowerCase();
-    const shouldOpen = desired !== 'closed';
-    root.querySelectorAll('details').forEach((details) => {
-      if (shouldOpen) {
-        details.setAttribute('open', 'open');
-      } else {
-        details.removeAttribute('open');
-      }
-    });
   }
 }
 

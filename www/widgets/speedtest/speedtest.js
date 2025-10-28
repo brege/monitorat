@@ -17,16 +17,18 @@ class SpeedtestWidget {
     const historyLimit = Number(config.history_limit ?? config.historyLimit);
     this.config = {
       previewCount: Number.isFinite(preview) && preview > 0 ? preview : 5,
-      historyLimit: Number.isFinite(historyLimit) && historyLimit > 0 ? historyLimit : 200
+      historyLimit: Number.isFinite(historyLimit) && historyLimit > 0 ? historyLimit : 200,
+      _suppressHeader: config._suppressHeader
     };
 
     const response = await fetch('widgets/speedtest/speedtest.html');
     const html = await response.text();
     container.innerHTML = html;
     
-    // Update section title from config
     const title = container.querySelector('h2');
-    if (title && this.widgetConfig.name !== null && this.widgetConfig.name !== false) {
+    if (this.config._suppressHeader && title) {
+      title.remove();
+    } else if (title && this.widgetConfig.name !== null && this.widgetConfig.name !== false) {
       if (this.widgetConfig.name) {
         title.textContent = this.widgetConfig.name;
       }

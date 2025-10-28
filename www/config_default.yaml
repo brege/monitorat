@@ -16,9 +16,14 @@ widgets:
     - wiki
   metrics:                      # temperature, cpu, memory, disk
     name: "System Metrics"
+    enabled: true               # widget renders (default: true)
+    collapsible: false          # show hide/show toggle (default: false)
+    hidden: false               # start collapsed (default: false)
   wiki:                         # load README.md if doc not specified
     name: "Notes & Links"
-    display: open
+    enabled: true
+    collapsible: true           # enable collapse/expand
+    hidden: false               # start expanded
     doc: ""
     #doc: /home/__user__/documents/about.md
 

@@ -6,17 +6,20 @@ class ServicesWidget {
     this.config = config;
   }
 
-  async init(container) {
+  async init(container, config = {}) {
     this.container = container;
+    this.config = { ...this.config, ...config };
     
     // Load HTML template
     const response = await fetch('widgets/services/services.html');
     const html = await response.text();
     container.innerHTML = html;
     
-    // Update section title from config
+    // Update section title from config (unless suppressed by collapsible wrapper)
     const title = container.querySelector('h2');
-    if (title && this.config.name) {
+    if (this.config._suppressHeader && title) {
+      title.remove();
+    } else if (title && this.config.name) {
       title.textContent = this.config.name;
     }
     

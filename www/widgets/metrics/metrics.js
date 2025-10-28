@@ -5,17 +5,18 @@ class MetricsWidget {
     this.config = config;
   }
 
-  async init(container) {
+  async init(container, config = {}) {
     this.container = container;
+    this.config = { ...this.config, ...config };
     
-    // Load HTML template
     const response = await fetch('widgets/metrics/metrics.html');
     const html = await response.text();
     container.innerHTML = html;
     
-    // Update section title from config
     const title = container.querySelector('h2');
-    if (title && this.config.name !== null && this.config.name !== false) {
+    if (this.config._suppressHeader && title) {
+      title.remove();
+    } else if (title && this.config.name !== null && this.config.name !== false) {
       if (this.config.name) {
         title.textContent = this.config.name;
       }
@@ -23,7 +24,6 @@ class MetricsWidget {
       title.remove();
     }
     
-    // Load initial data
     await this.loadData();
     
     console.log('Metrics widget initialized');
@@ -63,7 +63,6 @@ class MetricsWidget {
       storage: document.querySelector('#storage-value')?.closest('.stat')
     };
 
-    // Update values
     if (elements.uptime && data.metrics.uptime) {
       elements.uptime.textContent = data.metrics.uptime;
     }
@@ -83,7 +82,6 @@ class MetricsWidget {
       elements.storage.textContent = data.metrics.storage;
     }
 
-    // Update status classes
     Object.keys(stats).forEach(key => {
       if (stats[key] && data.metric_statuses[key]) {
         const status = data.metric_statuses[key];
