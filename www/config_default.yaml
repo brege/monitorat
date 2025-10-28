@@ -3,6 +3,7 @@
 site:
   name: "monitor@"
   title: "System Monitor"
+  base_url: "http://localhost:6161"
 
 paths:
   data: "data/"                 # relative to webroot (www/)
@@ -18,8 +19,20 @@ widgets:
   wiki:                         # load README.md if doc not specified
     name: "Notes & Links"
     display: open
+    doc: ""
     #doc: /home/__user__/documents/about.md
 
 privacy:                        # toggle, for screenshots
   mask_ips: true
   replacements: {}
+
+reminders:
+  nudges: [14, 7]
+  urgents: [3, 1, 0]
+  time: "23:55"
+
+services: {}
+
+pushover:
+  key: ""
+  token: ""

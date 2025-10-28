@@ -6,18 +6,22 @@ from json import loads
 from urllib.request import urlretrieve
 import yaml
 import importlib
+import confuse
 
 app = Flask(__name__)
 BASE = Path(__file__).parent.parent
 WWW = BASE / "www"
 VENDORS = WWW / "vendors"
-CONFIG = BASE / "config.yaml"
+config = confuse.Configuration('monitor@', __name__)
+# Add project config.yaml if it exists (higher priority than defaults)
+project_config = BASE / "config.yaml"
+if project_config.exists():
+    config.set_file(project_config)
 PACKS_DIR = BASE / "packs"
 SPEEDTEST = "/usr/bin/speedtest-cli"
 
 def get_data_path():
-    config = load_config()
-    data_dir = config.get("paths", {}).get("data", "data/")
+    data_dir = config['paths']['data'].get(str)
     if data_dir.startswith('/'):
         return Path(data_dir)
     else:
@@ -45,15 +49,7 @@ def ensure_vendors():
 ensure_vendors()
 
 def load_config():
-    if not CONFIG.exists():
-        return {}
-    try:
-        with CONFIG.open("r") as f:
-            data = yaml.safe_load(f) or {}
-            return data
-    except Exception as exc:
-        print(f"Failed to load config: {exc}")
-        return {}
+    return config
 
 @app.route("/")
 def index():
@@ -61,8 +57,7 @@ def index():
 
 @app.route("/data/<path:filename>")
 def data_files(filename):
-    config = load_config()
-    data_dir = config.get("paths", {}).get("data", "data/")
+    data_dir = config['paths']['data'].get(str)
     if data_dir.startswith('/'):
         # Absolute path
         return send_from_directory(data_dir, filename)
@@ -80,8 +75,7 @@ def readme():
 
 @app.route("/api/wiki/doc")
 def wiki_doc():
-    config = load_config()
-    doc_path = config.get('widgets', {}).get('wiki', {}).get('doc')
+    doc_path = config['widgets']['wiki']['doc'].get(str)
     if not doc_path:
         return send_from_directory(BASE, "README.md")
     
@@ -165,7 +159,7 @@ def speedtest_history():
 @app.route("/api/config", methods=["GET"])
 def api_config():
     try:
-        return jsonify(load_config())
+        return jsonify(dict(config.get()))
     except Exception as exc:
         return jsonify(error=str(exc)), 500
 
@@ -173,8 +167,7 @@ def api_config():
 @app.route("/api/services", methods=["GET"])
 def api_services():
     try:
-        config = load_config()
-        services = config.get("services", {})
+        services = config['services'].get(dict)
         return jsonify({"services": services})
     except Exception as exc:
         return jsonify(error=str(exc)), 500
@@ -195,8 +188,7 @@ def api_services_status():
 
 @app.route("/favicon.ico")
 def favicon():
-    config = load_config()
-    favicon_path = config.get("paths", {}).get("favicon", "favicon.ico")
+    favicon_path = config['paths']['favicon'].get(str)
     if favicon_path.startswith('/'):
         # Absolute path
         return send_from_directory(Path(favicon_path).parent, Path(favicon_path).name)
@@ -206,8 +198,7 @@ def favicon():
 
 @app.route("/img/<path:filename>")
 def img_files(filename):
-    config = load_config()
-    img_dir = config.get("paths", {}).get("img", "img/")
+    img_dir = config['paths']['img'].get(str)
     if img_dir.startswith('/'):
         # Absolute path
         return send_from_directory(img_dir, filename)

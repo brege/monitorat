@@ -4,6 +4,9 @@ import json
 import subprocess
 import yaml
 from pathlib import Path
+import sys
+sys.path.append(str(Path(__file__).parent.parent))
+from monitor import config
 
 BASE = Path(__file__).parent.parent.parent.parent
 
@@ -34,10 +37,7 @@ def get_systemd_status():
     
     # Load config to get dynamic service/timer lists
     try:
-        config_file = BASE / "config.yaml"
-        with open(config_file, 'r') as f:
-            config = yaml.safe_load(f)
-        services_config = {"services": config.get("services", {})}
+        services_config = {"services": config['services'].get(dict)}
         
         # Collect all unique services and timers from YAML
         all_services = set()

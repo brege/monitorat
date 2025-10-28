@@ -8,23 +8,21 @@ import threading
 import time as time_module
 from datetime import datetime, timedelta
 from pathlib import Path
+import sys
+sys.path.append(str(Path(__file__).parent.parent))
+from monitor import config
 
 BASE = Path(__file__).parent.parent.parent.parent
-CONFIG_YAML = BASE / "config.yaml"
 
 def get_reminders_json_path():
-    config = load_config()
-    data_dir = config.get("paths", {}).get("data", "data/")
+    data_dir = config['paths']['data'].get(str)
     if data_dir.startswith('/'):
         return Path(data_dir) / "reminders.json"
     else:
         return BASE / data_dir / "reminders.json"
 
 def load_config():
-    if not CONFIG_YAML.exists():
-        return {}
-    with open(CONFIG_YAML, 'r') as f:
-        return yaml.safe_load(f)
+    return config
 
 def load_reminder_data():
     reminders_json = get_reminders_json_path()
@@ -48,13 +46,13 @@ def touch_reminder(reminder_id):
 
 def cleanup_orphaned_reminders():
     """Remove reminder data for entries no longer in config"""
-    config = load_config()
     data = load_reminder_data()
     
-    if 'reminders' not in config:
+    reminders_config = config['reminders'].get(dict)
+    if not reminders_config:
         return
     
-    config_ids = set(config['reminders'].keys())
+    config_ids = set(reminders_config.keys())
     data_ids = set(data.keys())
     orphaned = data_ids - config_ids
     
@@ -65,9 +63,8 @@ def cleanup_orphaned_reminders():
         save_reminder_data(data)
 
 def get_reminder_status():
-    config = load_config()
-    
-    if 'reminders' not in config:
+    reminders_config = config['reminders'].get(dict)
+    if not reminders_config:
         return []
     
     # Clean up orphaned entries
@@ -76,8 +73,8 @@ def get_reminder_status():
     # Reload data after cleanup
     data = load_reminder_data()
     
-    nudges = config.get('reminders', {}).get('nudges', [14, 7])
-    urgents = config.get('reminders', {}).get('urgents', [3, 1, 0])
+    nudges = config['reminders']['nudges'].get(list)
+    urgents = config['reminders']['urgents'].get(list)
     
     # Calculate orange range: from min nudge to max urgent
     if nudges and urgents:
@@ -88,7 +85,7 @@ def get_reminder_status():
     
     results = []
     # Skip config keys (nudges, urgents, time) and only process reminder items
-    for reminder_id, reminder_config in config['reminders'].items():
+    for reminder_id, reminder_config in reminders_config.items():
         if reminder_id in ['nudges', 'urgents', 'time']:
             continue
         last_touch = data.get(reminder_id)
@@ -127,13 +124,12 @@ def get_reminder_status():
     return results
 
 def send_notifications():
-    config = load_config()
-    
-    if 'pushover' not in config:
+    pushover_config = config['pushover'].get(dict)
+    if not pushover_config:
         return False
     
-    pushover_key = config['pushover'].get('key')
-    pushover_token = config['pushover'].get('token')
+    pushover_key = pushover_config.get('key')
+    pushover_token = pushover_config.get('token')
     
     if not pushover_key or not pushover_token:
         return False
@@ -141,9 +137,9 @@ def send_notifications():
     apobj = apprise.Apprise()
     apobj.add(f"pover://{pushover_token}@{pushover_key}")
     
-    nudges = config.get('reminders', {}).get('nudges', [14, 7])
-    urgents = config.get('reminders', {}).get('urgents', [3, 1, 0])
-    base_url = config.get('site', {}).get('base_url', 'http://localhost:6161')
+    nudges = config['reminders']['nudges'].get(list)
+    urgents = config['reminders']['urgents'].get(list)
+    base_url = config['site']['base_url'].get(str)
     
     reminders = get_reminder_status()
     notifications_sent = 0
@@ -179,13 +175,12 @@ def send_notifications():
     return notifications_sent
 
 def send_test_notification():
-    config = load_config()
-    
-    if 'pushover' not in config:
+    pushover_config = config['pushover'].get(dict)
+    if not pushover_config:
         return False
     
-    pushover_key = config['pushover'].get('key')
-    pushover_token = config['pushover'].get('token')
+    pushover_key = pushover_config.get('key')
+    pushover_token = pushover_config.get('token')
     
     if not pushover_key or not pushover_token:
         return False
@@ -219,8 +214,7 @@ def start_notification_daemon():
             schedule.run_pending()
             time_module.sleep(60)  # Check every minute
     
-    config = load_config()
-    check_time = config.get('reminders', {}).get('time', '23:55')
+    check_time = config['reminders']['time'].get(str)
     
     # Clear existing jobs first
     schedule.clear()
@@ -249,12 +243,12 @@ def register_routes(app):
     @app.route("/api/reminders/<reminder_id>/touch", methods=["GET", "POST"])
     def api_reminder_touch(reminder_id):
         from flask import jsonify, redirect
-        config = load_config()
-        if 'reminders' not in config or reminder_id not in config['reminders']:
+        reminders_config = config['reminders'].get(dict)
+        if not reminders_config or reminder_id not in reminders_config:
             return jsonify({"error": "reminder not found"}), 404
         
         touch_reminder(reminder_id)
-        reminder_url = config['reminders'][reminder_id].get('url', '/')
+        reminder_url = reminders_config[reminder_id].get('url', '/')
         return redirect(reminder_url)
 
     @app.route("/api/reminders/test-notification", methods=["POST"])

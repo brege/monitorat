@@ -4,3 +4,4 @@ psutil>=5.9.5
 PyYAML>=6.0
 apprise>=1.4.0
 schedule>=1.2.0
+confuse>=2.0.0
