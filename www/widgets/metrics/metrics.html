@@ -1,0 +1,57 @@
+<section class="metrics">
+<h2>System Metrics</h2>
+<style>
+.stats { display: flex; flex-direction: column; gap: 14px; margin: 18px 0 24px; }
+.stats-row { display: grid; gap: 14px; }
+.stats-row.primary { grid-template-columns: repeat(4, 1fr); }
+.stats-row.dates { grid-template-columns: repeat(2, 1fr); }
+.stat { background: #f5f7fb; padding: 14px 16px; border-radius: 8px; }
+.stat.status-ok { background-color: rgba(35, 178, 109, 0.08); border-left: 4px solid #23b26d; }
+.stat.status-caution { background-color: rgba(247, 183, 49, 0.12); border-left: 4px solid #f7b731; }
+.stat.status-critical { background-color: rgba(239, 99, 81, 0.12); border-left: 4px solid #ef6351; }
+.stat .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: #697585; margin-bottom: 6px; display: block; }
+.stat .value { font-size: 1.35rem; font-weight: 600; }
+@media (max-width: 640px) {
+  .stats-row.primary { grid-template-columns: repeat(2, 1fr); }
+  .stats-row.dates { grid-template-columns: 1fr; }
+}
+@media (prefers-color-scheme: dark) {
+  .stat { background: #222733; }
+  .stat.status-ok { background-color: rgba(35, 178, 109, 0.12); border-left: 4px solid #23b26d; }
+  .stat.status-caution { background-color: rgba(247, 183, 49, 0.15); border-left: 4px solid #f7b731; }
+  .stat.status-critical { background-color: rgba(239, 99, 81, 0.15); border-left: 4px solid #ef6351; }
+}
+</style>
+
+<div class="stats">
+  <div class="stats-row primary">
+    <div class="stat">
+      <span class="label">Uptime</span>
+      <span class="value" id="uptime-value">–</span>
+    </div>
+    <div class="stat">
+      <span class="label">Load Average</span>
+      <span class="value" id="load-value">–</span>
+    </div>
+    <div class="stat">
+      <span class="label">Memory Usage</span>
+      <span class="value" id="memory-value">–</span>
+    </div>
+    <div class="stat">
+      <span class="label">Temperature</span>
+      <span class="value" id="temp-value">–</span>
+    </div>
+  </div>
+  <div class="stats-row dates">
+    <div class="stat">
+      <span class="label">Disk Usage</span>
+      <span class="value" id="disk-value">–</span>
+    </div>
+    <div class="stat">
+      <span class="label">NFS Storage</span>
+      <span class="value" id="storage-value">–</span>
+    </div>
+  </div>
+</div>
+</section>
+

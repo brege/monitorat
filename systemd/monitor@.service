@@ -1,0 +1,14 @@
+[Unit]
+Description=%i Monitor
+After=network.target
+
+[Service]
+WorkingDirectory=__project__/www
+ExecStart=__project__/www/.venv/bin/gunicorn -w 1 -b 0.0.0.0:__port__ --timeout 120 monitor:app
+User=__user__
+Group=__group__
+Environment="PATH=__project__/www/.venv/bin"
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

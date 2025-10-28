@@ -1,0 +1,24 @@
+<style>
+.notes { margin-top: 36px; background: #f8fafc; border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(67,79,92,0.08); }
+.notes .markdown-body { background: transparent; padding: 16px 18px; }
+.notes .markdown-body details { margin-bottom: 1em; }
+.notes .markdown-body details summary { cursor: pointer; font-weight: 600; }
+.notes h2 { margin-bottom: 12px; padding: 0; }
+.notes .markdown-body .header-anchor { opacity: 0; text-decoration: none; margin-left: 0.5em; color: #1f7aec; transition: opacity 0.2s ease; }
+.notes .markdown-body h1:hover .header-anchor,
+.notes .markdown-body h2:hover .header-anchor,
+.notes .markdown-body h3:hover .header-anchor,
+.notes .markdown-body h4:hover .header-anchor { opacity: 1; }
+@media (prefers-color-scheme: dark) {
+  .notes { background: #232836; box-shadow: inset 0 0 0 1px rgba(215, 224, 240, 0.06); }
+  .notes .markdown-body { color-scheme: dark; }
+  .notes .markdown-body .header-anchor { color: #2a73d5; }
+}
+</style>
+
+<section class="wiki">
+  <h2>Documentation</h2>
+  <div class="notes">
+    <div id="about-notes" class="markdown-body"></div>
+  </div>
+</section>

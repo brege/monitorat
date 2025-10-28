@@ -1,0 +1,28 @@
+<style>
+.service-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.service-card { background: #f5f7fb; border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 12px; min-height: 80px; }
+.service-card.status-ok { background-color: rgba(35, 178, 109, 0.12); border-left: 4px solid #23b26d; }
+.service-card.status-down { background-color: rgba(239, 99, 81, 0.15); border-left: 4px solid #ef6351; }
+.service-card.status-unknown { background-color: rgba(197, 204, 213, 0.15); border-left: 4px solid #c5ccd5; }
+.service-card.status-never { background-color: rgba(197, 204, 213, 0.15); border-left: 4px solid #c5ccd5; }
+.service-card.status-warning { background-color: rgba(247, 183, 49, 0.12); border-left: 4px solid #f7b731; }
+.service-card.status-expired { background-color: rgba(239, 99, 81, 0.15); border-left: 4px solid #ef6351; }
+.service-icon { width: 32px; height: 32px; object-fit: contain; }
+.service-info { flex: 1; }
+.service-name { font-weight: 600; margin-bottom: 4px; }
+.service-status { font-size: 0.9rem; color: #5c6570; }
+@media (prefers-color-scheme: dark) {
+  .service-card { background: #222733; }
+  .service-card.status-ok { background-color: rgba(35, 178, 109, 0.18); border-left: 4px solid #23b26d; }
+  .service-card.status-down { background-color: rgba(239, 99, 81, 0.2); border-left: 4px solid #ef6351; }
+  .service-card.status-unknown { background-color: rgba(197, 204, 213, 0.12); border-left: 4px solid #c5ccd5; }
+  .service-card.status-never { background-color: rgba(197, 204, 213, 0.12); border-left: 4px solid #c5ccd5; }
+  .service-card.status-warning { background-color: rgba(247, 183, 49, 0.15); border-left: 4px solid #f7b731; }
+  .service-card.status-expired { background-color: rgba(239, 99, 81, 0.2); border-left: 4px solid #ef6351; }
+}
+</style>
+
+<section class="services">
+  <h2>Services</h2>
+  <div id="service-cards" class="service-grid"></div>
+</section>

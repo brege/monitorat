@@ -1,0 +1,25 @@
+# Minimal monitor@ configuration that renders a simple dashboard.
+
+site:
+  name: "monitor@"
+  title: "System Monitor"
+
+paths:
+  data: "data/"                 # relative to webroot (www/)
+  img: "img/"                   # use absolute path for ~/.config/monitor@/img
+  favicon: "img/favicon.ico"
+
+widgets:
+  enabled:                      # provides order and visibility
+    - metrics                   # www/widgets/* for available widgets
+    - wiki
+  metrics:                      # temperature, cpu, memory, disk
+    name: "System Metrics"
+  wiki:                         # load README.md if doc not specified
+    name: "Notes & Links"
+    display: open
+    #doc: /home/__user__/documents/about.md
+
+privacy:                        # toggle, for screenshots
+  mask_ips: true
+  replacements: {}

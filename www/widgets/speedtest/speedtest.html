@@ -1,0 +1,44 @@
+<style>
+.speedtests .gaps-toggle {
+  font-size: 0.85rem;
+  color: #1f7aec;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-weight: 400;
+}
+.speedtests .gaps-toggle:hover {
+  text-decoration: underline;
+}
+</style>
+
+<section class="speedtests">
+  <div class="speedtest-header">
+    <h2>Speedtests</h2>
+    <div class="speedtest-controls">
+      <button type="button" data-speedtest="run">Run Speedtest</button>
+      <span class="muted" data-speedtest="status"></span>
+    </div>
+  </div>
+
+  <div class="speedtest-history">
+    <div class="speedtest-history-header">
+      <h3>History</h3>
+      <button type="button" class="gaps-toggle" data-speedtest="toggle">Show more</button>
+    </div>
+    <p class="muted" data-speedtest="history-status">Loading speedtest history…</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Download (Mbps)</th>
+          <th>Upload (Mbps)</th>
+          <th>Ping (ms)</th>
+          <th>Server</th>
+        </tr>
+      </thead>
+      <tbody data-speedtest="rows"></tbody>
+    </table>
+  </div>
+</section>

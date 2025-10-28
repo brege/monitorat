@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>monitor@</title>
+  <link rel="icon" sizes="32x32" href="favicon.ico">
+  <link rel="stylesheet" href="vendors/github-markdown.min.css">
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; margin: 0; background: #eef1f5; color: #1f242b; position: relative; }
+    main { max-width: 960px; margin: 24px auto 48px; padding: 28px; background: #ffffff; border-radius: 12px; box-shadow: 0 10px 40px rgba(31, 36, 43, 0.08); }
+    #privacy-toggle { position: fixed; top: 16px; right: 16px; width: 40px; height: 40px; padding: 8px; background: #ffffff; border: 1px solid #e1e6ed; border-radius: 50%; cursor: pointer; transition: background 0.2s ease; }
+    #privacy-toggle:hover { background: #f5f7fb; }
+    #privacy-toggle .eye-open { display: block; }
+    #privacy-toggle .eye-closed { display: none; }
+    #privacy-toggle.masked .eye-open { display: none; }
+    #privacy-toggle.masked .eye-closed { display: block; }
+    h1 { margin: 0 0 16px; font-size: 1.9rem; }
+    button { appearance: none; border: none; border-radius: 6px; padding: 10px 18px; font-size: 0.95rem; font-weight: 600; cursor: pointer; background: #1f7aec; color: #ffffff; transition: background 0.2s ease; }
+    button:hover { background: #1762c0; }
+    button:disabled { background: #98b8e5; cursor: not-allowed; }
+    .muted { color: #5c6570; font-size: 0.9rem; }
+    .widget-stack { display: flex; flex-direction: column; gap: 32px; }
+    .speedtests { margin-top: 24px; }
+    .speedtest-header { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+    .speedtest-controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .speedtest-history { margin-top: 16px; }
+    .speedtest-history-header { display: flex; align-items: center; justify-content: space-between; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid #e1e6ed; font-size: 0.9rem; }
+    th { font-weight: 600; color: #434f5c; background: #f5f7fb; }
+    tr:last-child td { border-bottom: none; }
+    @media (prefers-color-scheme: dark) {
+      body { background: #0f1115; color: #eef1f5; }
+      main { background: #1a1d25; box-shadow: none; }
+      th { background: #222733; color: #d2d9e4; }
+      td { border-bottom-color: #2a303c; }
+      .muted { color: #9ba4b3; }
+      button { background: #2a73d5; }
+      button:hover { background: #1f5cb5; }
+      button:disabled { background: #3a4d6c; }
+      #privacy-toggle { background: #1a1d25; border-color: #2a303c; }
+      #privacy-toggle:hover { background: #222733; }
+      #privacy-toggle .eye-open { display: block; }
+      #privacy-toggle .eye-closed { display: none; }
+      #privacy-toggle.masked .eye-open { display: none; }
+      #privacy-toggle.masked .eye-closed { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <button id="privacy-toggle" type="button" onclick="togglePrivacyMask()" title="Toggle privacy mask">
+    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <g class="eye-open">
+        <path d="M 10 50 Q 25 30, 50 30 Q 75 30, 90 50 Q 75 70, 50 70 Q 25 70, 10 50"
+              fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+        <circle cx="50" cy="50" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
+        <circle cx="50" cy="50" r="5" fill="currentColor"/>
+      </g>
+      <g class="eye-closed">
+        <path d="M 10 50 Q 25 30, 50 30 Q 75 30, 90 50 Q 75 70, 50 70 Q 25 70, 10 50"
+              fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+        <line x1="15" y1="75" x2="85" y2="25" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+      </g>
+    </svg>
+  </button>
+  <main>
+    <h1>System Monitor</h1>
+    <div class="widget-stack">
+      <div id="network-widget"></div>
+      <div id="services-widget"></div>
+      <div id="metrics-widget"></div>
+      <div id="speedtest-widget"></div>
+      <div id="reminders-widget"></div>
+      <div id="wiki-widget"></div>
+    </div>
+  </main>
+  <script src="vendors/markdown-it.min.js"></script>
+  <script src="vendors/markdown-it-anchor.min.js"></script>
+  <script src="vendors/markdown-it-toc-done-right.min.js"></script>
+  <script src="widgets/network/network.js"></script>
+  <script src="widgets/services/services.js"></script>
+  <script src="widgets/metrics/metrics.js"></script>
+  <script src="widgets/speedtest/speedtest.js"></script>
+  <script src="widgets/reminders/reminders.js"></script>
+  <script src="widgets/wiki/wiki.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
