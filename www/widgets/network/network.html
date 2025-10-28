@@ -6,29 +6,29 @@
 .network-container .stats-row { display: grid; gap: 14px; }
 .network-container .stats-row.primary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .network-container .stats-row.dates { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.network-container .stat { background: #f5f7fb; padding: 14px 16px; border-radius: 8px; }
-.network-container .stat .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: #697585; margin-bottom: 6px; display: block; }
+.network-container .stat { background: var(--bg-card); padding: 14px 16px; border-radius: 8px; }
+.network-container .stat .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-label); margin-bottom: 6px; display: block; }
 .network-container .stat .value { font-size: 1.35rem; font-weight: 600; }
 .network-container .uptime-overview h2,
 .network-container .gaps h2 { margin: 0 0 12px; font-size: 1.2rem; }
 .network-container .uptime-rows { display: flex; flex-direction: column; gap: 12px; }
-.network-container .uptime-item { padding: 12px 0; border-bottom: 1px solid #e1e6ed; }
+.network-container .uptime-item { padding: 12px 0; border-bottom: 1px solid var(--border-muted); }
 .network-container .uptime-item:last-child { border-bottom: none; }
 .network-container .uptime-row { display: grid; grid-template-columns: 150px 1fr 72px; align-items: center; gap: 18px; }
-.network-container .uptime-label { font-weight: 600; color: #434f5c; }
-.network-container .uptime-value { font-variant-numeric: tabular-nums; text-align: right; font-weight: 600; color: #1f242b; }
+.network-container .uptime-label { font-weight: 600; color: var(--text-heading); }
+.network-container .uptime-value { font-variant-numeric: tabular-nums; text-align: right; font-weight: 600; color: var(--text-primary); }
 .network-container .uptime-pills { display: grid; gap: 4px; align-items: stretch; width: 100%; }
 .network-container .uptime-pill { height: 14px; border-radius: 999px; background: #d0d7de; transition: opacity 0.15s ease; }
-.network-container .uptime-pill.ok { background: #23b26d; }
-.network-container .uptime-pill.warn { background: #f7b731; }
-.network-container .uptime-pill.bad { background: #ef6351; }
-.network-container .uptime-pill.idle { background: #c5ccd5; }
-.network-container .uptime-pill.future { background: #c5ccd5; opacity: 0.45; }
-.network-container .uptime-meta { font-size: 0.8rem; color: #5c6570; margin-top: 6px; margin-left: 150px; display: flex; flex-wrap: wrap; gap: 12px; }
+.network-container .uptime-pill.ok { background: rgb(var(--status-ok-rgb)); }
+.network-container .uptime-pill.warn { background: rgb(var(--status-warn-rgb)); }
+.network-container .uptime-pill.bad { background: rgb(var(--status-critical-rgb)); }
+.network-container .uptime-pill.idle { background: rgba(var(--status-unknown-rgb), 1); }
+.network-container .uptime-pill.future { background: rgba(var(--status-unknown-rgb), 1); opacity: 0.45; }
+.network-container .uptime-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; margin-left: 150px; display: flex; flex-wrap: wrap; gap: 12px; }
 .network-container .uptime-meta span { white-space: nowrap; }
 .network-container .gaps { display: flex; flex-direction: column; gap: 12px; }
 .network-container .gaps-header { display: flex; align-items: center; gap: 12px; }
-.network-container .gaps-toggle { font-size: 0.85rem; color: #1f7aec; background: none; border: none; padding: 0; cursor: pointer; font-weight: 400; }
+.network-container .gaps-toggle { font-size: 0.85rem; color: var(--accent); background: none; border: none; padding: 0; cursor: pointer; font-weight: 400; }
 .network-container .gaps-toggle:hover { text-decoration: underline; }
 .network-container .gap-list { display: flex; flex-direction: column; gap: 10px; }
 .network-container .gap { padding: 12px 14px; background: #fff4d7; border-radius: 8px; border-left: 5px solid #ffaf3f; font-size: 0.95rem; line-height: 1.4; }
@@ -43,14 +43,11 @@
   .network-container .uptime-meta { margin-left: 0; }
 }
 @media (prefers-color-scheme: dark) {
-  .network-container .stat { background: #222733; }
-  .network-container .uptime-item { border-bottom-color: #2a303c; }
-  .network-container .uptime-label { color: #d2d9e4; }
-  .network-container .uptime-value { color: #eef1f5; }
+  .network-container .uptime-item { border-bottom-color: var(--border-muted); }
   .network-container .uptime-pill { background: #394250; }
   .network-container .uptime-pill.idle { background: #323846; }
   .network-container .uptime-pill.future { background: #394250; opacity: 0.45; }
-  .network-container .uptime-meta { color: #9ba4b3; }
+  .network-container .uptime-meta { color: var(--text-muted); }
   .network-container .gap { background: #3a2d16; border-left-color: #ffaf3f; color: #f3edde; }
   .network-container .gap.open { background: #3b1b23; border-left-color: #f2557a; }
   .network-container .gap.ipchange { background: #1a2d23; border-left-color: #23b26d; color: #e6f9f0; }

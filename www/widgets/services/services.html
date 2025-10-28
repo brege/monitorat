@@ -1,25 +1,16 @@
 <style>
 .service-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
-.service-card { background: #f5f7fb; border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 12px; min-height: 80px; }
-.service-card.status-ok { background-color: rgba(35, 178, 109, 0.12); border-left: 4px solid #23b26d; }
-.service-card.status-down { background-color: rgba(239, 99, 81, 0.15); border-left: 4px solid #ef6351; }
-.service-card.status-unknown { background-color: rgba(197, 204, 213, 0.15); border-left: 4px solid #c5ccd5; }
-.service-card.status-never { background-color: rgba(197, 204, 213, 0.15); border-left: 4px solid #c5ccd5; }
-.service-card.status-warning { background-color: rgba(247, 183, 49, 0.12); border-left: 4px solid #f7b731; }
-.service-card.status-expired { background-color: rgba(239, 99, 81, 0.15); border-left: 4px solid #ef6351; }
+.service-card { background: var(--bg-card); border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 12px; min-height: 80px; }
+.service-card.status-ok { background-color: rgba(var(--status-ok-rgb), 0.12); border-left: 4px solid rgb(var(--status-ok-rgb)); }
+.service-card.status-down { background-color: rgba(var(--status-critical-rgb), 0.15); border-left: 4px solid rgb(var(--status-critical-rgb)); }
+.service-card.status-unknown { background-color: rgba(var(--status-unknown-rgb), 0.15); border-left: 4px solid rgb(var(--status-unknown-rgb)); }
+.service-card.status-never { background-color: rgba(var(--status-unknown-rgb), 0.15); border-left: 4px solid rgb(var(--status-unknown-rgb)); }
+.service-card.status-warning { background-color: rgba(var(--status-warn-rgb), 0.12); border-left: 4px solid rgb(var(--status-warn-rgb)); }
+.service-card.status-expired { background-color: rgba(var(--status-critical-rgb), 0.15); border-left: 4px solid rgb(var(--status-critical-rgb)); }
 .service-icon { width: 32px; height: 32px; object-fit: contain; }
 .service-info { flex: 1; }
 .service-name { font-weight: 600; margin-bottom: 4px; }
-.service-status { font-size: 0.9rem; color: #5c6570; }
-@media (prefers-color-scheme: dark) {
-  .service-card { background: #222733; }
-  .service-card.status-ok { background-color: rgba(35, 178, 109, 0.18); border-left: 4px solid #23b26d; }
-  .service-card.status-down { background-color: rgba(239, 99, 81, 0.2); border-left: 4px solid #ef6351; }
-  .service-card.status-unknown { background-color: rgba(197, 204, 213, 0.12); border-left: 4px solid #c5ccd5; }
-  .service-card.status-never { background-color: rgba(197, 204, 213, 0.12); border-left: 4px solid #c5ccd5; }
-  .service-card.status-warning { background-color: rgba(247, 183, 49, 0.15); border-left: 4px solid #f7b731; }
-  .service-card.status-expired { background-color: rgba(239, 99, 81, 0.2); border-left: 4px solid #ef6351; }
-}
+.service-status { font-size: 0.9rem; color: var(--text-muted); }
 </style>
 
 <section class="services">
