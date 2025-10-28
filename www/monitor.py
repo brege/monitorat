@@ -27,7 +27,7 @@ def get_csv_path():
     return get_data_path() / "speedtest.csv"
 
 VENDOR_URLS = {
-    "github-markdown.min.css": "https://cdn.jsdelivr.net/npm/github-markdown-css@4.0.0/github-markdown.min.css",
+    "github-markdown.min.css": "https://cdn.jsdelivr.net/npm/github-markdown-css@5.6.1/github-markdown.min.css",
     "markdown-it.min.js": "https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js",
     "markdown-it-anchor.min.js": "https://cdn.jsdelivr.net/npm/markdown-it-anchor@9/dist/markdownItAnchor.umd.min.js",
     "markdown-it-toc-done-right.min.js": "https://cdn.jsdelivr.net/npm/markdown-it-toc-done-right@4/dist/markdownItTocDoneRight.umd.min.js",
