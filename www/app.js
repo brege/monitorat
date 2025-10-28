@@ -28,7 +28,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const widgetOrder = config.widgets?.enabled || ["network", "services", "metrics", "speedtest", "reminders", "wiki"];
   for (const widgetName of widgetOrder) {
     const widgetConfig = config.widgets?.[widgetName];
-    await initializeWidget(widgetName, widgetConfig);
+    const widgetType = widgetConfig?.type || widgetName;
+    await initializeWidget(widgetName, widgetType, widgetConfig);
   }
 });
 
@@ -45,27 +46,30 @@ async function loadConfig() {
   }
 }
 
-async function initializeWidget(widgetName, config) {
+async function initializeWidget(widgetName, widgetType, config) {
   if (config?.show === false) {
     return;
   }
   
-  const container = document.getElementById(`${widgetName}-widget`);
-  if (!container || !window.widgets || !window.widgets[widgetName]) {
+  let container = document.getElementById(`${widgetName}-widget`);
+  if (!container) {
+    container = createWidgetContainer(widgetName);
+  }
+  if (!window.widgets || !window.widgets[widgetType]) {
     return;
   }
   
   try {
-    const widgetClass = window.widgets[widgetName];
+    const widgetClass = window.widgets[widgetType];
     const widget = new widgetClass(config || {});
     
     // Special handling for different widget init signatures
-    if (widgetName === 'speedtest') {
+    if (widgetType === 'speedtest') {
       await widget.init(container, {
         preview_count: config?.preview ?? config?.min ?? 5,
         history_limit: config?.history_limit ?? 200
       });
-    } else if (widgetName === 'wiki') {
+    } else if (widgetType === 'wiki') {
       await widget.init(container, config || {});
     } else {
       await widget.init(container);
@@ -76,28 +80,35 @@ async function initializeWidget(widgetName, config) {
   }
 }
 
+function createWidgetContainer(widgetName) {
+  const container = document.createElement('div');
+  container.id = `${widgetName}-widget`;
+  document.querySelector('.widget-stack').appendChild(container);
+  return container;
+}
+
 async function initializeNetworkWidget(config) {
-  await initializeWidget('network', config);
+  await initializeWidget('network', 'network', config);
 }
 
 async function initializeServicesWidget(config) {
-  await initializeWidget('services', config);
+  await initializeWidget('services', 'services', config);
 }
 
 async function initializeMetricsWidget(config) {
-  await initializeWidget('metrics', config);
+  await initializeWidget('metrics', 'metrics', config);
 }
 
 async function initializeSpeedtestWidget(config) {
-  await initializeWidget('speedtest', config);
+  await initializeWidget('speedtest', 'speedtest', config);
 }
 
 async function initializeRemindersWidget(config) {
-  await initializeWidget('reminders', config);
+  await initializeWidget('reminders', 'reminders', config);
 }
 
 async function initializeWikiWidget(config) {
-  await initializeWidget('wiki', config);
+  await initializeWidget('wiki', 'wiki', config);
 }
 
 function togglePrivacyMask() {
