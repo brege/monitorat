@@ -1,6 +1,3 @@
-<details open>
-<summary>Toggle boilerplate documentation</summary>
-
 This file, `README.md`, is rendered in the UI and supports full markdown formatting.
 
 <details>

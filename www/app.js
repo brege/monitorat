@@ -85,14 +85,11 @@ async function initializeWidget(widgetName, widgetType, config) {
         _suppressHeader: widgetConfig?._suppressHeader
       });
     } else if (widgetType === 'wiki') {
-      await widget.init(contentContainer, widgetConfig || {});
+      await widget.init(contentContainer, { ...widgetConfig, _widgetName: widgetName });
     } else {
       await widget.init(contentContainer, widgetConfig || {});
     }
     
-    if (config?.collapsible !== true) {
-      addHeaderAnchors(container, widgetName);
-    }
   } catch (error) {
     const widgetDisplayName = config?.name || widgetName;
     container.innerHTML = `<p class="muted">Unable to load ${widgetDisplayName}: ${error.message}</p>`;
@@ -109,13 +106,11 @@ function createWidgetContainer(widgetName) {
 function setupCollapsibleWidget(container, widgetName, config) {
   const widgetTitle = config?.name || widgetName;
   const isHidden = config?.hidden === true;
-  const anchorId = widgetName.toLowerCase().replace(/[^a-z0-9]/g, '-');
   
   container.innerHTML = `
     <div class="widget-header">
-      <h2 class="widget-title" id="${anchorId}">
+      <h2 class="widget-title">
         ${widgetTitle}
-        <a href="#${anchorId}" class="header-anchor" aria-hidden="true">#</a>
       </h2>
       <button type="button" class="widget-toggle" onclick="toggleWidget('${widgetName}')">
         ${isHidden ? 'Show' : 'Hide'}
@@ -138,25 +133,6 @@ function toggleWidget(widgetName) {
   toggle.textContent = isHidden ? 'Hide' : 'Show';
 }
 
-function addHeaderAnchors(container, widgetName) {
-  const headers = container.querySelectorAll('h1, h2, h3, h4, h5, h6');
-  headers.forEach((header, index) => {
-    const headerText = header.textContent || header.innerText || '';
-    const cleanText = headerText.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
-    const anchorId = cleanText ? `${widgetName}-${cleanText}` : `${widgetName}-header-${index}`;
-  
-    header.id = anchorId;
-  
-    const anchor = document.createElement('a');
-    anchor.href = `#${anchorId}`;
-    anchor.className = 'header-anchor';
-    anchor.setAttribute('aria-hidden', 'true');
-    anchor.textContent = '#';
-  
-    header.style.position = 'relative';
-    header.appendChild(anchor);
-  });
-}
 
 async function initializeNetworkWidget(config) {
   await initializeWidget('network', 'network', config);

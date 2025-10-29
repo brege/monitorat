@@ -75,12 +75,21 @@ def readme():
 
 @app.route("/api/wiki/doc")
 def wiki_doc():
-    doc_path = config['widgets']['wiki']['doc'].get(str)
-    if not doc_path:
-        return send_from_directory(BASE, "README.md")
+    from flask import request, jsonify
     
-    doc_file = Path(doc_path)
-    return send_from_directory(doc_file.parent, doc_file.name)
+    try:
+        widget_name = request.args.get('widget', 'wiki')
+        
+        widget_config = config['widgets'][widget_name].get(dict)
+        doc_path = widget_config.get('doc')
+        
+        if not doc_path:
+            return send_from_directory(BASE, "README.md")
+        
+        doc_file = Path(doc_path)
+        return send_from_directory(doc_file.parent, doc_file.name)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/api/speedtest/run", methods=["POST"])
 def speedtest_run():

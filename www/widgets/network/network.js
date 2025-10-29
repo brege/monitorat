@@ -272,7 +272,8 @@ class NetworkWidget {
       if (gap.type !== 'outage') {
         return true;
       }
-      return gap.missedChecks >= this.config.gaps.cadenceChecks;
+      const threshold = this.config.gaps.cadenceChecks || 0;
+      return gap.missedChecks >= threshold;
     });
 
     if (!filtered.length) {
@@ -285,7 +286,7 @@ class NetworkWidget {
     }
 
     const reversed = [...filtered].reverse();
-    const maxVisible = this.state.gapsExpanded ? reversed.length : Math.min(this.config.gaps.maxVisible, reversed.length);
+    const maxVisible = this.state.gapsExpanded ? reversed.length : Math.min(this.config.gaps.maxVisible || 3, reversed.length);
     reversed.slice(0, maxVisible).forEach((gap) => {
       const item = document.createElement('div');
       if (gap.type === 'ipchange') {
@@ -305,11 +306,12 @@ class NetworkWidget {
     });
 
     if (toggle) {
-      if (filtered.length <= this.config.gaps.maxVisible) {
+      const maxVisible = this.config.gaps.maxVisible || 3;
+      if (filtered.length <= maxVisible) {
         toggle.style.display = 'none';
       } else {
         toggle.style.display = '';
-        const remaining = filtered.length - (this.config.gaps.maxVisible || 3);
+        const remaining = filtered.length - maxVisible;
         toggle.textContent = this.state.gapsExpanded ? 'Show less' : `Show ${remaining} more`;
       }
     }
