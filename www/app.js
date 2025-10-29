@@ -79,11 +79,7 @@ async function initializeWidget(widgetName, widgetType, config) {
       : config;
  
     if (widgetType === 'speedtest') {
-      await widget.init(contentContainer, {
-        preview_count: widgetConfig?.preview ?? widgetConfig?.min ?? 5,
-        history_limit: widgetConfig?.history_limit ?? 200,
-        _suppressHeader: widgetConfig?._suppressHeader
-      });
+      await widget.init(contentContainer, widgetConfig);
     } else if (widgetType === 'wiki') {
       await widget.init(contentContainer, { ...widgetConfig, _widgetName: widgetName });
     } else {

@@ -3,12 +3,21 @@ class SpeedtestWidget {
     this.container = null;
     this.widgetConfig = widgetConfig;
     this.config = {
-      previewCount: 5,
-      historyLimit: 200
+      default: 'chart',
+      table: {
+        min: 5,
+        max: 200
+      },
+      chart: {
+        height: '400px',
+        days: 30
+      }
     };
     this.elements = {};
     this.entries = [];
     this.expanded = false;
+    this.chart = null;
+    this.currentView = null;
   }
 
   async init(container, config = {}) {
@@ -16,9 +25,16 @@ class SpeedtestWidget {
     const preview = Number(config.preview ?? config.preview_count ?? config.min);
     const historyLimit = Number(config.history_limit ?? config.historyLimit);
     this.config = {
-      previewCount: Number.isFinite(preview) && preview > 0 ? preview : 5,
-      historyLimit: Number.isFinite(historyLimit) && historyLimit > 0 ? historyLimit : 200,
-      _suppressHeader: config._suppressHeader
+      _suppressHeader: config._suppressHeader,
+      default: config.default || 'chart',
+      table: {
+        min: config.table?.min || 5,
+        max: config.table?.max || 200
+      },
+      chart: {
+        height: config.chart?.height || '400px',
+        days: config.chart?.days || 30
+      }
     };
 
     const response = await fetch('widgets/speedtest/speedtest.html');
@@ -41,7 +57,13 @@ class SpeedtestWidget {
       status: container.querySelector('[data-speedtest="status"]'),
       historyStatus: container.querySelector('[data-speedtest="history-status"]'),
       rows: container.querySelector('[data-speedtest="rows"]'),
-      toggle: container.querySelector('[data-speedtest="toggle"]')
+      toggle: container.querySelector('[data-speedtest="toggle"]'),
+      viewToggle: container.querySelector('[data-speedtest="view-toggle"]'),
+      viewChart: container.querySelector('[data-speedtest="view-chart"]'),
+      viewTable: container.querySelector('[data-speedtest="view-table"]'),
+      chartContainer: container.querySelector('[data-speedtest="chart-container"]'),
+      chartCanvas: container.querySelector('[data-speedtest="chart"]'),
+      tableContainer: container.querySelector('[data-speedtest="table-container"]')
     };
 
     if (this.elements.run) {
@@ -50,7 +72,14 @@ class SpeedtestWidget {
     if (this.elements.toggle) {
       this.elements.toggle.addEventListener('click', () => this.toggleHistory());
     }
+    if (this.elements.viewChart) {
+      this.elements.viewChart.addEventListener('click', () => this.setView('chart'));
+    }
+    if (this.elements.viewTable) {
+      this.elements.viewTable.addEventListener('click', () => this.setView('table'));
+    }
 
+    this.setupChart();
     await this.loadHistory();
   }
 
@@ -77,6 +106,9 @@ class SpeedtestWidget {
     } finally {
       if (button) button.disabled = false;
       await this.loadHistory();
+      if (this.chart) {
+        await this.loadChart();
+      }
     }
   }
 
@@ -91,7 +123,7 @@ class SpeedtestWidget {
 
     try {
       const params = new URLSearchParams();
-      params.set('limit', this.config.historyLimit);
+      params.set('limit', this.config.table.max);
       params.set('ts', Date.now());
 
       const response = await fetch(`api/speedtest/history?${params.toString()}`, { cache: 'no-store' });
@@ -101,6 +133,9 @@ class SpeedtestWidget {
       const payload = await response.json();
       this.entries = payload.entries || [];
       this.renderHistory();
+      if (this.chart) {
+        await this.loadChart();
+      }
     } catch (error) {
       this.elements.historyStatus.textContent = `Unable to load speedtests: ${error.message}`;
     }
@@ -119,7 +154,7 @@ class SpeedtestWidget {
       return;
     }
 
-    const previewCount = Math.max(1, this.config.previewCount || 5);
+    const previewCount = Math.max(1, this.config.table.min);
     const showCount = this.expanded ? this.entries.length : Math.min(previewCount, this.entries.length);
     const latest = this.entries.slice(0, showCount);
 
@@ -151,6 +186,8 @@ class SpeedtestWidget {
         toggle.textContent = this.expanded ? 'Show less' : `Show ${remaining} more`;
       }
     }
+
+    this.updateViewToggle();
   }
 
   toggleHistory() {
@@ -182,6 +219,120 @@ class SpeedtestWidget {
     if (!Number.isFinite(num)) return '–';
     const text = num.toFixed(1);
     return text.endsWith('.0') ? text.slice(0, -2) : text;
+  }
+
+  setupChart() {
+    if (!this.elements.chartCanvas) return;
+
+    if (!window.Chart) {
+      const script = document.createElement('script');
+      script.src = 'vendors/chart.min.js';
+      script.onload = () => this.initChart();
+      document.head.appendChild(script);
+    } else {
+      this.initChart();
+    }
+  }
+
+  initChart() {
+    if (!this.elements.chartCanvas || !window.Chart) return;
+
+    // Set container height from config
+    const height = parseInt(this.config.chart.height);
+    this.elements.chartContainer.style.height = `${height}px`;
+    this.elements.chartContainer.style.position = 'relative';
+
+    const ctx = this.elements.chartCanvas.getContext('2d');
+    this.chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: []
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          intersect: false,
+          mode: 'index'
+        },
+        scales: {
+          speed: {
+            type: 'linear',
+            position: 'left',
+            title: {
+              display: true,
+              text: 'Speed (Mbps)'
+            }
+          },
+          ping: {
+            type: 'linear',
+            position: 'right',
+            title: {
+              display: true,
+              text: 'Ping (ms)'
+            },
+            grid: {
+              drawOnChartArea: false
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            position: 'top'
+          }
+        }
+      }
+    });
+    this.loadChart();
+  }
+
+  async loadChart() {
+    if (!this.chart) return;
+
+    try {
+      const params = new URLSearchParams();
+      params.set('days', this.config.chart.days);
+      params.set('ts', Date.now());
+
+      const response = await fetch(`api/speedtest/chart?${params.toString()}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      
+      const chartData = await response.json();
+      this.chart.data = chartData;
+      this.chart.update();
+    } catch (error) {
+      console.error('Failed to load chart data:', error);
+    }
+  }
+
+  setView(view) {
+    this.currentView = view;
+    
+    if (view === 'chart') {
+      this.elements.chartContainer.style.display = '';
+      this.elements.tableContainer.style.display = 'none';
+      this.elements.viewChart.classList.add('active');
+      this.elements.viewTable.classList.remove('active');
+    } else {
+      this.elements.chartContainer.style.display = 'none';
+      this.elements.tableContainer.style.display = '';
+      this.elements.viewChart.classList.remove('active');
+      this.elements.viewTable.classList.add('active');
+    }
+  }
+
+  updateViewToggle() {
+    if (!this.elements.viewToggle) return;
+
+    if (this.entries.length > 0) {
+      this.elements.viewToggle.style.display = '';
+      if (!this.currentView) {
+        this.setView(this.config.default);
+      }
+    } else {
+      this.elements.viewToggle.style.display = 'none';
+    }
   }
 }
 

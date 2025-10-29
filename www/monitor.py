@@ -35,6 +35,7 @@ VENDOR_URLS = {
     "markdown-it.min.js": "https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js",
     "markdown-it-anchor.min.js": "https://cdn.jsdelivr.net/npm/markdown-it-anchor@9/dist/markdownItAnchor.umd.min.js",
     "markdown-it-toc-done-right.min.js": "https://cdn.jsdelivr.net/npm/markdown-it-toc-done-right@4/dist/markdownItTocDoneRight.umd.min.js",
+    "chart.min.js": "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js",
 }
 
 def ensure_vendors():
@@ -47,6 +48,13 @@ def ensure_vendors():
             print(f"Downloaded {filename}")
 
 ensure_vendors()
+
+# Register widget blueprints
+try:
+    from widgets.speedtest.api import api as speedtest_api
+    app.register_blueprint(speedtest_api, url_prefix='/api/speedtest')
+except ImportError:
+    pass
 
 def load_config():
     return config
@@ -91,78 +99,7 @@ def wiki_doc():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/api/speedtest/run", methods=["POST"])
-def speedtest_run():
-    csv_path = get_csv_path()
-    if not csv_path.exists():
-        csv_path.write_text("timestamp,download,upload,ping,server\n")
-
-    try:
-        proc = run([SPEEDTEST, "--json"], stdout=PIPE, stderr=PIPE, text=True, timeout=100)
-    except TimeoutExpired:
-        return jsonify(success=False, error="Speedtest timed out after 100 seconds"), 500
-
-    if proc.returncode:
-        return jsonify(success=False, error=proc.stderr.strip() or "speedtest-cli failed"), 500
-
-    data = proc.stdout.strip()
-    if data:
-        try:
-            parsed = loads(data)
-            line = "{},{},{},{},{}\n".format(
-                parsed["timestamp"],
-                parsed["download"],
-                parsed["upload"],
-                parsed["ping"],
-                parsed["server"]["sponsor"].replace(",", " ")
-            )
-            with csv_path.open("a") as f:
-                f.write(line)
-            return jsonify(
-                success=True,
-                timestamp=parsed["timestamp"],
-                download=parsed["download"],
-                upload=parsed["upload"],
-                ping=parsed["ping"],
-                server=parsed["server"].get("sponsor")
-            )
-        except Exception as e:
-            return jsonify(success=False, error=str(e)), 500
-
-    return jsonify(success=False, error="No data returned"), 500
-
-
-@app.route("/api/speedtest/history", methods=["GET"])
-def speedtest_history():
-    limit = request.args.get("limit", default=200, type=int)
-    limit = max(1, min(limit or 200, 1000))
-
-    csv_path = get_csv_path()
-    if not csv_path.exists():
-        return jsonify(entries=[])
-
-    try:
-        with csv_path.open("r") as f:
-            lines = [line.strip() for line in f.readlines()[1:] if line.strip()]
-
-        recent = lines[-limit:]
-        entries = []
-        for row in reversed(recent):
-            parts = row.split(",", 4)
-            if len(parts) < 5:
-                continue
-            timestamp, download, upload, ping, server = parts
-            entries.append({
-                "timestamp": timestamp,
-                "download": download,
-                "upload": upload,
-                "ping": ping,
-                "server": server
-            })
-
-        return jsonify(entries=entries)
-    except Exception as exc:
-        return jsonify(error=str(exc)), 500
+# Speedtest endpoints moved to widgets/speedtest/api.py
 
 
 @app.route("/api/config", methods=["GET"])

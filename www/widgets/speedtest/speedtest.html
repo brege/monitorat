@@ -11,6 +11,37 @@
 .speedtests .gaps-toggle:hover {
   text-decoration: underline;
 }
+.speedtest-chart {
+  margin: 1rem 0;
+  overflow: hidden;
+}
+.speedtest-chart canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+.speedtest-view-toggle {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+.speedtest-view-toggle button {
+  font-size: 0.85rem;
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  font-weight: 400;
+  border-radius: 4px;
+}
+.speedtest-view-toggle button:hover {
+  background-color: var(--accent-bg);
+}
+.speedtest-view-toggle button.active {
+  background-color: var(--accent);
+  color: white;
+}
 </style>
 
 <section class="speedtests">
@@ -26,18 +57,30 @@
       <h3>History</h3>
       <button type="button" class="gaps-toggle" data-speedtest="toggle">Show more</button>
     </div>
-    <p class="muted" data-speedtest="history-status">Loading speedtest history…</p>
-    <table>
-      <thead>
-        <tr>
-          <th>Timestamp</th>
-          <th>Download (Mbps)</th>
-          <th>Upload (Mbps)</th>
-          <th>Ping (ms)</th>
-          <th>Server</th>
-        </tr>
-      </thead>
-      <tbody data-speedtest="rows"></tbody>
-    </table>
+    
+    <div class="speedtest-view-toggle" data-speedtest="view-toggle" style="display: none;">
+      <button type="button" data-speedtest="view-chart">Chart</button>
+      <button type="button" data-speedtest="view-table">Table</button>
+    </div>
+    
+    <div class="speedtest-chart" data-speedtest="chart-container" style="display: none;">
+      <canvas data-speedtest="chart"></canvas>
+    </div>
+    
+    <div data-speedtest="table-container" style="display: none;">
+      <p class="muted" data-speedtest="history-status">Loading speedtest history…</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Download (Mbps)</th>
+            <th>Upload (Mbps)</th>
+            <th>Ping (ms)</th>
+            <th>Server</th>
+          </tr>
+        </thead>
+        <tbody data-speedtest="rows"></tbody>
+      </table>
+    </div>
   </div>
 </section>
