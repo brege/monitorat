@@ -24,13 +24,13 @@ widgets:
     enabled: false              # disabled by default
     collapsible: true
     hidden: false
-    preview_count: 5            # number of recent tests to show in table
-    history_limit: 200          # max tests to load
+    default: "chart"            # default view: "chart" or "table"
+    table:
+      min: 5                    # minimum rows to show
+      max: 200                  # maximum rows to load
     chart:
-      enabled: true             # show chart visualization
-      days: 30                  # number of days to display
-      upload_scale: 1.0         # scale factor for upload speed display
-      show_table: true          # show table alongside chart
+      height: "400px"           # fixed chart height
+      days: 30                  # number of days to display (-1 for all)
   wiki:                         # load README.md if doc not specified
     name: "Notes & Links"
     enabled: true

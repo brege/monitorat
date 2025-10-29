@@ -3,20 +3,21 @@ class SpeedtestWidget {
     this.container = null;
     this.widgetConfig = widgetConfig;
     this.config = {
-      previewCount: 5,
-      historyLimit: 200,
+      default: 'chart',
+      table: {
+        min: 5,
+        max: 200
+      },
       chart: {
-        enabled: true,
-        days: 30,
-        upload_scale: 1.0,
-        show_table: true
+        height: '400px',
+        days: 30
       }
     };
     this.elements = {};
     this.entries = [];
     this.expanded = false;
     this.chart = null;
-    this.currentView = 'chart';
+    this.currentView = null;
   }
 
   async init(container, config = {}) {
@@ -24,14 +25,15 @@ class SpeedtestWidget {
     const preview = Number(config.preview ?? config.preview_count ?? config.min);
     const historyLimit = Number(config.history_limit ?? config.historyLimit);
     this.config = {
-      previewCount: Number.isFinite(preview) && preview > 0 ? preview : 5,
-      historyLimit: Number.isFinite(historyLimit) && historyLimit > 0 ? historyLimit : 200,
       _suppressHeader: config._suppressHeader,
+      default: config.default || 'chart',
+      table: {
+        min: config.table?.min || 5,
+        max: config.table?.max || 200
+      },
       chart: {
-        enabled: config.chart?.enabled !== false,
-        days: config.chart?.days || 30,
-        upload_scale: config.chart?.upload_scale || 1.0,
-        show_table: config.chart?.show_table !== false
+        height: config.chart?.height || '400px',
+        days: config.chart?.days || 30
       }
     };
 
@@ -104,7 +106,7 @@ class SpeedtestWidget {
     } finally {
       if (button) button.disabled = false;
       await this.loadHistory();
-      if (this.config.chart.enabled && this.chart) {
+      if (this.chart) {
         await this.loadChart();
       }
     }
@@ -121,7 +123,7 @@ class SpeedtestWidget {
 
     try {
       const params = new URLSearchParams();
-      params.set('limit', this.config.historyLimit);
+      params.set('limit', this.config.table.max);
       params.set('ts', Date.now());
 
       const response = await fetch(`api/speedtest/history?${params.toString()}`, { cache: 'no-store' });
@@ -131,7 +133,7 @@ class SpeedtestWidget {
       const payload = await response.json();
       this.entries = payload.entries || [];
       this.renderHistory();
-      if (this.config.chart.enabled && this.chart) {
+      if (this.chart) {
         await this.loadChart();
       }
     } catch (error) {
@@ -152,7 +154,7 @@ class SpeedtestWidget {
       return;
     }
 
-    const previewCount = Math.max(1, this.config.previewCount || 5);
+    const previewCount = Math.max(1, this.config.table.min);
     const showCount = this.expanded ? this.entries.length : Math.min(previewCount, this.entries.length);
     const latest = this.entries.slice(0, showCount);
 
@@ -220,38 +222,21 @@ class SpeedtestWidget {
   }
 
   setupChart() {
-    if (!this.config.chart.enabled || !this.elements.chartCanvas) {
-      console.log('Chart setup skipped:', { enabled: this.config.chart.enabled, canvas: !!this.elements.chartCanvas });
-      return;
-    }
+    if (!this.elements.chartCanvas) return;
 
-    console.log('Setting up chart...');
-    // Load Chart.js if not already loaded
     if (!window.Chart) {
-      console.log('Loading Chart.js...');
       const script = document.createElement('script');
       script.src = 'vendors/chart.min.js';
-      script.onload = () => {
-        console.log('Chart.js loaded, initializing chart...');
-        this.initChart();
-      };
-      script.onerror = () => {
-        console.error('Failed to load Chart.js');
-      };
+      script.onload = () => this.initChart();
       document.head.appendChild(script);
     } else {
-      console.log('Chart.js already loaded, initializing chart...');
       this.initChart();
     }
   }
 
   initChart() {
-    if (!this.elements.chartCanvas || !window.Chart) {
-      console.log('Chart init failed:', { canvas: !!this.elements.chartCanvas, Chart: !!window.Chart });
-      return;
-    }
+    if (!this.elements.chartCanvas || !window.Chart) return;
 
-    console.log('Initializing chart with canvas:', this.elements.chartCanvas);
     const ctx = this.elements.chartCanvas.getContext('2d');
     this.chart = new Chart(ctx, {
       type: 'line',
@@ -295,42 +280,23 @@ class SpeedtestWidget {
         }
       }
     });
-    console.log('Chart initialized:', this.chart);
-    
-    // Load chart data now that chart is ready
     this.loadChart();
   }
 
   async loadChart() {
-    if (!this.config.chart.enabled || !this.chart) {
-      console.log('Chart not enabled or not initialized:', { enabled: this.config.chart.enabled, chart: !!this.chart });
-      return;
-    }
+    if (!this.chart) return;
 
     try {
       const params = new URLSearchParams();
       params.set('days', this.config.chart.days);
       params.set('ts', Date.now());
 
-      console.log('Loading chart data with params:', params.toString());
       const response = await fetch(`api/speedtest/chart?${params.toString()}`, { cache: 'no-store' });
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      
       const chartData = await response.json();
-      console.log('Chart data received:', chartData);
-
-      // Apply upload scaling
-      if (this.config.chart.upload_scale !== 1.0) {
-        const uploadDataset = chartData.datasets.find(d => d.label.includes('Upload'));
-        if (uploadDataset) {
-          uploadDataset.data = uploadDataset.data.map(val => val * this.config.chart.upload_scale);
-        }
-      }
-
       this.chart.data = chartData;
       this.chart.update();
-      console.log('Chart updated with data');
     } catch (error) {
       console.error('Failed to load chart data:', error);
     }
@@ -353,19 +319,12 @@ class SpeedtestWidget {
   }
 
   updateViewToggle() {
-    if (!this.config.chart.enabled || !this.elements.viewToggle) {
-      return;
-    }
+    if (!this.elements.viewToggle) return;
 
     if (this.entries.length > 0) {
       this.elements.viewToggle.style.display = '';
-      
-      // Set initial view based on config
-      if (this.config.chart.show_table && this.currentView === 'chart') {
-        this.setView('chart');
-      } else if (!this.config.chart.show_table) {
-        this.setView('chart');
-        this.elements.viewTable.style.display = 'none';
+      if (!this.currentView) {
+        this.setView(this.config.default);
       }
     } else {
       this.elements.viewToggle.style.display = 'none';
