@@ -84,9 +84,9 @@ def get_reminder_status():
         orange_min, orange_max = 0, 14
     
     results = []
-    # Skip config keys (nudges, urgents, time) and only process reminder items
+    # Skip config keys (nudges, urgents, time, pushover) and only process reminder items
     for reminder_id, reminder_config in reminders_config.items():
-        if reminder_id in ['nudges', 'urgents', 'time']:
+        if reminder_id in ['nudges', 'urgents', 'time', 'pushover']:
             continue
         last_touch = data.get(reminder_id)
         if last_touch:
