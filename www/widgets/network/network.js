@@ -92,6 +92,13 @@ class NetworkWidget {
         this.renderGaps();
       });
     }
+    
+    if (this.elements.logStatus) {
+      this.elements.logStatus.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.downloadLog();
+      });
+    }
   }
 
   async loadLog() {
@@ -123,6 +130,15 @@ class NetworkWidget {
       this.renderUptime();
       this.renderGaps();
     }
+  }
+
+  downloadLog() {
+    const link = document.createElement('a');
+    link.href = `data/porkbun.log?${Date.now()}`;
+    link.download = 'porkbun.log';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   updateSummary() {

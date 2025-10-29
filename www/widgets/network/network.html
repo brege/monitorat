@@ -1,7 +1,15 @@
 <section class="network">
-<h2>Network Monitoring</h2>
+<div class="network-header">
+  <h2>Network Monitoring</h2>
+  <a href="#" class="log-download" data-network="log-status">Loading log…</a>
+</div>
+
 <style>
-.network-container { margin-top: 16px; display: flex; flex-direction: column; gap: 24px; }
+.network-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.network-header h2 { margin: 0; }
+.log-download { font-size: 0.85rem; color: var(--accent); text-decoration: none; cursor: pointer; }
+.log-download:hover { text-decoration: underline; }
+.network-container { display: flex; flex-direction: column; gap: 24px; }
 .network-container .stats { display: flex; flex-direction: column; gap: 14px; margin: 0; }
 .network-container .stats-row { display: grid; gap: 14px; }
 .network-container .stats-row.primary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -55,7 +63,6 @@
 </style>
 
 <section class="network-container">
-  <p class="muted" data-network="log-status">Loading log…</p>
 
   <div class="stats" data-network-section="metrics">
     <div class="stats-row primary">
