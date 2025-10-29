@@ -105,8 +105,19 @@ class NetworkWidget {
     setText(this.elements.logStatus, 'Loading log…');
     this.state.gapsExpanded = false;
 
+    if (!this.config.log_file) {
+      setText(this.elements.logStatus, 'No log file configured.');
+      this.state.entries = [];
+      this.state.analysis = analyzeEntries([], this.enabledWindows);
+      this.updateSummary();
+      this.renderUptime();
+      this.renderGaps();
+      return;
+    }
+
     try {
-      const response = await fetch(`data/porkbun.log?${Date.now()}`, { cache: 'no-store' });
+      const logFilename = this.config.log_file.split('/').pop();
+      const response = await fetch(`data/${logFilename}?${Date.now()}`, { cache: 'no-store' });
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -133,9 +144,13 @@ class NetworkWidget {
   }
 
   downloadLog() {
+    if (!this.config.log_file) {
+      return;
+    }
+    const logFilename = this.config.log_file.split('/').pop();
     const link = document.createElement('a');
-    link.href = `data/porkbun.log?${Date.now()}`;
-    link.download = 'porkbun.log';
+    link.href = `data/${logFilename}?${Date.now()}`;
+    link.download = logFilename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -215,6 +215,11 @@ def img_files(filename):
         # Relative to WWW
         return send_from_directory(WWW / img_dir, filename)
 
+@app.route("/docs/<path:filename>")
+def docs_files(filename):
+    # Serve files from docs/ directory at project root
+    return send_from_directory(BASE / "docs", filename)
+
 @app.route("/<path:filename>")
 def static_files(filename):
     return send_from_directory(WWW, filename)
