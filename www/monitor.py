@@ -35,6 +35,7 @@ VENDOR_URLS = {
     "markdown-it.min.js": "https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js",
     "markdown-it-anchor.min.js": "https://cdn.jsdelivr.net/npm/markdown-it-anchor@9/dist/markdownItAnchor.umd.min.js",
     "markdown-it-toc-done-right.min.js": "https://cdn.jsdelivr.net/npm/markdown-it-toc-done-right@4/dist/markdownItTocDoneRight.umd.min.js",
+    "chart.min.js": "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js",
 }
 
 def ensure_vendors():
@@ -161,6 +162,104 @@ def speedtest_history():
             })
 
         return jsonify(entries=entries)
+    except Exception as exc:
+        return jsonify(error=str(exc)), 500
+
+
+@app.route("/api/speedtest/chart", methods=["GET"])
+def speedtest_chart():
+    from datetime import datetime, timedelta
+    
+    days = request.args.get("days", default=30, type=int)
+    if days == -1:
+        # -1 means show all data
+        days = None
+    else:
+        days = max(1, min(days or 30, 365))
+    
+    csv_path = get_csv_path()
+    if not csv_path.exists():
+        return jsonify(labels=[], datasets=[])
+
+    try:
+        with csv_path.open("r") as f:
+            lines = [line.strip() for line in f.readlines()[1:] if line.strip()]
+
+        # Filter by date range
+        if days is not None:
+            cutoff_date = datetime.now() - timedelta(days=days)
+        else:
+            cutoff_date = None
+        
+        labels = []
+        download_data = []
+        upload_data = []
+        ping_data = []
+        
+        for row in lines:
+            parts = row.split(",", 4)
+            if len(parts) < 5:
+                continue
+            timestamp, download, upload, ping, server = parts
+            
+            try:
+                # Parse timestamp and filter by date range
+                from datetime import timezone
+                if timestamp.endswith('Z'):
+                    # Remove Z and parse as UTC
+                    dt = datetime.fromisoformat(timestamp[:-1]).replace(tzinfo=timezone.utc)
+                else:
+                    dt = datetime.fromisoformat(timestamp)
+                
+                # Convert to local time for comparison
+                if dt.tzinfo:
+                    dt = dt.replace(tzinfo=None)
+                    
+                if cutoff_date is not None and dt < cutoff_date:
+                    continue
+                    
+                # Convert to Mbps
+                download_mbps = float(download) / 1_000_000
+                upload_mbps = float(upload) / 1_000_000
+                ping_ms = float(ping)
+                
+                labels.append(dt.strftime('%m/%d %H:%M'))
+                download_data.append(round(download_mbps, 2))
+                upload_data.append(round(upload_mbps, 2))
+                ping_data.append(round(ping_ms, 1))
+                
+            except (ValueError, TypeError):
+                continue
+
+        return jsonify({
+            "labels": labels,
+            "datasets": [
+                {
+                    "label": "Download (Mbps)",
+                    "data": download_data,
+                    "borderColor": "#3b82f6",
+                    "backgroundColor": "rgba(59, 130, 246, 0.1)",
+                    "tension": 0.1,
+                    "yAxisID": "speed"
+                },
+                {
+                    "label": "Upload (Mbps)", 
+                    "data": upload_data,
+                    "borderColor": "#ef4444",
+                    "backgroundColor": "rgba(239, 68, 68, 0.1)",
+                    "tension": 0.1,
+                    "yAxisID": "speed"
+                },
+                {
+                    "label": "Ping (ms)",
+                    "data": ping_data,
+                    "borderColor": "#10b981",
+                    "backgroundColor": "rgba(16, 185, 129, 0.1)",
+                    "tension": 0.1,
+                    "yAxisID": "ping"
+                }
+            ]
+        })
     except Exception as exc:
         return jsonify(error=str(exc)), 500
 
