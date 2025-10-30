@@ -1,4 +1,4 @@
-This file, `README.md`, is rendered in the UI and supports full markdown formatting.
+This file is **monitor@**'s `README`.  It's a useful reference when editing your own wiki/markdown files render by monitor@, as it has good coverage with markdown-it features.
 
 <details>
 <summary>Contents<br></summary>

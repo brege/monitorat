@@ -115,7 +115,7 @@ function setupCollapsibleWidget(container, widgetName, config) {
       <h2 class="widget-title">
         ${widgetTitle}
       </h2>
-      <button type="button" class="widget-toggle" onclick="toggleWidget('${widgetName}')">
+      <button type="button" class="gaps-toggle" onclick="toggleWidget('${widgetName}')">
         ${isHidden ? 'Show' : 'Hide'}
       </button>
     </div>
@@ -128,7 +128,7 @@ function toggleWidget(widgetName) {
   if (!container) return;
   
   const content = container.querySelector('.widget-content');
-  const toggle = container.querySelector('.widget-toggle');
+  const toggle = container.querySelector('.gaps-toggle');
   if (!content || !toggle) return;
   
   const isHidden = content.style.display === 'none';
