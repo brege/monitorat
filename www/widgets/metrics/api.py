@@ -103,11 +103,24 @@ def get_system_metrics():
                 temp = max(temps) if temps else 0
             elif 'cpu_thermal' in sensors:
                 temp = sensors['cpu_thermal'][0].current
+            elif 'k10temp' in sensors:
+                temps = [s.current for s in sensors['k10temp']]
+                temp = max(temps) if temps else 0
+            else:
+                # fallback: first available sensor group with plausible temps
+                for entries in sensors.values():
+                    for s in entries:
+                        if 10 < s.current < 120:
+                            temp = s.current
+                            break
+                    if temp:
+                        break
+
             temp_str = f"{temp:.1f}°C"
-        except:
+        except Exception:
             temp = 0
             temp_str = "Unknown"
-        
+
         # Disk usage
         disk = psutil.disk_usage('/')
         disk_str = f"{disk.used / (1024**3):.1f}GB / {disk.total / (1024**3):.1f}GB ({disk.percent:.0f}%)"
