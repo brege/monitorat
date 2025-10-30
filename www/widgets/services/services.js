@@ -104,15 +104,14 @@ class ServicesWidget {
       card.appendChild(icon);
       card.appendChild(info);
       
-      // Add click handler to toggle between local and remote URLs
       card.addEventListener('click', (event) => {
         let url;
         if (event.shiftKey) {
-          // Shift+click: use remote URL
-          url = service.url;
-        } else {
-          // Primary click: use local URL, fallback to remote
+          // Shift+click
           url = service.local || service.url;
+        } else {
+          // Primary click
+          url = service.url;
         }
         if (url) {
           window.open(url, '_blank');
@@ -174,7 +173,10 @@ class ServicesWidget {
         statusTextElement.className = 'service-status';
         statusTextElement.textContent = overallStatus === 'ok' ? 'Running' : 
                                         overallStatus === 'down' ? 'Stopped' : 'Unknown';
-        statusTextElement.title = statusParts.join('\n'); // Hover tooltip with details
+        // Combine status details with click behavior
+        const service = this.servicesConfig.services[key];
+        const clickTip = `Click: ${service.url}\nCtrl+Shift+Click: ${service.local || service.url}`;
+        statusTextElement.title = statusParts.join('\n') + '\n\n' + clickTip;
       }
     });
   }
