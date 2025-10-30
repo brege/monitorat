@@ -6,11 +6,18 @@ const privacyState = {
   config: null
 };
 
+const THEME_STORAGE_KEY = 'monitor-theme';
+const THEME_LIGHT = 'light';
+const THEME_DARK = 'dark';
+
 document.addEventListener('DOMContentLoaded', async () => {
+  initializeThemeToggle();
+  syncPrivacyToggleState();
+
   const config = await loadConfig();
-  
+
   privacyState.config = config.privacy;
-  
+
   if (config.site?.name) {
     document.title = config.site.name;
   }
@@ -129,6 +136,78 @@ function toggleWidget(widgetName) {
   toggle.textContent = isHidden ? 'Hide' : 'Show';
 }
 
+function getStoredTheme() {
+  try {
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === THEME_DARK || stored === THEME_LIGHT) {
+      return stored;
+    }
+  } catch (_) {
+    /* localStorage may be unavailable */
+  }
+  return null;
+}
+
+function hasStoredTheme() {
+  return getStoredTheme() !== null;
+}
+
+function getPreferredTheme() {
+  const storedTheme = getStoredTheme();
+  if (storedTheme) {
+    return storedTheme;
+  }
+
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    return THEME_DARK;
+  }
+  return THEME_LIGHT;
+}
+
+function applyTheme(theme) {
+  const resolvedTheme = theme === THEME_DARK ? THEME_DARK : THEME_LIGHT;
+  const root = document.documentElement;
+  root.setAttribute('data-theme', resolvedTheme);
+  root.dataset.theme = resolvedTheme;
+
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    themeToggle.dataset.theme = resolvedTheme;
+    themeToggle.setAttribute('aria-pressed', resolvedTheme === THEME_DARK ? 'true' : 'false');
+  }
+}
+
+function initializeThemeToggle() {
+  applyTheme(getPreferredTheme());
+
+  if (!window.matchMedia) {
+    return;
+  }
+
+  const darkSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  const handleSchemeChange = (event) => {
+    if (!hasStoredTheme()) {
+      applyTheme(event.matches ? THEME_DARK : THEME_LIGHT);
+    }
+  };
+
+  if (typeof darkSchemeQuery.addEventListener === 'function') {
+    darkSchemeQuery.addEventListener('change', handleSchemeChange);
+  } else if (typeof darkSchemeQuery.addListener === 'function') {
+    darkSchemeQuery.addListener(handleSchemeChange);
+  }
+}
+
+function syncPrivacyToggleState(button) {
+  const toggle = button || document.getElementById('privacy-toggle');
+  if (!toggle) {
+    return;
+  }
+
+  toggle.dataset.privacy = privacyState.masked ? 'masked' : 'revealed';
+  toggle.setAttribute('aria-pressed', privacyState.masked ? 'true' : 'false');
+}
+
 
 async function initializeNetworkWidget(config) {
   await initializeWidget('network', 'network', config);
@@ -160,9 +239,9 @@ function togglePrivacyMask() {
     return;
   }
 
-  const wasMasked = button.classList.contains('masked');
-  button.classList.toggle('masked');
-  privacyState.masked = !wasMasked;
+  const wasMasked = privacyState.masked;
+  privacyState.masked = !privacyState.masked;
+  syncPrivacyToggleState(button);
 
   const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   const nodes = [];
@@ -196,4 +275,17 @@ function togglePrivacyMask() {
 
     textNode.textContent = text;
   });
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || getPreferredTheme();
+  const nextTheme = currentTheme === THEME_DARK ? THEME_LIGHT : THEME_DARK;
+
+  applyTheme(nextTheme);
+
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+  } catch (_) {
+    /* localStorage may be unavailable */
+  }
 }

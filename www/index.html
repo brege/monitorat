@@ -6,108 +6,453 @@
   <title>monitor@</title>
   <link rel="icon" sizes="32x32" href="favicon.ico">
   <link rel="stylesheet" href="vendors/github-markdown.min.css">
+  <script>
+    (function () {
+      try {
+        const storedTheme = localStorage.getItem('monitor-theme');
+        if (storedTheme === 'dark' || storedTheme === 'light') {
+          document.documentElement.setAttribute('data-theme', storedTheme);
+        }
+      } catch (_) {
+        /* localStorage may be unavailable */
+      }
+    })();
+  </script>
   <style>
     :root {
-      color-scheme: light dark;
-      --bg-body: #eef1f5;
-      --bg-surface: #ffffff;
-      --bg-card: #f5f7fb;
-      --bg-notes: #f8fafc;
-      --border-muted: #e1e6ed;
-      --shadow-strong: 0 10px 40px rgba(31, 36, 43, 0.08);
-      --text-primary: #1f242b;
-      --text-muted: #5c6570;
-      --text-label: #697585;
-      --text-heading: #434f5c;
-      --accent: #1f7aec;
-      --accent-hover: #1762c0;
-      --accent-disabled: #98b8e5;
-      --toggle-bg: #ffffff;
-      --toggle-border: #e1e6ed;
-      --toggle-hover: #f5f7fb;
+      --theme-bg-body-light: #eef1f5;
+      --theme-bg-surface-light: #ffffff;
+      --theme-bg-card-light: #f5f7fb;
+      --theme-bg-notes-light: #f8fafc;
+      --theme-border-muted-light: #e1e6ed;
+      --theme-shadow-strong-light: 0 10px 40px rgba(31, 36, 43, 0.08);
+      --theme-text-primary-light: #1f242b;
+      --theme-text-muted-light: #5c6570;
+      --theme-text-label-light: #697585;
+      --theme-text-heading-light: #434f5c;
+      --theme-accent-light: #1f7aec;
+      --theme-accent-hover-light: #1762c0;
+      --theme-accent-disabled-light: #98b8e5;
+      --theme-toggle-bg-light: #ffffff;
+      --theme-toggle-border-light: #e1e6ed;
+      --theme-toggle-hover-light: #f5f7fb;
+
+      --theme-bg-body-dark: #0f1115;
+      --theme-bg-surface-dark: #1a1d25;
+      --theme-bg-card-dark: #222733;
+      --theme-bg-notes-dark: #232836;
+      --theme-border-muted-dark: #2a303c;
+      --theme-shadow-strong-dark: none;
+      --theme-text-primary-dark: #eef1f5;
+      --theme-text-muted-dark: #9ba4b3;
+      --theme-text-label-dark: #9ba4b3;
+      --theme-text-heading-dark: #d2d9e4;
+      --theme-accent-dark: #2a73d5;
+      --theme-accent-hover-dark: #1f5cb5;
+      --theme-accent-disabled-dark: #3a4d6c;
+      --theme-toggle-bg-dark: #1a1d25;
+      --theme-toggle-border-dark: #2a303c;
+      --theme-toggle-hover-dark: #222733;
+
+      --theme-icon-privacy-on-light: var(--theme-accent-light);
+      --theme-icon-privacy-off-light: var(--theme-text-muted-light);
+      --theme-icon-privacy-on-dark: var(--theme-accent-dark);
+      --theme-icon-privacy-off-dark: var(--theme-text-muted-dark);
+      --theme-icon-sun-light: #f59e0b;
+      --theme-icon-moon-light: #3f83f8;
+      --theme-icon-sun-dark: #fbbf24;
+      --theme-icon-moon-dark: #93c5fd;
+
       --status-ok-rgb: 35, 178, 109;
       --status-warn-rgb: 247, 183, 49;
       --status-critical-rgb: 239, 99, 81;
       --status-unknown-rgb: 197, 204, 213;
+
+      --bg-body: var(--theme-bg-body-light);
+      --bg-surface: var(--theme-bg-surface-light);
+      --bg-card: var(--theme-bg-card-light);
+      --bg-notes: var(--theme-bg-notes-light);
+      --border-muted: var(--theme-border-muted-light);
+      --shadow-strong: var(--theme-shadow-strong-light);
+      --text-primary: var(--theme-text-primary-light);
+      --text-muted: var(--theme-text-muted-light);
+      --text-label: var(--theme-text-label-light);
+      --text-heading: var(--theme-text-heading-light);
+      --accent: var(--theme-accent-light);
+      --accent-hover: var(--theme-accent-hover-light);
+      --accent-disabled: var(--theme-accent-disabled-light);
+      --toggle-bg: var(--theme-toggle-bg-light);
+      --toggle-border: var(--theme-toggle-border-light);
+      --toggle-hover: var(--theme-toggle-hover-light);
+      --icon-privacy-on: var(--theme-icon-privacy-on-light);
+      --icon-privacy-off: var(--theme-icon-privacy-off-light);
+      --icon-theme-sun: var(--theme-icon-sun-light);
+      --icon-theme-moon: var(--theme-icon-moon-light);
+    }
+
+    :root[data-theme="dark"] {
+      --bg-body: var(--theme-bg-body-dark);
+      --bg-surface: var(--theme-bg-surface-dark);
+      --bg-card: var(--theme-bg-card-dark);
+      --bg-notes: var(--theme-bg-notes-dark);
+      --border-muted: var(--theme-border-muted-dark);
+      --shadow-strong: var(--theme-shadow-strong-dark);
+      --text-primary: var(--theme-text-primary-dark);
+      --text-muted: var(--theme-text-muted-dark);
+      --text-label: var(--theme-text-label-dark);
+      --text-heading: var(--theme-text-heading-dark);
+      --accent: var(--theme-accent-dark);
+      --accent-hover: var(--theme-accent-hover-dark);
+      --accent-disabled: var(--theme-accent-disabled-dark);
+      --toggle-bg: var(--theme-toggle-bg-dark);
+      --toggle-border: var(--theme-toggle-border-dark);
+      --toggle-hover: var(--theme-toggle-hover-dark);
+      --icon-privacy-on: var(--theme-icon-privacy-on-dark);
+      --icon-privacy-off: var(--theme-icon-privacy-off-dark);
+      --icon-theme-sun: var(--theme-icon-sun-dark);
+      --icon-theme-moon: var(--theme-icon-moon-dark);
     }
 
     @media (prefers-color-scheme: dark) {
-      :root {
-        --bg-body: #0f1115;
-        --bg-surface: #1a1d25;
-        --bg-card: #222733;
-        --bg-notes: #232836;
-        --border-muted: #2a303c;
-        --shadow-strong: none;
-        --text-primary: #eef1f5;
-        --text-muted: #9ba4b3;
-        --text-label: #9ba4b3;
-        --text-heading: #d2d9e4;
-        --accent: #2a73d5;
-        --accent-hover: #1f5cb5;
-        --accent-disabled: #3a4d6c;
-        --toggle-bg: #1a1d25;
-        --toggle-border: #2a303c;
-        --toggle-hover: #222733;
+      :root:not([data-theme="light"]) {
+        --bg-body: var(--theme-bg-body-dark);
+        --bg-surface: var(--theme-bg-surface-dark);
+        --bg-card: var(--theme-bg-card-dark);
+        --bg-notes: var(--theme-bg-notes-dark);
+        --border-muted: var(--theme-border-muted-dark);
+        --shadow-strong: var(--theme-shadow-strong-dark);
+        --text-primary: var(--theme-text-primary-dark);
+        --text-muted: var(--theme-text-muted-dark);
+        --text-label: var(--theme-text-label-dark);
+        --text-heading: var(--theme-text-heading-dark);
+        --accent: var(--theme-accent-dark);
+        --accent-hover: var(--theme-accent-hover-dark);
+        --accent-disabled: var(--theme-accent-disabled-dark);
+        --toggle-bg: var(--theme-toggle-bg-dark);
+        --toggle-border: var(--theme-toggle-border-dark);
+        --toggle-hover: var(--theme-toggle-hover-dark);
+        --icon-privacy-on: var(--theme-icon-privacy-on-dark);
+        --icon-privacy-off: var(--theme-icon-privacy-off-dark);
+        --icon-theme-sun: var(--theme-icon-sun-dark);
+        --icon-theme-moon: var(--theme-icon-moon-dark);
       }
     }
 
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; margin: 0; background: var(--bg-body); color: var(--text-primary); position: relative; }
-    main { max-width: 960px; margin: 24px auto 48px; padding: 28px; background: var(--bg-surface); border-radius: 12px; box-shadow: var(--shadow-strong); }
-    #privacy-toggle { position: fixed; top: 16px; right: 16px; width: 40px; height: 40px; padding: 8px; background: var(--toggle-bg); border: 1px solid var(--toggle-border); border-radius: 50%; cursor: pointer; transition: background 0.2s ease; }
-    #privacy-toggle:hover { background: var(--toggle-hover); }
-    #privacy-toggle .eye-open { display: block; }
-    #privacy-toggle .eye-closed { display: none; }
-    #privacy-toggle.masked .eye-open { display: none; }
-    #privacy-toggle.masked .eye-closed { display: block; }
-    h1 { margin: 0 0 16px; font-size: 1.9rem; color: var(--text-heading); }
-    button { appearance: none; border: none; border-radius: 6px; padding: 10px 18px; font-size: 0.95rem; font-weight: 600; cursor: pointer; background: var(--accent); color: #ffffff; transition: background 0.2s ease; }
-    button:hover { background: var(--accent-hover); }
-    button:disabled { background: var(--accent-disabled); cursor: not-allowed; }
-    .muted { color: var(--text-muted); font-size: 0.9rem; }
-    .widget-stack { display: flex; flex-direction: column; gap: 32px; }
-    .widget-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .widget-title { margin: 0; font-size: 1.4rem; color: var(--text-heading); }
-    .header-anchor { opacity: 0; text-decoration: none; margin-left: 0.5em; color: var(--accent); transition: opacity 0.2s ease; }
-    h1:hover .header-anchor, h2:hover .header-anchor, h3:hover .header-anchor, h4:hover .header-anchor, h5:hover .header-anchor, h6:hover .header-anchor { opacity: 1; }
-    .widget-toggle { background: none; border: none; color: var(--accent); font-size: 0.9rem; cursor: pointer; padding: 4px 8px; }
-    .widget-toggle:hover { color: var(--accent-hover); text-decoration: underline; }
-    .speedtests { margin-top: 24px; }
-    .speedtest-header { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
-    .speedtest-controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-    .speedtest-history { margin-top: 16px; }
-    .speedtest-history-header { display: flex; align-items: center; justify-content: space-between; }
-    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-    th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--border-muted); font-size: 0.9rem; }
-    th { font-weight: 600; color: var(--text-heading); background: var(--bg-card); }
-    tr:last-child td { border-bottom: none; }
-    @media (prefers-color-scheme: dark) {
-      #privacy-toggle .eye-open { display: block; }
-      #privacy-toggle .eye-closed { display: none; }
-      #privacy-toggle.masked .eye-open { display: none; }
-      #privacy-toggle.masked .eye-closed { display: block; }
+    :root[data-theme="dark"] .markdown-body {
+      color-scheme: dark;
+      --focus-outlineColor: #1f6feb;
+      --fgColor-default: #e6edf3;
+      --fgColor-muted: #8d96a0;
+      --fgColor-accent: #4493f8;
+      --fgColor-success: #3fb950;
+      --fgColor-attention: #d29922;
+      --fgColor-danger: #f85149;
+      --fgColor-done: #ab7df8;
+      --bgColor-default: #0d1117;
+      --bgColor-muted: #161b22;
+      --bgColor-neutral-muted: #6e768166;
+      --bgColor-attention-muted: #bb800926;
+      --borderColor-default: #30363d;
+      --borderColor-muted: #30363db3;
+      --borderColor-neutral-muted: #6e768166;
+      --borderColor-accent-emphasis: #1f6feb;
+      --borderColor-success-emphasis: #238636;
+      --borderColor-attention-emphasis: #9e6a03;
+      --borderColor-danger-emphasis: #da3633;
+      --borderColor-done-emphasis: #8957e5;
+    }
+
+    :root[data-theme="light"] .markdown-body,
+    :root:not([data-theme]) .markdown-body {
+      color-scheme: light;
+      --focus-outlineColor: #0969da;
+      --fgColor-default: #1f2328;
+      --fgColor-muted: #636c76;
+      --fgColor-accent: #0969da;
+      --fgColor-success: #1a7f37;
+      --fgColor-attention: #9a6700;
+      --fgColor-danger: #d1242f;
+      --fgColor-done: #8250df;
+      --bgColor-default: #ffffff;
+      --bgColor-muted: #f6f8fa;
+      --bgColor-neutral-muted: #afb8c133;
+      --bgColor-attention-muted: #fff8c5;
+      --borderColor-default: #d0d7de;
+      --borderColor-muted: #d0d7deb3;
+      --borderColor-neutral-muted: #afb8c133;
+      --borderColor-accent-emphasis: #0969da;
+      --borderColor-success-emphasis: #1a7f37;
+      --borderColor-attention-emphasis: #bf8700;
+      --borderColor-danger-emphasis: #cf222e;
+      --borderColor-done-emphasis: #8250df;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--bg-body);
+      color: var(--text-primary);
+      position: relative;
+    }
+
+    main {
+      max-width: 960px;
+      margin: 24px auto 48px;
+      padding: 28px;
+      background: var(--bg-surface);
+      border-radius: 12px;
+      box-shadow: var(--shadow-strong);
+    }
+
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .control-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      padding: 4px;
+      background: var(--toggle-bg);
+      border: 1px solid var(--toggle-border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .control-btn:hover {
+      background: var(--toggle-hover);
+    }
+
+    .control-btn svg {
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    #theme-toggle {
+      color: var(--icon-theme-sun);
+    }
+
+    #theme-toggle[data-theme="dark"] {
+      color: var(--icon-theme-moon);
+    }
+
+    #theme-toggle svg {
+      display: none;
+    }
+
+    #theme-toggle[data-theme="dark"] .icon-moon {
+      display: block;
+    }
+
+    #theme-toggle[data-theme="light"] .icon-sun,
+    #theme-toggle:not([data-theme]) .icon-sun {
+      display: block;
+    }
+
+    #privacy-toggle {
+      color: var(--icon-privacy-off);
+    }
+
+    #privacy-toggle[data-privacy="masked"] {
+      color: var(--icon-privacy-on);
+    }
+
+    #privacy-toggle .icon-eye-off {
+      display: none;
+    }
+
+    #privacy-toggle[data-privacy="masked"] .icon-eye-open {
+      display: none;
+    }
+
+    #privacy-toggle[data-privacy="masked"] .icon-eye-off {
+      display: block;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.9rem;
+      color: var(--text-heading);
+    }
+
+    button {
+      appearance: none;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--accent);
+      color: #ffffff;
+      transition: background 0.2s ease;
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+    }
+
+    button:disabled {
+      background: var(--accent-disabled);
+      cursor: not-allowed;
+    }
+
+    .muted {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .widget-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .widget-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .widget-title {
+      margin: 0;
+      font-size: 1.4rem;
+      color: var(--text-heading);
+    }
+
+    .header-anchor {
+      margin-left: 0.5em;
+      color: var(--accent);
+      opacity: 0;
+      text-decoration: none;
+      transition: opacity 0.2s ease;
+    }
+
+    h1:hover .header-anchor,
+    h2:hover .header-anchor,
+    h3:hover .header-anchor,
+    h4:hover .header-anchor,
+    h5:hover .header-anchor,
+    h6:hover .header-anchor {
+      opacity: 1;
+    }
+
+    .widget-toggle {
+      padding: 4px 8px;
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .widget-toggle:hover {
+      color: var(--accent-hover);
+      text-decoration: underline;
+    }
+
+    .speedtests {
+      margin-top: 24px;
+    }
+
+    .speedtest-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .speedtest-controls {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .speedtest-history {
+      margin-top: 16px;
+    }
+
+    .speedtest-history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 12px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 9px 8px;
+      font-size: 0.9rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-muted);
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--text-heading);
+      background: var(--bg-card);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
     }
   </style>
 </head>
 <body>
-  <button id="privacy-toggle" type="button" onclick="togglePrivacyMask()" title="Toggle privacy mask">
-    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <g class="eye-open">
-        <path d="M 10 50 Q 25 30, 50 30 Q 75 30, 90 50 Q 75 70, 50 70 Q 25 70, 10 50"
-              fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
-        <circle cx="50" cy="50" r="10" fill="none" stroke="currentColor" stroke-width="3"/>
-        <circle cx="50" cy="50" r="5" fill="currentColor"/>
-      </g>
-      <g class="eye-closed">
-        <path d="M 10 50 Q 25 30, 50 30 Q 75 30, 90 50 Q 75 70, 50 70 Q 25 70, 10 50"
-              fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
-        <line x1="15" y1="75" x2="85" y2="25" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-      </g>
-    </svg>
-  </button>
   <main>
-    <h1>System Monitor</h1>
+    <div class="header-row">
+      <h1>System Monitor</h1>
+      <div class="controls">
+        <button id="theme-toggle" class="control-btn" type="button" onclick="toggleTheme()" title="Toggle theme" aria-pressed="false" data-theme="light">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="23" />
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+            <line x1="1" y1="12" x2="3" y2="12" />
+            <line x1="21" y1="12" x2="23" y2="12" />
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+          </svg>
+        </button>
+        <button id="privacy-toggle" class="control-btn" type="button" onclick="togglePrivacyMask()" title="Toggle privacy mask" aria-pressed="false" data-privacy="revealed">
+          <svg class="icon-eye-open" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M6.30147 15.5771C4.77832 14.2684 3.6904 12.7726 3.18002 12C3.6904 11.2274 4.77832 9.73158 6.30147 8.42294C7.87402 7.07185 9.81574 6 12 6C14.1843 6 16.1261 7.07185 17.6986 8.42294C19.2218 9.73158 20.3097 11.2274 20.8201 12C20.3097 12.7726 19.2218 14.2684 17.6986 15.5771C16.1261 16.9282 14.1843 18 12 18C9.81574 18 7.87402 16.9282 6.30147 15.5771ZM12 4C9.14754 4 6.75717 5.39462 4.99812 6.90595C3.23268 8.42276 2.00757 10.1376 1.46387 10.9698C1.05306 11.5985 1.05306 12.4015 1.46387 13.0302C2.00757 13.8624 3.23268 15.5772 4.99812 17.0941C6.75717 18.6054 9.14754 20 12 20C14.8525 20 17.2429 18.6054 19.002 17.0941C20.7674 15.5772 21.9925 13.8624 22.5362 13.0302C22.947 12.4015 22.947 11.5985 22.5362 10.9698C21.9925 10.1376 20.7674 8.42276 19.002 6.90595C17.2429 5.39462 14.8525 4 12 4ZM10 12C10 10.8954 10.8955 10 12 10C13.1046 10 14 10.8954 14 12C14 13.1046 13.1046 14 12 14C10.8955 14 10 13.1046 10 12ZM12 8C9.7909 8 8.00004 9.79086 8.00004 12C8.00004 14.2091 9.7909 16 12 16C14.2092 16 16 14.2091 16 12C16 9.79086 14.2092 8 12 8Z" />
+          </svg>
+          <svg class="icon-eye-off" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M19.7071 5.70711C20.0976 5.31658 20.0976 4.68342 19.7071 4.29289C19.3166 3.90237 18.6834 3.90237 18.2929 4.29289L14.032 8.55382C13.4365 8.20193 12.7418 8 12 8C9.79086 8 8 9.79086 8 12C8 12.7418 8.20193 13.4365 8.55382 14.032L4.29289 18.2929C3.90237 18.6834 3.90237 19.3166 4.29289 19.7071C4.68342 20.0976 5.31658 20.0976 5.70711 19.7071L9.96803 15.4462C10.5635 15.7981 11.2582 16 12 16C14.2091 16 16 14.2091 16 12C16 11.2582 15.7981 10.5635 15.4462 9.96803L19.7071 5.70711ZM12.518 10.0677C12.3528 10.0236 12.1792 10 12 10C10.8954 10 10 10.8954 10 12C10 12.1792 10.0236 12.3528 10.0677 12.518L12.518 10.0677ZM11.482 13.9323L13.9323 11.482C13.9764 11.6472 14 11.8208 14 12C14 13.1046 13.1046 14 12 14C11.8208 14 11.6472 13.9764 11.482 13.9323ZM15.7651 4.8207C14.6287 4.32049 13.3675 4 12 4C9.14754 4 6.75717 5.39462 4.99812 6.90595C3.23268 8.42276 2.00757 10.1376 1.46387 10.9698C1.05306 11.5985 1.05306 12.4015 1.46387 13.0302C1.92276 13.7326 2.86706 15.0637 4.21194 16.3739L5.62626 14.9596C4.4555 13.8229 3.61144 12.6531 3.18002 12C3.6904 11.2274 4.77832 9.73158 6.30147 8.42294C7.87402 7.07185 9.81574 6 12 6C12.7719 6 13.5135 6.13385 14.2193 6.36658L15.7651 4.8207ZM12 18C11.2282 18 10.4866 17.8661 9.78083 17.6334L8.23496 19.1793C9.37136 19.6795 10.6326 20 12 20C14.8525 20 17.2429 18.6054 19.002 17.0941C20.7674 15.5772 21.9925 13.8624 22.5362 13.0302C22.947 12.4015 22.947 11.5985 22.5362 10.9698C22.0773 10.2674 21.133 8.93627 19.7881 7.62611L18.3738 9.04043C19.5446 10.1771 20.3887 11.3469 20.8201 12C20.3097 12.7726 19.2218 14.2684 17.6986 15.5771C16.1261 16.9282 14.1843 18 12 18Z" />
+          </svg>
+        </button>
+      </div>
+    </div>
     <div class="widget-stack">
       <!-- Widgets are dynamically created based on config -->
     </div>
