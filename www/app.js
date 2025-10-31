@@ -28,19 +28,21 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
   
-  // Initialize widgets in configured order
+  // Initialize widgets in configured order (in parallel)
   const widgetOrder = config.widgets?.enabled || ["network", "services", "metrics", "speedtest", "reminders", "wiki"];
-  for (const widgetName of widgetOrder) {
-    const widgetConfig = config.widgets?.[widgetName];
-    
-    // Skip disabled widgets but keep their placeholder in ordering
-    if (widgetConfig?.enabled === false) {
-      continue;
-    }
- 
-    const widgetType = widgetConfig?.type || widgetName;
-    await initializeWidget(widgetName, widgetType, widgetConfig);
-  }
+  await Promise.all(
+    widgetOrder.map(async (widgetName) => {
+      const widgetConfig = config.widgets?.[widgetName];
+
+      // Skip disabled widgets but keep their placeholder in ordering
+      if (widgetConfig?.enabled === false) {
+        return;
+      }
+
+      const widgetType = widgetConfig?.type || widgetName;
+      return initializeWidget(widgetName, widgetType, widgetConfig);
+    })
+  );
 });
 
 async function loadConfig() {
