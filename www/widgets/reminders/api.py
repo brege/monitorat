@@ -9,9 +9,28 @@ import time as time_module
 import confuse
 from datetime import datetime, timedelta
 from pathlib import Path
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import sys
 sys.path.append(str(Path(__file__).parent.parent))
 from monitor import config
+
+def add_priority_to_url(url, priority):
+    """Add priority parameter to apprise URL"""
+    parsed = urlparse(url)
+    query_params = parse_qs(parsed.query)
+    
+    # Map numeric priority to pushover priority values
+    priority_map = {
+        -1: '-1',  # low
+        0: '0',    # normal  
+        1: '1',    # high
+    }
+    
+    query_params['priority'] = [priority_map.get(priority, '0')]
+    
+    new_query = urlencode(query_params, doseq=True)
+    return urlunparse((parsed.scheme, parsed.netloc, parsed.path, 
+                      parsed.params, new_query, parsed.fragment))
 
 BASE = Path(__file__).parent.parent.parent.parent
 
@@ -85,9 +104,9 @@ def get_reminder_status():
         orange_min, orange_max = 0, 14
     
     results = []
-    # Skip config keys (nudges, urgents, time, pushover, apprise_urls) and only process reminder items
+    # Skip config keys (nudges, urgents, time, apprise_urls) and only process reminder items
     for reminder_id, reminder_config in reminders_config.items():
-        if reminder_id in ['nudges', 'urgents', 'time', 'pushover', 'apprise_urls']:
+        if reminder_id in ['nudges', 'urgents', 'time', 'apprise_urls']:
             continue
         last_touch = data.get(reminder_id)
         if last_touch:
@@ -95,9 +114,9 @@ def get_reminder_status():
             days_since = (datetime.now() - last_touch_dt).days
         else:
             days_since = None
-        
+
         expiry_days = reminder_config.get('expiry_days', 90)
-        
+
         if days_since is None:
             status = 'never'
             days_remaining = None
@@ -109,7 +128,7 @@ def get_reminder_status():
                 status = 'warning'
             else:
                 status = 'ok'
-        
+
         results.append({
             'id': reminder_id,
             'name': reminder_config.get('name', reminder_id),
@@ -121,54 +140,39 @@ def get_reminder_status():
             'days_remaining': days_remaining,
             'status': status
         })
-    
+ 
     return results
 
 def send_notifications():
     reminders_config = config['reminders'].get(dict)
     if not reminders_config:
         return False
-    
-    apobj = apprise.Apprise()
-    
-    # Support apprise URLs directly
-    apprise_urls = reminders_config.get('apprise_urls', [])
-    if apprise_urls:
-        for url in apprise_urls:
-            apobj.add(url)
-    
-    # Support legacy pushover config for backward compatibility
-    pushover_config = reminders_config.get('pushover')
-    if pushover_config:
-        pushover_key = pushover_config.get('key')
-        pushover_token = pushover_config.get('token')
-        if pushover_key and pushover_token:
-            apobj.add(f"pover://{pushover_key}@{pushover_token}")
-    
+  
     # Check if we have any notification services configured
-    if len(apobj) == 0:
+    apprise_urls = reminders_config.get('apprise_urls', [])
+    if not apprise_urls:
         return False
-    
+ 
     nudges = config['reminders']['nudges'].get(list)
     urgents = config['reminders']['urgents'].get(list)
     base_url = config['site']['base_url'].get(str)
     
     reminders = get_reminder_status()
     notifications_sent = 0
-    
+
     for reminder in reminders:
         days_remaining = reminder.get('days_remaining')
         if days_remaining is None:
             continue
-            
+
         is_nudge = days_remaining in nudges
         is_urgent = days_remaining in urgents
-        
+
         if is_urgent or is_nudge:
             if days_remaining <= 0:
                 title = f"{reminder['name']} - EXPIRED"
                 body = f"Your reminder expired {abs(days_remaining)} days ago"
-                priority = 1  # urgent
+                priority = 1  # high priority for all overdue items
             elif is_urgent:
                 title = f"{reminder['name']} - {days_remaining} days left"
                 body = f"Login expires in {days_remaining} days"
@@ -177,43 +181,56 @@ def send_notifications():
                 title = f"{reminder['name']} - {days_remaining} days remaining"
                 body = f"Friendly reminder: reminder expires in {days_remaining} days"
                 priority = 0  # normal
-            
+
             body += f"\n\nTouch to refresh: {base_url}/api/reminders/{reminder['id']}/touch"
+
+            print(f"  Sending notification for {reminder['name']}: {days_remaining} days remaining (priority: {priority})")
             
-            print(f"  Sending notification for {reminder['name']}: {days_remaining} days remaining")
-            apobj.notify(title=title, body=body)
-            notifications_sent += 1
+            # Create priority-aware apprise object for this notification
+            priority_apobj = apprise.Apprise()
+
+            # Add apprise URLs with priority
+            apprise_urls = reminders_config.get('apprise_urls', [])
+            if apprise_urls:
+                for url in apprise_urls:
+                    priority_url = add_priority_to_url(url, priority)
+                    priority_apobj.add(priority_url)
+
+            if len(priority_apobj) > 0:
+                priority_apobj.notify(title=title, body=body)
+                notifications_sent += 1
     
     return notifications_sent
 
-def send_test_notification():
+def send_test_notification(priority=0):
+    """Send test notification with optional priority level
+    
+    Args:
+        priority (int): Priority level (-1=low, 0=normal, 1=high)
+    """
     reminders_config = config['reminders'].get(dict)
     if not reminders_config:
         return False
     
     apobj = apprise.Apprise()
     
-    # Support apprise URLs directly
+    # Support apprise URLs with priority
     apprise_urls = reminders_config.get('apprise_urls', [])
     if apprise_urls:
         for url in apprise_urls:
-            apobj.add(url)
-    
-    # Support legacy pushover config for backward compatibility
-    pushover_config = reminders_config.get('pushover')
-    if pushover_config:
-        pushover_key = pushover_config.get('key')
-        pushover_token = pushover_config.get('token')
-        if pushover_key and pushover_token:
-            apobj.add(f"pover://{pushover_key}@{pushover_token}")
+            priority_url = add_priority_to_url(url, priority)
+            apobj.add(priority_url)
     
     # Check if we have any notification services configured
     if len(apobj) == 0:
         return False
     
+    priority_names = {-1: "Low", 0: "Normal", 1: "High"}
+    priority_name = priority_names.get(priority, "Unknown")
+    
     return apobj.notify(
-        title="beehiver reminder Test",
-        body="Bzzz.. Test notification from beehinver"
+        title=f"monitor@ reminder Test ({priority_name} Priority)",
+        body=f"Bzzz.. Test notification from monitor@ with {priority_name.lower()} priority level"
     )
 
 def scheduled_notification_check():
