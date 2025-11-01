@@ -151,9 +151,12 @@ reminders:
   urgents: [ 3, 1, 0 ]   # days before expiry to send urgent notifications  
   time: "21:00"          # daily check time (24h format)
   
-  pushover:              # push notifications via Pushover (general apprise URL's pending)
-    key: abcdefghijklmnopqrstuvwxyz1234
-    token: abcdefghijklmnopqrstuvwxyz1234
+  apprise_urls:          # push notifications in apprise format
+    # pushover
+    - "pover://abscdefghijklmnopqrstuvwxyz1234@4321zyxwvutsrqponmlkjihgfedcba"
+    # fastmail
+    - "mailto://1234 5678 9a1b 0c1d@sent.com?user=main@fastmail.com&to=alias@sent.com"
+    # see: https://github.com/caronc/apprise/wiki/Notifications
 
   beets:
     name: "Beets"
@@ -169,7 +172,7 @@ reminders:
     expiry_days: 365
     reason: "Change your GitHub SSH key once a year"
 
-  gmail:
+  Google Mail:
     name: "Gmail Trashcan"
     url: "https://mail.google.com/"
     icon: gmail.png
@@ -216,7 +219,7 @@ services:
     local: "http://my-nas:8384"
 ```
 
-You can configure these to have both your WAN address or URL and a local address for use offline. **monitor@** is completely encapsulated and works offline when internet is down too.
+You can configure these to have both your URL (or WAN IP) and a local address for use offline. **monitor@ is completely encapsulated and works offline when internet is down.**
 
 #### Wiki
 
@@ -267,7 +270,7 @@ This assumes you network log for updating DNS look like this.
 <pre>
 # Home Network Dynamic DNS Log: /usr/local/bin/my-ddns-script
 # ... < thousands of entries >
-# Porkbun Dynamic DNS Log: /usr/local/bin/porkbun-ddns
+# Home Network Dynamic DNS Log: /usr/local/bin/my-ddns-script
 Fri Oct 17 12:10:02 AM EDT 2025: Current IP is 10.123.987.654
 Fri Oct 17 12:10:03 AM EDT 2025: DNS records already correct
 Fri Oct 17 12:10:03 AM EDT 2025: DNS update completed
