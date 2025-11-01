@@ -36,6 +36,20 @@ VENDOR_URLS = {
     "chart.min.js": "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js",
 }
 
+def strip_source_map_reference(path: Path) -> None:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return
+    if "sourceMappingURL" not in text:
+        return
+    cleaned = []
+    for line in text.splitlines():
+        if "sourceMappingURL" in line:
+            continue
+        cleaned.append(line)
+    path.write_text("\n".join(cleaned), encoding="utf-8")
+
 def ensure_vendors():
     VENDORS.mkdir(exist_ok=True)
     for filename, url in VENDOR_URLS.items():
@@ -44,6 +58,7 @@ def ensure_vendors():
             print(f"Downloading {filename}...")
             urlretrieve(url, filepath)
             print(f"Downloaded {filename}")
+        strip_source_map_reference(filepath)
 
 ensure_vendors()
 

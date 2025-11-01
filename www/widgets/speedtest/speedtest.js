@@ -18,15 +18,17 @@ class SpeedtestWidget {
     this.expanded = false;
     this.chart = null;
     this.currentView = null;
+    this.chartInitPromise = null;
   }
 
   async init(container, config = {}) {
     this.container = container;
     const preview = Number(config.preview ?? config.preview_count ?? config.min);
     const historyLimit = Number(config.history_limit ?? config.historyLimit);
+    const defaultView = (typeof config.default === 'string' && config.default.toLowerCase() === 'table') ? 'table' : 'chart';
     this.config = {
       _suppressHeader: config._suppressHeader,
-      default: config.default || 'chart',
+      default: defaultView,
       table: {
         min: config.table?.min || 5,
         max: config.table?.max || 200
@@ -79,7 +81,7 @@ class SpeedtestWidget {
       this.elements.viewTable.addEventListener('click', () => this.setView('table'));
     }
 
-    this.setupChart();
+    this.setView(this.config.default);
     await this.loadHistory();
   }
 
@@ -106,9 +108,6 @@ class SpeedtestWidget {
     } finally {
       if (button) button.disabled = false;
       await this.loadHistory();
-      if (this.chart) {
-        await this.loadChart();
-      }
     }
   }
 
@@ -221,17 +220,40 @@ class SpeedtestWidget {
     return text.endsWith('.0') ? text.slice(0, -2) : text;
   }
 
-  setupChart() {
-    if (!this.elements.chartCanvas) return;
-
-    if (!window.Chart) {
-      const script = document.createElement('script');
-      script.src = 'vendors/chart.min.js';
-      script.onload = () => this.initChart();
-      document.head.appendChild(script);
-    } else {
-      this.initChart();
+  ensureChart() {
+    if (this.chart) {
+      return Promise.resolve();
     }
+    if (this.chartInitPromise) {
+      return this.chartInitPromise;
+    }
+    this.chartInitPromise = new Promise((resolve) => {
+      const initialize = () => {
+        if (!this.elements.chartCanvas || !window.Chart) {
+          this.chartInitPromise = null;
+          resolve();
+          return;
+        }
+        this.initChart();
+        this.chartInitPromise = null;
+        resolve();
+      };
+
+      if (window.Chart) {
+        initialize();
+      } else {
+        const script = document.createElement('script');
+        script.src = 'vendors/chart.min.js';
+        script.onload = initialize;
+        script.onerror = () => {
+          console.error('Failed to load Chart.js');
+          this.chartInitPromise = null;
+          resolve();
+        };
+        document.head.appendChild(script);
+      }
+    });
+    return this.chartInitPromise;
   }
 
   initChart() {
@@ -284,7 +306,6 @@ class SpeedtestWidget {
         }
       }
     });
-    this.loadChart();
   }
 
   async loadChart() {
@@ -307,13 +328,22 @@ class SpeedtestWidget {
   }
 
   setView(view) {
-    this.currentView = view;
-    
-    if (view === 'chart') {
+    const targetView = view === 'table' ? 'table' : 'chart';
+    if (this.currentView === targetView) {
+      return;
+    }
+    this.currentView = targetView;
+
+    if (targetView === 'chart') {
       this.elements.chartContainer.style.display = '';
       this.elements.tableContainer.style.display = 'none';
       this.elements.viewChart.classList.add('active');
       this.elements.viewTable.classList.remove('active');
+      this.ensureChart().then(() => {
+        if (this.chart && this.currentView === 'chart') {
+          this.loadChart();
+        }
+      });
     } else {
       this.elements.chartContainer.style.display = 'none';
       this.elements.tableContainer.style.display = '';
