@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 from flask import Flask, send_from_directory, jsonify, request
-from subprocess import run, PIPE, TimeoutExpired
 from pathlib import Path
-from json import loads
 from urllib.request import urlretrieve
 import yaml
 import importlib
@@ -83,7 +81,7 @@ def readme():
 
 @app.route("/api/wiki/doc")
 def wiki_doc():
-    from flask import request, jsonify
+    from flask import jsonify
     
     try:
         widget_name = request.args.get('widget', 'wiki')

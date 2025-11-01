@@ -21,14 +21,14 @@ def get_uptime():
             return f"{hours}h {minutes}m"
         else:
             return f"{minutes}m"
-    except:
+    except Exception:
         return "Unknown"
 
 def get_load_average():
     """Get 1min, 5min, 15min load averages"""
     try:
         return list(os.getloadavg())
-    except:
+    except Exception:
         return [0.0, 0.0, 0.0]
 
 def get_metric_status(metric_type, value, **kwargs):
@@ -135,7 +135,7 @@ def get_system_metrics():
                     storage_str = f"{storage.used / (1024**4):.1f}TB / {storage.total / (1024**4):.1f}TB ({storage.percent:.0f}%)"
                     storage_found = True
                     break
-            except:
+            except Exception:
                 continue
         
         if not storage_found:

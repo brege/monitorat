@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 
 import json
-import yaml
 import apprise
 import schedule
 import threading
 import time as time_module
-import confuse
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import sys
