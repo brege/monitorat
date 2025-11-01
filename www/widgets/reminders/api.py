@@ -124,7 +124,10 @@ def get_reminder_status():
     return results
 
 def send_notifications():
-    pushover_config = config['reminders'].get(dict, {}).get('pushover', {})
+    reminders_config = config['reminders'].get(dict)
+    if not reminders_config:
+        return False
+    pushover_config = reminders_config.get('pushover', {})
     if not pushover_config:
         return False
     
@@ -175,7 +178,10 @@ def send_notifications():
     return notifications_sent
 
 def send_test_notification():
-    pushover_config = config['reminders'].get(dict, {}).get('pushover', {})
+    reminders_config = config['reminders'].get(dict)
+    if not reminders_config:
+        return False
+    pushover_config = reminders_config.get('pushover', {})
     if not pushover_config:
         return False
     

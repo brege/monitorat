@@ -21,7 +21,13 @@ class RemindersWidget {
       title.remove();
     } else if (title && this.config.name !== null && this.config.name !== false) {
       if (this.config.name) {
+        // Preserve the button when updating title text
+        const button = title.querySelector('button');
         title.textContent = this.config.name;
+        if (button) {
+          title.appendChild(document.createTextNode(' '));
+          title.appendChild(button);
+        }
       }
     } else if (title && (this.config.name === null || this.config.name === false)) {
       title.remove();
