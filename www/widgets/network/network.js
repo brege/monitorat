@@ -21,9 +21,13 @@ class NetworkWidget {
     this.state = {
       entries: [],
       analysis: null,
-      gapsExpanded: false
+      gapsExpanded: false,
+      logFingerprint: null
     };
     this.elements = {};
+    this.uptimeCache = {
+      rows: new Map()
+    };
   }
 
   async init(container, config = {}) {
@@ -103,12 +107,13 @@ class NetworkWidget {
 
   async loadLog() {
     setText(this.elements.logStatus, 'Loading log…');
-    this.state.gapsExpanded = false;
 
     if (!this.config.log_file) {
+      this.state.gapsExpanded = false;
       setText(this.elements.logStatus, 'No log file configured.');
       this.state.entries = [];
       this.state.analysis = analyzeEntries([], this.enabledWindows);
+      this.state.logFingerprint = null;
       this.updateSummary();
       this.renderUptime();
       this.renderGaps();
@@ -116,15 +121,27 @@ class NetworkWidget {
     }
 
     try {
-      const logFilename = this.config.log_file.split('/').pop();
       const response = await fetch(`api/network/log?${Date.now()}`, { cache: 'no-store' });
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
+
       const text = await response.text();
+      const fingerprint = computeLogFingerprint(text);
+
+      if (fingerprint === this.state.logFingerprint) {
+        const label = this.state.entries.length
+          ? `${this.state.entries.length.toLocaleString()} log entries (no changes).`
+          : 'No log entries found yet.';
+        setText(this.elements.logStatus, label);
+        return;
+      }
+
+      this.state.logFingerprint = fingerprint;
       this.state.entries = parseLog(text);
       this.state.analysis = analyzeEntries(this.state.entries, this.enabledWindows);
+      this.state.gapsExpanded = false;
       this.updateSummary();
       this.renderUptime();
       this.renderGaps();
@@ -136,8 +153,10 @@ class NetworkWidget {
       }
     } catch (error) {
       setText(this.elements.logStatus, `Unable to load log: ${error.message}`);
+      this.state.gapsExpanded = false;
       this.state.entries = [];
       this.state.analysis = analyzeEntries([], this.enabledWindows);
+      this.state.logFingerprint = null;
       this.updateSummary();
       this.renderUptime();
       this.renderGaps();
@@ -187,19 +206,38 @@ class NetworkWidget {
     }
 
     const container = this.elements.uptimeRows;
-    container.innerHTML = '';
-
     const analysis = this.state.analysis;
     const stats = analysis?.windowStats || [];
     if (!stats.length) {
       const info = document.createElement('p');
       info.className = 'muted';
       info.textContent = 'No log data available yet.';
-      container.appendChild(info);
+      container.replaceChildren(info);
+      this.uptimeCache.rows.clear();
       return;
     }
 
+    const fragment = document.createDocumentFragment();
+    const seenKeys = new Set();
+
     stats.forEach((stat) => {
+      const entry = this.ensureUptimeRow(stat.key);
+      this.updateUptimeRow(entry, stat);
+      fragment.appendChild(entry.root);
+      seenKeys.add(stat.key);
+    });
+
+    container.replaceChildren(fragment);
+
+    for (const key of Array.from(this.uptimeCache.rows.keys())) {
+      if (!seenKeys.has(key)) {
+        this.uptimeCache.rows.delete(key);
+      }
+    }
+  }
+
+  ensureUptimeRow(key) {
+    if (!this.uptimeCache.rows.has(key)) {
       const item = document.createElement('div');
       item.className = 'uptime-item';
 
@@ -208,77 +246,116 @@ class NetworkWidget {
 
       const label = document.createElement('div');
       label.className = 'uptime-label';
-      label.textContent = stat.label;
 
       const pills = document.createElement('div');
       pills.className = 'uptime-pills';
-      const segmentCount = Math.max(1, stat.segments.length);
-      pills.style.gridTemplateColumns = `repeat(${segmentCount}, minmax(0, 1fr))`;
-
-      if (!stat.segments.length) {
-        const blank = document.createElement('div');
-        blank.className = 'muted';
-        blank.textContent = 'No data';
-        pills.appendChild(blank);
-      } else {
-        stat.segments.forEach((segment) => {
-          const pill = document.createElement('div');
-          pill.className = 'uptime-pill';
-
-          if (segment.available === 0) {
-            pill.classList.add('future');
-          } else if (!segment.expected) {
-            pill.classList.add('idle');
-          } else if (segment.uptime >= 99) {
-            pill.classList.add('ok');
-          } else if (segment.uptime >= 95) {
-            pill.classList.add('warn');
-          } else {
-            pill.classList.add('bad');
-          }
-
-          pill.title = buildSegmentTooltip(stat.label, segment);
-          pills.appendChild(pill);
-        });
-      }
 
       const value = document.createElement('div');
       value.className = 'uptime-value';
-      value.textContent = formatPercent(stat.uptime);
 
       row.append(label, pills, value);
-      item.appendChild(row);
 
       const meta = document.createElement('div');
       meta.className = 'uptime-meta';
 
-      if (!stat.expected) {
-        const span = document.createElement('span');
-        span.textContent = 'No data collected for this window yet.';
-        meta.appendChild(span);
-      } else {
-        const counts = document.createElement('span');
-        counts.textContent = `${formatNumber(stat.observed)} of ${formatNumber(stat.expected)} checks`;
-        meta.appendChild(counts);
+      item.append(row, meta);
 
-        const misses = document.createElement('span');
-        if (stat.missed) {
-          misses.textContent = `${formatNumber(stat.missed)} missed (${formatDuration(stat.missed * NET_EXPECTED_INTERVAL_MS)})`;
-        } else {
-          misses.textContent = 'No missed checks';
-        }
-        meta.appendChild(misses);
+      this.uptimeCache.rows.set(key, {
+        root: item,
+        label,
+        pills,
+        value,
+        meta,
+        segments: new Map(),
+        emptyNode: null
+      });
+    }
+    return this.uptimeCache.rows.get(key);
+  }
 
-        if (stat.coverage < 0.98) {
-          const coverage = document.createElement('span');
-          coverage.textContent = `${Math.round(stat.coverage * 100)}% coverage`;
-          meta.appendChild(coverage);
-        }
+  updateUptimeRow(entry, stat) {
+    entry.label.textContent = stat.label;
+    entry.value.textContent = formatPercent(stat.uptime);
+    this.updateUptimePills(entry, stat);
+    this.updateUptimeMeta(entry, stat);
+  }
+
+  updateUptimePills(entry, stat) {
+    const pills = entry.pills;
+    const segmentMap = entry.segments;
+    const seenSegments = new Set();
+
+    if (!stat.segments.length) {
+      if (!entry.emptyNode) {
+        const blank = document.createElement('div');
+        blank.className = 'muted';
+        blank.textContent = 'No data';
+        entry.emptyNode = blank;
       }
+      segmentMap.clear();
+      pills.replaceChildren(entry.emptyNode);
+      pills.style.gridTemplateColumns = '';
+      return;
+    }
 
-      item.appendChild(meta);
-      container.appendChild(item);
+    if (entry.emptyNode && entry.emptyNode.parentNode === pills) {
+      pills.removeChild(entry.emptyNode);
+    }
+    entry.emptyNode = null;
+
+    const fragment = document.createDocumentFragment();
+    pills.style.gridTemplateColumns = `repeat(${Math.max(1, stat.segments.length)}, minmax(0, 1fr))`;
+
+    stat.segments.forEach((segment) => {
+      let pill = segmentMap.get(segment.key);
+      if (!pill) {
+        pill = document.createElement('div');
+        segmentMap.set(segment.key, pill);
+      }
+      pill.className = 'uptime-pill';
+      applySegmentClasses(pill, segment);
+      pill.title = buildSegmentTooltip(stat.label, segment);
+      fragment.appendChild(pill);
+      seenSegments.add(segment.key);
     });
+
+    pills.replaceChildren(fragment);
+
+    for (const key of Array.from(segmentMap.keys())) {
+      if (!seenSegments.has(key)) {
+        segmentMap.delete(key);
+      }
+    }
+  }
+
+  updateUptimeMeta(entry, stat) {
+    const meta = entry.meta;
+    meta.replaceChildren();
+
+    if (!stat.expected) {
+      const span = document.createElement('span');
+      span.textContent = 'No data collected for this window yet.';
+      meta.appendChild(span);
+      return;
+    }
+
+    const counts = document.createElement('span');
+    counts.textContent = `${formatNumber(stat.observed)} of ${formatNumber(stat.expected)} checks`;
+    meta.appendChild(counts);
+
+    const misses = document.createElement('span');
+    if (stat.missed) {
+      misses.textContent = `${formatNumber(stat.missed)} missed (${formatDuration(stat.missed * NET_EXPECTED_INTERVAL_MS)})`;
+    } else {
+      misses.textContent = 'No missed checks';
+    }
+    meta.appendChild(misses);
+
+    if (stat.coverage < 0.98) {
+      const coverage = document.createElement('span');
+      coverage.textContent = `${Math.round(stat.coverage * 100)}% coverage`;
+      meta.appendChild(coverage);
+    }
   }
 
   renderGaps() {
@@ -396,6 +473,14 @@ function parseLog(text) {
 
   entries.sort((a, b) => a.timestamp - b.timestamp);
   return entries;
+}
+
+function computeLogFingerprint(text) {
+  let hash = 0;
+  for (let index = 0; index < text.length; index += 1) {
+    hash = ((hash << 5) - hash + text.charCodeAt(index)) | 0;
+  }
+  return `${text.length}:${hash}`;
 }
 
 function parseTimestamp(label) {
@@ -752,6 +837,20 @@ function formatPercent(value) {
     return `${clamped.toFixed(2)}%`;
   }
   return `${clamped.toFixed(2)}%`;
+}
+
+function applySegmentClasses(pill, segment) {
+  if (segment.available === 0) {
+    pill.classList.add('future');
+  } else if (!segment.expected) {
+    pill.classList.add('idle');
+  } else if (segment.uptime >= 99) {
+    pill.classList.add('ok');
+  } else if (segment.uptime >= 95) {
+    pill.classList.add('warn');
+  } else {
+    pill.classList.add('bad');
+  }
 }
 
 function buildSegmentTooltip(windowLabel, segment) {
