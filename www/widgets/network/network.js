@@ -117,7 +117,8 @@ class NetworkWidget {
 
     try {
       const logFilename = this.config.log_file.split('/').pop();
-      const response = await fetch(`data/${logFilename}?${Date.now()}`, { cache: 'no-store' });
+      const response = await fetch(`api/network/log?${Date.now()}`, { cache: 'no-store' });
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }

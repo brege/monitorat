@@ -97,8 +97,6 @@ def wiki_doc():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Speedtest endpoints moved to widgets/speedtest/api.py
-
 
 @app.route("/api/config", methods=["GET"])
 def api_config():
@@ -162,7 +160,13 @@ def static_files(filename):
 # Register widget API routes
 try:
     import importlib
-    
+
+    # Register network widget routes
+    network_module = importlib.import_module('widgets.network.api')
+    if hasattr(network_module, 'register_routes'):
+        network_module.register_routes(app)
+        print("Loaded network widget API")
+
     # Register metrics widget routes
     metrics_module = importlib.import_module('widgets.metrics.api')
     if hasattr(metrics_module, 'register_routes'):
