@@ -6,6 +6,7 @@ import apprise
 import schedule
 import threading
 import time as time_module
+import confuse
 from datetime import datetime, timedelta
 from pathlib import Path
 import sys
@@ -84,9 +85,9 @@ def get_reminder_status():
         orange_min, orange_max = 0, 14
     
     results = []
-    # Skip config keys (nudges, urgents, time, pushover) and only process reminder items
+    # Skip config keys (nudges, urgents, time, pushover, apprise_urls) and only process reminder items
     for reminder_id, reminder_config in reminders_config.items():
-        if reminder_id in ['nudges', 'urgents', 'time', 'pushover']:
+        if reminder_id in ['nudges', 'urgents', 'time', 'pushover', 'apprise_urls']:
             continue
         last_touch = data.get(reminder_id)
         if last_touch:
@@ -127,18 +128,26 @@ def send_notifications():
     reminders_config = config['reminders'].get(dict)
     if not reminders_config:
         return False
-    pushover_config = reminders_config.get('pushover', {})
-    if not pushover_config:
-        return False
-    
-    pushover_key = pushover_config.get('key')
-    pushover_token = pushover_config.get('token')
-    
-    if not pushover_key or not pushover_token:
-        return False
     
     apobj = apprise.Apprise()
-    apobj.add(f"pover://{pushover_token}@{pushover_key}")
+    
+    # Support apprise URLs directly
+    apprise_urls = reminders_config.get('apprise_urls', [])
+    if apprise_urls:
+        for url in apprise_urls:
+            apobj.add(url)
+    
+    # Support legacy pushover config for backward compatibility
+    pushover_config = reminders_config.get('pushover')
+    if pushover_config:
+        pushover_key = pushover_config.get('key')
+        pushover_token = pushover_config.get('token')
+        if pushover_key and pushover_token:
+            apobj.add(f"pover://{pushover_key}@{pushover_token}")
+    
+    # Check if we have any notification services configured
+    if len(apobj) == 0:
+        return False
     
     nudges = config['reminders']['nudges'].get(list)
     urgents = config['reminders']['urgents'].get(list)
@@ -181,18 +190,26 @@ def send_test_notification():
     reminders_config = config['reminders'].get(dict)
     if not reminders_config:
         return False
-    pushover_config = reminders_config.get('pushover', {})
-    if not pushover_config:
-        return False
-    
-    pushover_key = pushover_config.get('key')
-    pushover_token = pushover_config.get('token')
-    
-    if not pushover_key or not pushover_token:
-        return False
     
     apobj = apprise.Apprise()
-    apobj.add(f"pover://{pushover_token}@{pushover_key}")
+    
+    # Support apprise URLs directly
+    apprise_urls = reminders_config.get('apprise_urls', [])
+    if apprise_urls:
+        for url in apprise_urls:
+            apobj.add(url)
+    
+    # Support legacy pushover config for backward compatibility
+    pushover_config = reminders_config.get('pushover')
+    if pushover_config:
+        pushover_key = pushover_config.get('key')
+        pushover_token = pushover_config.get('token')
+        if pushover_key and pushover_token:
+            apobj.add(f"pover://{pushover_key}@{pushover_token}")
+    
+    # Check if we have any notification services configured
+    if len(apobj) == 0:
+        return False
     
     return apobj.notify(
         title="beehiver reminder Test",
