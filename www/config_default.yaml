@@ -8,7 +8,7 @@ site:
 paths:
   data: "data/"                 # relative to webroot (www/)
   img: "img/"                   # use absolute path for ~/.config/monitor@/img
-  favicon: "img/favicon.ico"
+  favicon: "favicon.ico"
 
 widgets:
   enabled:                      # provides order and visibility

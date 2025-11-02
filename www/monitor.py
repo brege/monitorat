@@ -145,13 +145,21 @@ def api_services_status():
 
 @app.route("/favicon.ico")
 def favicon():
-    favicon_path = config['paths']['favicon'].get(str)
-    if favicon_path.startswith('/'):
-        # Absolute path
-        return send_from_directory(Path(favicon_path).parent, Path(favicon_path).name)
-    else:
-        # Relative to WWW
-        return send_from_directory(WWW, favicon_path)
+    default_favicon = WWW / "favicon.ico"
+    try:
+        configured = config['paths']['favicon'].get(str)
+    except Exception:
+        configured = None
+
+    if configured:
+        path = Path(configured)
+        if path.is_absolute():
+            if path.exists():
+                return send_from_directory(path.parent, path.name)
+        else:
+            candidate = WWW / path
+            if candidate.exists():
+                return send_from_directory(WWW, str(path))
 
 @app.route("/img/<path:filename>")
 def img_files(filename):
