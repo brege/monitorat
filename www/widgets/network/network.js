@@ -532,7 +532,11 @@ function analyzeEntries(entries, enabledWindows) {
     const current = entries[index];
     const next = entries[index + 1];
     const diff = next.timestamp - current.timestamp;
-    const missing = Math.floor((diff - NET_TOLERANCE_MS) / NET_EXPECTED_INTERVAL_MS);
+
+    // Adjust for DST: if timezone offset changed, the wall-clock gap isn't a real outage
+    const dstShiftMs = (current.timestamp.getTimezoneOffset() - next.timestamp.getTimezoneOffset()) * 60000;
+    const missing = Math.floor((diff + dstShiftMs - NET_TOLERANCE_MS) / NET_EXPECTED_INTERVAL_MS);
+
     if (missing > 0) {
       missed += missing;
       gaps.push({
