@@ -10,7 +10,7 @@ from pathlib import Path
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import sys
 sys.path.append(str(Path(__file__).parent.parent))
-from monitor import config
+from monitor import config, register_config_listener
 
 def add_priority_to_url(url, priority):
     """Add priority parameter to apprise URL"""
@@ -31,6 +31,7 @@ def add_priority_to_url(url, priority):
                       parsed.params, new_query, parsed.fragment))
 
 BASE = Path(__file__).parent.parent.parent.parent
+_scheduler_thread = None
 
 def get_reminders_json_path():
     data_dir = config['paths']['data'].get(str)
@@ -141,6 +142,20 @@ def get_reminder_status():
  
     return results
 
+def _refresh_notification_schedule(log_prefix="[schedule] refreshed") -> None:
+    """Rebuild the daily reminder schedule using the latest config."""
+    try:
+        check_time = config['reminders']['time'].get(str)
+    except Exception as exc:
+        schedule.clear()
+        print(f"[{datetime.now()}] Unable to configure reminder schedule: {exc}")
+        return
+
+    schedule.clear()
+    schedule.every().day.at(check_time).do(scheduled_notification_check)
+    print(f"[{datetime.now()}] {log_prefix} - daily check at {check_time}")
+    print(f"[{datetime.now()}] Scheduled jobs: {len(schedule.get_jobs())}")
+
 def send_notifications():
     reminders_config = config['reminders'].get(dict)
     if not reminders_config:
@@ -245,26 +260,29 @@ def scheduled_notification_check():
     count = send_notifications()
     print(f"[{datetime.now()}] === DAEMON NOTIFICATION CHECK END - Sent {count} notifications ===")
 
+def on_config_reloaded(_new_config):
+    """Callback invoked when the global config reloads."""
+    _refresh_notification_schedule("Updated reminder schedule")
+
+register_config_listener(on_config_reloaded)
+
 def start_notification_daemon():
     """Start the background notification scheduler"""
     def run_scheduler():
         while True:
             schedule.run_pending()
             time_module.sleep(60)  # Check every minute
+    global _scheduler_thread
+
+    _refresh_notification_schedule("Starting notification daemon")
+
+    if _scheduler_thread and _scheduler_thread.is_alive():
+        return _scheduler_thread
+
+    _scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
+    _scheduler_thread.start()
     
-    check_time = config['reminders']['time'].get(str)
-    
-    # Clear existing jobs first
-    schedule.clear()
-    schedule.every().day.at(check_time).do(scheduled_notification_check)
-    
-    print(f"[{datetime.now()}] Starting notification daemon - daily check at {check_time}")
-    print(f"[{datetime.now()}] Scheduled jobs: {len(schedule.get_jobs())}")
-    
-    scheduler_thread = threading.Thread(target=run_scheduler, daemon=True)
-    scheduler_thread.start()
-    
-    return scheduler_thread
+    return _scheduler_thread
 
 def register_routes(app):
     """Register reminder API routes with Flask app"""

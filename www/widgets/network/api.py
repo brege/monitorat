@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 from flask import jsonify, Response
 from pathlib import Path
-import confuse
-
-config = confuse.Configuration('monitor@', __name__)
+from monitor import config
 
 def register_routes(app):
     """Register network widget API routes"""

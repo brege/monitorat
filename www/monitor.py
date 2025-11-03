@@ -2,21 +2,87 @@
 from flask import Flask, send_from_directory, jsonify, request
 from pathlib import Path
 from urllib.request import urlretrieve
+import threading
 import yaml
 import importlib
 import confuse
+from typing import Callable, List, Optional
 
 app = Flask(__name__)
 BASE = Path(__file__).parent.parent
 WWW = BASE / "www"
 VENDORS = WWW / "vendors"
-config = confuse.Configuration('monitor@', __name__)
-# Add project config.yaml if it exists (higher priority than defaults)
 project_config = BASE / "config.yaml"
-if project_config.exists():
-    config.set_file(project_config)
 PACKS_DIR = BASE / "packs"
 SPEEDTEST = "/usr/bin/speedtest-cli"
+
+
+class ConfigManager:
+    """Own the confuse.Configuration instance and provide reload hooks."""
+
+    def __init__(self, config_path: Optional[Path] = None) -> None:
+        self._project_config = config_path
+        self._lock = threading.Lock()
+        self._callbacks: List[Callable[[confuse.Configuration], None]] = []
+        self._config = self._build_config()
+
+    def _build_config(self) -> confuse.Configuration:
+        config_obj = confuse.Configuration('monitor@', __name__)
+        if self._project_config and self._project_config.exists():
+            config_obj.set_file(self._project_config)
+        return config_obj
+
+    def get(self) -> confuse.Configuration:
+        return self._config
+
+    def reload(self) -> confuse.Configuration:
+        with self._lock:
+            reloaded = self._build_config()
+            self._config = reloaded
+            for callback in list(self._callbacks):
+                try:
+                    callback(reloaded)
+                except Exception as exc:
+                    print(f"Config reload callback failed: {exc}")
+            return reloaded
+
+    def register_callback(self, callback: Callable[[confuse.Configuration], None]) -> None:
+        self._callbacks.append(callback)
+
+
+class ConfigProxy:
+    """Lightweight proxy so existing code can keep using `config[...]`."""
+
+    def __init__(self, manager: ConfigManager) -> None:
+        self._manager = manager
+
+    def __getitem__(self, key):
+        return self._manager.get()[key]
+
+    def __getattr__(self, item):
+        return getattr(self._manager.get(), item)
+
+    def get(self, *args, **kwargs):
+        return self._manager.get().get(*args, **kwargs)
+
+    def __repr__(self) -> str:
+        return repr(self._manager.get())
+
+
+config_manager = ConfigManager(project_config)
+config = ConfigProxy(config_manager)
+
+
+def get_config() -> confuse.Configuration:
+    return config_manager.get()
+
+
+def reload_config() -> confuse.Configuration:
+    return config_manager.reload()
+
+
+def register_config_listener(callback: Callable[[confuse.Configuration], None]) -> None:
+    config_manager.register_callback(callback)
 
 def get_data_path():
     data_dir = config['paths']['data'].get(str)
@@ -121,6 +187,15 @@ def api_config():
         return jsonify(error=str(exc)), 500
 
 
+@app.route("/api/config/reload", methods=["POST"])
+def api_config_reload():
+    try:
+        reload_config()
+        return jsonify({"status": "ok"})
+    except Exception as exc:
+        return jsonify(error=str(exc)), 500
+
+
 @app.route("/api/services", methods=["GET"])
 def api_services():
     try:
@@ -206,6 +281,8 @@ try:
         if hasattr(reminders_module, 'start_notification_daemon'):
             reminders_module.start_notification_daemon()
             print("Started reminders notification daemon")
+        if hasattr(reminders_module, 'on_config_reloaded'):
+            register_config_listener(reminders_module.on_config_reloaded)
             
 except Exception as e:
     print(f"Error loading widget APIs: {e}")

@@ -246,6 +246,15 @@
       pointer-events: none;
     }
 
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
     #theme-toggle {
       color: var(--icon-theme-sun);
     }
@@ -285,6 +294,23 @@
 
     #privacy-toggle[data-privacy="masked"] .icon-eye-off {
       display: block;
+    }
+
+    #config-reload[disabled] {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    #config-reload[data-state="success"] {
+      color: rgb(var(--status-ok-rgb));
+    }
+
+    #config-reload[data-state="error"] {
+      color: rgb(var(--status-critical-rgb));
+    }
+
+    #config-reload[data-state="loading"] svg {
+      animation: spin 1s linear infinite;
     }
 
     h1 {
@@ -435,6 +461,12 @@
             <line x1="21" y1="12" x2="23" y2="12" />
             <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
             <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+          </svg>
+        </button>
+        <button id="config-reload" class="control-btn" type="button" title="Reload configuration" aria-label="Reload configuration" data-state="idle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="23 4 23 10 17 10" />
+            <path d="M20.49 15a9 9 0 1 1 .36-5.36" />
           </svg>
         </button>
         <button id="privacy-toggle" class="control-btn" type="button" onclick="togglePrivacyMask()" title="Toggle privacy mask" aria-pressed="false" data-privacy="revealed">
