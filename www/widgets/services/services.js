@@ -25,8 +25,6 @@ class ServicesWidget {
     
     // Load initial data
     await this.loadData();
-    
-    console.log('Services widget initialized');
   }
 
   async loadData() {
@@ -175,7 +173,7 @@ class ServicesWidget {
                                         overallStatus === 'down' ? 'Stopped' : 'Unknown';
         // Combine status details with click behavior
         const service = this.servicesConfig.services[key];
-        const clickTip = `Click: ${service.url}\nCtrl+Shift+Click: ${service.local || service.url}`;
+        const clickTip = `Click: ${service.url}\nShift+Click: ${service.local || service.url}`;
         statusTextElement.title = statusParts.join('\n') + '\n\n' + clickTip;
       }
     });

@@ -23,8 +23,6 @@ class SpeedtestWidget {
 
   async init(container, config = {}) {
     this.container = container;
-    const preview = Number(config.preview ?? config.preview_count ?? config.min);
-    const historyLimit = Number(config.history_limit ?? config.historyLimit);
     const defaultView = (typeof config.default === 'string' && config.default.toLowerCase() === 'table') ? 'table' : 'chart';
     this.config = {
       _suppressHeader: config._suppressHeader,
@@ -79,9 +77,8 @@ class SpeedtestWidget {
       this.elements.viewTable.addEventListener('click', () => this.setView('table'));
     }
     
-    const periodSelect = this.container.querySelector('[data-speedtest="period-select"]');
-    if (periodSelect) {
-      periodSelect.addEventListener('change', (e) => {
+    if (this.elements.periodSelect) {
+      this.elements.periodSelect.addEventListener('change', (e) => {
         this.selectedPeriod = e.target.value;
         if (this.chartManager) {
           this.chartManager.dataParams.period = this.selectedPeriod;

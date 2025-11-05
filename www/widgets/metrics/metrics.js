@@ -85,8 +85,6 @@ class MetricsWidget {
     await this.loadData();
     this.setView(this.config.default);
     await this.loadHistory();
-    
-    console.log('Metrics widget initialized');
   }
 
   async loadData() {

@@ -35,8 +35,6 @@ class RemindersWidget {
     
     // Load initial data
     await this.loadData();
-    
-    console.log('Reminders widget initialized');
   }
 
   async loadData() {
@@ -148,16 +146,6 @@ class RemindersWidget {
     });
   }
 
-  async touchLogin(reminderId) {
-    try {
-      const response = await fetch(`api/reminders/${reminderId}/touch`, { method: 'POST' });
-      if (response.ok) {
-        await this.loadData(); // Refresh data
-      }
-    } catch (error) {
-      console.error('Failed to touch reminder:', error);
-    }
-  }
 }
 
 // Test notification function (global)

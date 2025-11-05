@@ -284,30 +284,6 @@ function syncPrivacyToggleState(button) {
 }
 
 
-async function initializeNetworkWidget(config) {
-  await initializeWidget('network', 'network', config);
-}
-
-async function initializeServicesWidget(config) {
-  await initializeWidget('services', 'services', config);
-}
-
-async function initializeMetricsWidget(config) {
-  await initializeWidget('metrics', 'metrics', config);
-}
-
-async function initializeSpeedtestWidget(config) {
-  await initializeWidget('speedtest', 'speedtest', config);
-}
-
-async function initializeRemindersWidget(config) {
-  await initializeWidget('reminders', 'reminders', config);
-}
-
-async function initializeWikiWidget(config) {
-  await initializeWidget('wiki', 'wiki', config);
-}
-
 function togglePrivacyMask() {
   const button = document.getElementById('privacy-toggle');
   if (!button || !privacyState.config) {
