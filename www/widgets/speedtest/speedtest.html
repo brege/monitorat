@@ -45,8 +45,14 @@
     </div>
     
     <div class="speedtest-view-toggle" data-speedtest="view-toggle" style="display: none;">
-      <button type="button" class="gaps-toggle" data-speedtest="view-chart">Chart</button>
       <button type="button" class="gaps-toggle" data-speedtest="view-table">Table</button>
+      <button type="button" class="gaps-toggle" data-speedtest="view-chart">Chart</button>
+      <select class="gaps-toggle" data-speedtest="period-select" style="display: none;">
+        <option value="all">All</option>
+        <option value="7days">7 days</option>
+        <option value="24hours">24 hours</option>
+        <option value="1hour">Last hour</option>
+      </select>
     </div>
     
     <div class="speedtest-chart" data-speedtest="chart-container" style="display: none;">

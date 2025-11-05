@@ -18,6 +18,7 @@ class SpeedtestWidget {
     this.chartManager = null;
     this.tableManager = null;
     this.currentView = null;
+    this.selectedPeriod = 'all';
   }
 
   async init(container, config = {}) {
@@ -64,7 +65,8 @@ class SpeedtestWidget {
       viewTable: container.querySelector('[data-speedtest="view-table"]'),
       chartContainer: container.querySelector('[data-speedtest="chart-container"]'),
       chartCanvas: container.querySelector('[data-speedtest="chart"]'),
-      tableContainer: container.querySelector('[data-speedtest="table-container"]')
+      tableContainer: container.querySelector('[data-speedtest="table-container"]'),
+      periodSelect: container.querySelector('[data-speedtest="period-select"]')
     };
 
     if (this.elements.run) {
@@ -75,6 +77,19 @@ class SpeedtestWidget {
     }
     if (this.elements.viewTable) {
       this.elements.viewTable.addEventListener('click', () => this.setView('table'));
+    }
+    
+    const periodSelect = this.container.querySelector('[data-speedtest="period-select"]');
+    if (periodSelect) {
+      periodSelect.addEventListener('change', (e) => {
+        this.selectedPeriod = e.target.value;
+        if (this.chartManager) {
+          this.chartManager.dataParams.period = this.selectedPeriod;
+          if (this.chartManager.hasChart()) {
+            this.chartManager.loadData();
+          }
+        }
+      });
     }
 
     this.initManagers();
@@ -97,7 +112,8 @@ class SpeedtestWidget {
       height: this.config.chart.height,
       dataUrl: 'api/speedtest/chart',
       dataParams: {
-        days: this.config.chart.days
+        days: this.config.chart.days,
+        period: this.selectedPeriod
       },
       chartOptions: {
         scales: {
@@ -197,28 +213,14 @@ class SpeedtestWidget {
   }
 
   setView(view) {
-    const targetView = view === 'table' ? 'table' : 'chart';
-    if (this.currentView === targetView) {
-      return;
+    const targetView = view === 'table' ? 'table' : view === 'none' ? 'none' : 'chart';
+    
+    // Show/hide period select based on view
+    if (this.elements.periodSelect) {
+      this.elements.periodSelect.style.display = targetView === 'chart' ? '' : 'none';
     }
-    this.currentView = targetView;
-
-    if (targetView === 'chart') {
-      this.elements.chartContainer.style.display = '';
-      this.elements.tableContainer.style.display = 'none';
-      this.elements.viewChart.classList.add('active');
-      this.elements.viewTable.classList.remove('active');
-      this.chartManager.ensureChart().then(() => {
-        if (this.chartManager.hasChart() && this.currentView === 'chart') {
-          this.chartManager.loadData();
-        }
-      });
-    } else {
-      this.elements.chartContainer.style.display = 'none';
-      this.elements.tableContainer.style.display = '';
-      this.elements.viewChart.classList.remove('active');
-      this.elements.viewTable.classList.add('active');
-    }
+    
+    this.currentView = ChartManager.setView(view, this.elements, this.currentView, this.chartManager);
   }
 
   updateViewToggle() {

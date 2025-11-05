@@ -41,7 +41,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       const widgetType = widgetConfig?.type || widgetName;
-      return initializeWidget(widgetName, widgetType, widgetConfig);
+      
+      // Merge widget-specific config sections for certain widgets
+      let finalConfig = widgetConfig;
+      if (widgetName === 'metrics' && config.metrics) {
+        finalConfig = { ...widgetConfig, ...config.metrics };
+      }
+      
+      return initializeWidget(widgetName, widgetType, finalConfig);
     })
   );
 });

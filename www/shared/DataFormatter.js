@@ -24,6 +24,25 @@ class DataFormatter {
     const text = num.toFixed(1);
     return text.endsWith('.0') ? text.slice(0, -2) : text;
   }
+
+  static formatNumber(value, decimals = 1) {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return '–';
+    const text = num.toFixed(decimals);
+    return decimals === 1 && text.endsWith('.0') ? text.slice(0, -2) : text;
+  }
+
+  static formatTime(timestamp) {
+    if (!timestamp) return 'Unknown';
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) return timestamp;
+    return date.toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+  }
 }
 
 window.monitorShared = window.monitorShared || {};

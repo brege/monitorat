@@ -79,8 +79,23 @@
 
 <div class="metrics-history">
   <div class="metrics-view-toggle" data-metrics="view-toggle" style="display: none;">
-    <button type="button" class="gaps-toggle" data-metrics="view-chart">Chart</button>
     <button type="button" class="gaps-toggle" data-metrics="view-table">Table</button>
+    <button type="button" class="gaps-toggle" data-metrics="view-chart">Chart</button>
+    <select class="gaps-toggle" data-metrics="metric-select" style="display: none;">
+      <option value="cpu_memory">CPU + Memory</option>
+      <option value="cpu_percent">CPU %</option>
+      <option value="memory_percent">Memory %</option>
+      <option value="disk_io">Disk I/O</option>
+      <option value="net_io">Network I/O</option>
+      <option value="temp_c">Temperature</option>
+      <option value="load_1min">Load Average</option>
+    </select>
+    <select class="gaps-toggle" data-metrics="period-select" style="display: none;">
+      <option value="all">All</option>
+      <option value="7days">7 days</option>
+      <option value="24hours">24 hours</option>
+      <option value="1hour">Last hour</option>
+    </select>
   </div>
   
   <div class="metrics-chart" data-metrics="chart-container" style="display: none;">
@@ -88,7 +103,24 @@
   </div>
   
   <div data-metrics="table-container" style="display: none;">
-    <p>Historical metrics will be shown here.</p>
+    <p class="muted" data-metrics="history-status">Loading metrics history…</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>CPU %</th>
+          <th>Memory %</th>
+          <th>Disk Read MB/min</th>
+          <th>Disk Write MB/min</th>
+          <th>Net RX MB/min</th>
+          <th>Net TX MB/min</th>
+          <th>Load</th>
+          <th>Temp °C</th>
+          <th>Source</th>
+        </tr>
+      </thead>
+      <tbody data-metrics="rows"></tbody>
+    </table>
   </div>
 </div>
 </section>
