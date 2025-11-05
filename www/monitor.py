@@ -236,6 +236,8 @@ def favicon():
             if candidate.exists():
                 return send_from_directory(WWW, str(path))
 
+    return send_from_directory(default_favicon.parent, default_favicon.name)
+
 @app.route("/img/<path:filename>")
 def img_files(filename):
     img_dir = config['paths']['img'].get(str)

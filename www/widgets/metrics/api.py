@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 
+import csv
 import json
 import os
 import psutil
+import threading
+import time
 from datetime import datetime
+from pathlib import Path
 
 def get_uptime():
     """Get system uptime as formatted string"""
@@ -81,6 +85,71 @@ def get_metric_status(metric_type, value, **kwargs):
             return 'critical'
     
     return 'ok'
+
+def get_metrics_csv_path():
+    """Get path to metrics CSV file"""
+    from monitor import get_data_path
+    return get_data_path() / "metrics.csv"
+
+def log_metrics_to_csv(metrics_data, source="refresh"):
+    """Log metrics data to CSV file"""
+    csv_path = get_metrics_csv_path()
+    
+    # Ensure directory exists
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Extract numeric values from metrics
+    load_parts = metrics_data['load'].split()
+    load_1min = float(load_parts[0]) if load_parts else 0.0
+    
+    # Parse memory usage
+    memory_parts = metrics_data['memory'].split('/')
+    memory_used_gb = float(memory_parts[0].replace('GB', '').strip()) if memory_parts else 0.0
+    memory_total_gb = float(memory_parts[1].replace('GB', '').strip()) if len(memory_parts) > 1 else 0.0
+    memory_percent = (memory_used_gb / memory_total_gb * 100) if memory_total_gb > 0 else 0.0
+    
+    # Parse temperature
+    temp_c = float(metrics_data['temp'].replace('°C', '').strip()) if 'Unknown' not in metrics_data['temp'] else 0.0
+    
+    # Parse disk usage
+    disk_parts = metrics_data['disk'].split('(')
+    disk_percent = float(disk_parts[1].replace('%)', '').strip()) if len(disk_parts) > 1 else 0.0
+    
+    # Get I/O counters
+    try:
+        disk_io = psutil.disk_io_counters()
+        disk_read_mb = disk_io.read_bytes / (1024**2) if disk_io else 0.0
+        disk_write_mb = disk_io.write_bytes / (1024**2) if disk_io else 0.0
+        
+        net_io = psutil.net_io_counters()
+        net_rx_mb = net_io.bytes_recv / (1024**2) if net_io else 0.0
+        net_tx_mb = net_io.bytes_sent / (1024**2) if net_io else 0.0
+    except Exception:
+        disk_read_mb = disk_write_mb = net_rx_mb = net_tx_mb = 0.0
+    
+    # CPU percentage
+    cpu_percent = psutil.cpu_percent(interval=0.1)
+    
+    row = [
+        datetime.now().isoformat(),
+        f"{cpu_percent:.1f}",
+        f"{memory_percent:.1f}",
+        f"{disk_read_mb:.1f}",
+        f"{disk_write_mb:.1f}",
+        f"{net_rx_mb:.1f}",
+        f"{net_tx_mb:.1f}",
+        f"{load_1min:.2f}",
+        f"{temp_c:.1f}",
+        source
+    ]
+    
+    # Write header if file doesn't exist
+    file_exists = csv_path.exists()
+    with open(csv_path, 'a', newline='') as f:
+        writer = csv.writer(f)
+        if not file_exists:
+            writer.writerow(['timestamp', 'cpu_percent', 'memory_percent', 'disk_read_mb', 'disk_write_mb', 'net_rx_mb', 'net_tx_mb', 'load_1min', 'temp_c', 'source'])
+        writer.writerow(row)
 
 def get_system_metrics():
     """Get all system metrics and their statuses"""
@@ -167,12 +236,43 @@ def get_system_metrics():
         print(f"Error getting system metrics: {e}")
         return {}, {}
 
+_metrics_thread = None
+
+def start_metrics_daemon():
+    """Start background metrics collection thread"""
+    global _metrics_thread
+    if _metrics_thread is None or not _metrics_thread.is_alive():
+        _metrics_thread = threading.Thread(target=_metrics_collector, daemon=True)
+        _metrics_thread.start()
+
+def _metrics_collector():
+    """Background thread for continuous metrics collection"""
+    while True:
+        try:
+            metrics, _ = get_system_metrics()
+            if metrics:
+                log_metrics_to_csv(metrics, source="daemon")
+        except Exception as e:
+            print(f"Metrics daemon error: {e}")
+        time.sleep(60)
+
 def register_routes(app):
     """Register metrics API routes with Flask app"""
+    
+    # Start background metrics collection
+    start_metrics_daemon()
     
     @app.route("/api/metrics", methods=["GET"])
     def api_metrics():
         metrics, statuses = get_system_metrics()
+        
+        # Log this refresh to CSV
+        if metrics:
+            try:
+                log_metrics_to_csv(metrics, source="refresh")
+            except Exception as e:
+                print(f"Error logging metrics: {e}")
+        
         return app.response_class(
             response=json.dumps({
                 'metrics': metrics,
@@ -181,3 +281,34 @@ def register_routes(app):
             status=200,
             mimetype='application/json'
         )
+    
+    @app.route("/api/metrics/history", methods=["GET"])
+    def api_metrics_history():
+        """Get historical metrics data from CSV"""
+        try:
+            csv_path = get_metrics_csv_path()
+            if not csv_path.exists():
+                return app.response_class(
+                    response=json.dumps({'data': []}),
+                    status=200,
+                    mimetype='application/json'
+                )
+            
+            data = []
+            with open(csv_path, 'r') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    data.append(row)
+            
+            # Return last 1000 entries
+            return app.response_class(
+                response=json.dumps({'data': data[-1000:]}),
+                status=200,
+                mimetype='application/json'
+            )
+        except Exception as e:
+            return app.response_class(
+                response=json.dumps({'error': str(e)}),
+                status=500,
+                mimetype='application/json'
+            )

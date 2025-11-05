@@ -11,6 +11,35 @@
 .stat.status-critical { background-color: rgba(var(--status-critical-rgb), 0.12); border-left: 4px solid rgb(var(--status-critical-rgb)); }
 .stat .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-label); margin-bottom: 6px; display: block; }
 .stat .value { font-size: 1.35rem; font-weight: 600; }
+.metrics .gaps-toggle {
+  font-size: 0.85rem;
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-weight: 400;
+}
+.metrics .gaps-toggle:hover {
+  text-decoration: underline;
+}
+.metrics-chart {
+  margin: 1rem 0;
+  overflow: hidden;
+}
+.metrics-chart canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+.metrics-view-toggle {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+.metrics-view-toggle .gaps-toggle.active {
+  font-weight: 600;
+}
 @media (max-width: 640px) {
   .stats-row.primary { grid-template-columns: repeat(2, 1fr); }
   .stats-row.dates { grid-template-columns: 1fr; }
@@ -45,6 +74,21 @@
       <span class="label">NFS Storage</span>
       <span class="value" id="storage-value">–</span>
     </div>
+  </div>
+</div>
+
+<div class="metrics-history">
+  <div class="metrics-view-toggle" data-metrics="view-toggle" style="display: none;">
+    <button type="button" class="gaps-toggle" data-metrics="view-chart">Chart</button>
+    <button type="button" class="gaps-toggle" data-metrics="view-table">Table</button>
+  </div>
+  
+  <div class="metrics-chart" data-metrics="chart-container" style="display: none;">
+    <canvas data-metrics="chart"></canvas>
+  </div>
+  
+  <div data-metrics="table-container" style="display: none;">
+    <p>Historical metrics will be shown here.</p>
   </div>
 </div>
 </section>

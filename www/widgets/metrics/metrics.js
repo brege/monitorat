@@ -3,6 +3,9 @@ class MetricsWidget {
   constructor(config = {}) {
     this.container = null;
     this.config = config;
+    this.chart = null;
+    this.currentView = null;
+    this.chartInitPromise = null;
   }
 
   async init(container, config = {}) {
@@ -24,7 +27,17 @@ class MetricsWidget {
       title.remove();
     }
     
+    const viewChart = container.querySelector('[data-metrics="view-chart"]');
+    const viewTable = container.querySelector('[data-metrics="view-table"]');
+    if (viewChart) {
+      viewChart.addEventListener('click', () => this.setView('chart'));
+    }
+    if (viewTable) {
+      viewTable.addEventListener('click', () => this.setView('table'));
+    }
+    
     await this.loadData();
+    this.updateViewToggle();
     
     console.log('Metrics widget initialized');
   }
@@ -89,6 +102,155 @@ class MetricsWidget {
         stats[key].classList.add(`status-${status}`);
       }
     });
+  }
+
+  setView(view) {
+    const targetView = view === 'table' ? 'table' : 'chart';
+    if (this.currentView === targetView) {
+      return;
+    }
+    this.currentView = targetView;
+
+    const chartContainer = this.container.querySelector('[data-metrics="chart-container"]');
+    const tableContainer = this.container.querySelector('[data-metrics="table-container"]');
+    const viewChart = this.container.querySelector('[data-metrics="view-chart"]');
+    const viewTable = this.container.querySelector('[data-metrics="view-table"]');
+
+    if (targetView === 'chart') {
+      chartContainer.style.display = '';
+      tableContainer.style.display = 'none';
+      viewChart.classList.add('active');
+      viewTable.classList.remove('active');
+      this.ensureChart().then(() => {
+        if (this.chart && this.currentView === 'chart') {
+          this.chart.loadData();
+        }
+      });
+    } else {
+      chartContainer.style.display = 'none';
+      tableContainer.style.display = '';
+      viewChart.classList.remove('active');
+      viewTable.classList.add('active');
+    }
+  }
+
+  ensureChart() {
+    if (this.chart) {
+      return Promise.resolve();
+    }
+    if (this.chartInitPromise) {
+      return this.chartInitPromise;
+    }
+    this.chartInitPromise = new Promise((resolve) => {
+      const initialize = () => {
+        const canvas = this.container.querySelector('[data-metrics="chart"]');
+        if (!canvas || !window.Chart) {
+          this.chartInitPromise = null;
+          resolve();
+          return;
+        }
+        this.initChart(canvas);
+        this.chartInitPromise = null;
+        resolve();
+      };
+
+      if (window.Chart) {
+        initialize();
+      } else {
+        const script = document.createElement('script');
+        script.src = 'vendors/chart.min.js';
+        script.onload = initialize;
+        script.onerror = () => {
+          console.error('Failed to load Chart.js');
+          this.chartInitPromise = null;
+          resolve();
+        };
+        document.head.appendChild(script);
+      }
+    });
+    return this.chartInitPromise;
+  }
+
+  initChart(canvas) {
+    if (!window.Chart) return;
+
+    const ctx = canvas.getContext('2d');
+    this.chart = {
+      chart: new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            intersect: false,
+            mode: 'index'
+          },
+          scales: {
+            y: {
+              title: {
+                display: true,
+                text: 'Value'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'top'
+            }
+          }
+        }
+      }),
+      loadData: async () => {
+        try {
+          const response = await fetch('api/metrics/history');
+          const result = await response.json();
+          const data = result.data || [];
+          
+          if (data.length > 0) {
+            const labels = data.map(row => this.formatTime(row.timestamp));
+            const cpuData = data.map(row => parseFloat(row.cpu_percent));
+            
+            this.chart.chart.data = {
+              labels: labels,
+              datasets: [{
+                label: 'CPU %',
+                data: cpuData,
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+              }]
+            };
+            this.chart.chart.update();
+          }
+        } catch (error) {
+          console.error('Failed to load chart data:', error);
+        }
+      }
+    };
+  }
+
+  formatTime(timestamp) {
+    const date = new Date(timestamp);
+    return date.toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+  }
+
+  updateViewToggle() {
+    const viewToggle = this.container.querySelector('[data-metrics="view-toggle"]');
+    if (viewToggle) {
+      viewToggle.style.display = '';
+      if (!this.currentView) {
+        this.setView('chart');
+      }
+    }
   }
 }
 
