@@ -1,54 +1,52 @@
+---
 # Minimal monitor@ configuration that renders a simple dashboard.
-
 site:
-  name: "monitor@"
-  title: "System Monitor"
-  base_url: "http://localhost:6161"
-
+  name: monitor@
+  title: System Monitor
+  base_url: http://localhost:6161
 paths:
-  data: "data/"                 # relative to webroot (www/)
-  img: "img/"                   # use absolute path for ~/.config/monitor@/img
-  favicon: "favicon.ico"
-
+  data: data/  # relative to webroot (www/)
+  img: img/  # use absolute path for ~/.config/monitor@/img
+  favicon: favicon.ico
 widgets:
-  enabled:                      # provides order and visibility
-    - metrics                   # www/widgets/* for available widgets
+  enabled:  # provides order and visibility
+    - metrics  # www/widgets/* for available widgets
     - wiki
-  metrics:                      # temperature, cpu, memory, disk
-    name: "System Metrics"
-    enabled: true               # widget renders (default: true)
-    collapsible: false          # show hide/show toggle (default: false)
-    hidden: false               # start collapsed (default: false)
-  speedtest:                    # network speedtest monitoring
-    name: "Speedtests"
-    enabled: false              # disabled by default
+  metrics:  # temperature, cpu, memory, disk
+    name: System Metrics
+    enabled: true  # widget renders (default: true)
+    collapsible: false  # show hide/show toggle (default: false)
+    hidden: false  # start collapsed (default: false)
+    chart:
+      default_period: 1hour  # default chart window: all, 7days, 24hours, 1hour
+  speedtest:  # network speedtest monitoring
+    name: Speedtests
+    enabled: false  # disabled by default
     collapsible: true
     hidden: false
-    default: "chart"            # default view: "chart" or "table"
+    default: chart              # default view: "chart" or "table"
     table:
-      min: 5                    # minimum rows to show
-      max: 200                  # maximum rows to load
+      min: 5  # minimum rows to show
+      max: 200  # maximum rows to load
     chart:
-      height: "400px"           # fixed chart height
-      days: 30                  # number of days to display (-1 for all)
-  wiki:                         # load README.md if doc not specified
-    name: "Notes & Links"
+      height: 400px  # fixed chart height
+      days: 30  # number of days to display (-1 for all)
+      default_period: all  # default chart window: all, 7days, 24hours, 1hour
+  wiki:  # load README.md if doc not specified
+    name: Notes & Links
     enabled: true
-    collapsible: true           # enable collapse/expand
-    hidden: false               # start expanded
-    doc: ""
-    #doc: /home/__user__/documents/about.md
-
-privacy:                        # toggle, for screenshots
+    collapsible: true  # enable collapse/expand
+    hidden: false  # start expanded
+    doc: ''
+    # doc: /home/__user__/documents/about.md
+privacy:  # toggle, for screenshots
   mask_ips: true
   replacements: {}
-
 reminders:
   nudges: [14, 7]
   urgents: [3, 1, 0]
-  time: "23:55"
+  time: 23:55
   pushover:
-    key: ""
-    token: ""
-
+    key: ''
+    token: ''
 services: {}

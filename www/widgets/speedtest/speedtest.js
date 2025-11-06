@@ -15,19 +15,20 @@ class SpeedtestWidget {
     };
     this.elements = {};
     this.entries = [];
-    this.expanded = false;
-    this.chart = null;
+    this.chartManager = null;
+    this.tableManager = null;
     this.currentView = null;
-    this.chartInitPromise = null;
+    this.selectedPeriod = 'all';
   }
 
   async init(container, config = {}) {
     this.container = container;
-    const preview = Number(config.preview ?? config.preview_count ?? config.min);
-    const historyLimit = Number(config.history_limit ?? config.historyLimit);
     const defaultView = (typeof config.default === 'string' && config.default.toLowerCase() === 'table') ? 'table' : 'chart';
+    const hasExplicitName = Object.prototype.hasOwnProperty.call(config, 'name');
+    const defaultPeriod = this.normalizePeriod(config.chart?.default_period ?? config.chart?.defaultPeriod) || 'all';
     this.config = {
       _suppressHeader: config._suppressHeader,
+      name: hasExplicitName ? config.name : this.widgetConfig.name,
       default: defaultView,
       table: {
         min: config.table?.min || 5,
@@ -35,23 +36,22 @@ class SpeedtestWidget {
       },
       chart: {
         height: config.chart?.height || '400px',
-        days: config.chart?.days || 30
+        days: config.chart?.days || 30,
+        defaultPeriod
       }
     };
-
+    this.selectedPeriod = this.config.chart.defaultPeriod;
+    
     const response = await fetch('widgets/speedtest/speedtest.html');
     const html = await response.text();
     container.innerHTML = html;
     
-    const title = container.querySelector('h2');
-    if (this.config._suppressHeader && title) {
-      title.remove();
-    } else if (title && this.widgetConfig.name !== null && this.widgetConfig.name !== false) {
-      if (this.widgetConfig.name) {
-        title.textContent = this.widgetConfig.name;
-      }
-    } else if (title && (this.widgetConfig.name === null || this.widgetConfig.name === false)) {
-      title.remove();
+    const applyWidgetHeader = window.monitor?.applyWidgetHeader;
+    if (applyWidgetHeader) {
+      applyWidgetHeader(container, {
+        suppressHeader: this.config._suppressHeader,
+        name: this.config.name
+      });
     }
 
     this.elements = {
@@ -65,14 +65,12 @@ class SpeedtestWidget {
       viewTable: container.querySelector('[data-speedtest="view-table"]'),
       chartContainer: container.querySelector('[data-speedtest="chart-container"]'),
       chartCanvas: container.querySelector('[data-speedtest="chart"]'),
-      tableContainer: container.querySelector('[data-speedtest="table-container"]')
+      tableContainer: container.querySelector('[data-speedtest="table-container"]'),
+      periodSelect: container.querySelector('[data-speedtest="period-select"]')
     };
 
     if (this.elements.run) {
       this.elements.run.addEventListener('click', () => this.runSpeedtest());
-    }
-    if (this.elements.toggle) {
-      this.elements.toggle.addEventListener('click', () => this.toggleHistory());
     }
     if (this.elements.viewChart) {
       this.elements.viewChart.addEventListener('click', () => this.setView('chart'));
@@ -80,204 +78,46 @@ class SpeedtestWidget {
     if (this.elements.viewTable) {
       this.elements.viewTable.addEventListener('click', () => this.setView('table'));
     }
+    
+    if (this.elements.periodSelect) {
+      const matchingOption = Array.from(this.elements.periodSelect.options).some(option => option.value === this.selectedPeriod);
+      this.elements.periodSelect.value = matchingOption ? this.selectedPeriod : 'all';
+      this.selectedPeriod = this.elements.periodSelect.value;
+      this.elements.periodSelect.addEventListener('change', (e) => {
+        this.selectedPeriod = e.target.value;
+        if (this.chartManager) {
+          this.chartManager.dataParams.period = this.selectedPeriod;
+          if (this.chartManager.hasChart()) {
+            this.chartManager.loadData();
+          }
+        }
+      });
+    }
 
+    this.initManagers();
     this.setView(this.config.default);
     await this.loadHistory();
   }
 
-  async runSpeedtest() {
-    const button = this.elements.run;
-    const status = this.elements.status;
-    if (button) button.disabled = true;
-    if (status) status.textContent = 'Running speedtest…';
+  initManagers() {
+    const DataFormatter = window.monitorShared?.DataFormatter;
+    const ChartManager = window.monitorShared?.ChartManager;
+    const TableManager = window.monitorShared?.TableManager;
 
-    try {
-      const response = await fetch('api/speedtest/run', { method: 'POST' });
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.error || 'Speedtest failed');
-      }
-      if (status) {
-        status.textContent = `${this.formatTimestamp(result.timestamp)} — ↓ ${this.formatMbps(result.download)} Mbps, ↑ ${this.formatMbps(result.upload)} Mbps, ${this.formatPing(result.ping)} ms (${result.server || 'unknown server'})`;
-      }
-    } catch (error) {
-      if (status) status.textContent = `Speedtest error: ${error.message}`;
-    } finally {
-      if (button) button.disabled = false;
-      await this.loadHistory();
-    }
-  }
-
-  async loadHistory() {
-    if (!this.elements.historyStatus || !this.elements.rows) {
-      return;
+    if (!DataFormatter || !ChartManager || !TableManager) {
+      throw new Error('Shared modules not available');
     }
 
-    this.elements.historyStatus.textContent = 'Loading speedtest history…';
-    this.elements.historyStatus.style.display = '';
-    this.elements.rows.innerHTML = '';
-
-    try {
-      const params = new URLSearchParams();
-      params.set('limit', this.config.table.max);
-      params.set('ts', Date.now());
-
-      const response = await fetch(`api/speedtest/history?${params.toString()}`, { cache: 'no-store' });
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      const payload = await response.json();
-      this.entries = payload.entries || [];
-      this.renderHistory();
-      if (this.chart) {
-        await this.loadChart();
-      }
-    } catch (error) {
-      this.elements.historyStatus.textContent = `Unable to load speedtests: ${error.message}`;
-    }
-  }
-
-  renderHistory() {
-    const statusEl = this.elements.historyStatus;
-    const rowsEl = this.elements.rows;
-    const toggle = this.elements.toggle;
-
-    rowsEl.innerHTML = '';
-
-    if (!this.entries.length) {
-      statusEl.textContent = 'No speedtests logged yet.';
-      if (toggle) toggle.style.display = 'none';
-      return;
-    }
-
-    const previewCount = Math.max(1, this.config.table.min);
-    const showCount = this.expanded ? this.entries.length : Math.min(previewCount, this.entries.length);
-    const latest = this.entries.slice(0, showCount);
-
-    latest.forEach((entry) => {
-      const tr = document.createElement('tr');
-      const cells = [
-        this.formatTimestamp(entry.timestamp),
-        this.formatMbps(entry.download),
-        this.formatMbps(entry.upload),
-        this.formatPing(entry.ping),
-        entry.server || ''
-      ];
-      cells.forEach((value) => {
-        const td = document.createElement('td');
-        td.textContent = value;
-        tr.appendChild(td);
-      });
-      rowsEl.appendChild(tr);
-    });
-
-    statusEl.style.display = 'none';
-
-    if (toggle) {
-      if (this.entries.length <= previewCount) {
-        toggle.style.display = 'none';
-      } else {
-        toggle.style.display = '';
-        const remaining = this.entries.length - previewCount;
-        toggle.textContent = this.expanded ? 'Show less' : `Show ${remaining} more`;
-      }
-    }
-
-    this.updateViewToggle();
-  }
-
-  toggleHistory() {
-    this.expanded = !this.expanded;
-    this.renderHistory();
-  }
-
-  formatTimestamp(value) {
-    if (!value) return 'Unknown';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit'
-    });
-  }
-
-  formatMbps(value) {
-    const num = Number(value);
-    if (!Number.isFinite(num)) return '–';
-    return (num / 1_000_000).toFixed(2);
-  }
-
-  formatPing(value) {
-    const num = Number(value);
-    if (!Number.isFinite(num)) return '–';
-    const text = num.toFixed(1);
-    return text.endsWith('.0') ? text.slice(0, -2) : text;
-  }
-
-  ensureChart() {
-    if (this.chart) {
-      return Promise.resolve();
-    }
-    if (this.chartInitPromise) {
-      return this.chartInitPromise;
-    }
-    this.chartInitPromise = new Promise((resolve) => {
-      const initialize = () => {
-        if (!this.elements.chartCanvas || !window.Chart) {
-          this.chartInitPromise = null;
-          resolve();
-          return;
-        }
-        this.initChart();
-        this.chartInitPromise = null;
-        resolve();
-      };
-
-      if (window.Chart) {
-        initialize();
-      } else {
-        const script = document.createElement('script');
-        script.src = 'vendors/chart.min.js';
-        script.onload = initialize;
-        script.onerror = () => {
-          console.error('Failed to load Chart.js');
-          this.chartInitPromise = null;
-          resolve();
-        };
-        document.head.appendChild(script);
-      }
-    });
-    return this.chartInitPromise;
-  }
-
-  initChart() {
-    if (!this.elements.chartCanvas || !window.Chart) return;
-
-    // Set container height from config
-    const height = parseInt(this.config.chart.height);
-    this.elements.chartContainer.style.height = `${height}px`;
-    this.elements.chartContainer.style.position = 'relative';
-
-    const ctx = this.elements.chartCanvas.getContext('2d');
-    this.chart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: [],
-        datasets: []
+    this.chartManager = new ChartManager({
+      canvasElement: this.elements.chartCanvas,
+      containerElement: this.elements.chartContainer,
+      height: this.config.chart.height,
+      dataUrl: 'api/speedtest/chart',
+      dataParams: {
+        days: this.config.chart.days,
+        period: this.selectedPeriod
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-          intersect: false,
-          mode: 'index'
-        },
+      chartOptions: {
         scales: {
           speed: {
             type: 'linear',
@@ -298,58 +138,98 @@ class SpeedtestWidget {
               drawOnChartArea: false
             }
           }
-        },
-        plugins: {
-          legend: {
-            position: 'top'
-          }
         }
       }
     });
+
+    this.tableManager = new TableManager({
+      statusElement: this.elements.historyStatus,
+      rowsElement: this.elements.rows,
+      toggleElement: this.elements.toggle,
+      previewCount: this.config.table.min,
+      emptyMessage: 'No speedtests logged yet.',
+      rowFormatter: (entry) => [
+        DataFormatter.formatTimestamp(entry.timestamp),
+        DataFormatter.formatMbps(entry.download),
+        DataFormatter.formatMbps(entry.upload),
+        DataFormatter.formatPing(entry.ping),
+        entry.server || ''
+      ]
+    });
   }
 
-  async loadChart() {
-    if (!this.chart) return;
+  async runSpeedtest() {
+    const button = this.elements.run;
+    const status = this.elements.status;
+    if (button) button.disabled = true;
+    if (status) status.textContent = 'Running speedtest…';
+
+    try {
+      const response = await fetch('api/speedtest/run', { method: 'POST' });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Speedtest failed');
+      }
+      if (status) {
+        const DataFormatter = window.monitorShared.DataFormatter;
+        status.textContent = `${DataFormatter.formatTimestamp(result.timestamp)} — ↓ ${DataFormatter.formatMbps(result.download)} Mbps, ↑ ${DataFormatter.formatMbps(result.upload)} Mbps, ${DataFormatter.formatPing(result.ping)} ms (${result.server || 'unknown server'})`;
+      }
+    } catch (error) {
+      if (status) status.textContent = `Speedtest error: ${error.message}`;
+    } finally {
+      if (button) button.disabled = false;
+      await this.loadHistory();
+    }
+  }
+
+  async loadHistory() {
+    if (!this.tableManager) {
+      return;
+    }
+
+    this.tableManager.setEntries([]);
+    this.tableManager.setStatus('Loading speedtest history…');
 
     try {
       const params = new URLSearchParams();
-      params.set('days', this.config.chart.days);
+      params.set('limit', this.config.table.max);
       params.set('ts', Date.now());
 
-      const response = await fetch(`api/speedtest/chart?${params.toString()}`, { cache: 'no-store' });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      
-      const chartData = await response.json();
-      this.chart.data = chartData;
-      this.chart.update();
+      const response = await fetch(`api/speedtest/history?${params.toString()}`, { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const payload = await response.json();
+      this.entries = payload.entries || [];
+      this.tableManager.setEntries(this.entries);
+      this.updateViewToggle();
+      if (this.chartManager && this.chartManager.hasChart()) {
+        await this.chartManager.loadData();
+      }
     } catch (error) {
-      console.error('Failed to load chart data:', error);
+      this.tableManager.setStatus(`Unable to load speedtests: ${error.message}`);
     }
   }
 
   setView(view) {
-    const targetView = view === 'table' ? 'table' : 'chart';
-    if (this.currentView === targetView) {
-      return;
+    const targetView = view === 'table' ? 'table' : view === 'none' ? 'none' : 'chart';
+    
+    // Show/hide period select based on view
+    if (this.elements.periodSelect) {
+      this.elements.periodSelect.style.display = targetView === 'chart' ? '' : 'none';
     }
-    this.currentView = targetView;
+    
+    this.currentView = ChartManager.setView(view, this.elements, this.currentView, this.chartManager);
+  }
 
-    if (targetView === 'chart') {
-      this.elements.chartContainer.style.display = '';
-      this.elements.tableContainer.style.display = 'none';
-      this.elements.viewChart.classList.add('active');
-      this.elements.viewTable.classList.remove('active');
-      this.ensureChart().then(() => {
-        if (this.chart && this.currentView === 'chart') {
-          this.loadChart();
-        }
-      });
-    } else {
-      this.elements.chartContainer.style.display = 'none';
-      this.elements.tableContainer.style.display = '';
-      this.elements.viewChart.classList.remove('active');
-      this.elements.viewTable.classList.add('active');
-    }
+  normalizePeriod(value) {
+    if (!value) return null;
+    const normalized = String(value).toLowerCase();
+    const allowed = new Set(['all', '7days', '24hours', '1hour']);
+    return allowed.has(normalized) ? normalized : null;
   }
 
   updateViewToggle() {

@@ -10,6 +10,54 @@ const THEME_STORAGE_KEY = 'monitor-theme';
 const THEME_LIGHT = 'light';
 const THEME_DARK = 'dark';
 
+const monitorAPI = window.monitor = window.monitor || {};
+
+monitorAPI.applyWidgetHeader = function applyWidgetHeader(container, options = {}) {
+  if (!container) {
+    return;
+  }
+
+  const {
+    selector = 'h2',
+    suppressHeader = false,
+    name,
+    preserveChildren = false
+  } = options;
+
+  const header = container.querySelector(selector);
+  if (!header) {
+    return;
+  }
+
+  if (suppressHeader) {
+    header.remove();
+    return;
+  }
+
+  if (name === null || name === false) {
+    header.remove();
+    return;
+  }
+
+  if (typeof name === 'string' && name.length > 0) {
+    if (preserveChildren) {
+      const preservedChildren = Array.from(header.children);
+      header.textContent = name;
+      if (preservedChildren.length) {
+        header.appendChild(document.createTextNode(' '));
+        preservedChildren.forEach((child, index) => {
+          if (index > 0) {
+            header.appendChild(document.createTextNode(' '));
+          }
+          header.appendChild(child);
+        });
+      }
+    } else {
+      header.textContent = name;
+    }
+  }
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
   initializeThemeToggle();
   initializeConfigReloadControl();
@@ -41,7 +89,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       const widgetType = widgetConfig?.type || widgetName;
-      return initializeWidget(widgetName, widgetType, widgetConfig);
+      
+      // Merge widget-specific config sections for certain widgets
+      let finalConfig = widgetConfig;
+      if (widgetName === 'metrics' && config.metrics) {
+        finalConfig = { ...widgetConfig, ...config.metrics };
+      }
+      
+      return initializeWidget(widgetName, widgetType, finalConfig);
     })
   );
 });
@@ -276,30 +331,6 @@ function syncPrivacyToggleState(button) {
   toggle.setAttribute('aria-pressed', privacyState.masked ? 'true' : 'false');
 }
 
-
-async function initializeNetworkWidget(config) {
-  await initializeWidget('network', 'network', config);
-}
-
-async function initializeServicesWidget(config) {
-  await initializeWidget('services', 'services', config);
-}
-
-async function initializeMetricsWidget(config) {
-  await initializeWidget('metrics', 'metrics', config);
-}
-
-async function initializeSpeedtestWidget(config) {
-  await initializeWidget('speedtest', 'speedtest', config);
-}
-
-async function initializeRemindersWidget(config) {
-  await initializeWidget('reminders', 'reminders', config);
-}
-
-async function initializeWikiWidget(config) {
-  await initializeWidget('wiki', 'wiki', config);
-}
 
 function togglePrivacyMask() {
   const button = document.getElementById('privacy-toggle');
