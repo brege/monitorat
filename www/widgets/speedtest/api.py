@@ -105,6 +105,18 @@ def speedtest_chart():
     else:
         days = max(1, min(days or 30, 365))
 
+    now = datetime.now()
+
+    period = request.args.get("period", default="all", type=str)
+    period = (period or "all").lower()
+    period_cutoff = None
+    if period == "7days":
+        period_cutoff = now - timedelta(days=7)
+    elif period == "24hours":
+        period_cutoff = now - timedelta(hours=24)
+    elif period == "1hour":
+        period_cutoff = now - timedelta(hours=1)
+
     csv_path = get_csv_path()
     if not csv_path.exists():
         return jsonify(labels=[], datasets=[])
@@ -114,9 +126,13 @@ def speedtest_chart():
             lines = [line.strip() for line in f.readlines()[1:] if line.strip()]
 
         if days is not None:
-            cutoff_date = datetime.now() - timedelta(days=days)
+            cutoff_date = now - timedelta(days=days)
         else:
             cutoff_date = None
+        cutoff_candidates = [
+            value for value in (cutoff_date, period_cutoff) if value is not None
+        ]
+        effective_cutoff = max(cutoff_candidates) if cutoff_candidates else None
 
         labels = []
         download_data = []
@@ -140,7 +156,7 @@ def speedtest_chart():
                 if dt.tzinfo:
                     dt = dt.replace(tzinfo=None)
 
-                if cutoff_date is not None and dt < cutoff_date:
+                if effective_cutoff is not None and dt < effective_cutoff:
                     continue
 
                 download_mbps = float(download) / 1_000_000
