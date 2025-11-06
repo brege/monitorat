@@ -1,7 +1,8 @@
+/* global ChartManager */
 class SpeedtestWidget {
-  constructor(widgetConfig = {}) {
-    this.container = null;
-    this.widgetConfig = widgetConfig;
+  constructor (widgetConfig = {}) {
+    this.container = null
+    this.widgetConfig = widgetConfig
     this.config = {
       default: 'chart',
       table: {
@@ -12,20 +13,20 @@ class SpeedtestWidget {
         height: '400px',
         days: 30
       }
-    };
-    this.elements = {};
-    this.entries = [];
-    this.chartManager = null;
-    this.tableManager = null;
-    this.currentView = null;
-    this.selectedPeriod = 'all';
+    }
+    this.elements = {}
+    this.entries = []
+    this.chartManager = null
+    this.tableManager = null
+    this.currentView = null
+    this.selectedPeriod = 'all'
   }
 
-  async init(container, config = {}) {
-    this.container = container;
-    const defaultView = (typeof config.default === 'string' && config.default.toLowerCase() === 'table') ? 'table' : 'chart';
-    const hasExplicitName = Object.prototype.hasOwnProperty.call(config, 'name');
-    const defaultPeriod = this.normalizePeriod(config.chart?.default_period ?? config.chart?.defaultPeriod) || 'all';
+  async init (container, config = {}) {
+    this.container = container
+    const defaultView = (typeof config.default === 'string' && config.default.toLowerCase() === 'table') ? 'table' : 'chart'
+    const hasExplicitName = Object.prototype.hasOwnProperty.call(config, 'name')
+    const defaultPeriod = this.normalizePeriod(config.chart?.default_period ?? config.chart?.defaultPeriod) || 'all'
     this.config = {
       _suppressHeader: config._suppressHeader,
       name: hasExplicitName ? config.name : this.widgetConfig.name,
@@ -39,19 +40,19 @@ class SpeedtestWidget {
         days: config.chart?.days || 30,
         defaultPeriod
       }
-    };
-    this.selectedPeriod = this.config.chart.defaultPeriod;
-    
-    const response = await fetch('widgets/speedtest/speedtest.html');
-    const html = await response.text();
-    container.innerHTML = html;
-    
-    const applyWidgetHeader = window.monitor?.applyWidgetHeader;
+    }
+    this.selectedPeriod = this.config.chart.defaultPeriod
+
+    const response = await fetch('widgets/speedtest/speedtest.html')
+    const html = await response.text()
+    container.innerHTML = html
+
+    const applyWidgetHeader = window.monitor?.applyWidgetHeader
     if (applyWidgetHeader) {
       applyWidgetHeader(container, {
         suppressHeader: this.config._suppressHeader,
         name: this.config.name
-      });
+      })
     }
 
     this.elements = {
@@ -67,45 +68,45 @@ class SpeedtestWidget {
       chartCanvas: container.querySelector('[data-speedtest="chart"]'),
       tableContainer: container.querySelector('[data-speedtest="table-container"]'),
       periodSelect: container.querySelector('[data-speedtest="period-select"]')
-    };
+    }
 
     if (this.elements.run) {
-      this.elements.run.addEventListener('click', () => this.runSpeedtest());
+      this.elements.run.addEventListener('click', () => this.runSpeedtest())
     }
     if (this.elements.viewChart) {
-      this.elements.viewChart.addEventListener('click', () => this.setView('chart'));
+      this.elements.viewChart.addEventListener('click', () => this.setView('chart'))
     }
     if (this.elements.viewTable) {
-      this.elements.viewTable.addEventListener('click', () => this.setView('table'));
+      this.elements.viewTable.addEventListener('click', () => this.setView('table'))
     }
-    
+
     if (this.elements.periodSelect) {
-      const matchingOption = Array.from(this.elements.periodSelect.options).some(option => option.value === this.selectedPeriod);
-      this.elements.periodSelect.value = matchingOption ? this.selectedPeriod : 'all';
-      this.selectedPeriod = this.elements.periodSelect.value;
+      const matchingOption = Array.from(this.elements.periodSelect.options).some(option => option.value === this.selectedPeriod)
+      this.elements.periodSelect.value = matchingOption ? this.selectedPeriod : 'all'
+      this.selectedPeriod = this.elements.periodSelect.value
       this.elements.periodSelect.addEventListener('change', (e) => {
-        this.selectedPeriod = e.target.value;
+        this.selectedPeriod = e.target.value
         if (this.chartManager) {
-          this.chartManager.dataParams.period = this.selectedPeriod;
+          this.chartManager.dataParams.period = this.selectedPeriod
           if (this.chartManager.hasChart()) {
-            this.chartManager.loadData();
+            this.chartManager.loadData()
           }
         }
-      });
+      })
     }
 
-    this.initManagers();
-    this.setView(this.config.default);
-    await this.loadHistory();
+    this.initManagers()
+    this.setView(this.config.default)
+    await this.loadHistory()
   }
 
-  initManagers() {
-    const DataFormatter = window.monitorShared?.DataFormatter;
-    const ChartManager = window.monitorShared?.ChartManager;
-    const TableManager = window.monitorShared?.TableManager;
+  initManagers () {
+    const DataFormatter = window.monitorShared?.DataFormatter
+    const ChartManager = window.monitorShared?.ChartManager
+    const TableManager = window.monitorShared?.TableManager
 
     if (!DataFormatter || !ChartManager || !TableManager) {
-      throw new Error('Shared modules not available');
+      throw new Error('Shared modules not available')
     }
 
     this.chartManager = new ChartManager({
@@ -140,7 +141,7 @@ class SpeedtestWidget {
           }
         }
       }
-    });
+    })
 
     this.tableManager = new TableManager({
       statusElement: this.elements.historyStatus,
@@ -155,96 +156,96 @@ class SpeedtestWidget {
         DataFormatter.formatPing(entry.ping),
         entry.server || ''
       ]
-    });
+    })
   }
 
-  async runSpeedtest() {
-    const button = this.elements.run;
-    const status = this.elements.status;
-    if (button) button.disabled = true;
-    if (status) status.textContent = 'Running speedtest…';
+  async runSpeedtest () {
+    const button = this.elements.run
+    const status = this.elements.status
+    if (button) button.disabled = true
+    if (status) status.textContent = 'Running speedtest…'
 
     try {
-      const response = await fetch('api/speedtest/run', { method: 'POST' });
+      const response = await fetch('api/speedtest/run', { method: 'POST' })
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        throw new Error(`HTTP ${response.status}`)
       }
-      const result = await response.json();
+      const result = await response.json()
       if (!result.success) {
-        throw new Error(result.error || 'Speedtest failed');
+        throw new Error(result.error || 'Speedtest failed')
       }
       if (status) {
-        const DataFormatter = window.monitorShared.DataFormatter;
-        status.textContent = `${DataFormatter.formatTimestamp(result.timestamp)} — ↓ ${DataFormatter.formatMbps(result.download)} Mbps, ↑ ${DataFormatter.formatMbps(result.upload)} Mbps, ${DataFormatter.formatPing(result.ping)} ms (${result.server || 'unknown server'})`;
+        const DataFormatter = window.monitorShared.DataFormatter
+        status.textContent = `${DataFormatter.formatTimestamp(result.timestamp)} — ↓ ${DataFormatter.formatMbps(result.download)} Mbps, ↑ ${DataFormatter.formatMbps(result.upload)} Mbps, ${DataFormatter.formatPing(result.ping)} ms (${result.server || 'unknown server'})`
       }
     } catch (error) {
-      if (status) status.textContent = `Speedtest error: ${error.message}`;
+      if (status) status.textContent = `Speedtest error: ${error.message}`
     } finally {
-      if (button) button.disabled = false;
-      await this.loadHistory();
+      if (button) button.disabled = false
+      await this.loadHistory()
     }
   }
 
-  async loadHistory() {
+  async loadHistory () {
     if (!this.tableManager) {
-      return;
+      return
     }
 
-    this.tableManager.setEntries([]);
-    this.tableManager.setStatus('Loading speedtest history…');
+    this.tableManager.setEntries([])
+    this.tableManager.setStatus('Loading speedtest history…')
 
     try {
-      const params = new URLSearchParams();
-      params.set('limit', this.config.table.max);
-      params.set('ts', Date.now());
+      const params = new URLSearchParams()
+      params.set('limit', this.config.table.max)
+      params.set('ts', Date.now())
 
-      const response = await fetch(`api/speedtest/history?${params.toString()}`, { cache: 'no-store' });
+      const response = await fetch(`api/speedtest/history?${params.toString()}`, { cache: 'no-store' })
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        throw new Error(`HTTP ${response.status}`)
       }
-      const payload = await response.json();
-      this.entries = payload.entries || [];
-      this.tableManager.setEntries(this.entries);
-      this.updateViewToggle();
+      const payload = await response.json()
+      this.entries = payload.entries || []
+      this.tableManager.setEntries(this.entries)
+      this.updateViewToggle()
       if (this.chartManager && this.chartManager.hasChart()) {
-        await this.chartManager.loadData();
+        await this.chartManager.loadData()
       }
     } catch (error) {
-      this.tableManager.setStatus(`Unable to load speedtests: ${error.message}`);
+      this.tableManager.setStatus(`Unable to load speedtests: ${error.message}`)
     }
   }
 
-  setView(view) {
-    const targetView = view === 'table' ? 'table' : view === 'none' ? 'none' : 'chart';
-    
+  setView (view) {
+    const targetView = view === 'table' ? 'table' : view === 'none' ? 'none' : 'chart'
+
     // Show/hide period select based on view
     if (this.elements.periodSelect) {
-      this.elements.periodSelect.style.display = targetView === 'chart' ? '' : 'none';
+      this.elements.periodSelect.style.display = targetView === 'chart' ? '' : 'none'
     }
-    
-    this.currentView = ChartManager.setView(view, this.elements, this.currentView, this.chartManager);
+
+    this.currentView = ChartManager.setView(view, this.elements, this.currentView, this.chartManager)
   }
 
-  normalizePeriod(value) {
-    if (!value) return null;
-    const normalized = String(value).toLowerCase();
-    const allowed = new Set(['all', '7days', '24hours', '1hour']);
-    return allowed.has(normalized) ? normalized : null;
+  normalizePeriod (value) {
+    if (!value) return null
+    const normalized = String(value).toLowerCase()
+    const allowed = new Set(['all', '7days', '24hours', '1hour'])
+    return allowed.has(normalized) ? normalized : null
   }
 
-  updateViewToggle() {
-    if (!this.elements.viewToggle) return;
+  updateViewToggle () {
+    if (!this.elements.viewToggle) return
 
     if (this.entries.length > 0) {
-      this.elements.viewToggle.style.display = '';
+      this.elements.viewToggle.style.display = ''
       if (!this.currentView) {
-        this.setView(this.config.default);
+        this.setView(this.config.default)
       }
     } else {
-      this.elements.viewToggle.style.display = 'none';
+      this.elements.viewToggle.style.display = 'none'
     }
   }
 }
 
-window.widgets = window.widgets || {};
-window.widgets.speedtest = SpeedtestWidget;
+window.widgets = window.widgets || {}
+window.widgets.speedtest = SpeedtestWidget

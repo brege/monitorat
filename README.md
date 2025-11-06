@@ -304,6 +304,16 @@ Thu Oct 23 03:05:12 AM EDT 2025: Current IP is 10.123.456.78
 
 ![network screenshot](./docs/img/network.png)
 
+## Contributing
+
+```bash
+pre-commit install
+```
+This will install [pre-commit](https://pre-commit.com/) hooks for linting and formatting for:
+- YAML
+- Python
+- JavaScript
+
 ## License
 
 [GPLv3](https://www.gnu.org/licenses/gpl-3.0.en.html)

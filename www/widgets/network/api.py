@@ -3,6 +3,7 @@ from flask import jsonify, Response
 from pathlib import Path
 from monitor import config
 
+
 def register_routes(app):
     """Register network widget API routes"""
 
@@ -11,8 +12,8 @@ def register_routes(app):
         """Serve the network monitoring log file from configured path"""
         try:
             # Get the log file path from config
-            network_config = config['widgets']['network'].get(dict)
-            log_file_path = network_config.get('log_file')
+            network_config = config["widgets"]["network"].get(dict)
+            log_file_path = network_config.get("log_file")
 
             if not log_file_path:
                 return jsonify({"error": "No log file configured"}), 404
@@ -27,11 +28,13 @@ def register_routes(app):
 
             # Read and return the log file contents
             try:
-                with open(log_path, 'r') as f:
+                with open(log_path, "r") as f:
                     content = f.read()
-                return Response(content, mimetype='text/plain')
+                return Response(content, mimetype="text/plain")
             except PermissionError:
-                return jsonify({"error": f"Permission denied reading log file: {log_file_path}"}), 403
+                return jsonify(
+                    {"error": f"Permission denied reading log file: {log_file_path}"}
+                ), 403
             except Exception as e:
                 return jsonify({"error": f"Error reading log file: {str(e)}"}), 500
 

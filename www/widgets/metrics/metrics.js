@@ -1,8 +1,9 @@
 // Metrics Widget
+/* global ChartManager */
 class MetricsWidget {
-  constructor(widgetConfig = {}) {
-    this.container = null;
-    this.widgetConfig = widgetConfig;
+  constructor (widgetConfig = {}) {
+    this.container = null
+    this.widgetConfig = widgetConfig
     this.config = {
       default: 'chart',
       table: {
@@ -13,19 +14,19 @@ class MetricsWidget {
         height: '400px',
         days: 30
       }
-    };
-    this.chartManager = null;
-    this.tableManager = null;
-    this.currentView = null;
-    this.entries = [];
-    this.selectedMetric = 'cpu_memory';
-    this.selectedPeriod = 'all';
+    }
+    this.chartManager = null
+    this.tableManager = null
+    this.currentView = null
+    this.entries = []
+    this.selectedMetric = 'cpu_memory'
+    this.selectedPeriod = 'all'
   }
 
-  async init(container, config = {}) {
-    this.container = container;
-    const defaultView = (typeof config.default === 'string' && config.default.toLowerCase() === 'table') ? 'table' : 'chart';
-    const hasExplicitName = Object.prototype.hasOwnProperty.call(config, 'name');
+  async init (container, config = {}) {
+    this.container = container
+    const defaultView = (typeof config.default === 'string' && config.default.toLowerCase() === 'table') ? 'table' : 'chart'
+    const hasExplicitName = Object.prototype.hasOwnProperty.call(config, 'name')
     this.config = {
       _suppressHeader: config._suppressHeader,
       name: hasExplicitName ? config.name : this.widgetConfig.name,
@@ -39,74 +40,74 @@ class MetricsWidget {
         days: config.chart?.days || 30,
         defaultPeriod: this.normalizePeriod(config.chart?.default_period ?? config.chart?.defaultPeriod) || 'all'
       }
-    };
-    this.selectedPeriod = this.config.chart.defaultPeriod;
-    
-    const response = await fetch('widgets/metrics/metrics.html');
-    const html = await response.text();
-    container.innerHTML = html;
-    
-    const applyWidgetHeader = window.monitor?.applyWidgetHeader;
+    }
+    this.selectedPeriod = this.config.chart.defaultPeriod
+
+    const response = await fetch('widgets/metrics/metrics.html')
+    const html = await response.text()
+    container.innerHTML = html
+
+    const applyWidgetHeader = window.monitor?.applyWidgetHeader
     if (applyWidgetHeader) {
       applyWidgetHeader(container, {
         suppressHeader: this.config._suppressHeader,
         name: this.config.name
-      });
+      })
     }
-    
-    const viewChart = container.querySelector('[data-metrics="view-chart"]');
-    const viewTable = container.querySelector('[data-metrics="view-table"]');
-    const metricSelect = container.querySelector('[data-metrics="metric-select"]');
-    const periodSelect = container.querySelector('[data-metrics="period-select"]');
-    
+
+    const viewChart = container.querySelector('[data-metrics="view-chart"]')
+    const viewTable = container.querySelector('[data-metrics="view-table"]')
+    const metricSelect = container.querySelector('[data-metrics="metric-select"]')
+    const periodSelect = container.querySelector('[data-metrics="period-select"]')
+
     if (viewChart) {
-      viewChart.addEventListener('click', () => this.setView('chart'));
+      viewChart.addEventListener('click', () => this.setView('chart'))
     }
     if (viewTable) {
-      viewTable.addEventListener('click', () => this.setView('table'));
+      viewTable.addEventListener('click', () => this.setView('table'))
     }
     if (metricSelect) {
       metricSelect.addEventListener('change', (e) => {
-        this.selectedMetric = e.target.value;
+        this.selectedMetric = e.target.value
         if (this.chartManager && this.chartManager.hasChart()) {
-          this.updateChart();
+          this.updateChart()
         }
-      });
+      })
     }
     if (periodSelect) {
-      const matchingOption = Array.from(periodSelect.options).some(option => option.value === this.selectedPeriod);
-      periodSelect.value = matchingOption ? this.selectedPeriod : 'all';
-      this.selectedPeriod = periodSelect.value;
+      const matchingOption = Array.from(periodSelect.options).some(option => option.value === this.selectedPeriod)
+      periodSelect.value = matchingOption ? this.selectedPeriod : 'all'
+      this.selectedPeriod = periodSelect.value
       periodSelect.addEventListener('change', (e) => {
-        this.selectedPeriod = e.target.value;
+        this.selectedPeriod = e.target.value
         if (this.chartManager && this.chartManager.hasChart()) {
-          this.updateChart();
+          this.updateChart()
         }
-      });
+      })
     }
 
-    this.initManagers();
-    await this.loadData();
-    this.setView(this.config.default);
-    await this.loadHistory();
+    this.initManagers()
+    await this.loadData()
+    this.setView(this.config.default)
+    await this.loadHistory()
   }
 
-  async loadData() {
+  async loadData () {
     try {
-      const response = await fetch('api/metrics');
+      const response = await fetch('api/metrics')
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        throw new Error(`HTTP ${response.status}`)
       }
-      const data = await response.json();
-      this.update(data);
+      const data = await response.json()
+      this.update(data)
     } catch (error) {
-      console.error('Unable to load metrics:', error.message);
+      console.error('Unable to load metrics:', error.message)
     }
   }
 
-  update(data) {
-    if (!data.metrics || !data.metric_statuses) return;
-    
+  update (data) {
+    if (!data.metrics || !data.metric_statuses) return
+
     const elements = {
       uptime: document.getElementById('uptime-value'),
       load: document.getElementById('load-value'),
@@ -114,7 +115,7 @@ class MetricsWidget {
       temp: document.getElementById('temp-value'),
       disk: document.getElementById('disk-value'),
       storage: document.getElementById('storage-value')
-    };
+    }
 
     const stats = {
       uptime: document.querySelector('#uptime-value')?.closest('.stat'),
@@ -123,37 +124,37 @@ class MetricsWidget {
       temp: document.querySelector('#temp-value')?.closest('.stat'),
       disk: document.querySelector('#disk-value')?.closest('.stat'),
       storage: document.querySelector('#storage-value')?.closest('.stat')
-    };
+    }
 
     if (elements.uptime && data.metrics.uptime) {
-      elements.uptime.textContent = data.metrics.uptime;
+      elements.uptime.textContent = data.metrics.uptime
     }
     if (elements.load && data.metrics.load) {
-      elements.load.textContent = data.metrics.load;
+      elements.load.textContent = data.metrics.load
     }
     if (elements.memory && data.metrics.memory) {
-      elements.memory.textContent = data.metrics.memory;
+      elements.memory.textContent = data.metrics.memory
     }
     if (elements.temp && data.metrics.temp) {
-      elements.temp.textContent = data.metrics.temp;
+      elements.temp.textContent = data.metrics.temp
     }
     if (elements.disk && data.metrics.disk) {
-      elements.disk.textContent = data.metrics.disk;
+      elements.disk.textContent = data.metrics.disk
     }
     if (elements.storage && data.metrics.storage) {
-      elements.storage.textContent = data.metrics.storage;
+      elements.storage.textContent = data.metrics.storage
     }
 
     Object.keys(stats).forEach(key => {
       if (stats[key] && data.metric_statuses[key]) {
-        const status = data.metric_statuses[key];
-        stats[key].className = stats[key].className.replace(/status-\w+/g, '');
-        stats[key].classList.add(`status-${status}`);
+        const status = data.metric_statuses[key]
+        stats[key].className = stats[key].className.replace(/status-\w+/g, '')
+        stats[key].classList.add(`status-${status}`)
       }
-    });
+    })
   }
 
-  setView(view) {
+  setView (view) {
     const elements = {
       viewToggle: this.container.querySelector('[data-metrics="view-toggle"]'),
       chartContainer: this.container.querySelector('[data-metrics="chart-container"]'),
@@ -162,33 +163,31 @@ class MetricsWidget {
       viewTable: this.container.querySelector('[data-metrics="view-table"]'),
       metricSelect: this.container.querySelector('[data-metrics="metric-select"]'),
       periodSelect: this.container.querySelector('[data-metrics="period-select"]')
-    };
-    
-    const targetView = view === 'table' ? 'table' : view === 'none' ? 'none' : 'chart';
-    
+    }
+
+    const targetView = view === 'table' ? 'table' : view === 'none' ? 'none' : 'chart'
+
     // Show/hide metric and period selects based on view
     if (elements.metricSelect) {
-      elements.metricSelect.style.display = targetView === 'chart' ? '' : 'none';
+      elements.metricSelect.style.display = targetView === 'chart' ? '' : 'none'
     }
     if (elements.periodSelect) {
-      elements.periodSelect.style.display = targetView === 'chart' ? '' : 'none';
+      elements.periodSelect.style.display = targetView === 'chart' ? '' : 'none'
     }
-    
+
     this.currentView = ChartManager.setView(view, elements, this.currentView, this.chartManager, () => {
-      this.updateChart();
-    });
+      this.updateChart()
+    })
   }
 
-
-  initManagers() {
-    const DataFormatter = window.monitorShared?.DataFormatter;
-    const ChartManager = window.monitorShared?.ChartManager;
-    const TableManager = window.monitorShared?.TableManager;
+  initManagers () {
+    const DataFormatter = window.monitorShared?.DataFormatter
+    const ChartManager = window.monitorShared?.ChartManager
+    const TableManager = window.monitorShared?.TableManager
 
     if (!DataFormatter || !ChartManager || !TableManager) {
-      throw new Error('Shared modules not available');
+      throw new Error('Shared modules not available')
     }
-
 
     this.chartManager = new ChartManager({
       canvasElement: this.container.querySelector('[data-metrics="chart"]'),
@@ -196,7 +195,7 @@ class MetricsWidget {
       height: this.config.chart.height,
       dataUrl: null,
       chartOptions: {}
-    });
+    })
 
     this.tableManager = new TableManager({
       statusElement: this.container.querySelector('[data-metrics="history-status"]'),
@@ -216,54 +215,53 @@ class MetricsWidget {
         DataFormatter.formatNumber(entry.temp_c, 1) + '°C',
         entry.source || ''
       ]
-    });
+    })
   }
 
+  async loadHistory () {
+    if (!this.tableManager) return
 
-  async loadHistory() {
-    if (!this.tableManager) return;
-
-    this.tableManager.setEntries([]);
-    this.tableManager.setStatus('Loading metrics history…');
+    this.tableManager.setEntries([])
+    this.tableManager.setStatus('Loading metrics history…')
 
     try {
-      const response = await fetch('api/metrics/history', { cache: 'no-store' });
+      const response = await fetch('api/metrics/history', { cache: 'no-store' })
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        throw new Error(`HTTP ${response.status}`)
       }
-      const payload = await response.json();
-      const data = payload.data || [];
-      this.entries = data;
-      
+      const payload = await response.json()
+      const data = payload.data || []
+      this.entries = data
+
       // Calculate deltas for I/O metrics using shared utility
-      const transformedEntries = ChartManager.calculateTableDeltas(this.entries);
-      
+      const transformedEntries = ChartManager.calculateTableDeltas(this.entries)
+
       // Table gets limited entries, chart gets all entries
-      const tableEntries = transformedEntries.slice(-this.config.table.max).reverse();
-      this.tableManager.setEntries(tableEntries);
-      this.updateViewToggle();
+      const tableEntries = transformedEntries.slice(-this.config.table.max).reverse()
+      this.tableManager.setEntries(tableEntries)
+      this.updateViewToggle()
 
       if (this.chartManager && this.chartManager.hasChart()) {
-        this.updateChart();
+        this.updateChart()
       }
     } catch (error) {
-      this.tableManager.setStatus(`Unable to load metrics history: ${error.message}`);
+      this.tableManager.setStatus(`Unable to load metrics history: ${error.message}`)
     }
   }
 
-  updateChart() {
-    if (!this.chartManager || !this.chartManager.chart || !this.entries.length) return;
+  updateChart () {
+    if (!this.chartManager || !this.chartManager.chart || !this.entries.length) return
 
-    const DataFormatter = window.monitorShared.DataFormatter;
-    const filteredEntries = ChartManager.filterDataByPeriod(this.entries, this.selectedPeriod);
-    const chartData = ChartManager.createMetricsChartData(filteredEntries, this.selectedMetric, DataFormatter);
-    
-    if (!chartData.allValues || !chartData.allValues.length) return;
+    const DataFormatter = window.monitorShared.DataFormatter
+    const filteredEntries = ChartManager.filterDataByPeriod(this.entries, this.selectedPeriod)
+    const chartData = ChartManager.createMetricsChartData(filteredEntries, this.selectedMetric, DataFormatter)
 
-    const min = Math.min(...chartData.allValues.filter(v => !isNaN(v)));
-    const max = Math.max(...chartData.allValues.filter(v => !isNaN(v)));
-    const padding = (max - min) * 0.1;
-    
+    if (!chartData.allValues || !chartData.allValues.length) return
+
+    const min = Math.min(...chartData.allValues.filter(v => !isNaN(v)))
+    const max = Math.max(...chartData.allValues.filter(v => !isNaN(v)))
+    const padding = (max - min) * 0.1
+
     const scales = {
       y: {
         title: {
@@ -273,28 +271,29 @@ class MetricsWidget {
         min: Math.max(0, min - padding),
         max: max + padding
       }
-    };
+    }
 
-    this.chartManager.updateChart({ labels: chartData.labels, datasets: chartData.datasets }, scales);
+    this.chartManager.updateChart({ labels: chartData.labels, datasets: chartData.datasets }, scales)
   }
 
-  normalizePeriod(value) {
-    if (!value) return null;
-    const normalized = String(value).toLowerCase();
-    const allowed = new Set(['all', '7days', '24hours', '1hour']);
-    return allowed.has(normalized) ? normalized : null;
+  normalizePeriod (value) {
+    if (!value) return null
+    const normalized = String(value).toLowerCase()
+    const allowed = new Set(['all', '7days', '24hours', '1hour'])
+    return allowed.has(normalized) ? normalized : null
   }
-  updateViewToggle() {
-    const viewToggle = this.container.querySelector('[data-metrics="view-toggle"]');
+
+  updateViewToggle () {
+    const viewToggle = this.container.querySelector('[data-metrics="view-toggle"]')
     if (viewToggle) {
-      viewToggle.style.display = '';
+      viewToggle.style.display = ''
       if (!this.currentView) {
-        this.setView('chart');
+        this.setView('chart')
       }
     }
   }
 }
 
 // Register widget
-window.widgets = window.widgets || {};
-window.widgets.metrics = MetricsWidget;
+window.widgets = window.widgets || {}
+window.widgets.metrics = MetricsWidget

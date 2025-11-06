@@ -1,20 +1,21 @@
-const IP_PATTERN = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g;
+/* global localStorage, NodeFilter */
+const IP_PATTERN = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g
 
 const privacyState = {
   originalContent: new Map(),
   masked: false,
   config: null
-};
+}
 
-const THEME_STORAGE_KEY = 'monitor-theme';
-const THEME_LIGHT = 'light';
-const THEME_DARK = 'dark';
+const THEME_STORAGE_KEY = 'monitor-theme'
+const THEME_LIGHT = 'light'
+const THEME_DARK = 'dark'
 
-const monitorAPI = window.monitor = window.monitor || {};
+const monitorAPI = window.monitor = window.monitor || {}
 
-monitorAPI.applyWidgetHeader = function applyWidgetHeader(container, options = {}) {
+monitorAPI.applyWidgetHeader = function applyWidgetHeader (container, options = {}) {
   if (!container) {
-    return;
+    return
   }
 
   const {
@@ -22,217 +23,216 @@ monitorAPI.applyWidgetHeader = function applyWidgetHeader(container, options = {
     suppressHeader = false,
     name,
     preserveChildren = false
-  } = options;
+  } = options
 
-  const header = container.querySelector(selector);
+  const header = container.querySelector(selector)
   if (!header) {
-    return;
+    return
   }
 
   if (suppressHeader) {
-    header.remove();
-    return;
+    header.remove()
+    return
   }
 
   if (name === null || name === false) {
-    header.remove();
-    return;
+    header.remove()
+    return
   }
 
   if (typeof name === 'string' && name.length > 0) {
     if (preserveChildren) {
-      const preservedChildren = Array.from(header.children);
-      header.textContent = name;
+      const preservedChildren = Array.from(header.children)
+      header.textContent = name
       if (preservedChildren.length) {
-        header.appendChild(document.createTextNode(' '));
+        header.appendChild(document.createTextNode(' '))
         preservedChildren.forEach((child, index) => {
           if (index > 0) {
-            header.appendChild(document.createTextNode(' '));
+            header.appendChild(document.createTextNode(' '))
           }
-          header.appendChild(child);
-        });
+          header.appendChild(child)
+        })
       }
     } else {
-      header.textContent = name;
+      header.textContent = name
     }
-  }
-};
-
-document.addEventListener('DOMContentLoaded', async () => {
-  initializeThemeToggle();
-  initializeConfigReloadControl();
-  syncPrivacyToggleState();
-
-  const config = await loadConfig();
-
-  privacyState.config = config.privacy;
-
-  if (config.site?.name) {
-    document.title = config.site.name;
-  }
-  if (config.site?.title) {
-    const h1 = document.querySelector('h1');
-    if (h1) {
-      h1.textContent = config.site.title;
-    }
-  }
-  
-  // Initialize widgets in configured order (in parallel)
-  const widgetOrder = config.widgets?.enabled || ["network", "services", "metrics", "speedtest", "reminders", "wiki"];
-  await Promise.all(
-    widgetOrder.map(async (widgetName) => {
-      const widgetConfig = config.widgets?.[widgetName];
-
-      // Skip disabled widgets but keep their placeholder in ordering
-      if (widgetConfig?.enabled === false) {
-        return;
-      }
-
-      const widgetType = widgetConfig?.type || widgetName;
-      
-      // Merge widget-specific config sections for certain widgets
-      let finalConfig = widgetConfig;
-      if (widgetName === 'metrics' && config.metrics) {
-        finalConfig = { ...widgetConfig, ...config.metrics };
-      }
-      
-      return initializeWidget(widgetName, widgetType, finalConfig);
-    })
-  );
-});
-
-async function loadConfig() {
-  try {
-    const response = await fetch('api/config', { cache: 'no-store' });
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('Unable to load config:', error.message);
-    return {};
   }
 }
 
-function initializeConfigReloadControl() {
-  const button = document.getElementById('config-reload');
-  if (!button) {
-    return;
+document.addEventListener('DOMContentLoaded', async () => {
+  initializeThemeToggle()
+  initializeConfigReloadControl()
+  syncPrivacyToggleState()
+
+  const config = await loadConfig()
+
+  privacyState.config = config.privacy
+
+  if (config.site?.name) {
+    document.title = config.site.name
+  }
+  if (config.site?.title) {
+    const h1 = document.querySelector('h1')
+    if (h1) {
+      h1.textContent = config.site.title
+    }
   }
 
-  const defaultTitle = button.getAttribute('title') || 'Reload configuration';
-  const resetState = ({ keepTitle = false } = {}) => {
-    button.dataset.state = 'idle';
-    button.disabled = false;
-    if (!keepTitle) {
-      button.setAttribute('title', defaultTitle);
-    }
-  };
+  // Initialize widgets in configured order (in parallel)
+  const widgetOrder = config.widgets?.enabled || ['network', 'services', 'metrics', 'speedtest', 'reminders', 'wiki']
+  await Promise.all(
+    widgetOrder.map(async (widgetName) => {
+      const widgetConfig = config.widgets?.[widgetName]
 
-  resetState();
+      // Skip disabled widgets but keep their placeholder in ordering
+      if (widgetConfig?.enabled === false) {
+        return
+      }
+
+      const widgetType = widgetConfig?.type || widgetName
+
+      // Merge widget-specific config sections for certain widgets
+      let finalConfig = widgetConfig
+      if (widgetName === 'metrics' && config.metrics) {
+        finalConfig = { ...widgetConfig, ...config.metrics }
+      }
+
+      return initializeWidget(widgetName, widgetType, finalConfig)
+    })
+  )
+})
+
+async function loadConfig () {
+  try {
+    const response = await fetch('api/config', { cache: 'no-store' })
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+    return await response.json()
+  } catch (error) {
+    console.error('Unable to load config:', error.message)
+    return {}
+  }
+}
+
+function initializeConfigReloadControl () {
+  const button = document.getElementById('config-reload')
+  if (!button) {
+    return
+  }
+
+  const defaultTitle = button.getAttribute('title') || 'Reload configuration'
+  const resetState = ({ keepTitle = false } = {}) => {
+    button.dataset.state = 'idle'
+    button.disabled = false
+    if (!keepTitle) {
+      button.setAttribute('title', defaultTitle)
+    }
+  }
+
+  resetState()
 
   button.addEventListener('click', async () => {
     if (button.dataset.state === 'loading') {
-      return;
+      return
     }
 
-    button.dataset.state = 'loading';
-    button.disabled = true;
-    button.setAttribute('title', 'Reloading configuration...');
+    button.dataset.state = 'loading'
+    button.disabled = true
+    button.setAttribute('title', 'Reloading configuration...')
 
     try {
       const response = await fetch('api/config/reload', {
         method: 'POST',
         cache: 'no-store'
-      });
+      })
 
-      let payload = null;
+      let payload = null
       try {
-        payload = await response.json();
+        payload = await response.json()
       } catch (_) {
         /* ignore JSON decode issues */
       }
 
       if (!response.ok || (payload && payload.status !== 'ok')) {
-        const errorDetail = payload?.error || `HTTP ${response.status}`;
-        throw new Error(errorDetail);
+        const errorDetail = payload?.error || `HTTP ${response.status}`
+        throw new Error(errorDetail)
       }
 
-      button.dataset.state = 'success';
-      button.setAttribute('title', 'Config reloaded. Refresh the page to apply changes.');
+      button.dataset.state = 'success'
+      button.setAttribute('title', 'Config reloaded. Refresh the page to apply changes.')
 
       // Give the backend a moment, then refresh the UI to pick up new config.
       setTimeout(() => {
-        window.location.reload();
-      }, 600);
+        window.location.reload()
+      }, 600)
     } catch (error) {
-      console.error('Failed to reload config:', error);
-      button.dataset.state = 'error';
-      const reason = error instanceof Error ? error.message : String(error);
-      button.setAttribute('title', `Reload failed: ${reason}`);
+      console.error('Failed to reload config:', error)
+      button.dataset.state = 'error'
+      const reason = error instanceof Error ? error.message : String(error)
+      button.setAttribute('title', `Reload failed: ${reason}`)
     } finally {
-      const finalState = button.dataset.state;
+      const finalState = button.dataset.state
       setTimeout(() => {
-        resetState({ keepTitle: finalState === 'success' });
-      }, 2000);
+        resetState({ keepTitle: finalState === 'success' })
+      }, 2000)
     }
-  });
+  })
 }
 
-async function initializeWidget(widgetName, widgetType, config) {
+async function initializeWidget (widgetName, widgetType, config) {
   if (config?.show === false) {
-    return;
+    return
   }
-  
-  let container = document.getElementById(`${widgetName}-widget`);
+
+  let container = document.getElementById(`${widgetName}-widget`)
   if (!container) {
-    container = createWidgetContainer(widgetName);
+    container = createWidgetContainer(widgetName)
   }
   if (!window.widgets || !window.widgets[widgetType]) {
-    return;
+    return
   }
-  
+
   try {
     if (config?.collapsible === true) {
-      setupCollapsibleWidget(container, widgetName, config);
+      setupCollapsibleWidget(container, widgetName, config)
     }
- 
-    const contentContainer = config?.collapsible === true 
+
+    const contentContainer = config?.collapsible === true
       ? container.querySelector('.widget-content')
-      : container;
- 
-    const widgetClass = window.widgets[widgetType];
-    const widget = new widgetClass(config || {});
- 
-    const widgetConfig = config?.collapsible === true 
+      : container
+
+    const WidgetClass = window.widgets[widgetType]
+    const widget = new WidgetClass(config || {})
+
+    const widgetConfig = config?.collapsible === true
       ? { ...config, _suppressHeader: true }
-      : config;
- 
+      : config
+
     if (widgetType === 'speedtest') {
-      await widget.init(contentContainer, widgetConfig);
+      await widget.init(contentContainer, widgetConfig)
     } else if (widgetType === 'wiki') {
-      await widget.init(contentContainer, { ...widgetConfig, _widgetName: widgetName });
+      await widget.init(contentContainer, { ...widgetConfig, _widgetName: widgetName })
     } else {
-      await widget.init(contentContainer, widgetConfig || {});
+      await widget.init(contentContainer, widgetConfig || {})
     }
-    
   } catch (error) {
-    const widgetDisplayName = config?.name || widgetName;
-    container.innerHTML = `<p class="muted">Unable to load ${widgetDisplayName}: ${error.message}</p>`;
+    const widgetDisplayName = config?.name || widgetName
+    container.innerHTML = `<p class="muted">Unable to load ${widgetDisplayName}: ${error.message}</p>`
   }
 }
 
-function createWidgetContainer(widgetName) {
-  const container = document.createElement('div');
-  container.id = `${widgetName}-widget`;
-  document.querySelector('.widget-stack').appendChild(container);
-  return container;
+function createWidgetContainer (widgetName) {
+  const container = document.createElement('div')
+  container.id = `${widgetName}-widget`
+  document.querySelector('.widget-stack').appendChild(container)
+  return container
 }
 
-function setupCollapsibleWidget(container, widgetName, config) {
-  const widgetTitle = config?.name || widgetName;
-  const isHidden = config?.hidden === true;
-  
+function setupCollapsibleWidget (container, widgetName, config) {
+  const widgetTitle = config?.name || widgetName
+  const isHidden = config?.hidden === true
+
   container.innerHTML = `
     <div class="widget-header">
       <h2 class="widget-title">
@@ -243,148 +243,150 @@ function setupCollapsibleWidget(container, widgetName, config) {
       </button>
     </div>
     <div class="widget-content" style="display: ${isHidden ? 'none' : 'block'}"></div>
-  `;
+  `
 }
 
-function toggleWidget(widgetName) {
-  const container = document.getElementById(`${widgetName}-widget`);
-  if (!container) return;
-  
-  const content = container.querySelector('.widget-content');
-  const toggle = container.querySelector('.gaps-toggle');
-  if (!content || !toggle) return;
-  
-  const isHidden = content.style.display === 'none';
-  content.style.display = isHidden ? 'block' : 'none';
-  toggle.textContent = isHidden ? 'Hide' : 'Show';
-}
+function toggleWidget (widgetName) {
+  const container = document.getElementById(`${widgetName}-widget`)
+  if (!container) return
 
-function getStoredTheme() {
+  const content = container.querySelector('.widget-content')
+  const toggle = container.querySelector('.gaps-toggle')
+  if (!content || !toggle) return
+
+  const isHidden = content.style.display === 'none'
+  content.style.display = isHidden ? 'block' : 'none'
+  toggle.textContent = isHidden ? 'Hide' : 'Show'
+}
+window.toggleWidget = toggleWidget
+
+function getStoredTheme () {
   try {
-    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    const stored = localStorage.getItem(THEME_STORAGE_KEY)
     if (stored === THEME_DARK || stored === THEME_LIGHT) {
-      return stored;
+      return stored
     }
   } catch (_) {
     /* localStorage may be unavailable */
   }
-  return null;
+  return null
 }
 
-function hasStoredTheme() {
-  return getStoredTheme() !== null;
+function hasStoredTheme () {
+  return getStoredTheme() !== null
 }
 
-function getPreferredTheme() {
-  const storedTheme = getStoredTheme();
+function getPreferredTheme () {
+  const storedTheme = getStoredTheme()
   if (storedTheme) {
-    return storedTheme;
+    return storedTheme
   }
 
   if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    return THEME_DARK;
+    return THEME_DARK
   }
-  return THEME_LIGHT;
+  return THEME_LIGHT
 }
 
-function applyTheme(theme) {
-  const resolvedTheme = theme === THEME_DARK ? THEME_DARK : THEME_LIGHT;
-  const root = document.documentElement;
-  root.setAttribute('data-theme', resolvedTheme);
-  root.dataset.theme = resolvedTheme;
+function applyTheme (theme) {
+  const resolvedTheme = theme === THEME_DARK ? THEME_DARK : THEME_LIGHT
+  const root = document.documentElement
+  root.setAttribute('data-theme', resolvedTheme)
+  root.dataset.theme = resolvedTheme
 
-  const themeToggle = document.getElementById('theme-toggle');
+  const themeToggle = document.getElementById('theme-toggle')
   if (themeToggle) {
-    themeToggle.dataset.theme = resolvedTheme;
-    themeToggle.setAttribute('aria-pressed', resolvedTheme === THEME_DARK ? 'true' : 'false');
+    themeToggle.dataset.theme = resolvedTheme
+    themeToggle.setAttribute('aria-pressed', resolvedTheme === THEME_DARK ? 'true' : 'false')
   }
 }
 
-function initializeThemeToggle() {
-  applyTheme(getPreferredTheme());
+function initializeThemeToggle () {
+  applyTheme(getPreferredTheme())
 
   if (!window.matchMedia) {
-    return;
+    return
   }
 
-  const darkSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  const darkSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)')
   const handleSchemeChange = (event) => {
     if (!hasStoredTheme()) {
-      applyTheme(event.matches ? THEME_DARK : THEME_LIGHT);
+      applyTheme(event.matches ? THEME_DARK : THEME_LIGHT)
     }
-  };
+  }
 
   if (typeof darkSchemeQuery.addEventListener === 'function') {
-    darkSchemeQuery.addEventListener('change', handleSchemeChange);
+    darkSchemeQuery.addEventListener('change', handleSchemeChange)
   } else if (typeof darkSchemeQuery.addListener === 'function') {
-    darkSchemeQuery.addListener(handleSchemeChange);
+    darkSchemeQuery.addListener(handleSchemeChange)
   }
 }
 
-function syncPrivacyToggleState(button) {
-  const toggle = button || document.getElementById('privacy-toggle');
+function syncPrivacyToggleState (button) {
+  const toggle = button || document.getElementById('privacy-toggle')
   if (!toggle) {
-    return;
+    return
   }
 
-  toggle.dataset.privacy = privacyState.masked ? 'masked' : 'revealed';
-  toggle.setAttribute('aria-pressed', privacyState.masked ? 'true' : 'false');
+  toggle.dataset.privacy = privacyState.masked ? 'masked' : 'revealed'
+  toggle.setAttribute('aria-pressed', privacyState.masked ? 'true' : 'false')
 }
 
-
-function togglePrivacyMask() {
-  const button = document.getElementById('privacy-toggle');
+function togglePrivacyMask () {
+  const button = document.getElementById('privacy-toggle')
   if (!button || !privacyState.config) {
-    return;
+    return
   }
 
-  const wasMasked = privacyState.masked;
-  privacyState.masked = !privacyState.masked;
-  syncPrivacyToggleState(button);
+  const wasMasked = privacyState.masked
+  privacyState.masked = !privacyState.masked
+  syncPrivacyToggleState(button)
 
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-  const nodes = [];
-  let node;
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+  const nodes = []
+  let node
   while ((node = walker.nextNode())) {
-    nodes.push(node);
+    nodes.push(node)
   }
 
   const replacements = wasMasked
     ? Object.fromEntries(Object.entries(privacyState.config.replacements || {}).map(([key, value]) => [value, key]))
-    : privacyState.config.replacements || {};
+    : privacyState.config.replacements || {}
 
   nodes.forEach((textNode) => {
-    let text = textNode.textContent;
+    let text = textNode.textContent
 
     if (wasMasked) {
       if (privacyState.originalContent.has(textNode)) {
-        text = privacyState.originalContent.get(textNode);
-        privacyState.originalContent.delete(textNode);
+        text = privacyState.originalContent.get(textNode)
+        privacyState.originalContent.delete(textNode)
       }
     } else {
-      privacyState.originalContent.set(textNode, text);
+      privacyState.originalContent.set(textNode, text)
       if (privacyState.config.mask_ips) {
-        text = text.replace(IP_PATTERN, 'xxx.xxx.xxx.xxx');
+        text = text.replace(IP_PATTERN, 'xxx.xxx.xxx.xxx')
       }
     }
 
     for (const [from, to] of Object.entries(replacements)) {
-      text = text.replaceAll(from, to);
+      text = text.replaceAll(from, to)
     }
 
-    textNode.textContent = text;
-  });
+    textNode.textContent = text
+  })
 }
+window.togglePrivacyMask = togglePrivacyMask
 
-function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute('data-theme') || getPreferredTheme();
-  const nextTheme = currentTheme === THEME_DARK ? THEME_LIGHT : THEME_DARK;
+function toggleTheme () {
+  const currentTheme = document.documentElement.getAttribute('data-theme') || getPreferredTheme()
+  const nextTheme = currentTheme === THEME_DARK ? THEME_LIGHT : THEME_DARK
 
-  applyTheme(nextTheme);
+  applyTheme(nextTheme)
 
   try {
-    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    localStorage.setItem(THEME_STORAGE_KEY, nextTheme)
   } catch (_) {
     /* localStorage may be unavailable */
   }
 }
+window.toggleTheme = toggleTheme
