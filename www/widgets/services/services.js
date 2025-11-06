@@ -16,11 +16,12 @@ class ServicesWidget {
     container.innerHTML = html;
     
     // Update section title from config (unless suppressed by collapsible wrapper)
-    const title = container.querySelector('h2');
-    if (this.config._suppressHeader && title) {
-      title.remove();
-    } else if (title && this.config.name) {
-      title.textContent = this.config.name;
+    const applyWidgetHeader = window.monitor?.applyWidgetHeader;
+    if (applyWidgetHeader) {
+      applyWidgetHeader(container, {
+        suppressHeader: this.config._suppressHeader,
+        name: this.config.name
+      });
     }
     
     // Load initial data
@@ -103,14 +104,8 @@ class ServicesWidget {
       card.appendChild(info);
       
       card.addEventListener('click', (event) => {
-        let url;
-        if (event.shiftKey) {
-          // Shift+click
-          url = service.local || service.url;
-        } else {
-          // Primary click
-          url = service.url;
-        }
+        const useLocal = event.shiftKey && (event.ctrlKey || event.metaKey);
+        const url = useLocal ? (service.local || service.url) : service.url;
         if (url) {
           window.open(url, '_blank');
         }
@@ -173,7 +168,7 @@ class ServicesWidget {
                                         overallStatus === 'down' ? 'Stopped' : 'Unknown';
         // Combine status details with click behavior
         const service = this.servicesConfig.services[key];
-        const clickTip = `Click: ${service.url}\nShift+Click: ${service.local || service.url}`;
+        const clickTip = `Click: ${service.url}\nCtrl+Shift+Click: ${service.local || service.url}`;
         statusTextElement.title = statusParts.join('\n') + '\n\n' + clickTip;
       }
     });

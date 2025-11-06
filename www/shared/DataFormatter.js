@@ -1,15 +1,12 @@
 class DataFormatter {
   static formatTimestamp(value) {
-    if (!value) return 'Unknown';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleString(undefined, {
+    return this.formatDate(value, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: 'numeric',
       minute: '2-digit'
-    });
+    }, 'Unknown');
   }
 
   static formatMbps(value) {
@@ -33,15 +30,19 @@ class DataFormatter {
   }
 
   static formatTime(timestamp) {
-    if (!timestamp) return 'Unknown';
-    const date = new Date(timestamp);
-    if (Number.isNaN(date.getTime())) return timestamp;
-    return date.toLocaleString(undefined, {
+    return this.formatDate(timestamp, {
       month: 'short',
       day: 'numeric',
       hour: 'numeric',
       minute: '2-digit'
-    });
+    }, 'Unknown');
+  }
+
+  static formatDate(value, options, fallback = 'Unknown') {
+    if (!value) return fallback;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString(undefined, options);
   }
 }
 

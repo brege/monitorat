@@ -24,8 +24,10 @@ class SpeedtestWidget {
   async init(container, config = {}) {
     this.container = container;
     const defaultView = (typeof config.default === 'string' && config.default.toLowerCase() === 'table') ? 'table' : 'chart';
+    const hasExplicitName = Object.prototype.hasOwnProperty.call(config, 'name');
     this.config = {
       _suppressHeader: config._suppressHeader,
+      name: hasExplicitName ? config.name : this.widgetConfig.name,
       default: defaultView,
       table: {
         min: config.table?.min || 5,
@@ -41,15 +43,12 @@ class SpeedtestWidget {
     const html = await response.text();
     container.innerHTML = html;
     
-    const title = container.querySelector('h2');
-    if (this.config._suppressHeader && title) {
-      title.remove();
-    } else if (title && this.widgetConfig.name !== null && this.widgetConfig.name !== false) {
-      if (this.widgetConfig.name) {
-        title.textContent = this.widgetConfig.name;
-      }
-    } else if (title && (this.widgetConfig.name === null || this.widgetConfig.name === false)) {
-      title.remove();
+    const applyWidgetHeader = window.monitor?.applyWidgetHeader;
+    if (applyWidgetHeader) {
+      applyWidgetHeader(container, {
+        suppressHeader: this.config._suppressHeader,
+        name: this.config.name
+      });
     }
 
     this.elements = {

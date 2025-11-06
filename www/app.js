@@ -10,6 +10,54 @@ const THEME_STORAGE_KEY = 'monitor-theme';
 const THEME_LIGHT = 'light';
 const THEME_DARK = 'dark';
 
+const monitorAPI = window.monitor = window.monitor || {};
+
+monitorAPI.applyWidgetHeader = function applyWidgetHeader(container, options = {}) {
+  if (!container) {
+    return;
+  }
+
+  const {
+    selector = 'h2',
+    suppressHeader = false,
+    name,
+    preserveChildren = false
+  } = options;
+
+  const header = container.querySelector(selector);
+  if (!header) {
+    return;
+  }
+
+  if (suppressHeader) {
+    header.remove();
+    return;
+  }
+
+  if (name === null || name === false) {
+    header.remove();
+    return;
+  }
+
+  if (typeof name === 'string' && name.length > 0) {
+    if (preserveChildren) {
+      const preservedChildren = Array.from(header.children);
+      header.textContent = name;
+      if (preservedChildren.length) {
+        header.appendChild(document.createTextNode(' '));
+        preservedChildren.forEach((child, index) => {
+          if (index > 0) {
+            header.appendChild(document.createTextNode(' '));
+          }
+          header.appendChild(child);
+        });
+      }
+    } else {
+      header.textContent = name;
+    }
+  }
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
   initializeThemeToggle();
   initializeConfigReloadControl();

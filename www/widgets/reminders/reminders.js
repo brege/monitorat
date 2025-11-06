@@ -16,21 +16,13 @@ class RemindersWidget {
     container.innerHTML = html;
     
     // Update section title from config (unless suppressed by collapsible wrapper)
-    const title = container.querySelector('h2');
-    if (this.config._suppressHeader && title) {
-      title.remove();
-    } else if (title && this.config.name !== null && this.config.name !== false) {
-      if (this.config.name) {
-        // Preserve the button when updating title text
-        const button = title.querySelector('button');
-        title.textContent = this.config.name;
-        if (button) {
-          title.appendChild(document.createTextNode(' '));
-          title.appendChild(button);
-        }
-      }
-    } else if (title && (this.config.name === null || this.config.name === false)) {
-      title.remove();
+    const applyWidgetHeader = window.monitor?.applyWidgetHeader;
+    if (applyWidgetHeader) {
+      applyWidgetHeader(container, {
+        suppressHeader: this.config._suppressHeader,
+        name: this.config.name,
+        preserveChildren: true
+      });
     }
     
     // Load initial data
