@@ -25,6 +25,7 @@ class SpeedtestWidget {
     this.container = container;
     const defaultView = (typeof config.default === 'string' && config.default.toLowerCase() === 'table') ? 'table' : 'chart';
     const hasExplicitName = Object.prototype.hasOwnProperty.call(config, 'name');
+    const defaultPeriod = this.normalizePeriod(config.chart?.default_period ?? config.chart?.defaultPeriod) || 'all';
     this.config = {
       _suppressHeader: config._suppressHeader,
       name: hasExplicitName ? config.name : this.widgetConfig.name,
@@ -35,10 +36,12 @@ class SpeedtestWidget {
       },
       chart: {
         height: config.chart?.height || '400px',
-        days: config.chart?.days || 30
+        days: config.chart?.days || 30,
+        defaultPeriod
       }
     };
-
+    this.selectedPeriod = this.config.chart.defaultPeriod;
+    
     const response = await fetch('widgets/speedtest/speedtest.html');
     const html = await response.text();
     container.innerHTML = html;
@@ -77,6 +80,9 @@ class SpeedtestWidget {
     }
     
     if (this.elements.periodSelect) {
+      const matchingOption = Array.from(this.elements.periodSelect.options).some(option => option.value === this.selectedPeriod);
+      this.elements.periodSelect.value = matchingOption ? this.selectedPeriod : 'all';
+      this.selectedPeriod = this.elements.periodSelect.value;
       this.elements.periodSelect.addEventListener('change', (e) => {
         this.selectedPeriod = e.target.value;
         if (this.chartManager) {
@@ -217,6 +223,13 @@ class SpeedtestWidget {
     }
     
     this.currentView = ChartManager.setView(view, this.elements, this.currentView, this.chartManager);
+  }
+
+  normalizePeriod(value) {
+    if (!value) return null;
+    const normalized = String(value).toLowerCase();
+    const allowed = new Set(['all', '7days', '24hours', '1hour']);
+    return allowed.has(normalized) ? normalized : null;
   }
 
   updateViewToggle() {

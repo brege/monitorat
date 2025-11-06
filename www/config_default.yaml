@@ -19,6 +19,8 @@ widgets:
     enabled: true               # widget renders (default: true)
     collapsible: false          # show hide/show toggle (default: false)
     hidden: false               # start collapsed (default: false)
+    chart:
+      default_period: "1hour"   # default chart window: all, 7days, 24hours, 1hour
   speedtest:                    # network speedtest monitoring
     name: "Speedtests"
     enabled: false              # disabled by default
@@ -31,6 +33,7 @@ widgets:
     chart:
       height: "400px"           # fixed chart height
       days: 30                  # number of days to display (-1 for all)
+      default_period: "all"     # default chart window: all, 7days, 24hours, 1hour
   wiki:                         # load README.md if doc not specified
     name: "Notes & Links"
     enabled: true

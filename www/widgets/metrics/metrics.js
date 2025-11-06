@@ -36,9 +36,11 @@ class MetricsWidget {
       },
       chart: {
         height: config.chart?.height || '400px',
-        days: config.chart?.days || 30
+        days: config.chart?.days || 30,
+        defaultPeriod: this.normalizePeriod(config.chart?.default_period ?? config.chart?.defaultPeriod) || 'all'
       }
     };
+    this.selectedPeriod = this.config.chart.defaultPeriod;
     
     const response = await fetch('widgets/metrics/metrics.html');
     const html = await response.text();
@@ -72,6 +74,9 @@ class MetricsWidget {
       });
     }
     if (periodSelect) {
+      const matchingOption = Array.from(periodSelect.options).some(option => option.value === this.selectedPeriod);
+      periodSelect.value = matchingOption ? this.selectedPeriod : 'all';
+      this.selectedPeriod = periodSelect.value;
       periodSelect.addEventListener('change', (e) => {
         this.selectedPeriod = e.target.value;
         if (this.chartManager && this.chartManager.hasChart()) {
@@ -273,11 +278,12 @@ class MetricsWidget {
     this.chartManager.updateChart({ labels: chartData.labels, datasets: chartData.datasets }, scales);
   }
 
-
-
-
-
-
+  normalizePeriod(value) {
+    if (!value) return null;
+    const normalized = String(value).toLowerCase();
+    const allowed = new Set(['all', '7days', '24hours', '1hour']);
+    return allowed.has(normalized) ? normalized : null;
+  }
   updateViewToggle() {
     const viewToggle = this.container.querySelector('[data-metrics="view-toggle"]');
     if (viewToggle) {
