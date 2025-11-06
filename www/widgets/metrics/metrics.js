@@ -27,6 +27,7 @@ class MetricsWidget {
     this.container = container
     const defaultView = (typeof config.default === 'string' && config.default.toLowerCase() === 'table') ? 'table' : 'chart'
     const hasExplicitName = Object.prototype.hasOwnProperty.call(config, 'name')
+    const configuredMetric = config.chart?.default_metric ?? config.chart?.defaultMetric
     this.config = {
       _suppressHeader: config._suppressHeader,
       name: hasExplicitName ? config.name : this.widgetConfig.name,
@@ -42,6 +43,9 @@ class MetricsWidget {
       }
     }
     this.selectedPeriod = this.config.chart.defaultPeriod
+    if (typeof configuredMetric === 'string') {
+      this.selectedMetric = configuredMetric.toLowerCase()
+    }
 
     const response = await fetch('widgets/metrics/metrics.html')
     const html = await response.text()
@@ -67,6 +71,7 @@ class MetricsWidget {
       viewTable.addEventListener('click', () => this.setView('table'))
     }
     if (metricSelect) {
+      metricSelect.value = this.selectedMetric
       metricSelect.addEventListener('change', (e) => {
         this.selectedMetric = e.target.value
         if (this.chartManager && this.chartManager.hasChart()) {

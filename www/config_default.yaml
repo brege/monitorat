@@ -18,6 +18,7 @@ widgets:
     collapsible: false  # show hide/show toggle (default: false)
     hidden: false  # start collapsed (default: false)
     chart:
+      default_metric: cpu_memory  # options: cpu_memory, cpu_percent, memory_percent, disk_io, net_io, temp_c, load_1min
       default_period: 1hour  # default chart window: all, 7days, 24hours, 1hour
   speedtest:  # network speedtest monitoring
     name: Speedtests
