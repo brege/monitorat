@@ -184,6 +184,87 @@ class ChartManager {
     return result;
   }
 
+  static withAlpha(color, alpha) {
+    if (typeof color !== 'string') {
+      return color;
+    }
+    const match = color.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/i);
+    if (!match) {
+      return color;
+    }
+    const [, r, g, b] = match;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  static computeMovingAverage(values, windowSize = 3) {
+    if (!Array.isArray(values) || values.length === 0) {
+      return [];
+    }
+
+    const halfWindow = Math.max(1, Math.floor(windowSize / 2));
+    return values.map((value, index) => {
+      if (!Number.isFinite(value)) {
+        return value;
+      }
+
+      let sum = 0;
+      let count = 0;
+      for (let offset = -halfWindow; offset <= halfWindow; offset += 1) {
+        const sampleIndex = index + offset;
+        if (sampleIndex < 0 || sampleIndex >= values.length) {
+          continue;
+        }
+        const sample = values[sampleIndex];
+        if (Number.isFinite(sample)) {
+          sum += sample;
+          count += 1;
+        }
+      }
+
+      if (count === 0) {
+        return value;
+      }
+
+      return sum / count;
+    });
+  }
+
+  static buildGhostedDatasets({ label, color, rawValues, windowSize = 3 }) {
+    const smoothedValues = this.computeMovingAverage(rawValues, windowSize);
+    const ghostColor = 'rgba(148, 163, 184, 0.35)';
+
+    return [
+      {
+        label: `${label} (raw)`,
+        data: rawValues,
+        borderColor: ghostColor,
+        backgroundColor: 'rgba(148, 163, 184, 0.08)',
+        borderWidth: 1,
+        pointRadius: 0,
+        pointHoverRadius: 3,
+        pointHitRadius: 6,
+        fill: false,
+        tension: 0.15,
+        spanGaps: true,
+        order: 0
+      },
+      {
+        label,
+        data: smoothedValues,
+        borderColor: color,
+        backgroundColor: this.withAlpha(color, 0.18),
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        pointHitRadius: 8,
+        fill: true,
+        tension: 0.25,
+        spanGaps: true,
+        order: 1
+      }
+    ];
+  }
+
   static createMetricsChartData(entries, selectedMetric, DataFormatter) {
     if (!entries || !entries.length) return { labels: [], datasets: [] };
 
@@ -198,65 +279,53 @@ class ChartManager {
         const cpuData = chronological.map(row => parseFloat(row.cpu_percent));
         const memoryData = chronological.map(row => parseFloat(row.memory_percent));
         datasets = [
-          {
+          ...this.buildGhostedDatasets({
             label: 'CPU %',
-            data: cpuData,
-            borderColor: 'rgb(75, 192, 192)',
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            tension: 0.1
-          },
-          {
+            color: 'rgb(75, 192, 192)',
+            rawValues: cpuData
+          }),
+          ...this.buildGhostedDatasets({
             label: 'Memory %',
-            data: memoryData,
-            borderColor: 'rgb(255, 159, 64)',
-            backgroundColor: 'rgba(255, 159, 64, 0.2)',
-            tension: 0.1
-          }
+            color: 'rgb(255, 159, 64)',
+            rawValues: memoryData
+          })
         ];
         allValues = [...cpuData, ...memoryData];
         break;
         
       case 'cpu_percent':
         const cpuValues = chronological.map(row => parseFloat(row.cpu_percent));
-        datasets = [{
+        datasets = this.buildGhostedDatasets({
           label: 'CPU %',
-          data: cpuValues,
-          borderColor: 'rgb(75, 192, 192)',
-          backgroundColor: 'rgba(75, 192, 192, 0.2)',
-          tension: 0.1
-        }];
+          color: 'rgb(75, 192, 192)',
+          rawValues: cpuValues
+        });
         allValues = cpuValues;
         break;
         
       case 'memory_percent':
         const memValues = chronological.map(row => parseFloat(row.memory_percent));
-        datasets = [{
+        datasets = this.buildGhostedDatasets({
           label: 'Memory %',
-          data: memValues,
-          borderColor: 'rgb(255, 159, 64)',
-          backgroundColor: 'rgba(255, 159, 64, 0.2)',
-          tension: 0.1
-        }];
+          color: 'rgb(255, 159, 64)',
+          rawValues: memValues
+        });
         allValues = memValues;
         break;
         
       case 'disk_io':
         const diskDeltas = this.calculateDeltas(chronological, 'disk_read_mb', 'disk_write_mb');
         datasets = [
-          {
+          ...this.buildGhostedDatasets({
             label: 'Read MB/min',
-            data: diskDeltas.read,
-            borderColor: 'rgb(54, 162, 235)',
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            tension: 0.1
-          },
-          {
+            color: 'rgb(54, 162, 235)',
+            rawValues: diskDeltas.read
+          }),
+          ...this.buildGhostedDatasets({
             label: 'Write MB/min',
-            data: diskDeltas.write,
-            borderColor: 'rgb(255, 99, 132)',
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            tension: 0.1
-          }
+            color: 'rgb(255, 99, 132)',
+            rawValues: diskDeltas.write
+          })
         ];
         allValues = [...diskDeltas.read, ...diskDeltas.write];
         break;
@@ -264,45 +333,37 @@ class ChartManager {
       case 'net_io':
         const netDeltas = this.calculateDeltas(chronological, 'net_rx_mb', 'net_tx_mb');
         datasets = [
-          {
+          ...this.buildGhostedDatasets({
             label: 'RX MB/min',
-            data: netDeltas.read,
-            borderColor: 'rgb(75, 192, 192)',
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            tension: 0.1
-          },
-          {
+            color: 'rgb(75, 192, 192)',
+            rawValues: netDeltas.read
+          }),
+          ...this.buildGhostedDatasets({
             label: 'TX MB/min',
-            data: netDeltas.write,
-            borderColor: 'rgb(255, 159, 64)',
-            backgroundColor: 'rgba(255, 159, 64, 0.2)',
-            tension: 0.1
-          }
+            color: 'rgb(255, 159, 64)',
+            rawValues: netDeltas.write
+          })
         ];
         allValues = [...netDeltas.read, ...netDeltas.write];
         break;
         
       case 'temp_c':
         const tempValues = chronological.map(row => parseFloat(row.temp_c));
-        datasets = [{
+        datasets = this.buildGhostedDatasets({
           label: 'Temperature (°C)',
-          data: tempValues,
-          borderColor: 'rgb(255, 99, 132)',
-          backgroundColor: 'rgba(255, 99, 132, 0.2)',
-          tension: 0.1
-        }];
+          color: 'rgb(255, 99, 132)',
+          rawValues: tempValues
+        });
         allValues = tempValues;
         break;
         
       case 'load_1min':
         const loadValues = chronological.map(row => parseFloat(row.load_1min));
-        datasets = [{
+        datasets = this.buildGhostedDatasets({
           label: 'Load Average',
-          data: loadValues,
-          borderColor: 'rgb(153, 102, 255)',
-          backgroundColor: 'rgba(153, 102, 255, 0.2)',
-          tension: 0.1
-        }];
+          color: 'rgb(153, 102, 255)',
+          rawValues: loadValues
+        });
         allValues = loadValues;
         break;
     }
