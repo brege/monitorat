@@ -47,6 +47,31 @@ widgets:
       height: 400px  # fixed chart height
       days: 30  # number of days to display (-1 for all)
       default_period: all  # default chart window: natural language (e.g., "1 day", "1 week", "all")
+  network:  # network monitoring and outage tracking
+    name: Network Outages
+    enabled: false  # disabled by default
+    log_file: /var/log/network.log  # path to network monitoring log
+    collapsible: true
+    hidden: false
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:  # configurable time windows with natural language
+        - period: "1 hour"
+          segment_size: "5 minutes"
+        - period: "1 day"
+          segment_size: "1 hour"
+        - period: "1 week"
+          segment_size: "1 day"
+        - period: "1 month"
+          segment_size: "1 day"
+        - period: "1 year"
+          segment_size: "1 month"
+    gaps:
+      show: true
+      max: 3  # maximum outages to show initially
+      cadence: 0  # minimum outage duration in minutes to show
   wiki:  # load README.md if doc not specified
     name: Notes & Links
     enabled: true
