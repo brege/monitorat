@@ -7,6 +7,7 @@ import time as time_module
 from datetime import datetime
 from pathlib import Path
 import sys
+import logging
 
 sys.path.append(str(Path(__file__).parent.parent))
 from monitor import config, register_config_listener, NotificationHandler
@@ -14,6 +15,7 @@ from monitor import config, register_config_listener, NotificationHandler
 
 BASE = Path(__file__).parent.parent.parent.parent
 _scheduler_thread = None
+logger = logging.getLogger(__name__)
 
 
 def get_reminders_json_path():
@@ -64,7 +66,7 @@ def cleanup_orphaned_reminders():
     orphaned = data_ids - config_ids
 
     if orphaned:
-        print(f"Cleaning up orphaned reminder data: {orphaned}")
+        logger.info(f"Cleaning up orphaned reminder data: {orphaned}")
         for orphan_id in orphaned:
             del data[orphan_id]
         save_reminder_data(data)
@@ -140,13 +142,13 @@ def _refresh_notification_schedule(log_prefix="[schedule] refreshed") -> None:
         check_time = config["reminders"]["time"].get(str)
     except Exception as exc:
         schedule.clear()
-        print(f"[{datetime.now()}] Unable to configure reminder schedule: {exc}")
+        logger.error(f"Unable to configure reminder schedule: {exc}")
         return
 
     schedule.clear()
     schedule.every().day.at(check_time).do(scheduled_notification_check)
-    print(f"[{datetime.now()}] {log_prefix} - daily check at {check_time}")
-    print(f"[{datetime.now()}] Scheduled jobs: {len(schedule.get_jobs())}")
+    logger.info(f"{log_prefix} - daily check at {check_time}")
+    logger.info(f"Scheduled jobs: {len(schedule.get_jobs())}")
 
 
 def send_notifications():
@@ -195,8 +197,8 @@ def send_notifications():
                 f"\n\nTouch to refresh: {base_url}/api/reminders/{reminder['id']}/touch"
             )
 
-            print(
-                f"  Sending notification for {reminder['name']}: {days_remaining} days remaining (priority: {priority})"
+            logger.info(
+                f"Sending notification for {reminder['name']}: {days_remaining} days remaining (priority: {priority})"
             )
 
             if notification_handler.send_notification(title, body, priority):
@@ -228,21 +230,19 @@ def send_test_notification(priority=0):
 
 def scheduled_notification_check():
     """Function called by the scheduler"""
-    print(f"[{datetime.now()}] === DAEMON NOTIFICATION CHECK START ===")
+    logger.info("=== DAEMON NOTIFICATION CHECK START ===")
 
     # Debug: show all reminder statuses first
     reminders = get_reminder_status()
-    print(f"  Found {len(reminders)} entries:")
+    logger.info(f"Found {len(reminders)} reminders:")
     for reminder in reminders:
-        print(
-            f"    {reminder['id']}: {reminder['name']} - {reminder['days_remaining']} days remaining"
+        logger.info(
+            f"  {reminder['id']}: {reminder['name']} - {reminder['days_remaining']} days remaining"
         )
 
-    print(f"[{datetime.now()}] Calling send_notifications() once...")
+    logger.info("Calling send_notifications()...")
     count = send_notifications()
-    print(
-        f"[{datetime.now()}] === DAEMON NOTIFICATION CHECK END - Sent {count} notifications ==="
-    )
+    logger.info(f"=== DAEMON NOTIFICATION CHECK END - Sent {count} notifications ===")
 
 
 def on_config_reloaded(_new_config):

@@ -8,6 +8,7 @@ import yaml
 import importlib
 import confuse
 import apprise
+import logging
 from typing import Callable, List, Optional
 
 app = Flask(__name__)
@@ -97,6 +98,26 @@ def get_data_path():
         return BASE / data_dir
 
 
+def setup_logging():
+    """Setup basic logging configuration"""
+    try:
+        log_file = get_data_path() / "monitor.log"
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        # Fallback if config not loaded yet
+        log_file = BASE / "monitor.log"
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler(),  # Keep console output
+        ],
+        force=True,  # Override any existing logging config
+    )
+
+
 class NotificationHandler:
     """Shared notification handler for sending messages via apprise"""
 
@@ -107,6 +128,7 @@ class NotificationHandler:
             apprise_urls (list): List of apprise URLs to send notifications to
         """
         self.apprise_urls = apprise_urls or []
+        self.logger = logging.getLogger(__name__)
 
     def add_priority_to_url(self, url, priority):
         """Add priority parameter to apprise URL"""
@@ -146,6 +168,7 @@ class NotificationHandler:
             bool: True if notification was sent successfully
         """
         if not self.apprise_urls:
+            self.logger.warning("No apprise URLs configured, notification not sent")
             return False
 
         apobj = apprise.Apprise()
@@ -156,9 +179,24 @@ class NotificationHandler:
             apobj.add(priority_url)
 
         if len(apobj) == 0:
+            self.logger.error("Failed to add any notification services")
             return False
 
-        return apobj.notify(title=title, body=body)
+        priority_names = {-1: "low", 0: "normal", 1: "high"}
+        priority_name = priority_names.get(priority, "unknown")
+
+        self.logger.info(f"Sending notification (priority={priority_name}): {title}")
+
+        try:
+            result = apobj.notify(title=title, body=body)
+            if result:
+                self.logger.info("Notification sent successfully")
+            else:
+                self.logger.error("Notification failed to send")
+            return result
+        except Exception as e:
+            self.logger.error(f"Notification error: {e}")
+            return False
 
     def send_test_notification(self, priority=0, service_name="monitor@"):
         """Send test notification with optional priority level
@@ -171,6 +209,9 @@ class NotificationHandler:
             bool: True if notification was sent successfully
         """
         if not self.apprise_urls:
+            self.logger.warning(
+                "No apprise URLs configured, test notification not sent"
+            )
             return False
 
         priority_names = {-1: "Low", 0: "Normal", 1: "High"}
@@ -179,6 +220,7 @@ class NotificationHandler:
         title = f"{service_name} Test ({priority_name} Priority)"
         body = f"Test notification from {service_name} with {priority_name.lower()} priority level"
 
+        self.logger.info(f"Sending test notification from {service_name}")
         return self.send_notification(title, body, priority)
 
 
@@ -367,6 +409,9 @@ def static_files(filename):
 try:
     import importlib
 
+    # Setup logging early
+    setup_logging()
+
     # Register network widget routes
     network_module = importlib.import_module("widgets.network.api")
     if hasattr(network_module, "register_routes"):
@@ -396,6 +441,7 @@ except Exception as e:
     print(f"Error loading widget APIs: {e}")
 
 if __name__ == "__main__":
+    setup_logging()
     app.run()
 
 
