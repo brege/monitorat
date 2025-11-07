@@ -1,44 +1,15 @@
 #!/usr/bin/env python3
 
 import json
-import apprise
 import schedule
 import threading
 import time as time_module
 from datetime import datetime
 from pathlib import Path
-from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import sys
 
 sys.path.append(str(Path(__file__).parent.parent))
-from monitor import config, register_config_listener
-
-
-def add_priority_to_url(url, priority):
-    """Add priority parameter to apprise URL"""
-    parsed = urlparse(url)
-    query_params = parse_qs(parsed.query)
-
-    # Map numeric priority to pushover priority values
-    priority_map = {
-        -1: "-1",  # low
-        0: "0",  # normal
-        1: "1",  # high
-    }
-
-    query_params["priority"] = [priority_map.get(priority, "0")]
-
-    new_query = urlencode(query_params, doseq=True)
-    return urlunparse(
-        (
-            parsed.scheme,
-            parsed.netloc,
-            parsed.path,
-            parsed.params,
-            new_query,
-            parsed.fragment,
-        )
-    )
+from monitor import config, register_config_listener, NotificationHandler
 
 
 BASE = Path(__file__).parent.parent.parent.parent
@@ -192,6 +163,9 @@ def send_notifications():
     urgents = config["reminders"]["urgents"].get(list)
     base_url = config["site"]["base_url"].get(str)
 
+    # Create notification handler
+    notification_handler = NotificationHandler(apprise_urls)
+
     reminders = get_reminder_status()
     notifications_sent = 0
 
@@ -225,18 +199,7 @@ def send_notifications():
                 f"  Sending notification for {reminder['name']}: {days_remaining} days remaining (priority: {priority})"
             )
 
-            # Create priority-aware apprise object for this notification
-            priority_apobj = apprise.Apprise()
-
-            # Add apprise URLs with priority
-            apprise_urls = reminders_config.get("apprise_urls", [])
-            if apprise_urls:
-                for url in apprise_urls:
-                    priority_url = add_priority_to_url(url, priority)
-                    priority_apobj.add(priority_url)
-
-            if len(priority_apobj) > 0:
-                priority_apobj.notify(title=title, body=body)
+            if notification_handler.send_notification(title, body, priority):
                 notifications_sent += 1
 
     return notifications_sent
@@ -252,26 +215,15 @@ def send_test_notification(priority=0):
     if not reminders_config:
         return False
 
-    apobj = apprise.Apprise()
-
     # Support apprise URLs with priority
     apprise_urls = reminders_config.get("apprise_urls", [])
-    if apprise_urls:
-        for url in apprise_urls:
-            priority_url = add_priority_to_url(url, priority)
-            apobj.add(priority_url)
-
-    # Check if we have any notification services configured
-    if len(apobj) == 0:
+    if not apprise_urls:
         return False
 
-    priority_names = {-1: "Low", 0: "Normal", 1: "High"}
-    priority_name = priority_names.get(priority, "Unknown")
+    # Create notification handler
+    notification_handler = NotificationHandler(apprise_urls)
 
-    return apobj.notify(
-        title=f"monitor@ reminder Test ({priority_name} Priority)",
-        body=f"Bzzz.. Test notification from monitor@ with {priority_name.lower()} priority level",
-    )
+    return notification_handler.send_test_notification(priority, "monitor@ reminder")
 
 
 def scheduled_notification_check():

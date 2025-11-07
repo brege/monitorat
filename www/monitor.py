@@ -2,10 +2,12 @@
 from flask import Flask, send_from_directory, jsonify, request
 from pathlib import Path
 from urllib.request import urlretrieve
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import threading
 import yaml
 import importlib
 import confuse
+import apprise
 from typing import Callable, List, Optional
 
 app = Flask(__name__)
@@ -93,6 +95,91 @@ def get_data_path():
         return Path(data_dir)
     else:
         return BASE / data_dir
+
+
+class NotificationHandler:
+    """Shared notification handler for sending messages via apprise"""
+
+    def __init__(self, apprise_urls=None):
+        """Initialize notification handler
+
+        Args:
+            apprise_urls (list): List of apprise URLs to send notifications to
+        """
+        self.apprise_urls = apprise_urls or []
+
+    def add_priority_to_url(self, url, priority):
+        """Add priority parameter to apprise URL"""
+        parsed = urlparse(url)
+        query_params = parse_qs(parsed.query)
+
+        # Map numeric priority to pushover priority values
+        priority_map = {
+            -1: "-1",  # low
+            0: "0",  # normal
+            1: "1",  # high
+        }
+
+        query_params["priority"] = [priority_map.get(priority, "0")]
+
+        new_query = urlencode(query_params, doseq=True)
+        return urlunparse(
+            (
+                parsed.scheme,
+                parsed.netloc,
+                parsed.path,
+                parsed.params,
+                new_query,
+                parsed.fragment,
+            )
+        )
+
+    def send_notification(self, title, body, priority=0):
+        """Send notification with specified title, body and priority
+
+        Args:
+            title (str): Notification title
+            body (str): Notification body
+            priority (int): Priority level (-1=low, 0=normal, 1=high)
+
+        Returns:
+            bool: True if notification was sent successfully
+        """
+        if not self.apprise_urls:
+            return False
+
+        apobj = apprise.Apprise()
+
+        # Add apprise URLs with priority
+        for url in self.apprise_urls:
+            priority_url = self.add_priority_to_url(url, priority)
+            apobj.add(priority_url)
+
+        if len(apobj) == 0:
+            return False
+
+        return apobj.notify(title=title, body=body)
+
+    def send_test_notification(self, priority=0, service_name="monitor@"):
+        """Send test notification with optional priority level
+
+        Args:
+            priority (int): Priority level (-1=low, 0=normal, 1=high)
+            service_name (str): Name of service sending the test
+
+        Returns:
+            bool: True if notification was sent successfully
+        """
+        if not self.apprise_urls:
+            return False
+
+        priority_names = {-1: "Low", 0: "Normal", 1: "High"}
+        priority_name = priority_names.get(priority, "Unknown")
+
+        title = f"{service_name} Test ({priority_name} Priority)"
+        body = f"Test notification from {service_name} with {priority_name.lower()} priority level"
+
+        return self.send_notification(title, body, priority)
 
 
 def get_csv_path():
