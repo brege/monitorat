@@ -178,6 +178,7 @@ class SpeedtestWidget {
         status.textContent = `${DataFormatter.formatTimestamp(result.timestamp)} — ↓ ${DataFormatter.formatMbps(result.download)} Mbps, ↑ ${DataFormatter.formatMbps(result.upload)} Mbps, ${DataFormatter.formatPing(result.ping)} ms (${result.server || 'unknown server'})`
       }
     } catch (error) {
+      console.error('Speedtest run API call failed:', error)
       if (status) status.textContent = `Speedtest error: ${error.message}`
     } finally {
       if (button) button.disabled = false
@@ -210,6 +211,7 @@ class SpeedtestWidget {
         await this.chartManager.loadData()
       }
     } catch (error) {
+      console.error('Speedtest history API call failed:', error)
       this.tableManager.setStatus(`Unable to load speedtests: ${error.message}`)
     }
   }

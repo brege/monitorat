@@ -4,9 +4,12 @@ import json
 import subprocess
 from pathlib import Path
 import sys
+import logging
 
 sys.path.append(str(Path(__file__).parent.parent))
 from monitor import config
+
+logger = logging.getLogger(__name__)
 
 BASE = Path(__file__).parent.parent.parent.parent
 
@@ -32,7 +35,7 @@ def get_docker_status():
                     )
 
     except Exception as e:
-        print(f"Docker command exception: {e}")
+        logger.error(f"Docker command exception: {e}")
 
     return container_statuses
 
@@ -68,7 +71,7 @@ def get_systemd_status():
                 status = result.stdout.strip()
                 service_statuses[service] = "ok" if status == "active" else "down"
             except Exception as e:
-                print(f"Error checking service {service}: {e}")
+                logger.error(f"Error checking service {service}: {e}")
                 service_statuses[service] = "unknown"
 
         # Check timers
@@ -83,11 +86,11 @@ def get_systemd_status():
                 status = result.stdout.strip()
                 service_statuses[timer] = "ok" if status == "active" else "down"
             except Exception as e:
-                print(f"Error checking timer {timer}: {e}")
+                logger.error(f"Error checking timer {timer}: {e}")
                 service_statuses[timer] = "unknown"
 
     except Exception as e:
-        print(f"Error loading services config: {e}")
+        logger.error(f"Error loading services config: {e}")
 
     return service_statuses
 

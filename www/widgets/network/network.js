@@ -187,6 +187,7 @@ class NetworkWidget {
         setText(this.elements.logStatus, 'No log entries found.')
       }
     } catch (error) {
+      console.error('Network log API call failed:', error)
       setText(this.elements.logStatus, `Unable to load log: ${error.message}`)
       this.state.gapsExpanded = false
       this.state.entries = []

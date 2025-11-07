@@ -449,10 +449,14 @@ def api_config():
 
 @app.route("/api/config/reload", methods=["POST"])
 def api_config_reload():
+    logger = logging.getLogger(__name__)
     try:
+        logger.info("Configuration reload requested")
         reload_config()
+        logger.info("Configuration reloaded successfully")
         return jsonify({"status": "ok"})
     except Exception as exc:
+        logger.error(f"Configuration reload failed: {exc}")
         return jsonify(error=str(exc)), 500
 
 
@@ -527,37 +531,41 @@ try:
 
     # Setup logging early
     setup_logging()
+    logger = logging.getLogger(__name__)
+    logger.info("Starting monitor@ application")
 
     # Setup alert handler
     setup_alert_handler()
+    logger.info("Alert handler initialized")
 
     # Register network widget routes
     network_module = importlib.import_module("widgets.network.api")
     if hasattr(network_module, "register_routes"):
         network_module.register_routes(app)
-        print("Loaded network widget API")
+        logger.info("Loaded network widget API")
 
     # Register metrics widget routes
     metrics_module = importlib.import_module("widgets.metrics.api")
     if hasattr(metrics_module, "register_routes"):
         metrics_module.register_routes(app)
-        print("Loaded metrics widget API")
+        logger.info("Loaded metrics widget API")
 
     # Register reminders widget routes
     reminders_module = importlib.import_module("widgets.reminders.api")
     if hasattr(reminders_module, "register_routes"):
         reminders_module.register_routes(app)
-        print("Loaded reminders widget API")
+        logger.info("Loaded reminders widget API")
 
         # Start notification daemon for reminders
         if hasattr(reminders_module, "start_notification_daemon"):
             reminders_module.start_notification_daemon()
-            print("Started reminders notification daemon")
+            logger.info("Started reminders notification daemon")
         if hasattr(reminders_module, "on_config_reloaded"):
             register_config_listener(reminders_module.on_config_reloaded)
 
 except Exception as e:
-    print(f"Error loading widget APIs: {e}")
+    logger = logging.getLogger(__name__)
+    logger.error(f"Error loading widget APIs: {e}")
 
 if __name__ == "__main__":
     setup_logging()

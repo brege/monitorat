@@ -253,6 +253,7 @@ class MetricsWidget {
         this.updateChart()
       }
     } catch (error) {
+      console.error('Metrics history API call failed:', error)
       this.tableManager.setStatus(`Unable to load metrics history: ${error.message}`)
     }
   }
