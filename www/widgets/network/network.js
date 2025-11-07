@@ -5,19 +5,57 @@ const NET_HOUR_MS = 60 * NET_MINUTE_MS
 const NET_DAY_MS = 24 * NET_HOUR_MS
 const NET_MINUTES_PER_CHECK = NET_EXPECTED_INTERVAL_MS / 60000
 
-const NETWORK_WINDOWS = [
-  { key: '1h', flag: 'hour', label: 'Past hour', type: 'interval', segmentMs: 5 * NET_MINUTE_MS, segmentCount: 12 },
-  { key: '24h', flag: 'day', label: 'Past 24 hours', type: 'interval', segmentMs: NET_HOUR_MS, segmentCount: 24 },
-  { key: '7d', flag: 'week', label: 'Past 7 days', type: 'interval', segmentMs: NET_DAY_MS, segmentCount: 7 },
-  { key: 'month', flag: 'month', label: null, type: 'month' },
-  { key: 'year', flag: 'year', label: null, type: 'year' }
-]
+function parseNaturalTime (timeStr) {
+  if (!timeStr || typeof timeStr !== 'string') return null
+
+  const normalized = timeStr.trim().toLowerCase()
+  const timePattern = /^(\d+(?:\.\d+)?)\s*([a-z]+)$/
+  const match = normalized.match(timePattern)
+
+  if (!match) return null
+
+  const [, amountStr, unit] = match
+  const amount = parseFloat(amountStr)
+
+  if (isNaN(amount) || amount <= 0) return null
+
+  const multipliers = {
+    s: 1000,
+    sec: 1000,
+    second: 1000,
+    seconds: 1000,
+    m: 60 * 1000,
+    min: 60 * 1000,
+    minute: 60 * 1000,
+    minutes: 60 * 1000,
+    h: 60 * 60 * 1000,
+    hr: 60 * 60 * 1000,
+    hour: 60 * 60 * 1000,
+    hours: 60 * 60 * 1000,
+    d: 24 * 60 * 60 * 1000,
+    day: 24 * 60 * 60 * 1000,
+    days: 24 * 60 * 60 * 1000,
+    w: 7 * 24 * 60 * 60 * 1000,
+    week: 7 * 24 * 60 * 60 * 1000,
+    weeks: 7 * 24 * 60 * 60 * 1000,
+    month: 30 * 24 * 60 * 60 * 1000,
+    months: 30 * 24 * 60 * 60 * 1000,
+    y: 365 * 24 * 60 * 60 * 1000,
+    year: 365 * 24 * 60 * 60 * 1000,
+    years: 365 * 24 * 60 * 60 * 1000
+  }
+
+  const multiplier = multipliers[unit]
+  if (!multiplier) return null
+
+  return Math.round(amount * multiplier)
+}
 
 class NetworkWidget {
   constructor (config = {}) {
     this.container = null
     this.config = mergeNetworkConfig(config)
-    this.enabledWindows = deriveWindowKeys(this.config.uptime.windows)
+    this.periodsConfig = this.config.uptime.periods || []
     this.state = {
       entries: [],
       analysis: null,
@@ -109,7 +147,7 @@ class NetworkWidget {
       this.state.gapsExpanded = false
       setText(this.elements.logStatus, 'No log file configured.')
       this.state.entries = []
-      this.state.analysis = analyzeEntries([], this.enabledWindows)
+      this.state.analysis = analyzeEntries([], this.periodsConfig)
       this.state.logFingerprint = null
       this.updateSummary()
       this.renderUptime()
@@ -137,7 +175,7 @@ class NetworkWidget {
 
       this.state.logFingerprint = fingerprint
       this.state.entries = parseLog(text)
-      this.state.analysis = analyzeEntries(this.state.entries, this.enabledWindows)
+      this.state.analysis = analyzeEntries(this.state.entries, this.periodsConfig)
       this.state.gapsExpanded = false
       this.updateSummary()
       this.renderUptime()
@@ -152,7 +190,7 @@ class NetworkWidget {
       setText(this.elements.logStatus, `Unable to load log: ${error.message}`)
       this.state.gapsExpanded = false
       this.state.entries = []
-      this.state.analysis = analyzeEntries([], this.enabledWindows)
+      this.state.analysis = analyzeEntries([], this.periodsConfig)
       this.state.logFingerprint = null
       this.updateSummary()
       this.renderUptime()
@@ -441,18 +479,22 @@ function mergeNetworkConfig (config) {
     cadenceMinutes,
     cadenceChecks
   }
+
+  // Default periods configuration
+  const defaultPeriods = [
+    { period: '1 hour', segment_size: '5 minutes' },
+    { period: '1 day', segment_size: '1 hour' },
+    { period: '1 week', segment_size: '1 day' },
+    { period: '1 month', segment_size: '1 day' },
+    { period: '1 year', segment_size: '1 month' }
+  ]
+
   const uptime = {
     show: cfg.uptime?.show !== false,
-    windows: cfg.uptime || {}
+    periods: cfg.uptime?.periods || defaultPeriods
   }
-  return { metrics, gaps, uptime }
-}
 
-function deriveWindowKeys (windowFlags = {}) {
-  const enabled = NETWORK_WINDOWS
-    .filter((definition) => windowFlags[definition.flag] !== false)
-    .map((definition) => definition.key)
-  return enabled.length ? enabled : NETWORK_WINDOWS.map((definition) => definition.key)
+  return { metrics, gaps, uptime }
 }
 
 function parseLog (text) {
@@ -505,7 +547,7 @@ function parseTimestamp (label) {
   return Number.isNaN(date.getTime()) ? null : date
 }
 
-function analyzeEntries (entries, enabledWindows) {
+function analyzeEntries (entries, periodsConfig) {
   if (!entries.length) {
     const now = new Date()
     return {
@@ -517,7 +559,7 @@ function analyzeEntries (entries, enabledWindows) {
       uptimeText: '–',
       firstEntry: null,
       lastEntry: null,
-      windowStats: computeWindowStats([], [], now, enabledWindows)
+      windowStats: computeWindowStats([], [], now, periodsConfig)
     }
   }
 
@@ -577,7 +619,7 @@ function analyzeEntries (entries, enabledWindows) {
   const expectedChecks = entries.length + missed
   const uptimeValue = expectedChecks ? (entries.length / expectedChecks) * 100 : 100
   const uptimeText = expectedChecks ? `${uptimeValue.toFixed(2)}%` : '100%'
-  const windowStats = computeWindowStats(entries, slotNumbers, now, enabledWindows)
+  const windowStats = computeWindowStats(entries, slotNumbers, now, periodsConfig)
 
   return {
     entries,
@@ -605,8 +647,8 @@ function buildSlotNumbers (entries) {
   return slots
 }
 
-function computeWindowStats (entries, slotNumbers, now, enabledWindows) {
-  const definitions = buildOverviewDefinitions(now, enabledWindows)
+function computeWindowStats (entries, slotNumbers, now, periodsConfig) {
+  const definitions = buildPeriodsDefinitions(now, periodsConfig)
   if (!entries.length) {
     return definitions.map((definition) => ({
       key: definition.key,
@@ -656,33 +698,30 @@ function computeWindowStats (entries, slotNumbers, now, enabledWindows) {
   })
 }
 
-function buildOverviewDefinitions (now, enabledWindows) {
-  const windowSet = new Set(enabledWindows)
+function buildPeriodsDefinitions (now, periodsConfig) {
   const nowMs = now.getTime()
-  return NETWORK_WINDOWS
-    .filter((entry) => windowSet.has(entry.key))
-    .map((window) => {
-      if (window.type === 'interval') {
-        const segments = buildIntervalSegments(window, nowMs)
-        return { key: window.key, label: window.label, segments }
-      }
-      if (window.type === 'month') {
-        const segments = buildMonthSegments(now)
-        const label = now.toLocaleString(undefined, { month: 'long', year: 'numeric' })
-        return { key: window.key, label, segments }
-      }
-      if (window.type === 'year') {
-        const segments = buildYearSegments(now)
-        const label = `${now.getFullYear()}`
-        return { key: window.key, label, segments }
-      }
-      return { key: window.key, label: window.label || '', segments: [] }
-    })
+
+  return periodsConfig.map((periodConfig, index) => {
+    const periodMs = parseNaturalTime(periodConfig.period)
+    const segmentMs = parseNaturalTime(periodConfig.segment_size)
+
+    if (!periodMs || !segmentMs) {
+      console.warn('Invalid period configuration:', periodConfig)
+      return { key: `period-${index}`, label: periodConfig.period || 'Invalid', segments: [] }
+    }
+
+    const segmentCount = Math.ceil(periodMs / segmentMs)
+    const segments = buildCustomPeriodSegments(periodConfig.period, periodMs, segmentMs, segmentCount, nowMs)
+
+    return {
+      key: `period-${index}`,
+      label: `Past ${periodConfig.period}`,
+      segments
+    }
+  })
 }
 
-function buildIntervalSegments (window, nowMs) {
-  const segmentMs = window.segmentMs
-  const segmentCount = window.segmentCount
+function buildCustomPeriodSegments (periodLabel, periodMs, segmentMs, segmentCount, nowMs) {
   const segmentSlots = Math.max(1, Math.round(segmentMs / NET_EXPECTED_INTERVAL_MS))
   const endSlot = Math.floor(nowMs / NET_EXPECTED_INTERVAL_MS)
   const firstStartSlot = endSlot - (segmentCount * segmentSlots) + 1
@@ -693,9 +732,10 @@ function buildIntervalSegments (window, nowMs) {
     const endSlotForSegment = startSlot + segmentSlots - 1
     const startMs = startSlot * NET_EXPECTED_INTERVAL_MS
     const endMs = (endSlotForSegment + 1) * NET_EXPECTED_INTERVAL_MS
+
     segments.push({
-      key: `${window.key}-${index}`,
-      label: formatIntervalSegmentLabel(window.key, startMs, endMs),
+      key: `${periodLabel.replace(/\s+/g, '-')}-${index}`,
+      label: formatCustomSegmentLabel(periodLabel, segmentMs, startMs, endMs),
       startSlot,
       endSlot: endSlotForSegment,
       startMs,
@@ -703,44 +743,6 @@ function buildIntervalSegments (window, nowMs) {
     })
   }
 
-  return segments
-}
-
-function buildMonthSegments (now) {
-  const segments = []
-  const year = now.getFullYear()
-  const month = now.getMonth()
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  for (let day = 1; day <= daysInMonth; day += 1) {
-    const start = new Date(year, month, day)
-    const end = new Date(year, month, day + 1)
-    segments.push({
-      key: `month-${day}`,
-      label: start.toLocaleDateString(undefined, { day: 'numeric' }),
-      startSlot: Math.floor(start.getTime() / NET_EXPECTED_INTERVAL_MS),
-      endSlot: Math.floor((end.getTime() - 1) / NET_EXPECTED_INTERVAL_MS),
-      startMs: start.getTime(),
-      endMs: end.getTime()
-    })
-  }
-  return segments
-}
-
-function buildYearSegments (now) {
-  const segments = []
-  const year = now.getFullYear()
-  for (let month = 0; month < 12; month += 1) {
-    const start = new Date(year, month, 1)
-    const end = new Date(year, month + 1, 1)
-    segments.push({
-      key: `year-${month}`,
-      label: start.toLocaleString(undefined, { month: 'short' }),
-      startSlot: Math.floor(start.getTime() / NET_EXPECTED_INTERVAL_MS),
-      endSlot: Math.floor((end.getTime() - 1) / NET_EXPECTED_INTERVAL_MS),
-      startMs: start.getTime(),
-      endMs: end.getTime()
-    })
-  }
   return segments
 }
 
@@ -811,19 +813,22 @@ function upperBound (array, value) {
   return low
 }
 
-function formatIntervalSegmentLabel (windowKey, startMs, endMs) {
+function formatCustomSegmentLabel (periodLabel, segmentMs, startMs, endMs) {
   const startDate = new Date(startMs)
   const endDate = new Date(endMs)
-  if (windowKey === '1h') {
+
+  // For segments less than an hour, show time
+  if (segmentMs <= NET_HOUR_MS) {
     return endDate.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
   }
-  if (windowKey === '24h') {
-    return startDate.toLocaleTimeString(undefined, { hour: 'numeric' })
+
+  // For segments of a day or more, show date
+  if (segmentMs >= NET_DAY_MS) {
+    return startDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
   }
-  if (windowKey === '7d') {
-    return startDate.toLocaleDateString(undefined, { weekday: 'short' })
-  }
-  return startDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+
+  // For segments between hour and day, show time
+  return startDate.toLocaleTimeString(undefined, { hour: 'numeric' })
 }
 
 function formatPercent (value) {
