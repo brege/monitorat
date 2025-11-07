@@ -166,7 +166,7 @@ class NetworkWidget {
     }
     const logFilename = this.config.log_file.split('/').pop()
     const link = document.createElement('a')
-    link.href = `data/${logFilename}?${Date.now()}`
+    link.href = `api/network/log?${Date.now()}`
     link.download = logFilename
     document.body.appendChild(link)
     link.click()
