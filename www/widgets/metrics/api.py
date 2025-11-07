@@ -6,7 +6,10 @@ import os
 import psutil
 import threading
 import time
+import logging
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 
 def get_uptime():
@@ -267,7 +270,7 @@ def get_system_metrics():
         return metrics, statuses
 
     except Exception as e:
-        print(f"Error getting system metrics: {e}")
+        logger.error(f"Error getting system metrics: {e}")
         return {}, {}
 
 
@@ -278,19 +281,26 @@ def start_metrics_daemon():
     """Start background metrics collection thread"""
     global _metrics_thread
     if _metrics_thread is None or not _metrics_thread.is_alive():
+        logger.info("Starting metrics collection daemon")
         _metrics_thread = threading.Thread(target=_metrics_collector, daemon=True)
         _metrics_thread.start()
+    else:
+        logger.info("Metrics daemon already running")
 
 
 def _metrics_collector():
     """Background thread for continuous metrics collection"""
+    logger.info("Metrics collection thread started")
     while True:
         try:
-            metrics, _ = get_system_metrics()
+            metrics, statuses = get_system_metrics()
             if metrics:
                 log_metrics_to_csv(metrics, source="daemon")
+                logger.debug(
+                    f"Collected metrics: CPU={metrics.get('status')}, statuses={statuses}"
+                )
         except Exception as e:
-            print(f"Metrics daemon error: {e}")
+            logger.error(f"Metrics daemon error: {e}")
         time.sleep(60)
 
 
@@ -309,7 +319,7 @@ def register_routes(app):
             try:
                 log_metrics_to_csv(metrics, source="refresh")
             except Exception as e:
-                print(f"Error logging metrics: {e}")
+                logger.error(f"Error logging metrics: {e}")
 
         return app.response_class(
             response=json.dumps({"metrics": metrics, "metric_statuses": statuses}),
