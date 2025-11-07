@@ -46,7 +46,7 @@ privacy:  # toggle, for screenshots
 reminders:
   nudges: [14, 7]
   urgents: [3, 1, 0]
-  time: 23:55
+  time: "23:55"
   pushover:
     key: ''
     token: ''

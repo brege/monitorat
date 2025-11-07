@@ -296,12 +296,126 @@ def _metrics_collector():
             metrics, statuses = get_system_metrics()
             if metrics:
                 log_metrics_to_csv(metrics, source="daemon")
-                logger.debug(
-                    f"Collected metrics: CPU={metrics.get('status')}, statuses={statuses}"
-                )
+
+                # Check for alert conditions
+                check_metric_alerts(metrics, statuses)
         except Exception as e:
             logger.error(f"Metrics daemon error: {e}")
         time.sleep(60)
+
+
+def check_metric_alerts(metrics, statuses):
+    """Check metric values against alert thresholds and log alert events"""
+    try:
+        # Extract current metric values for alert checking
+        load_parts = metrics["load"].split()
+        load_1min = float(load_parts[0]) if load_parts else 0.0
+
+        # Parse memory usage
+        memory_parts = metrics["memory"].split("/")
+        memory_used_gb = (
+            float(memory_parts[0].replace("GB", "").strip()) if memory_parts else 0.0
+        )
+        memory_total_gb = (
+            float(memory_parts[1].replace("GB", "").strip())
+            if len(memory_parts) > 1
+            else 0.0
+        )
+        memory_percent = (
+            (memory_used_gb / memory_total_gb * 100) if memory_total_gb > 0 else 0.0
+        )
+
+        # Parse temperature
+        temp_c = (
+            float(metrics["temp"].replace("°C", "").strip())
+            if "Unknown" not in metrics["temp"]
+            else 0.0
+        )
+
+        # Parse disk usage
+        disk_parts = metrics["disk"].split("(")
+        disk_percent = (
+            float(disk_parts[1].replace("%)", "").strip())
+            if len(disk_parts) > 1
+            else 0.0
+        )
+
+        # Parse storage usage
+        if "Not mounted" not in metrics["storage"]:
+            storage_parts = metrics["storage"].split("(")
+            storage_percent = (
+                float(storage_parts[1].replace("%)", "").strip())
+                if len(storage_parts) > 1
+                else 0.0
+            )
+        else:
+            storage_percent = 0.0
+
+        # Define metric checks - maps alert names to values and thresholds
+        metric_checks = {
+            "high_load": {
+                "value": load_1min,
+                "description": f"CPU load: {load_1min:.2f}",
+            },
+            "high_memory": {
+                "value": memory_percent,
+                "description": f"Memory usage: {memory_percent:.1f}%",
+            },
+            "high_temp": {
+                "value": temp_c,
+                "description": f"Temperature: {temp_c:.1f}°C",
+            },
+            "low_disk": {
+                "value": disk_percent,
+                "description": f"Disk usage: {disk_percent:.1f}%",
+            },
+            "low_storage": {
+                "value": storage_percent,
+                "description": f"Storage usage: {storage_percent:.1f}%",
+            },
+        }
+
+        # Import here to avoid circular imports
+        from monitor import config
+
+        # Check if alerts are configured
+        try:
+            alerts_config = config["alerts"].get()
+        except Exception:
+            logger.debug("Alerts configuration not available; skipping metric checks")
+            return
+        rules = alerts_config.get("rules", {})
+        if not rules:
+            return
+
+        # Check each configured alert rule
+        for alert_name, rule in rules.items():
+            if alert_name in metric_checks:
+                threshold = rule.get("threshold")
+                if threshold is None:
+                    continue
+
+                current_value = metric_checks[alert_name]["value"]
+                description = metric_checks[alert_name]["description"]
+
+                # Check if threshold exceeded
+                if current_value > threshold:
+                    # Log structured alert event
+                    logger.warning(
+                        f"Alert threshold exceeded: {description} > {threshold}",
+                        extra={
+                            "alert_type": "metric_threshold",
+                            "alert_name": alert_name,
+                            "alert_value": current_value,
+                            "alert_threshold": threshold,
+                        },
+                    )
+
+    except Exception as e:
+        logger.error(f"Error checking metric alerts: {e}")
+        import traceback
+
+        logger.error(f"Alert check traceback: {traceback.format_exc()}")
 
 
 def register_routes(app):

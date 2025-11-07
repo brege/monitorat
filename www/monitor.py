@@ -7,8 +7,9 @@ import threading
 import yaml
 import importlib
 import confuse
-import apprise
+from apprise import Apprise, common as apprise_common
 import logging
+import time
 from typing import Callable, List, Optional
 
 app = Flask(__name__)
@@ -171,7 +172,7 @@ class NotificationHandler:
             self.logger.warning("No apprise URLs configured, notification not sent")
             return False
 
-        apobj = apprise.Apprise()
+        apobj = Apprise()
 
         # Add apprise URLs with priority
         for url in self.apprise_urls:
@@ -188,7 +189,7 @@ class NotificationHandler:
         self.logger.info(f"Sending notification (priority={priority_name}): {title}")
 
         try:
-            result = apobj.notify(title=title, body=body)
+            result = self._notify_sequential(apobj, title, body)
             if result:
                 self.logger.info("Notification sent successfully")
             else:
@@ -222,6 +223,121 @@ class NotificationHandler:
 
         self.logger.info(f"Sending test notification from {service_name}")
         return self.send_notification(title, body, priority)
+
+    def _notify_sequential(self, apobj, title, body):
+        if len(apobj.servers) == 0:
+            return False
+
+        success = True
+        for server in apobj.servers:
+            try:
+                result = server.notify(
+                    body=body,
+                    title=title,
+                    notify_type=apprise_common.NotifyType.INFO,
+                )
+                success = success and bool(result)
+            except Exception as exc:
+                server_name = getattr(server, "name", repr(server))
+                self.logger.error(f"Notification error via {server_name}: {exc}")
+                success = False
+        return success
+
+
+class AlertHandler(logging.Handler):
+    """Custom logging handler that processes alert events"""
+
+    def __init__(self):
+        super().__init__()
+        self.logger = logging.getLogger(__name__)
+        self.alert_states = {}  # Track alert states to prevent spam
+        self.last_notification_times = {}  # Track cooldowns
+
+    def emit(self, record):
+        """Process log records for alert conditions"""
+        try:
+            # Only process records with alert_type extra data
+            if not hasattr(record, "alert_type"):
+                return
+
+            # Check if alerts are configured
+            try:
+                alerts_config = config["alerts"].get()
+                if not alerts_config:
+                    return
+
+                rules = alerts_config.get("rules", {})
+                if not rules:
+                    return
+
+                # Get apprise URLs from shared notifications section
+                try:
+                    notifications_config = config["notifications"].get()
+                    apprise_urls = notifications_config.get("apprise_urls", [])
+                except Exception:
+                    apprise_urls = []
+                cooldown_minutes = alerts_config.get("cooldown_minutes", 30)
+
+            except Exception:
+                # Config not available or alerts not configured
+                return
+
+            # Extract alert data from log record
+            alert_name = getattr(record, "alert_name", "unknown")
+            alert_value = getattr(record, "alert_value", None)
+            alert_threshold = getattr(record, "alert_threshold", None)
+
+            # Check if this alert is configured
+            if alert_name not in rules:
+                return
+
+            rule = rules[alert_name]
+
+            # Check cooldown period
+            now = time.time()
+            last_notification = self.last_notification_times.get(alert_name, 0)
+            if now - last_notification < (cooldown_minutes * 60):
+                self.logger.debug(f"Alert {alert_name} in cooldown period")
+                return
+
+            # Send notification if apprise URLs configured
+            if apprise_urls:
+                notification_handler = NotificationHandler(apprise_urls)
+
+                priority = rule.get("priority", 0)
+                message = rule.get("message", f"Alert: {alert_name}")
+
+                # Format title and body
+                title = f"System Alert: {message}"
+                body = f"{message}\nCurrent value: {alert_value}\nThreshold: {alert_threshold}"
+
+                if notification_handler.send_notification(title, body, priority):
+                    self.last_notification_times[alert_name] = now
+                    self.logger.info(f"Alert notification sent for {alert_name}")
+                else:
+                    self.logger.error(
+                        f"Failed to send alert notification for {alert_name}"
+                    )
+            else:
+                self.logger.info(
+                    f"Alert triggered: {alert_name} (no notifications configured)"
+                )
+
+        except Exception as e:
+            self.logger.error(f"Error processing alert: {e}")
+
+
+# Global alert handler instance
+_alert_handler = None
+
+
+def setup_alert_handler():
+    """Setup the alert logging handler"""
+    global _alert_handler
+    if _alert_handler is None:
+        _alert_handler = AlertHandler()
+        # Add to root logger to catch all alert events
+        logging.getLogger().addHandler(_alert_handler)
 
 
 def get_csv_path():
@@ -411,6 +527,9 @@ try:
 
     # Setup logging early
     setup_logging()
+
+    # Setup alert handler
+    setup_alert_handler()
 
     # Register network widget routes
     network_module = importlib.import_module("widgets.network.api")

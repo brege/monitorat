@@ -11,7 +11,3 @@ repos:
       - id: ruff
         args: [--fix]
       - id: ruff-format
-  - repo: https://github.com/lyz-code/yamlfix
-    rev: 1.17.0  # Check for latest version
-    hooks:
-      - id: yamlfix
