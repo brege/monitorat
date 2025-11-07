@@ -17,6 +17,7 @@ widgets:
     enabled: true  # widget renders (default: true)
     collapsible: false  # show hide/show toggle (default: false)
     hidden: false  # start collapsed (default: false)
+    default: chart  # default view: "chart" or "table"
     periods:  # configurable time periods for filtering
       - 1 year
       - 30 days
@@ -24,9 +25,14 @@ widgets:
       - 24 hours
       - 6 hours
       - 1 hour
+    table:
+      min: 5  # minimum rows to show
+      max: 200  # maximum rows to load
     chart:
       default_metric: cpu_memory  # options: cpu_memory, cpu_percent, memory_percent, disk_io, net_io, temp_c, load_1min
       default_period: 1 hour  # default chart window: natural language (e.g., "1 hour", "7 days", "all")
+      height: 400px  # fixed chart height
+      days: 30  # number of days to display (-1 for all)
   speedtest:  # network speedtest monitoring
     name: Speedtests
     enabled: false  # disabled by default
@@ -72,21 +78,34 @@ widgets:
       show: true
       max: 3  # maximum outages to show initially
       cadence: 0  # minimum outage duration in minutes to show
-  wiki:  # load README.md if doc not specified
+  services:  # service monitoring
+    name: Services
+    enabled: false  # disabled by default
+    collapsible: true
+    hidden: false
+  reminders:  # reminder notifications
+    name: Reminders
+    enabled: false  # disabled by default
+    collapsible: true
+    hidden: false
+    nudges: [14, 7]  # reminder days before due
+    urgents: [3, 1, 0]  # urgent reminder days
+    time: "23:55"  # daily reminder time
+    pushover:
+      key: ''
+      token: ''
+  wiki:  # markdown documentation widget
     name: Notes & Links
     enabled: true
     collapsible: true  # enable collapse/expand
     hidden: false  # start expanded
-    doc: ''
+    doc: ''  # path to markdown file, defaults to README.md
     # doc: /home/__user__/documents/about.md
 privacy:  # toggle, for screenshots
   mask_ips: true
   replacements: {}
-reminders:
-  nudges: [14, 7]
-  urgents: [3, 1, 0]
-  time: "23:55"
-  pushover:
-    key: ''
-    token: ''
-services: {}
+# Global services configuration
+# services:
+#   my systemd service:
+#     url: http://example.com
+#     local: http://localhost:8080

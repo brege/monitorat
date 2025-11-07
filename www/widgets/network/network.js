@@ -55,7 +55,7 @@ class NetworkWidget {
   constructor (config = {}) {
     this.container = null
     this.config = mergeNetworkConfig(config)
-    this.periodsConfig = this.config.uptime.periods || []
+    this.periodsConfig = this.config.uptime.periods
     this.state = {
       entries: [],
       analysis: null,
@@ -416,7 +416,7 @@ class NetworkWidget {
       if (gap.type !== 'outage') {
         return true
       }
-      const threshold = this.config.gaps.cadenceChecks || 0
+      const threshold = this.config.gaps.cadenceChecks
       return gap.missedChecks >= threshold
     })
 
@@ -430,7 +430,7 @@ class NetworkWidget {
     }
 
     const reversed = [...filtered].reverse()
-    const maxVisible = this.state.gapsExpanded ? reversed.length : Math.min(this.config.gaps.maxVisible || 3, reversed.length)
+    const maxVisible = this.state.gapsExpanded ? reversed.length : Math.min(this.config.gaps.maxVisible, reversed.length)
     reversed.slice(0, maxVisible).forEach((gap) => {
       const item = document.createElement('div')
       if (gap.type === 'ipchange') {
@@ -450,7 +450,7 @@ class NetworkWidget {
     })
 
     if (toggle) {
-      const maxVisible = this.config.gaps.maxVisible || 3
+      const maxVisible = this.config.gaps.maxVisible
       if (filtered.length <= maxVisible) {
         toggle.style.display = 'none'
       } else {
@@ -469,8 +469,8 @@ function mergeNetworkConfig (config) {
   const maxRaw = Number(cfg.gaps?.max)
   const cadenceRaw = Number(cfg.gaps?.cadence)
 
-  const maxVisible = Number.isFinite(maxRaw) ? Math.max(1, maxRaw) : 3
-  const cadenceMinutes = Number.isFinite(cadenceRaw) ? Math.max(0, cadenceRaw) : 0
+  const maxVisible = Number.isFinite(maxRaw) ? Math.max(1, maxRaw) : cfg.gaps?.max
+  const cadenceMinutes = Number.isFinite(cadenceRaw) ? Math.max(0, cadenceRaw) : cfg.gaps?.cadence
   const cadenceChecks = Math.max(0, Math.ceil(cadenceMinutes / NET_MINUTES_PER_CHECK))
 
   const gaps = {
@@ -480,18 +480,9 @@ function mergeNetworkConfig (config) {
     cadenceChecks
   }
 
-  // Default periods configuration
-  const defaultPeriods = [
-    { period: '1 hour', segment_size: '5 minutes' },
-    { period: '1 day', segment_size: '1 hour' },
-    { period: '1 week', segment_size: '1 day' },
-    { period: '1 month', segment_size: '1 day' },
-    { period: '1 year', segment_size: '1 month' }
-  ]
-
   const uptime = {
     show: cfg.uptime?.show !== false,
-    periods: cfg.uptime?.periods || defaultPeriods
+    periods: cfg.uptime?.periods
   }
 
   return { metrics, gaps, uptime }
