@@ -37,10 +37,11 @@ class SpeedtestWidget {
       chart: {
         height: config.chart?.height || '400px',
         days: config.chart?.days || 30,
-        periods: config.periods || ['1 hour', '1 day', '1 week']
+        periods: config.periods || ['1 hour', '1 day', '1 week'],
+        defaultPeriod: config.chart?.default_period ?? config.chart?.defaultPeriod
       }
     }
-    this.selectedPeriod = 'all'
+    this.selectedPeriod = this.config.chart.defaultPeriod || 'all'
 
     const response = await fetch('widgets/speedtest/speedtest.html')
     const html = await response.text()

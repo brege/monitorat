@@ -17,22 +17,36 @@ widgets:
     enabled: true  # widget renders (default: true)
     collapsible: false  # show hide/show toggle (default: false)
     hidden: false  # start collapsed (default: false)
+    periods:  # configurable time periods for filtering
+      - 1 year
+      - 30 days
+      - 7 days
+      - 24 hours
+      - 6 hours
+      - 1 hour
     chart:
       default_metric: cpu_memory  # options: cpu_memory, cpu_percent, memory_percent, disk_io, net_io, temp_c, load_1min
-      default_period: 1hour  # default chart window: all, 7days, 24hours, 1hour
+      default_period: 1 hour  # default chart window: natural language (e.g., "1 hour", "7 days", "all")
   speedtest:  # network speedtest monitoring
     name: Speedtests
     enabled: false  # disabled by default
     collapsible: true
     hidden: false
     default: chart              # default view: "chart" or "table"
+    periods:  # configurable time periods for filtering
+      - 1 month
+      - 1 week
+      - 3 days
+      - 1 day
+      - 12 hours
+      - 1 hour
     table:
       min: 5  # minimum rows to show
       max: 200  # maximum rows to load
     chart:
       height: 400px  # fixed chart height
       days: 30  # number of days to display (-1 for all)
-      default_period: all  # default chart window: all, 7days, 24hours, 1hour
+      default_period: all  # default chart window: natural language (e.g., "1 day", "1 week", "all")
   wiki:  # load README.md if doc not specified
     name: Notes & Links
     enabled: true
