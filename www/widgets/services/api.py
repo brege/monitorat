@@ -18,9 +18,16 @@ def get_docker_status():
     """Get status of Docker containers"""
     container_statuses = {}
 
+    # Check if docker is available before trying to run commands
+    import shutil
+
+    if not shutil.which("docker"):
+        logger.debug("Docker not available in PATH, skipping Docker status check")
+        return container_statuses
+
     try:
         result = subprocess.run(
-            ["/usr/bin/docker", "ps", "-a", "--format", "{{.Names}}\t{{.State}}"],
+            ["docker", "ps", "-a", "--format", "{{.Names}}\t{{.State}}"],
             capture_output=True,
             text=True,
             timeout=10,
