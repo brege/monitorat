@@ -39,10 +39,10 @@ class MetricsWidget {
       chart: {
         height: config.chart?.height || '400px',
         days: config.chart?.days || 30,
-        defaultPeriod: this.normalizePeriod(config.chart?.default_period ?? config.chart?.defaultPeriod) || 'all'
+        periods: config.periods || ['1 hour', '1 day', '1 week']
       }
     }
-    this.selectedPeriod = this.config.chart.defaultPeriod
+    this.selectedPeriod = 'all'
     if (typeof configuredMetric === 'string') {
       this.selectedMetric = configuredMetric.toLowerCase()
     }
@@ -80,14 +80,19 @@ class MetricsWidget {
       })
     }
     if (periodSelect) {
-      const matchingOption = Array.from(periodSelect.options).some(option => option.value === this.selectedPeriod)
-      periodSelect.value = matchingOption ? this.selectedPeriod : 'all'
-      this.selectedPeriod = periodSelect.value
+      // Populate period options
+      periodSelect.innerHTML = '<option value="all">All</option>'
+      this.config.chart.periods.forEach(period => {
+        const option = document.createElement('option')
+        option.value = period
+        option.textContent = period
+        periodSelect.appendChild(option)
+      })
+
+      periodSelect.value = this.selectedPeriod
       periodSelect.addEventListener('change', (e) => {
         this.selectedPeriod = e.target.value
-        if (this.chartManager && this.chartManager.hasChart()) {
-          this.updateChart()
-        }
+        this.loadHistory()
       })
     }
 
@@ -230,7 +235,13 @@ class MetricsWidget {
     this.tableManager.setStatus('Loading metrics history…')
 
     try {
-      const response = await fetch('api/metrics/history', { cache: 'no-store' })
+      const url = new URL('api/metrics/history', window.location)
+      if (this.selectedPeriod && this.selectedPeriod !== 'all') {
+        url.searchParams.set('period', this.selectedPeriod)
+      }
+      url.searchParams.set('ts', Date.now())
+
+      const response = await fetch(url, { cache: 'no-store' })
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
       }
@@ -258,8 +269,7 @@ class MetricsWidget {
     if (!this.chartManager || !this.chartManager.chart || !this.entries.length) return
 
     const DataFormatter = window.monitorShared.DataFormatter
-    const filteredEntries = ChartManager.filterDataByPeriod(this.entries, this.selectedPeriod)
-    const chartData = ChartManager.createMetricsChartData(filteredEntries, this.selectedMetric, DataFormatter)
+    const chartData = ChartManager.createMetricsChartData(this.entries, this.selectedMetric, DataFormatter)
 
     if (!chartData.allValues || !chartData.allValues.length) return
 
@@ -279,13 +289,6 @@ class MetricsWidget {
     }
 
     this.chartManager.updateChart({ labels: chartData.labels, datasets: chartData.datasets }, scales)
-  }
-
-  normalizePeriod (value) {
-    if (!value) return null
-    const normalized = String(value).toLowerCase()
-    const allowed = new Set(['all', '7days', '24hours', '1hour'])
-    return allowed.has(normalized) ? normalized : null
   }
 
   updateViewToggle () {

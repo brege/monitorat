@@ -3,6 +3,7 @@ from subprocess import run, PIPE, TimeoutExpired
 from json import loads
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from pytimeparse import parse as parse_duration
 
 # Import from main monitor module
 import sys
@@ -108,14 +109,14 @@ def speedtest_chart():
     now = datetime.now()
 
     period = request.args.get("period", default="all", type=str)
-    period = (period or "all").lower()
     period_cutoff = None
-    if period == "7days":
-        period_cutoff = now - timedelta(days=7)
-    elif period == "24hours":
-        period_cutoff = now - timedelta(hours=24)
-    elif period == "1hour":
-        period_cutoff = now - timedelta(hours=1)
+    if period and period.lower() != "all":
+        try:
+            seconds = parse_duration(period)
+            if seconds:
+                period_cutoff = now - timedelta(seconds=seconds)
+        except Exception:
+            pass
 
     csv_path = get_csv_path()
     if not csv_path.exists():

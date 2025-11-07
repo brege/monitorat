@@ -398,31 +398,8 @@ class ChartManager {
   }
 
   static filterDataByPeriod (data, period) {
-    if (!data || !data.length || period === 'all') {
-      return data
-    }
-
-    const now = new Date()
-    let cutoffTime
-
-    switch (period) {
-      case '7days':
-        cutoffTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-        break
-      case '24hours':
-        cutoffTime = new Date(now.getTime() - 24 * 60 * 60 * 1000)
-        break
-      case '1hour':
-        cutoffTime = new Date(now.getTime() - 60 * 60 * 1000)
-        break
-      default:
-        return data
-    }
-
-    return data.filter(entry => {
-      const entryTime = new Date(entry.timestamp)
-      return entryTime >= cutoffTime
-    })
+    // Filtering is now done server-side, return data as-is
+    return data
   }
 
   static setView (view, elements, currentView, chartManager, onChartReady) {

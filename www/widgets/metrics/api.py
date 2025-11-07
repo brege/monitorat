@@ -7,7 +7,8 @@ import psutil
 import threading
 import time
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
+from pytimeparse import parse as parse_duration
 
 logger = logging.getLogger(__name__)
 
@@ -418,8 +419,45 @@ def check_metric_alerts(metrics, statuses):
         logger.error(f"Alert check traceback: {traceback.format_exc()}")
 
 
+def filter_data_by_period(data, period_str):
+    """Filter data by natural time period (e.g., '1 hour', '30 days', '1 week')"""
+    if not period_str or period_str.lower() == "all":
+        return data
+
+    try:
+        # Parse the natural time string to seconds
+        seconds = parse_duration(period_str)
+        if not seconds:
+            logger.warning(f"Could not parse period: {period_str}")
+            return data
+
+        # Calculate cutoff time
+        now = datetime.now()
+        cutoff = now - timedelta(seconds=seconds)
+
+        # Filter data
+        filtered_data = []
+        for row in data:
+            try:
+                row_time = datetime.fromisoformat(
+                    row["timestamp"].replace("Z", "+00:00")
+                )
+                if row_time >= cutoff:
+                    filtered_data.append(row)
+            except (ValueError, KeyError):
+                # Skip rows with invalid timestamps
+                continue
+
+        return filtered_data
+    except Exception as e:
+        logger.error(f"Error filtering data by period {period_str}: {e}")
+        return data
+
+
 def register_routes(app):
     """Register metrics API routes with Flask app"""
+
+    from flask import request
 
     # Start background metrics collection
     start_metrics_daemon()
@@ -443,7 +481,7 @@ def register_routes(app):
 
     @app.route("/api/metrics/history", methods=["GET"])
     def api_metrics_history():
-        """Get historical metrics data from CSV"""
+        """Get historical metrics data from CSV with optional period filtering"""
         try:
             csv_path = get_metrics_csv_path()
             if not csv_path.exists():
@@ -459,7 +497,12 @@ def register_routes(app):
                 for row in reader:
                     data.append(row)
 
-            # Return last 1000 entries
+            # Apply period filtering if specified
+            period = request.args.get("period")
+            if period and period.lower() != "all":
+                data = filter_data_by_period(data, period)
+
+            # Return last 1000 entries after filtering
             return app.response_class(
                 response=json.dumps({"data": data[-1000:]}),
                 status=200,
