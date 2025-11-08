@@ -4,6 +4,7 @@ from json import loads
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from pytimeparse import parse as parse_duration
+import logging
 
 # Import from main monitor module
 import sys
@@ -14,10 +15,12 @@ from monitor import get_csv_path
 SPEEDTEST = "speedtest-cli"
 
 api = Blueprint("speedtest", __name__)
+logger = logging.getLogger(__name__)
 
 
 @api.route("/run", methods=["POST"])
 def speedtest_run():
+    logger.info("Starting speedtest run")
     csv_path = get_csv_path()
     if not csv_path.exists():
         csv_path.write_text("timestamp,download,upload,ping,server\n")
@@ -27,14 +30,15 @@ def speedtest_run():
             [SPEEDTEST, "--json"], stdout=PIPE, stderr=PIPE, text=True, timeout=100
         )
     except TimeoutExpired:
+        logger.error("Speedtest timed out after 100 seconds")
         return jsonify(
             success=False, error="Speedtest timed out after 100 seconds"
         ), 500
 
     if proc.returncode:
-        return jsonify(
-            success=False, error=proc.stderr.strip() or "speedtest-cli failed"
-        ), 500
+        error_msg = proc.stderr.strip() or "speedtest-cli failed"
+        logger.error(f"Speedtest failed: {error_msg}")
+        return jsonify(success=False, error=error_msg), 500
 
     data = proc.stdout.strip()
     if data:
@@ -49,6 +53,11 @@ def speedtest_run():
             )
             with csv_path.open("a") as f:
                 f.write(line)
+            download_mbps = parsed["download"] / 1_000_000
+            upload_mbps = parsed["upload"] / 1_000_000
+            logger.info(
+                f"Speedtest completed: ↓{download_mbps:.1f} Mbps ↑{upload_mbps:.1f} Mbps {parsed['ping']:.1f}ms"
+            )
             return jsonify(
                 success=True,
                 timestamp=parsed["timestamp"],
@@ -58,8 +67,10 @@ def speedtest_run():
                 server=parsed["server"].get("sponsor"),
             )
         except Exception as e:
+            logger.error(f"Error parsing speedtest results: {e}")
             return jsonify(success=False, error=str(e)), 500
 
+    logger.error("Speedtest completed but returned no data")
     return jsonify(success=False, error="No data returned"), 500
 
 

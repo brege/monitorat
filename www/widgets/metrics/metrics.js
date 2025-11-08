@@ -25,27 +25,18 @@ class MetricsWidget {
 
   async init (container, config = {}) {
     this.container = container
-    const defaultView = (typeof config.default === 'string' && config.default.toLowerCase() === 'table') ? 'table' : 'chart'
     const hasExplicitName = Object.prototype.hasOwnProperty.call(config, 'name')
-    const configuredMetric = config.chart?.default_metric ?? config.chart?.defaultMetric
     this.config = {
       _suppressHeader: config._suppressHeader,
       name: hasExplicitName ? config.name : this.widgetConfig.name,
-      default: defaultView,
-      table: {
-        min: config.table?.min || 5,
-        max: config.table?.max || 200
-      },
-      chart: {
-        height: config.chart?.height || '400px',
-        days: config.chart?.days || 30,
-        periods: config.periods || ['1 hour', '1 day', '1 week'],
-        defaultPeriod: config.chart?.default_period ?? config.chart?.defaultPeriod
-      }
+      default: config.default,
+      table: config.table,
+      chart: config.chart,
+      periods: config.periods
     }
-    this.selectedPeriod = this.config.chart.defaultPeriod || 'all'
-    if (typeof configuredMetric === 'string') {
-      this.selectedMetric = configuredMetric.toLowerCase()
+    this.selectedPeriod = this.config.chart.default_period
+    if (typeof this.config.chart.default_metric === 'string') {
+      this.selectedMetric = this.config.chart.default_metric.toLowerCase()
     }
 
     const response = await fetch('widgets/metrics/metrics.html')
@@ -83,7 +74,7 @@ class MetricsWidget {
     if (periodSelect) {
       // Populate period options
       periodSelect.innerHTML = '<option value="all">All</option>'
-      this.config.chart.periods.forEach(period => {
+      this.config.periods.forEach(period => {
         const option = document.createElement('option')
         option.value = period
         option.textContent = period
@@ -262,6 +253,7 @@ class MetricsWidget {
         this.updateChart()
       }
     } catch (error) {
+      console.error('Metrics history API call failed:', error)
       this.tableManager.setStatus(`Unable to load metrics history: ${error.message}`)
     }
   }

@@ -24,24 +24,16 @@ class SpeedtestWidget {
 
   async init (container, config = {}) {
     this.container = container
-    const defaultView = (typeof config.default === 'string' && config.default.toLowerCase() === 'table') ? 'table' : 'chart'
     const hasExplicitName = Object.prototype.hasOwnProperty.call(config, 'name')
     this.config = {
       _suppressHeader: config._suppressHeader,
       name: hasExplicitName ? config.name : this.widgetConfig.name,
-      default: defaultView,
-      table: {
-        min: config.table?.min || 5,
-        max: config.table?.max || 200
-      },
-      chart: {
-        height: config.chart?.height || '400px',
-        days: config.chart?.days || 30,
-        periods: config.periods || ['1 hour', '1 day', '1 week'],
-        defaultPeriod: config.chart?.default_period ?? config.chart?.defaultPeriod
-      }
+      default: config.default,
+      table: config.table,
+      chart: config.chart,
+      periods: config.periods
     }
-    this.selectedPeriod = this.config.chart.defaultPeriod || 'all'
+    this.selectedPeriod = this.config.chart.default_period
 
     const response = await fetch('widgets/speedtest/speedtest.html')
     const html = await response.text()
@@ -83,7 +75,7 @@ class SpeedtestWidget {
     if (this.elements.periodSelect) {
       // Populate period options
       this.elements.periodSelect.innerHTML = '<option value="all">All</option>'
-      this.config.chart.periods.forEach(period => {
+      this.config.periods.forEach(period => {
         const option = document.createElement('option')
         option.value = period
         option.textContent = period
@@ -186,6 +178,7 @@ class SpeedtestWidget {
         status.textContent = `${DataFormatter.formatTimestamp(result.timestamp)} — ↓ ${DataFormatter.formatMbps(result.download)} Mbps, ↑ ${DataFormatter.formatMbps(result.upload)} Mbps, ${DataFormatter.formatPing(result.ping)} ms (${result.server || 'unknown server'})`
       }
     } catch (error) {
+      console.error('Speedtest run API call failed:', error)
       if (status) status.textContent = `Speedtest error: ${error.message}`
     } finally {
       if (button) button.disabled = false
@@ -218,6 +211,7 @@ class SpeedtestWidget {
         await this.chartManager.loadData()
       }
     } catch (error) {
+      console.error('Speedtest history API call failed:', error)
       this.tableManager.setStatus(`Unable to load speedtests: ${error.message}`)
     }
   }

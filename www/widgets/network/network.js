@@ -55,7 +55,7 @@ class NetworkWidget {
   constructor (config = {}) {
     this.container = null
     this.config = mergeNetworkConfig(config)
-    this.periodsConfig = this.config.uptime.periods || []
+    this.periodsConfig = this.config.uptime.periods
     this.state = {
       entries: [],
       analysis: null,
@@ -187,6 +187,7 @@ class NetworkWidget {
         setText(this.elements.logStatus, 'No log entries found.')
       }
     } catch (error) {
+      console.error('Network log API call failed:', error)
       setText(this.elements.logStatus, `Unable to load log: ${error.message}`)
       this.state.gapsExpanded = false
       this.state.entries = []
@@ -430,7 +431,7 @@ class NetworkWidget {
     }
 
     const reversed = [...filtered].reverse()
-    const maxVisible = this.state.gapsExpanded ? reversed.length : Math.min(this.config.gaps.maxVisible || 3, reversed.length)
+    const maxVisible = this.state.gapsExpanded ? reversed.length : Math.min(this.config.gaps.max, reversed.length)
     reversed.slice(0, maxVisible).forEach((gap) => {
       const item = document.createElement('div')
       if (gap.type === 'ipchange') {
@@ -450,7 +451,7 @@ class NetworkWidget {
     })
 
     if (toggle) {
-      const maxVisible = this.config.gaps.maxVisible || 3
+      const maxVisible = this.config.gaps.max
       if (filtered.length <= maxVisible) {
         toggle.style.display = 'none'
       } else {
@@ -463,38 +464,20 @@ class NetworkWidget {
 }
 
 function mergeNetworkConfig (config) {
+  // Trust that confuse provides complete merged config
+  // Just add computed values that depend on config values
   const cfg = config || {}
-  const metrics = { show: cfg.metrics?.show !== false }
-
-  const maxRaw = Number(cfg.gaps?.max)
   const cadenceRaw = Number(cfg.gaps?.cadence)
-
-  const maxVisible = Number.isFinite(maxRaw) ? Math.max(1, maxRaw) : 3
   const cadenceMinutes = Number.isFinite(cadenceRaw) ? Math.max(0, cadenceRaw) : 0
   const cadenceChecks = Math.max(0, Math.ceil(cadenceMinutes / NET_MINUTES_PER_CHECK))
 
-  const gaps = {
-    show: cfg.gaps?.show !== false,
-    maxVisible,
-    cadenceMinutes,
-    cadenceChecks
+  return {
+    ...cfg,
+    gaps: {
+      ...cfg.gaps,
+      cadenceChecks
+    }
   }
-
-  // Default periods configuration
-  const defaultPeriods = [
-    { period: '1 hour', segment_size: '5 minutes' },
-    { period: '1 day', segment_size: '1 hour' },
-    { period: '1 week', segment_size: '1 day' },
-    { period: '1 month', segment_size: '1 day' },
-    { period: '1 year', segment_size: '1 month' }
-  ]
-
-  const uptime = {
-    show: cfg.uptime?.show !== false,
-    periods: cfg.uptime?.periods || defaultPeriods
-  }
-
-  return { metrics, gaps, uptime }
 }
 
 function parseLog (text) {
