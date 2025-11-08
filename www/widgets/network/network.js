@@ -4,6 +4,7 @@ const NET_MINUTE_MS = 60 * 1000
 const NET_HOUR_MS = 60 * NET_MINUTE_MS
 const NET_DAY_MS = 24 * NET_HOUR_MS
 const NET_MINUTES_PER_CHECK = NET_EXPECTED_INTERVAL_MS / 60000
+const MONTH_INDEX = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 }
 
 function parseNaturalTime (timeStr) {
   if (!timeStr || typeof timeStr !== 'string') return null
@@ -483,14 +484,15 @@ function mergeNetworkConfig (config) {
 function parseLog (text) {
   const entries = []
   const lines = text.split(/\r?\n/)
-  const pattern = /^([A-Za-z]{3} [A-Za-z]{3}\s+\d{1,2} \d{2}:\d{2}:\d{2} (?:AM|PM) [A-Z]{3} \d{4}): Current IP is (.+)$/
+  const detectedPattern = /^([A-Za-z]{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})\s+[^\s]+\s+[^\s]+(?:\[\d+\])?:\s+[A-Z]+:\s+(?:\[[^\]]+\]>\s+)?detected IPv4 address\s+([0-9.]+)/i
 
   for (const line of lines) {
-    const match = line.match(pattern)
+    if (!line.includes('detected IPv4 address')) continue
+    const match = line.match(detectedPattern)
     if (!match) continue
     const timestamp = parseTimestamp(match[1])
     if (!timestamp) continue
-    entries.push({ timestamp, ip: match[2].trim(), raw: match[1] })
+    entries.push({ timestamp, ip: match[2].trim() })
   }
 
   entries.sort((a, b) => a.timestamp - b.timestamp)
@@ -506,28 +508,32 @@ function computeLogFingerprint (text) {
 }
 
 function parseTimestamp (label) {
-  const normalized = label.replace(/\s+/g, ' ')
-  const parts = normalized.split(' ')
-  if (parts.length < 7) return null
+  if (!label) return null
+  const normalized = label.replace(/\s+/g, ' ').trim()
+  const match = normalized.match(/^([A-Za-z]{3})\s+(\d{1,2})\s+(\d{2}):(\d{2}):(\d{2})$/)
+  if (!match) return null
 
-  const MONTHS = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 }
-  const monthIndex = MONTHS[parts[1]]
+  const [, monthName, dayStr, hourStr, minuteStr, secondStr] = match
+  const monthIndex = MONTH_INDEX[monthName]
   if (monthIndex === undefined) return null
 
-  const day = parseInt(parts[2], 10)
-  const timeParts = parts[3].split(':').map((value) => parseInt(value, 10))
-  if (timeParts.some(Number.isNaN)) return null
+  const day = parseInt(dayStr, 10)
+  const hour = parseInt(hourStr, 10)
+  const minute = parseInt(minuteStr, 10)
+  const second = parseInt(secondStr, 10)
+  if ([day, hour, minute, second].some(Number.isNaN)) return null
 
-  let [hour, minute, second] = timeParts
-  const ampm = parts[4]
-  if (ampm === 'PM' && hour !== 12) hour += 12
-  if (ampm === 'AM' && hour === 12) hour = 0
+  const now = new Date()
+  const halfYearMs = 182 * NET_DAY_MS
+  let candidate = new Date(now.getFullYear(), monthIndex, day, hour, minute, second)
 
-  const year = parseInt(parts[6], 10)
-  if (Number.isNaN(year) || Number.isNaN(day)) return null
+  if (candidate.getTime() - now.getTime() > halfYearMs) {
+    candidate = new Date(now.getFullYear() - 1, monthIndex, day, hour, minute, second)
+  } else if (now.getTime() - candidate.getTime() > halfYearMs && monthIndex > now.getMonth()) {
+    candidate = new Date(now.getFullYear() - 1, monthIndex, day, hour, minute, second)
+  }
 
-  const date = new Date(year, monthIndex, day, hour, minute, second)
-  return Number.isNaN(date.getTime()) ? null : date
+  return Number.isNaN(candidate.getTime()) ? null : candidate
 }
 
 function analyzeEntries (entries, periodsConfig) {
