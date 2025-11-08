@@ -78,6 +78,7 @@ widgets:
       show: true
       max: 3  # maximum outages to show initially
       cadence: 0  # minimum outage duration in minutes to show
+      cadenceChecks: 0  # computed from cadence for confuse
   services:  # service monitoring
     name: Services
     enabled: false  # disabled by default

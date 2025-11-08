@@ -431,7 +431,7 @@ class NetworkWidget {
     }
 
     const reversed = [...filtered].reverse()
-    const maxVisible = this.state.gapsExpanded ? reversed.length : Math.min(this.config.gaps.maxVisible, reversed.length)
+    const maxVisible = this.state.gapsExpanded ? reversed.length : Math.min(this.config.gaps.max, reversed.length)
     reversed.slice(0, maxVisible).forEach((gap) => {
       const item = document.createElement('div')
       if (gap.type === 'ipchange') {
@@ -451,7 +451,7 @@ class NetworkWidget {
     })
 
     if (toggle) {
-      const maxVisible = this.config.gaps.maxVisible
+      const maxVisible = this.config.gaps.max
       if (filtered.length <= maxVisible) {
         toggle.style.display = 'none'
       } else {
@@ -464,29 +464,20 @@ class NetworkWidget {
 }
 
 function mergeNetworkConfig (config) {
+  // Trust that confuse provides complete merged config
+  // Just add computed values that depend on config values
   const cfg = config || {}
-  const metrics = { show: cfg.metrics?.show !== false }
 
-  const maxRaw = Number(cfg.gaps?.max)
-  const cadenceRaw = Number(cfg.gaps?.cadence)
-
-  const maxVisible = Number.isFinite(maxRaw) ? Math.max(1, maxRaw) : cfg.gaps?.max
-  const cadenceMinutes = Number.isFinite(cadenceRaw) ? Math.max(0, cadenceRaw) : cfg.gaps?.cadence
+  const cadenceMinutes = cfg.gaps?.cadence
   const cadenceChecks = Math.max(0, Math.ceil(cadenceMinutes / NET_MINUTES_PER_CHECK))
 
-  const gaps = {
-    show: cfg.gaps?.show !== false,
-    maxVisible,
-    cadenceMinutes,
-    cadenceChecks
+  return {
+    ...cfg,
+    gaps: {
+      ...cfg.gaps,
+      cadenceChecks
+    }
   }
-
-  const uptime = {
-    show: cfg.uptime?.show !== false,
-    periods: cfg.uptime?.periods
-  }
-
-  return { metrics, gaps, uptime }
 }
 
 function parseLog (text) {
