@@ -417,7 +417,7 @@ class NetworkWidget {
       if (gap.type !== 'outage') {
         return true
       }
-      const threshold = this.config.gaps.cadenceChecks
+      const threshold = this.config.gaps.cadenceChecks || 0
       return gap.missedChecks >= threshold
     })
 
@@ -467,8 +467,8 @@ function mergeNetworkConfig (config) {
   // Trust that confuse provides complete merged config
   // Just add computed values that depend on config values
   const cfg = config || {}
-
-  const cadenceMinutes = cfg.gaps?.cadence
+  const cadenceRaw = Number(cfg.gaps?.cadence)
+  const cadenceMinutes = Number.isFinite(cadenceRaw) ? Math.max(0, cadenceRaw) : 0
   const cadenceChecks = Math.max(0, Math.ceil(cadenceMinutes / NET_MINUTES_PER_CHECK))
 
   return {
