@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from pytimeparse import parse as parse_duration
 
 from monitor import config, get_data_path
+from flask import request, send_file
 
 logger = logging.getLogger(__name__)
 
@@ -473,8 +474,6 @@ def filter_data_by_period(data, period_str):
 def register_routes(app):
     """Register metrics API routes with Flask app"""
 
-    from flask import request
-
     # Start background metrics collection
     start_metrics_daemon()
 
@@ -530,4 +529,29 @@ def register_routes(app):
                 response=json.dumps({"error": str(e)}),
                 status=500,
                 mimetype="application/json",
+            )
+
+    @app.route("/api/metrics/csv", methods=["GET"])
+    def api_metrics_csv():
+        """Download the raw metrics CSV file"""
+        try:
+            csv_path = get_metrics_csv_path()
+            if not csv_path.exists():
+                return app.response_class(
+                    response="No metrics data available",
+                    status=404,
+                    mimetype="text/plain",
+                )
+
+            return send_file(
+                csv_path,
+                as_attachment=True,
+                download_name="metrics.csv",
+                mimetype="text/csv",
+            )
+        except Exception as e:
+            return app.response_class(
+                response=f"Error downloading CSV: {str(e)}",
+                status=500,
+                mimetype="text/plain",
             )

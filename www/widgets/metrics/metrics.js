@@ -67,7 +67,9 @@ class MetricsWidget {
     if (applyWidgetHeader) {
       applyWidgetHeader(container, {
         suppressHeader: this.config._suppressHeader,
-        name: this.config.name
+        name: this.config.name,
+        downloadCsv: this.config.download_csv !== false,
+        downloadUrl: 'api/metrics/csv'
       })
     }
 
@@ -82,6 +84,7 @@ class MetricsWidget {
     if (viewTable) {
       viewTable.addEventListener('click', () => this.setView('table'))
     }
+
     if (metricSelect) {
       metricSelect.value = this.selectedMetric
       metricSelect.addEventListener('change', (e) => {
@@ -202,10 +205,6 @@ class MetricsWidget {
     this.currentView = ChartManager.setView(view, elements, this.currentView, this.chartManager, () => {
       this.updateChart()
     })
-
-    if (this.tableManager) {
-      this.tableManager.updateToggleVisibility()
-    }
   }
 
   initManagers () {
@@ -244,8 +243,6 @@ class MetricsWidget {
         entry.source || ''
       ]
     })
-
-    this.tableManager.isTableViewActive = () => this.currentView === 'table'
   }
 
   async loadHistory () {

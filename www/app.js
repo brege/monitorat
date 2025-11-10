@@ -22,7 +22,9 @@ monitorAPI.applyWidgetHeader = function applyWidgetHeader (container, options = 
     selector = 'h2',
     suppressHeader = false,
     name,
-    preserveChildren = false
+    preserveChildren = false,
+    downloadUrl = null,
+    downloadCsv = false
   } = options
 
   const header = container.querySelector(selector)
@@ -38,6 +40,43 @@ monitorAPI.applyWidgetHeader = function applyWidgetHeader (container, options = 
   if (name === null || name === false) {
     header.remove()
     return
+  }
+
+  // Add download link if configured
+  if (downloadCsv && downloadUrl) {
+    const headerParent = header.parentElement
+    const wrapper = document.createElement('div')
+    wrapper.style.display = 'flex'
+    wrapper.style.alignItems = 'center'
+    wrapper.style.justifyContent = 'space-between'
+    wrapper.style.marginBottom = '16px'
+
+    const downloadLink = document.createElement('a')
+    downloadLink.href = '#'
+    downloadLink.textContent = 'Download CSV'
+    downloadLink.style.fontSize = '0.85rem'
+    downloadLink.style.color = 'var(--accent)'
+    downloadLink.style.textDecoration = 'none'
+    downloadLink.style.cursor = 'pointer'
+    downloadLink.addEventListener('mouseover', () => {
+      downloadLink.style.textDecoration = 'underline'
+    })
+    downloadLink.addEventListener('mouseout', () => {
+      downloadLink.style.textDecoration = 'none'
+    })
+    downloadLink.addEventListener('click', (e) => {
+      e.preventDefault()
+      const link = document.createElement('a')
+      link.href = downloadUrl + '?' + Date.now()
+      link.download = downloadUrl.split('/').pop() + '.csv'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    })
+
+    headerParent.insertBefore(wrapper, header)
+    wrapper.appendChild(header)
+    wrapper.appendChild(downloadLink)
   }
 
   if (typeof name === 'string' && name.length > 0) {

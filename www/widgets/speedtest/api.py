@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_file
 from subprocess import run, PIPE, TimeoutExpired
 from json import loads
 from datetime import datetime, timedelta, timezone
@@ -216,3 +216,21 @@ def speedtest_chart():
         )
     except Exception as exc:
         return jsonify(error=str(exc)), 500
+
+
+@api.route("/csv", methods=["GET"])
+def speedtest_csv():
+    """Download the raw speedtest CSV file"""
+    try:
+        csv_path = get_csv_path()
+        if not csv_path.exists():
+            return "No speedtest data available", 404
+
+        return send_file(
+            csv_path,
+            as_attachment=True,
+            download_name="speedtest.csv",
+            mimetype="text/csv",
+        )
+    except Exception as e:
+        return f"Error downloading CSV: {str(e)}", 500
