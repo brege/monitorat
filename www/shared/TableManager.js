@@ -34,9 +34,7 @@ class TableManager {
 
     if (!this.entries.length) {
       this.setStatus(this.emptyMessage)
-      if (this.toggleElement) {
-        this.toggleElement.style.display = 'none'
-      }
+      this.updateToggleVisibility()
       return
     }
 
@@ -59,15 +57,26 @@ class TableManager {
       this.statusElement.style.display = 'none'
     }
 
-    if (this.toggleElement) {
-      if (this.entries.length <= previewCount) {
-        this.toggleElement.style.display = 'none'
-      } else {
-        this.toggleElement.style.display = ''
-        const remaining = this.entries.length - previewCount
-        this.toggleElement.textContent = this.expanded ? 'Show less' : `Show ${remaining} more`
-      }
+    this.updateToggleVisibility()
+  }
+
+  updateToggleVisibility () {
+    if (!this.toggleElement) return
+
+    const previewCount = Math.max(1, this.previewCount)
+    const shouldShow = this.entries.length > previewCount && this.isTableViewActive()
+
+    if (shouldShow) {
+      this.toggleElement.style.display = ''
+      const remaining = this.entries.length - previewCount
+      this.toggleElement.textContent = this.expanded ? 'Show less' : `Show ${remaining} more`
+    } else {
+      this.toggleElement.style.display = 'none'
     }
+  }
+
+  isTableViewActive () {
+    return true
   }
 
   toggleExpansion () {

@@ -202,6 +202,10 @@ class MetricsWidget {
     this.currentView = ChartManager.setView(view, elements, this.currentView, this.chartManager, () => {
       this.updateChart()
     })
+
+    if (this.tableManager) {
+      this.tableManager.updateToggleVisibility()
+    }
   }
 
   initManagers () {
@@ -240,6 +244,8 @@ class MetricsWidget {
         entry.source || ''
       ]
     })
+
+    this.tableManager.isTableViewActive = () => this.currentView === 'table'
   }
 
   async loadHistory () {

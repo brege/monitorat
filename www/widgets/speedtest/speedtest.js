@@ -156,6 +156,8 @@ class SpeedtestWidget {
         entry.server || ''
       ]
     })
+
+    this.tableManager.isTableViewActive = () => this.currentView === 'table'
   }
 
   async runSpeedtest () {
@@ -225,6 +227,10 @@ class SpeedtestWidget {
     }
 
     this.currentView = ChartManager.setView(view, this.elements, this.currentView, this.chartManager)
+
+    if (this.tableManager) {
+      this.tableManager.updateToggleVisibility()
+    }
   }
 
   updateViewToggle () {
