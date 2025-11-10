@@ -8,6 +8,8 @@ paths:
   data: data/  # relative to webroot (www/)
   img: img/  # use absolute path for ~/.config/monitor@/img
   favicon: favicon.ico
+notifications:
+  apprise_urls: []
 widgets:
   enabled:  # provides order and visibility
     - metrics  # www/widgets/* for available widgets
@@ -115,6 +117,7 @@ widgets:
     enabled: false  # disabled by default
     collapsible: true
     hidden: false
+    state_file: reminders.json  # stored under paths.data unless absolute
     nudges: [14, 7]  # reminder days before due
     urgents: [3, 1, 0]  # urgent reminder days
     time: "23:55"  # daily reminder time

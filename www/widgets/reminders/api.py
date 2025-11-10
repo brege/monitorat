@@ -1,49 +1,61 @@
 #!/usr/bin/env python3
 
 import json
+import logging
 import schedule
 import threading
 import time as time_module
 from datetime import datetime
 from pathlib import Path
 import sys
-import logging
+
+from confuse import ConfigError
 
 sys.path.append(str(Path(__file__).parent.parent))
-from monitor import config, register_config_listener, NotificationHandler
+from monitor import (  # noqa: E402
+    NotificationHandler,
+    config,
+    get_data_path,
+    register_config_listener,
+)
 
-
-BASE = Path(__file__).parent.parent.parent.parent
 _scheduler_thread = None
 logger = logging.getLogger(__name__)
 
 
-def get_reminders_json_path():
-    data_dir = config["paths"]["data"].get(str)
-    if data_dir.startswith("/"):
-        return Path(data_dir) / "reminders.json"
-    else:
-        return BASE / data_dir / "reminders.json"
+def reminders_enabled() -> bool:
+    try:
+        return config["widgets"]["reminders"]["enabled"].get(bool)
+    except ConfigError:
+        return False
 
 
-def load_config():
-    return config
+def get_reminders_json_path() -> Path:
+    filename = config["widgets"]["reminders"]["state_file"].get(str)
+    path = Path(filename)
+    if not path.is_absolute():
+        path = get_data_path() / path
+    return path
 
 
 def load_reminder_data():
     reminders_json = get_reminders_json_path()
-    reminders_json.parent.mkdir(exist_ok=True)
+    reminders_json.parent.mkdir(parents=True, exist_ok=True)
     if not reminders_json.exists():
         return {}
-    with open(reminders_json, "r") as f:
-        return json.load(f)
+    try:
+        with reminders_json.open("r", encoding="utf-8") as handle:
+            return json.load(handle)
+    except json.JSONDecodeError:
+        logger.warning("Reminder state file is corrupt; resetting data")
+        return {}
 
 
 def save_reminder_data(data):
     reminders_json = get_reminders_json_path()
-    reminders_json.parent.mkdir(exist_ok=True)
-    with open(reminders_json, "w") as f:
-        json.dump(data, f, indent=2)
+    reminders_json.parent.mkdir(parents=True, exist_ok=True)
+    with reminders_json.open("w", encoding="utf-8") as handle:
+        json.dump(data, handle, indent=2, sort_keys=True)
 
 
 def touch_reminder(reminder_id):
@@ -86,20 +98,17 @@ def get_reminder_status():
 
     nudges = reminders_view["nudges"].get(list)
     urgents = reminders_view["urgents"].get(list)
+    now = datetime.now()
 
-    # Calculate orange range: from min nudge to max urgent
-    if nudges and urgents:
-        orange_min = min(urgents) if urgents else 0
-        orange_max = max(nudges) if nudges else 14
-    else:
-        orange_min, orange_max = 0, 14
+    orange_min = min(urgents) if urgents else 0
+    orange_max = max(nudges) if nudges else orange_min
 
     results = []
     for reminder_id, reminder_config in reminder_items.items():
         last_touch = data.get(reminder_id)
         if last_touch:
             last_touch_dt = datetime.fromisoformat(last_touch)
-            days_since = (datetime.now() - last_touch_dt).days
+            days_since = (now - last_touch_dt).days
         else:
             days_since = None
 
@@ -120,10 +129,10 @@ def get_reminder_status():
         results.append(
             {
                 "id": reminder_id,
-                "name": reminder_config.get("name", reminder_id),
-                "url": reminder_config.get("url", ""),
-                "icon": reminder_config.get("icon", "default.png"),
-                "reason": reminder_config.get("reason", ""),
+                "name": reminder_config.get("name") or reminder_id,
+                "url": reminder_config["url"],
+                "icon": reminder_config["icon"],
+                "reason": reminder_config["reason"],
                 "last_touch": last_touch,
                 "days_since": days_since,
                 "days_remaining": days_remaining,
@@ -136,24 +145,46 @@ def get_reminder_status():
 
 def _refresh_notification_schedule(log_prefix="[schedule] refreshed") -> None:
     """Rebuild the daily reminder schedule using the latest config."""
-    reminders_view = config["widgets"]["reminders"]
-    check_time = reminders_view["time"].get(str)
+    schedule.clear("reminders")
 
-    schedule.clear()
-    schedule.every().day.at(check_time).do(scheduled_notification_check)
+    if not reminders_enabled():
+        logger.info(f"{log_prefix} - reminders disabled; no schedule created")
+        return
+
+    check_time = config["widgets"]["reminders"]["time"].get(str)
+
+    schedule.every().day.at(check_time).do(scheduled_notification_check).tag(
+        "reminders"
+    )
     logger.info(f"{log_prefix} - daily check at {check_time}")
-    logger.info(f"Scheduled jobs: {len(schedule.get_jobs())}")
+    logger.info("Scheduled reminder jobs: %s", len(schedule.get_jobs("reminders")))
+
+
+def _get_apprise_urls():
+    reminders_view = config["widgets"]["reminders"]
+    try:
+        urls = reminders_view["apprise_urls"].get(list)
+        if urls:
+            return urls
+    except ConfigError:
+        pass
+
+    try:
+        return config["notifications"]["apprise_urls"].get(list)
+    except ConfigError:
+        return []
 
 
 def send_notifications():
+    if not reminders_enabled():
+        return False
+
     reminders_view = config["widgets"]["reminders"]
-    reminders_config = reminders_view.get(dict)
     reminder_items = reminders_view["items"].get(dict)
     if not reminder_items:
         return False
 
-    # Check if we have any notification services configured
-    apprise_urls = reminders_config.get("apprise_urls", [])
+    apprise_urls = _get_apprise_urls()
     if not apprise_urls:
         return False
 
@@ -209,16 +240,10 @@ def send_test_notification(priority=0):
     Args:
         priority (int): Priority level (-1=low, 0=normal, 1=high)
     """
-    reminders_config = config["widgets"]["reminders"].get(dict)
-    if not reminders_config:
-        return False
-
-    # Support apprise URLs with priority
-    apprise_urls = reminders_config.get("apprise_urls", [])
+    apprise_urls = _get_apprise_urls()
     if not apprise_urls:
         return False
 
-    # Create notification handler
     notification_handler = NotificationHandler(apprise_urls)
 
     return notification_handler.send_test_notification(priority, "monitor@ reminder")
@@ -226,6 +251,10 @@ def send_test_notification(priority=0):
 
 def scheduled_notification_check():
     """Function called by the scheduler"""
+    if not reminders_enabled():
+        logger.info("Skipping notification check because reminders are disabled")
+        return
+
     logger.info("=== DAEMON NOTIFICATION CHECK START ===")
 
     # Debug: show all reminder statuses first
@@ -276,9 +305,9 @@ def register_routes(app):
     @app.route("/api/reminders", methods=["GET"])
     def api_reminders():
         reminders = get_reminder_status()
-        return app.response_class(
-            response=json.dumps(reminders), status=200, mimetype="application/json"
-        )
+        from flask import jsonify
+
+        return jsonify(reminders)
 
     @app.route("/api/reminders/<reminder_id>/touch", methods=["GET", "POST"])
     def api_reminder_touch(reminder_id):
@@ -289,7 +318,7 @@ def register_routes(app):
             return jsonify({"error": "reminder not found"}), 404
 
         touch_reminder(reminder_id)
-        reminder_url = reminders_items[reminder_id].get("url", "/")
+        reminder_url = reminders_items[reminder_id]["url"] or "/"
         return redirect(reminder_url)
 
     @app.route("/api/reminders/test-notification", methods=["POST"])
