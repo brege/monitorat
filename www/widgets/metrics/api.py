@@ -517,10 +517,9 @@ def register_routes(app):
             if period and period.lower() != "all":
                 data = filter_data_by_period(data, period)
 
-            limit = get_history_max_rows()
-            # Return capped set of entries after filtering
+            # Return all filtered data
             return app.response_class(
-                response=json.dumps({"data": data[-limit:]}),
+                response=json.dumps({"data": data}),
                 status=200,
                 mimetype="application/json",
             )

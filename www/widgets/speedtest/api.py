@@ -111,12 +111,6 @@ def speedtest_history():
 
 @api.route("/chart", methods=["GET"])
 def speedtest_chart():
-    days = request.args.get("days", default=30, type=int)
-    if days == -1:
-        days = None
-    else:
-        days = max(1, min(days or 30, 365))
-
     now = datetime.now()
 
     period = request.args.get("period", default="all", type=str)
@@ -137,14 +131,7 @@ def speedtest_chart():
         with csv_path.open("r") as f:
             lines = [line.strip() for line in f.readlines()[1:] if line.strip()]
 
-        if days is not None:
-            cutoff_date = now - timedelta(days=days)
-        else:
-            cutoff_date = None
-        cutoff_candidates = [
-            value for value in (cutoff_date, period_cutoff) if value is not None
-        ]
-        effective_cutoff = max(cutoff_candidates) if cutoff_candidates else None
+        effective_cutoff = period_cutoff
 
         labels = []
         download_data = []
