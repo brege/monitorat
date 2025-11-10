@@ -28,10 +28,6 @@ def is_daemon_enabled():
 
 def get_collection_interval():
     interval = metrics_config()["daemon"]["interval_seconds"].get(int)
-    try:
-        interval = int(interval)
-    except (TypeError, ValueError):
-        interval = 60
     return interval if interval > 0 else 60
 
 
@@ -41,16 +37,11 @@ def get_history_file():
 
 def get_history_max_rows():
     limit = metrics_config()["history"]["max_rows"].get(int)
-    try:
-        limit = int(limit)
-    except (TypeError, ValueError):
-        limit = 1000
     return limit if limit > 0 else 1000
 
 
 def get_storage_mounts():
-    mounts = metrics_config()["storage"]["mounts"].get(list)
-    return [m for m in mounts if isinstance(m, str)]
+    return metrics_config()["storage"]["mounts"].get(list)
 
 
 def get_threshold_settings():
