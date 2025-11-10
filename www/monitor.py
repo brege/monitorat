@@ -11,14 +11,18 @@ from apprise import Apprise, common as apprise_common
 import logging
 import time
 from typing import Callable, List, Optional
+import os
 
 app = Flask(__name__)
 BASE = Path(__file__).parent.parent
 WWW = BASE / "www"
 VENDORS = WWW / "vendors"
-project_config = BASE / "config.yaml"
 PACKS_DIR = BASE / "packs"
 SPEEDTEST = "/usr/bin/speedtest-cli"
+CONFIG_ENV_OVERRIDE = os.environ.get("MONITOR_CONFIG_PATH")
+CONFIG_OVERRIDE_PATH = (
+    Path(CONFIG_ENV_OVERRIDE).expanduser() if CONFIG_ENV_OVERRIDE else None
+)
 
 
 class ConfigManager:
@@ -33,18 +37,16 @@ class ConfigManager:
     def _build_config(self) -> confuse.Configuration:
         config_obj = confuse.Configuration("monitor@", __name__)
 
-        # Add default config as lowest priority
-        default_config = Path(__file__).parent / "config_default.yaml"
-        if default_config.exists():
-            with default_config.open() as f:
-                import yaml
+        # Load defaults from config_default.yaml and user configs from Confuse's
+        # standard search paths (~/.config/monitor@/config.yaml, etc.).
+        config_obj.clear()
+        config_obj.read(user=True, defaults=True)
 
-                default_data = yaml.safe_load(f)
-                config_obj.add(default_data)
-
-        # Load user config with higher priority
-        if self._project_config and self._project_config.exists():
-            config_obj.set_file(self._project_config)
+        # Allow an explicit override file (e.g., via MONITOR_CONFIG_PATH).
+        if self._project_config:
+            candidate = self._project_config.expanduser()
+            if candidate.exists():
+                config_obj.set_file(candidate, base_for_paths=True)
 
         # Mark sensitive fields for redaction
         config_obj["notifications"]["apprise_urls"].redact = True
@@ -89,7 +91,7 @@ class ConfigProxy:
         return repr(self._manager.get())
 
 
-config_manager = ConfigManager(project_config)
+config_manager = ConfigManager(CONFIG_OVERRIDE_PATH)
 config = ConfigProxy(config_manager)
 
 
@@ -105,12 +107,8 @@ def register_config_listener(callback: Callable[[confuse.Configuration], None]) 
     config_manager.register_callback(callback)
 
 
-def get_data_path():
-    data_dir = config["paths"]["data"].get(str)
-    if data_dir.startswith("/"):
-        return Path(data_dir)
-    else:
-        return BASE / data_dir
+def get_data_path() -> Path:
+    return Path(config["paths"]["data"].as_filename())
 
 
 def setup_logging():
@@ -415,13 +413,8 @@ def index():
 
 @app.route("/data/<path:filename>")
 def data_files(filename):
-    data_dir = config["paths"]["data"].get(str)
-    if data_dir.startswith("/"):
-        # Absolute path
-        return send_from_directory(data_dir, filename)
-    else:
-        # Relative to BASE
-        return send_from_directory(BASE / data_dir, filename)
+    data_dir = get_data_path()
+    return send_from_directory(str(data_dir), filename)
 
 
 @app.route("/about.md")
@@ -456,7 +449,12 @@ def wiki_doc():
 @app.route("/api/config", methods=["GET"])
 def api_config():
     try:
-        return jsonify(dict(config.get()))
+        payload = {
+            "site": config["site"].get(dict),
+            "privacy": config["privacy"].get(dict),
+            "widgets": config["widgets"].get(dict),
+        }
+        return jsonify(payload)
     except Exception as exc:
         return jsonify(error=str(exc)), 500
 
@@ -500,32 +498,18 @@ def api_services_status():
 def favicon():
     default_favicon = WWW / "favicon.ico"
     try:
-        configured = config["paths"]["favicon"].get(str)
+        configured = Path(config["paths"]["favicon"].as_filename())
     except Exception:
-        configured = None
+        configured = default_favicon
 
-    if configured:
-        path = Path(configured)
-        if path.is_absolute():
-            if path.exists():
-                return send_from_directory(path.parent, path.name)
-        else:
-            candidate = WWW / path
-            if candidate.exists():
-                return send_from_directory(WWW, str(path))
-
-    return send_from_directory(default_favicon.parent, default_favicon.name)
+    path = configured if configured.exists() else default_favicon
+    return send_from_directory(str(path.parent), path.name)
 
 
 @app.route("/img/<path:filename>")
 def img_files(filename):
-    img_dir = config["paths"]["img"].get(str)
-    if img_dir.startswith("/"):
-        # Absolute path
-        return send_from_directory(img_dir, filename)
-    else:
-        # Relative to WWW
-        return send_from_directory(WWW / img_dir, filename)
+    img_dir = Path(config["paths"]["img"].as_filename())
+    return send_from_directory(str(img_dir), filename)
 
 
 @app.route("/docs/<path:filename>")

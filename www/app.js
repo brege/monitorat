@@ -118,7 +118,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Initialize widgets in configured order (in parallel)
-  const widgetOrder = config.widgets?.enabled || ['network', 'services', 'metrics', 'speedtest', 'reminders', 'wiki']
+  const fallbackWidgetOrder = Object.keys(config.widgets || {}).filter((key) => key !== 'enabled')
+  const widgetOrder = Array.isArray(config.widgets?.enabled) && config.widgets.enabled.length > 0
+    ? config.widgets.enabled
+    : fallbackWidgetOrder
   await Promise.all(
     widgetOrder.map(async (widgetName) => {
       const widgetConfig = config.widgets?.[widgetName]
