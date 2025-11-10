@@ -32,8 +32,22 @@ class ConfigManager:
 
     def _build_config(self) -> confuse.Configuration:
         config_obj = confuse.Configuration("monitor@", __name__)
+
+        # Add default config as lowest priority
+        default_config = Path(__file__).parent / "config_default.yaml"
+        if default_config.exists():
+            with default_config.open() as f:
+                import yaml
+
+                default_data = yaml.safe_load(f)
+                config_obj.add(default_data)
+
+        # Load user config with higher priority
         if self._project_config and self._project_config.exists():
             config_obj.set_file(self._project_config)
+
+        # Mark sensitive fields for redaction
+        config_obj["notifications"]["apprise_urls"].redact = True
         return config_obj
 
     def get(self) -> confuse.Configuration:
@@ -568,6 +582,13 @@ except Exception as e:
     logger.error(f"Error loading widget APIs: {e}")
 
 if __name__ == "__main__":
+    import sys
+
+    # Handle config command
+    if len(sys.argv) > 1 and sys.argv[1] == "config":
+        print(config_manager.get().dump(full=True, redact=True))
+        sys.exit(0)
+
     setup_logging()
     app.run()
 
