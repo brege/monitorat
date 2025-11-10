@@ -8,11 +8,9 @@ import threading
 import time
 import logging
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime
 
-from pytimeparse import parse as parse_duration
-
-from monitor import config, get_data_path
+from monitor import config, get_data_path, parse_iso_timestamp, resolve_period_cutoff
 from flask import request, send_file
 
 logger = logging.getLogger(__name__)
@@ -429,37 +427,16 @@ def check_metric_alerts(metrics, statuses):
 
 def filter_data_by_period(data, period_str):
     """Filter data by natural time period (e.g., '1 hour', '30 days', '1 week')"""
-    if not period_str or period_str.lower() == "all":
+    cutoff = resolve_period_cutoff(period_str)
+    if cutoff is None:
         return data
 
-    try:
-        # Parse the natural time string to seconds
-        seconds = parse_duration(period_str)
-        if not seconds:
-            logger.warning(f"Could not parse period: {period_str}")
-            return data
-
-        # Calculate cutoff time
-        now = datetime.now()
-        cutoff = now - timedelta(seconds=seconds)
-
-        # Filter data
-        filtered_data = []
-        for row in data:
-            try:
-                row_time = datetime.fromisoformat(
-                    row["timestamp"].replace("Z", "+00:00")
-                )
-                if row_time >= cutoff:
-                    filtered_data.append(row)
-            except (ValueError, KeyError):
-                # Skip rows with invalid timestamps
-                continue
-
-        return filtered_data
-    except Exception as e:
-        logger.error(f"Error filtering data by period {period_str}: {e}")
-        return data
+    filtered_data = []
+    for row in data:
+        row_time = parse_iso_timestamp(row.get("timestamp"))
+        if row_time and row_time >= cutoff:
+            filtered_data.append(row)
+    return filtered_data
 
 
 def register_routes(app):

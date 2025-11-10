@@ -3,6 +3,7 @@ from flask import Flask, send_from_directory, jsonify, request
 from pathlib import Path
 from urllib.request import urlretrieve
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+from datetime import datetime, timedelta, timezone
 import threading
 import yaml
 import importlib
@@ -12,6 +13,7 @@ import logging
 import time
 from typing import Callable, List, Optional
 import os
+from pytimeparse import parse as parse_duration
 
 app = Flask(__name__)
 BASE = Path(__file__).parent.parent
@@ -354,6 +356,34 @@ def setup_alert_handler():
 
 def get_csv_path():
     return get_data_path() / "speedtest.csv"
+
+
+def resolve_period_cutoff(period_str: Optional[str], now: Optional[datetime] = None):
+    """Return the datetime cutoff for a natural-language period."""
+    if not period_str or period_str.lower() == "all":
+        return None
+    try:
+        seconds = parse_duration(period_str)
+        if not seconds:
+            return None
+        reference = now or datetime.now()
+        return reference - timedelta(seconds=seconds)
+    except Exception:
+        return None
+
+
+def parse_iso_timestamp(value: Optional[str]):
+    """Parse ISO timestamps with optional trailing Z and normalize to naive UTC."""
+    if not value:
+        return None
+    try:
+        normalized = value[:-1] + "+00:00" if value.endswith("Z") else value
+        dt = datetime.fromisoformat(normalized)
+        if dt.tzinfo:
+            dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+        return dt
+    except ValueError:
+        return None
 
 
 VENDOR_URLS = {

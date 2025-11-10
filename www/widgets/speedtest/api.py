@@ -1,16 +1,15 @@
 from flask import Blueprint, request, jsonify, send_file
 from subprocess import run, PIPE, TimeoutExpired
 from json import loads
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 from pathlib import Path
-from pytimeparse import parse as parse_duration
 import logging
 
 # Import from main monitor module
 import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from monitor import get_csv_path
+from monitor import get_csv_path, parse_iso_timestamp, resolve_period_cutoff
 
 SPEEDTEST = "speedtest-cli"
 
@@ -114,14 +113,7 @@ def speedtest_chart():
     now = datetime.now()
 
     period = request.args.get("period", default="all", type=str)
-    period_cutoff = None
-    if period and period.lower() != "all":
-        try:
-            seconds = parse_duration(period)
-            if seconds:
-                period_cutoff = now - timedelta(seconds=seconds)
-        except Exception:
-            pass
+    period_cutoff = resolve_period_cutoff(period, now=now)
 
     csv_path = get_csv_path()
     if not csv_path.exists():
@@ -144,31 +136,24 @@ def speedtest_chart():
                 continue
             timestamp, download, upload, ping, server = parts
 
+            dt = parse_iso_timestamp(timestamp)
+            if not dt:
+                continue
+
+            if effective_cutoff is not None and dt < effective_cutoff:
+                continue
+
             try:
-                if timestamp.endswith("Z"):
-                    dt = datetime.fromisoformat(timestamp[:-1]).replace(
-                        tzinfo=timezone.utc
-                    )
-                else:
-                    dt = datetime.fromisoformat(timestamp)
-
-                if dt.tzinfo:
-                    dt = dt.replace(tzinfo=None)
-
-                if effective_cutoff is not None and dt < effective_cutoff:
-                    continue
-
                 download_mbps = float(download) / 1_000_000
                 upload_mbps = float(upload) / 1_000_000
                 ping_ms = float(ping)
-
-                labels.append(dt.strftime("%m/%d %H:%M"))
-                download_data.append(round(download_mbps, 2))
-                upload_data.append(round(upload_mbps, 2))
-                ping_data.append(round(ping_ms, 1))
-
             except (ValueError, TypeError):
                 continue
+
+            labels.append(dt.strftime("%m/%d %H:%M"))
+            download_data.append(round(download_mbps, 2))
+            upload_data.append(round(upload_mbps, 2))
+            ping_data.append(round(ping_ms, 1))
 
         return jsonify(
             {
