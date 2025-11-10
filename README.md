@@ -143,80 +143,78 @@ Each widget can be configured in its own YAML block.
 
 ![reminders screenshot](./docs/img/reminders.png) 
 
-Example reminders:
+Example reminders (configure everything under `widgets.reminders`):
 
 ```
-reminders:
-  nudges: [ 14, 7 ]      # days before expiry to send gentle reminders
-  urgents: [ 3, 1, 0 ]   # days before expiry to send urgent notifications  
-  time: "21:00"          # daily check time (24h format)
-  
-  apprise_urls:          # push notifications in apprise format
-    # pushover
-    - "pover://abscdefghijklmnopqrstuvwxyz1234@4321zyxwvutsrqponmlkjihgfedcba"
-    # fastmail
-    - "mailto://1234 5678 9a1b 0c1d@sent.com?user=main@fastmail.com&to=alias@sent.com"
-    # see: https://github.com/caronc/apprise/wiki/Notifications
-
-  beets:
-    name: "Beets"
-    url: "https://beets.example.com"
-    icon: beets.png
-    expiry_days: 14
-    reason: "Check music inbox for new arrivals to process with beets"
-  
-  github:
-    name: "GitHub SSH Key"
-    url: "https://github.com/login"
-    icon: github.png
-    expiry_days: 365
-    reason: "Change your GitHub SSH key once a year"
-
-  Google Mail:
-    name: "Gmail Trashcan"
-    url: "https://mail.google.com/"
-    icon: gmail.png
-    expiry_days: 3
-    reason: |
-      You use POP3 to forward gmail, but Google leaves a copy in its Trash can.
-      Periodically clean it.
+widgets:
+  reminders:
+    nudges: [ 14, 7 ]      # days before expiry to send gentle reminders
+    urgents: [ 3, 1, 0 ]   # days before expiry to send urgent notifications  
+    time: "21:00"          # daily check time (24h format)
+    apprise_urls:
+      - "pover://abscdefghijklmnopqrstuvwxyz1234@4321zyxwvutsrqponmlkjihgfedcba"
+      - "mailto://1234 5678 9a1b 0c1d@sent.com?user=main@fastmail.com&to=alias@sent.com"
+    items:
+      beets:
+        name: "Beets"
+        url: "https://beets.example.com"
+        icon: beets.png
+        expiry_days: 14
+        reason: "Check music inbox for new arrivals to process with beets"
+      github:
+        name: "GitHub SSH Key"
+        url: "https://github.com/login"
+        icon: github.png
+        expiry_days: 365
+        reason: "Change your GitHub SSH key once a year"
+      google_mail:
+        name: "Gmail Trashcan"
+        url: "https://mail.google.com/"
+        icon: gmail.png
+        expiry_days: 3
+        reason: |
+          You use POP3 to forward gmail, but Google leaves a copy in its Trash can.
+          Periodically clean it.
 ```
 
 #### Services
 
 ![services screenshot](./docs/img/services.png)
 
-The **Service Status** widget is a simple display to show what systemd service daemones and timers are running or have failed, and checks docker container health.
+The **Service Status** widget is a simple display to show what systemd service daemons and timers are running or have failed, and checks docker container health.
 
 ```yaml
-services:
-  jellyfin:
-    name: Jellyfin
-    icon: jellyfin.png
-    containers: [ "jellyfin" ]
-    url: "https://example.com/jellyfin/"
-    local: "http://my-nas:8096/jellyfin"
+widgets:
+  services:
+    enabled: true
+    items:
+      jellyfin:
+        name: Jellyfin
+        icon: jellyfin.png
+        containers: [ "jellyfin" ]
+        url: "https://example.com/jellyfin/"
+        local: "http://my-nas:8096/jellyfin"
 
-  immich:
-    name: Immich
-    icon: immich.webp
-    containers:
-      [
-        "immich_server",
-        "immich_machine_learning",
-        "immich_microservices",
-        "immich_postgres",
-        "immich_redis"
-      ]
-    url: "https://immich.example.com/"
-    local: "http://my-nas:2283"
+      immich:
+        name: Immich
+        icon: immich.webp
+        containers:
+          [
+            "immich_server",
+            "immich_machine_learning",
+            "immich_microservices",
+            "immich_postgres",
+            "immich_redis"
+          ]
+        url: "https://immich.example.com/"
+        local: "http://my-nas:2283"
 
-  syncthing:
-    name: Syncthing
-    icon: syncthing.png
-    services: [ "syncthing@user.service" ]
-    url: "https://example.com/syncthing"
-    local: "http://my-nas:8384"
+      syncthing:
+        name: Syncthing
+        icon: syncthing.png
+        services: [ "syncthing@user.service" ]
+        url: "https://example.com/syncthing"
+        local: "http://my-nas:8384"
 ```
 
 You can configure these to have both your URL (or WAN IP) and a local address for use offline. **monitor@ is completely encapsulated and works offline when internet is down.**

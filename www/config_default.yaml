@@ -33,6 +33,31 @@ widgets:
       default_period: 1 hour  # default chart window: natural language (e.g., "1 hour", "7 days", "all")
       height: 400px  # fixed chart height
       days: 30  # number of days to display (-1 for all)
+    daemon:
+      enabled: true  # start the background metrics collector
+      interval_seconds: 60  # sampling cadence for the collector
+    history:
+      file: metrics.csv  # relative to data path unless absolute
+      max_rows: 1000  # cap for history API responses
+    storage:
+      mounts: []  # optional: paths to monitor
+    thresholds:  # caution/critical cutoffs for status badges
+      load:
+        caution: 1.0
+        critical: 2.0
+        normalize_per_cpu: true
+      memory:
+        caution: 75
+        critical: 90
+      temp:
+        caution: 60
+        critical: 80
+      disk:
+        caution: 80
+        critical: 95
+      storage:
+        caution: 85
+        critical: 95
   speedtest:  # network speedtest monitoring
     name: Speedtests
     enabled: false  # disabled by default
@@ -84,6 +109,7 @@ widgets:
     enabled: false  # disabled by default
     collapsible: true
     hidden: false
+    items: {}  # define monitored services here
   reminders:  # reminder notifications
     name: Reminders
     enabled: false  # disabled by default
@@ -95,6 +121,7 @@ widgets:
     pushover:
       key: ''
       token: ''
+    items: {}  # place reminder entries here (keys become reminder IDs)
   wiki:  # markdown documentation widget
     name: Notes & Links
     enabled: true

@@ -83,6 +83,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   await Promise.all(
     widgetOrder.map(async (widgetName) => {
       const widgetConfig = config.widgets?.[widgetName]
+      if (!widgetConfig) {
+        return
+      }
 
       // Skip disabled widgets but keep their placeholder in ordering
       if (widgetConfig?.enabled === false) {
@@ -91,13 +94,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const widgetType = widgetConfig?.type || widgetName
 
-      // Merge widget-specific config sections for certain widgets
-      let finalConfig = widgetConfig
-      if (widgetName === 'metrics' && config.metrics) {
-        finalConfig = { ...widgetConfig, ...config.metrics }
-      }
-
-      return initializeWidget(widgetName, widgetType, finalConfig)
+      return initializeWidget(widgetName, widgetType, widgetConfig)
     })
   )
 })

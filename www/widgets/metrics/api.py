@@ -7,10 +7,53 @@ import psutil
 import threading
 import time
 import logging
+from pathlib import Path
 from datetime import datetime, timedelta
+
 from pytimeparse import parse as parse_duration
 
+from monitor import config, get_data_path
+
 logger = logging.getLogger(__name__)
+
+
+def metrics_config():
+    return config["widgets"]["metrics"]
+
+
+def is_daemon_enabled():
+    return metrics_config()["daemon"]["enabled"].get(bool)
+
+
+def get_collection_interval():
+    interval = metrics_config()["daemon"]["interval_seconds"].get(int)
+    try:
+        interval = int(interval)
+    except (TypeError, ValueError):
+        interval = 60
+    return interval if interval > 0 else 60
+
+
+def get_history_file():
+    return metrics_config()["history"]["file"].get(str)
+
+
+def get_history_max_rows():
+    limit = metrics_config()["history"]["max_rows"].get(int)
+    try:
+        limit = int(limit)
+    except (TypeError, ValueError):
+        limit = 1000
+    return limit if limit > 0 else 1000
+
+
+def get_storage_mounts():
+    mounts = metrics_config()["storage"]["mounts"].get(list)
+    return [m for m in mounts if isinstance(m, str)]
+
+
+def get_threshold_settings():
+    return metrics_config()["thresholds"].get(dict)
 
 
 def get_uptime():
@@ -41,63 +84,33 @@ def get_load_average():
         return [0.0, 0.0, 0.0]
 
 
-def get_metric_status(metric_type, value, **kwargs):
+def get_metric_status(metric_type, value, thresholds=None):
     """Determine status (ok/caution/critical) for a metric"""
-    if metric_type == "load":
-        # Use 1-minute load average normalized by CPU count
+    thresholds = thresholds or {}
+    metric_thresholds = thresholds.get(metric_type, {})
+
+    comparator = value
+    if metric_type == "load" and metric_thresholds.get("normalize_per_cpu", True):
         cpu_count = psutil.cpu_count()
-        normalized_load = value / cpu_count if cpu_count > 0 else value
-        if normalized_load <= 1.0:
-            return "ok"
-        elif normalized_load <= 2.0:
-            return "caution"
-        else:
-            return "critical"
+        comparator = value / cpu_count if cpu_count else value
 
-    elif metric_type == "memory":
-        # Memory percentage
-        if value <= 75:
-            return "ok"
-        elif value <= 90:
-            return "caution"
-        else:
-            return "critical"
+    caution = metric_thresholds.get("caution")
+    critical = metric_thresholds.get("critical")
 
-    elif metric_type == "temp":
-        # Temperature in Celsius
-        if value <= 60:
-            return "ok"
-        elif value <= 80:
-            return "caution"
-        else:
-            return "critical"
-
-    elif metric_type == "disk":
-        # Disk usage percentage
-        if value <= 80:
-            return "ok"
-        elif value <= 95:
-            return "caution"
-        else:
-            return "critical"
-
-    elif metric_type == "storage":
-        # Storage usage percentage
-        if value <= 85:
-            return "ok"
-        elif value <= 95:
-            return "caution"
-        else:
-            return "critical"
-
+    if critical is not None and comparator > critical:
+        return "critical"
+    if caution is not None and comparator > caution:
+        return "caution"
     return "ok"
 
 
 def get_metrics_csv_path():
     """Get path to metrics CSV file"""
-    from monitor import get_data_path
-
-    return get_data_path() / "metrics.csv"
+    filename = get_history_file()
+    path = Path(filename)
+    if path.is_absolute():
+        return path
+    return get_data_path() / path
 
 
 def log_metrics_to_csv(metrics_data, source="refresh"):
@@ -182,6 +195,22 @@ def log_metrics_to_csv(metrics_data, source="refresh"):
         writer.writerow(row)
 
 
+def resolve_storage_usage():
+    mounts = get_storage_mounts()
+    for path in mounts:
+        try:
+            if os.path.exists(path):
+                usage = psutil.disk_usage(path)
+                text = (
+                    f"{usage.used / (1024**4):.1f}TB / "
+                    f"{usage.total / (1024**4):.1f}TB ({usage.percent:.0f}%)"
+                )
+                return text, usage.percent
+        except Exception:
+            continue
+    return "Not mounted", 0.0
+
+
 def get_system_metrics():
     """Get all system metrics and their statuses"""
     try:
@@ -227,27 +256,7 @@ def get_system_metrics():
         disk = psutil.disk_usage("/")
         disk_str = f"{disk.used / (1024**3):.1f}GB / {disk.total / (1024**3):.1f}GB ({disk.percent:.0f}%)"
 
-        # NFS storage (check first available mount point)
-        storage_paths = [
-            "",
-            "",
-            "",
-            "",
-        ]
-        storage_found = False
-        for path in storage_paths:
-            try:
-                if os.path.exists(path):
-                    storage = psutil.disk_usage(path)
-                    storage_str = f"{storage.used / (1024**4):.1f}TB / {storage.total / (1024**4):.1f}TB ({storage.percent:.0f}%)"
-                    storage_found = True
-                    break
-            except Exception:
-                continue
-
-        if not storage_found:
-            storage_str = "Not mounted"
-            storage = type("obj", (object,), {"percent": 0})()
+        storage_str, storage_percent = resolve_storage_usage()
 
         metrics = {
             "uptime": uptime,
@@ -260,12 +269,13 @@ def get_system_metrics():
             "lastUpdated": datetime.now().isoformat(),
         }
 
+        thresholds = get_threshold_settings()
         statuses = {
-            "load": get_metric_status("load", load[0]),
-            "memory": get_metric_status("memory", memory.percent),
-            "temp": get_metric_status("temp", temp),
-            "disk": get_metric_status("disk", disk.percent),
-            "storage": get_metric_status("storage", storage.percent),
+            "load": get_metric_status("load", load[0], thresholds),
+            "memory": get_metric_status("memory", memory.percent, thresholds),
+            "temp": get_metric_status("temp", temp, thresholds),
+            "disk": get_metric_status("disk", disk.percent, thresholds),
+            "storage": get_metric_status("storage", storage_percent, thresholds),
         }
 
         return metrics, statuses
@@ -282,7 +292,10 @@ def start_metrics_daemon():
     """Start background metrics collection thread"""
     global _metrics_thread
     if _metrics_thread is None or not _metrics_thread.is_alive():
-        logger.info("Starting metrics collection daemon")
+        logger.info(
+            "Starting metrics collection daemon (interval=%ss)",
+            get_collection_interval(),
+        )
         _metrics_thread = threading.Thread(target=_metrics_collector, daemon=True)
         _metrics_thread.start()
     else:
@@ -293,16 +306,19 @@ def _metrics_collector():
     """Background thread for continuous metrics collection"""
     logger.info("Metrics collection thread started")
     while True:
+        interval = get_collection_interval()
         try:
+            if not is_daemon_enabled():
+                time.sleep(interval)
+                continue
+
             metrics, statuses = get_system_metrics()
             if metrics:
                 log_metrics_to_csv(metrics, source="daemon")
-
-                # Check for alert conditions
                 check_metric_alerts(metrics, statuses)
         except Exception as e:
             logger.error(f"Metrics daemon error: {e}")
-        time.sleep(60)
+        time.sleep(interval)
 
 
 def check_metric_alerts(metrics, statuses):
@@ -502,9 +518,10 @@ def register_routes(app):
             if period and period.lower() != "all":
                 data = filter_data_by_period(data, period)
 
-            # Return last 1000 entries after filtering
+            limit = get_history_max_rows()
+            # Return capped set of entries after filtering
             return app.response_class(
-                response=json.dumps({"data": data[-1000:]}),
+                response=json.dumps({"data": data[-limit:]}),
                 status=200,
                 mimetype="application/json",
             )

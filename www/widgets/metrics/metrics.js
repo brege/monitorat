@@ -4,17 +4,22 @@ class MetricsWidget {
   constructor (widgetConfig = {}) {
     this.container = null
     this.widgetConfig = widgetConfig
-    this.config = {
+    this.defaults = {
+      name: 'System Metrics',
       default: 'chart',
+      periods: [],
       table: {
         min: 5,
         max: 200
       },
       chart: {
+        default_metric: 'cpu_memory',
+        default_period: 'all',
         height: '400px',
         days: 30
       }
     }
+    this.config = this.buildConfig()
     this.chartManager = null
     this.tableManager = null
     this.currentView = null
@@ -23,21 +28,36 @@ class MetricsWidget {
     this.selectedPeriod = 'all'
   }
 
+  buildConfig (overrides = {}) {
+    const merged = { ...this.widgetConfig, ...overrides }
+    const table = {
+      ...this.defaults.table,
+      ...(this.widgetConfig.table || {}),
+      ...(overrides.table || {})
+    }
+    const chart = {
+      ...this.defaults.chart,
+      ...(this.widgetConfig.chart || {}),
+      ...(overrides.chart || {})
+    }
+
+    const periods = Array.isArray(merged.periods) ? [...merged.periods] : [...this.defaults.periods]
+
+    return {
+      _suppressHeader: merged._suppressHeader,
+      name: typeof merged.name !== 'undefined' ? merged.name : this.defaults.name,
+      default: typeof merged.default === 'string' ? merged.default : this.defaults.default,
+      table,
+      chart,
+      periods
+    }
+  }
+
   async init (container, config = {}) {
     this.container = container
-    const hasExplicitName = Object.prototype.hasOwnProperty.call(config, 'name')
-    this.config = {
-      _suppressHeader: config._suppressHeader,
-      name: hasExplicitName ? config.name : this.widgetConfig.name,
-      default: config.default,
-      table: config.table,
-      chart: config.chart,
-      periods: config.periods
-    }
-    this.selectedPeriod = this.config.chart.default_period
-    if (typeof this.config.chart.default_metric === 'string') {
-      this.selectedMetric = this.config.chart.default_metric.toLowerCase()
-    }
+    this.config = this.buildConfig(config)
+    this.selectedPeriod = this.config.chart.default_period || this.defaults.chart.default_period
+    this.selectedMetric = (this.config.chart.default_metric || this.defaults.chart.default_metric).toLowerCase()
 
     const response = await fetch('widgets/metrics/metrics.html')
     const html = await response.text()
@@ -74,12 +94,14 @@ class MetricsWidget {
     if (periodSelect) {
       // Populate period options
       periodSelect.innerHTML = '<option value="all">All</option>'
-      this.config.periods.forEach(period => {
-        const option = document.createElement('option')
-        option.value = period
-        option.textContent = period
-        periodSelect.appendChild(option)
-      })
+      if (Array.isArray(this.config.periods)) {
+        this.config.periods.forEach(period => {
+          const option = document.createElement('option')
+          option.value = period
+          option.textContent = period
+          periodSelect.appendChild(option)
+        })
+      }
 
       periodSelect.value = this.selectedPeriod
       periodSelect.addEventListener('change', (e) => {
@@ -90,7 +112,7 @@ class MetricsWidget {
 
     this.initManagers()
     await this.loadData()
-    this.setView(this.config.default)
+    this.setView(this.config.default || this.defaults.default)
     await this.loadHistory()
   }
 
@@ -245,7 +267,8 @@ class MetricsWidget {
       const transformedEntries = ChartManager.calculateTableDeltas(this.entries)
 
       // Table gets limited entries, chart gets all entries
-      const tableEntries = transformedEntries.slice(-this.config.table.max).reverse()
+      const tableLimit = Number.isFinite(this.config.table?.max) ? this.config.table.max : this.defaults.table.max
+      const tableEntries = transformedEntries.slice(-tableLimit).reverse()
       this.tableManager.setEntries(tableEntries)
       this.updateViewToggle()
 

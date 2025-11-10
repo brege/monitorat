@@ -463,8 +463,8 @@ def api_config_reload():
 @app.route("/api/services", methods=["GET"])
 def api_services():
     try:
-        services = config["services"].get(dict)
-        return jsonify({"services": services})
+        services_view = config["widgets"]["services"]
+        return jsonify({"services": services_view["items"].get(dict)})
     except Exception as exc:
         return jsonify(error=str(exc)), 500
 

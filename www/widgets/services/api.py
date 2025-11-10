@@ -3,15 +3,17 @@
 import json
 import subprocess
 from pathlib import Path
-import sys
 import logging
 
-sys.path.append(str(Path(__file__).parent.parent))
 from monitor import config
 
 logger = logging.getLogger(__name__)
 
 BASE = Path(__file__).parent.parent.parent.parent
+
+
+def services_items():
+    return config["widgets"]["services"]["items"].get(dict)
 
 
 def get_docker_status():
@@ -51,53 +53,50 @@ def get_systemd_status():
     """Get status of systemd services and timers"""
     service_statuses = {}
 
-    # Load config to get dynamic service/timer lists
-    try:
-        services_config = {"services": config["services"].get(dict)}
+    services_config = services_items()
+    if not services_config:
+        return service_statuses
 
-        # Collect all unique services and timers from YAML
-        all_services = set()
-        all_timers = set()
+    # Collect all unique services and timers from YAML
+    all_services = set()
+    all_timers = set()
 
-        for service_key, service_info in services_config["services"].items():
-            if "services" in service_info:
-                all_services.update(service_info["services"])
+    for service_info in services_config.values():
+        if "services" in service_info:
+            all_services.update(service_info["services"])
 
-            if "timers" in service_info:
-                all_timers.update(service_info["timers"])
+        if "timers" in service_info:
+            all_timers.update(service_info["timers"])
 
-        # Check services
-        for service in all_services:
-            try:
-                result = subprocess.run(
-                    ["/usr/bin/systemctl", "is-active", service],
-                    capture_output=True,
-                    text=True,
-                    timeout=5,
-                )
-                status = result.stdout.strip()
-                service_statuses[service] = "ok" if status == "active" else "down"
-            except Exception as e:
-                logger.error(f"Error checking service {service}: {e}")
-                service_statuses[service] = "unknown"
+    # Check services
+    for service in all_services:
+        try:
+            result = subprocess.run(
+                ["/usr/bin/systemctl", "is-active", service],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            status = result.stdout.strip()
+            service_statuses[service] = "ok" if status == "active" else "down"
+        except Exception as e:
+            logger.error(f"Error checking service {service}: {e}")
+            service_statuses[service] = "unknown"
 
-        # Check timers
-        for timer in all_timers:
-            try:
-                result = subprocess.run(
-                    ["/usr/bin/systemctl", "is-active", f"{timer}.timer"],
-                    capture_output=True,
-                    text=True,
-                    timeout=5,
-                )
-                status = result.stdout.strip()
-                service_statuses[timer] = "ok" if status == "active" else "down"
-            except Exception as e:
-                logger.error(f"Error checking timer {timer}: {e}")
-                service_statuses[timer] = "unknown"
-
-    except Exception as e:
-        logger.error(f"Error loading services config: {e}")
+    # Check timers
+    for timer in all_timers:
+        try:
+            result = subprocess.run(
+                ["/usr/bin/systemctl", "is-active", f"{timer}.timer"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            status = result.stdout.strip()
+            service_statuses[timer] = "ok" if status == "active" else "down"
+        except Exception as e:
+            logger.error(f"Error checking timer {timer}: {e}")
+            service_statuses[timer] = "unknown"
 
     return service_statuses
 

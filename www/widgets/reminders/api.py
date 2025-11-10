@@ -57,11 +57,11 @@ def cleanup_orphaned_reminders():
     """Remove reminder data for entries no longer in config"""
     data = load_reminder_data()
 
-    reminders_config = config["reminders"].get(dict)
-    if not reminders_config:
+    reminders_items = config["widgets"]["reminders"]["items"].get(dict)
+    if not reminders_items:
         return
 
-    config_ids = set(reminders_config.keys())
+    config_ids = set(reminders_items.keys())
     data_ids = set(data.keys())
     orphaned = data_ids - config_ids
 
@@ -73,8 +73,9 @@ def cleanup_orphaned_reminders():
 
 
 def get_reminder_status():
-    reminders_config = config["reminders"].get(dict)
-    if not reminders_config:
+    reminders_view = config["widgets"]["reminders"]
+    reminder_items = reminders_view["items"].get(dict)
+    if not reminder_items:
         return []
 
     # Clean up orphaned entries
@@ -83,8 +84,8 @@ def get_reminder_status():
     # Reload data after cleanup
     data = load_reminder_data()
 
-    nudges = config["reminders"]["nudges"].get(list)
-    urgents = config["reminders"]["urgents"].get(list)
+    nudges = reminders_view["nudges"].get(list)
+    urgents = reminders_view["urgents"].get(list)
 
     # Calculate orange range: from min nudge to max urgent
     if nudges and urgents:
@@ -94,10 +95,7 @@ def get_reminder_status():
         orange_min, orange_max = 0, 14
 
     results = []
-    # Skip config keys (nudges, urgents, time, apprise_urls) and only process reminder items
-    for reminder_id, reminder_config in reminders_config.items():
-        if reminder_id in ["nudges", "urgents", "time", "apprise_urls"]:
-            continue
+    for reminder_id, reminder_config in reminder_items.items():
         last_touch = data.get(reminder_id)
         if last_touch:
             last_touch_dt = datetime.fromisoformat(last_touch)
@@ -138,12 +136,8 @@ def get_reminder_status():
 
 def _refresh_notification_schedule(log_prefix="[schedule] refreshed") -> None:
     """Rebuild the daily reminder schedule using the latest config."""
-    try:
-        check_time = config["reminders"]["time"].get(str)
-    except Exception as exc:
-        schedule.clear()
-        logger.error(f"Unable to configure reminder schedule: {exc}")
-        return
+    reminders_view = config["widgets"]["reminders"]
+    check_time = reminders_view["time"].get(str)
 
     schedule.clear()
     schedule.every().day.at(check_time).do(scheduled_notification_check)
@@ -152,8 +146,10 @@ def _refresh_notification_schedule(log_prefix="[schedule] refreshed") -> None:
 
 
 def send_notifications():
-    reminders_config = config["reminders"].get(dict)
-    if not reminders_config:
+    reminders_view = config["widgets"]["reminders"]
+    reminders_config = reminders_view.get(dict)
+    reminder_items = reminders_view["items"].get(dict)
+    if not reminder_items:
         return False
 
     # Check if we have any notification services configured
@@ -161,8 +157,8 @@ def send_notifications():
     if not apprise_urls:
         return False
 
-    nudges = config["reminders"]["nudges"].get(list)
-    urgents = config["reminders"]["urgents"].get(list)
+    nudges = reminders_view["nudges"].get(list)
+    urgents = reminders_view["urgents"].get(list)
     base_url = config["site"]["base_url"].get(str)
 
     # Create notification handler
@@ -213,7 +209,7 @@ def send_test_notification(priority=0):
     Args:
         priority (int): Priority level (-1=low, 0=normal, 1=high)
     """
-    reminders_config = config["reminders"].get(dict)
+    reminders_config = config["widgets"]["reminders"].get(dict)
     if not reminders_config:
         return False
 
@@ -288,12 +284,12 @@ def register_routes(app):
     def api_reminder_touch(reminder_id):
         from flask import jsonify, redirect
 
-        reminders_config = config["reminders"].get(dict)
-        if not reminders_config or reminder_id not in reminders_config:
+        reminders_items = config["widgets"]["reminders"]["items"].get(dict)
+        if reminder_id not in reminders_items:
             return jsonify({"error": "reminder not found"}), 404
 
         touch_reminder(reminder_id)
-        reminder_url = reminders_config[reminder_id].get("url", "/")
+        reminder_url = reminders_items[reminder_id].get("url", "/")
         return redirect(reminder_url)
 
     @app.route("/api/reminders/test-notification", methods=["POST"])
