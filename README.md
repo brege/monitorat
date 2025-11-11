@@ -261,45 +261,6 @@ widgets:
 
 #### Network
 
-This assumes you network log for updating DNS look like this.
-
-<details>
-<summary>sample-network.log<br></summary>
-<pre>
-# Home Network Dynamic DNS Log: /usr/local/bin/my-ddns-script
-# ... < thousands of entries >
-# Home Network Dynamic DNS Log: /usr/local/bin/my-ddns-script
-Fri Oct 17 12:10:02 AM EDT 2025: Current IP is 10.123.987.654
-Fri Oct 17 12:10:03 AM EDT 2025: DNS records already correct
-Fri Oct 17 12:10:03 AM EDT 2025: DNS update completed
-# ... < thousands of entries >
-# < internet goes down >
-# Home Network Dynamic DNS Log: /usr/local/bin/my-ddns-script
-# ... < spams this comment every five minutes if no internet connection >
-# Home Network Dynamic DNS Log: /usr/local/bin/my-ddns-script
-Fri Oct 17 01:50:01 AM EDT 2025: Current IP is 10.123.456.78 
-Fri Oct 17 01:50:02 AM EDT 2025: DNS records need updating - deleting all A records and recreating
-Fri Oct 17 01:50:04 AM EDT 2025: Deleted A record *.example.com (493406795)
-Fri Oct 17 01:50:05 AM EDT 2025: Deleted A record example.com (493406794)
-Fri Oct 17 01:50:07 AM EDT 2025: Created root record: {"status":"SUCCESS","id":501505430}
-Fri Oct 17 01:50:08 AM EDT 2025: Created wildcard record: {"status":"SUCCESS","id":501505433}
-Fri Oct 17 01:50:08 AM EDT 2025: DNS update completed
-# Home Network Dynamic DNS Log: /usr/local/bin/my-ddns-script
-Fri Oct 17 01:55:01 AM EDT 2025: Current IP is 10.123.456.78 
-Fri Oct 17 01:55:02 AM EDT 2025: DNS records already correct
-Fri Oct 17 01:55:02 AM EDT 2025: DNS update completed 
-# ... <thousands of entries>
-# Home Network Dynamic DNS Log: /usr/local/bin/my-ddns-script       
-Thu Oct 23 02:50:12 AM EDT 2025: Current IP is 10.123.456.78 
-Thu Oct 23 02:50:21 AM EDT 2025: DNS records already correct
-Thu Oct 23 02:50:21 AM EDT 2025: DNS update completed
-#  < computer offline >
-# Home Network Dynamic DNS Log: /usr/local/bin/my-ddns-script
-Thu Oct 23 03:05:12 AM EDT 2025: Current IP is 10.123.456.78
-# ...
-</pre>
-</details>
-
 ![network screenshot](./docs/img/network.png)
 
 ## Contributing

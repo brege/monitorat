@@ -5,26 +5,18 @@ from urllib.request import urlretrieve
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 from datetime import datetime, timedelta, timezone
 import threading
-import yaml
 import importlib
 import confuse
 from apprise import Apprise, common as apprise_common
 import logging
 import time
 from typing import Callable, List, Optional
-import os
 from pytimeparse import parse as parse_duration
 
 app = Flask(__name__)
 BASE = Path(__file__).parent.parent
 WWW = BASE / "www"
 VENDORS = WWW / "vendors"
-PACKS_DIR = BASE / "packs"
-SPEEDTEST = "/usr/bin/speedtest-cli"
-CONFIG_ENV_OVERRIDE = os.environ.get("MONITOR_CONFIG_PATH")
-CONFIG_OVERRIDE_PATH = (
-    Path(CONFIG_ENV_OVERRIDE).expanduser() if CONFIG_ENV_OVERRIDE else None
-)
 
 
 class ConfigManager:
@@ -93,7 +85,7 @@ class ConfigProxy:
         return repr(self._manager.get())
 
 
-config_manager = ConfigManager(CONFIG_OVERRIDE_PATH)
+config_manager = ConfigManager()
 config = ConfigProxy(config_manager)
 
 
@@ -432,10 +424,6 @@ except ImportError:
     pass
 
 
-def load_config():
-    return config
-
-
 @app.route("/")
 def index():
     return send_from_directory(WWW, "index.html")
@@ -605,18 +593,3 @@ if __name__ == "__main__":
 
     setup_logging()
     app.run()
-
-
-def load_services_pack():
-    services_dir = PACKS_DIR / "services"
-    manifest = services_dir / "services.yaml"
-    if not manifest.exists():
-        return {}
-    try:
-        with manifest.open("r") as f:
-            data = yaml.safe_load(f) or {}
-            if isinstance(data, dict):
-                return data.get("services", {})
-    except Exception as exc:
-        print(f"Failed to load services pack: {exc}")
-    return {}

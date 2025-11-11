@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import shutil
 import subprocess
 from pathlib import Path
 import logging
@@ -10,6 +11,7 @@ from monitor import config
 logger = logging.getLogger(__name__)
 
 BASE = Path(__file__).parent.parent.parent.parent
+SYSTEMCTL = shutil.which("systemctl")
 
 
 def services_items():
@@ -68,11 +70,15 @@ def get_systemd_status():
         if "timers" in service_info:
             all_timers.update(service_info["timers"])
 
+    if not SYSTEMCTL:
+        logger.debug("systemctl not found in PATH; skipping systemd checks")
+        return service_statuses
+
     # Check services
     for service in all_services:
         try:
             result = subprocess.run(
-                ["/usr/bin/systemctl", "is-active", service],
+                [SYSTEMCTL, "is-active", service],
                 capture_output=True,
                 text=True,
                 timeout=5,
@@ -87,7 +93,7 @@ def get_systemd_status():
     for timer in all_timers:
         try:
             result = subprocess.run(
-                ["/usr/bin/systemctl", "is-active", f"{timer}.timer"],
+                [SYSTEMCTL, "is-active", f"{timer}.timer"],
                 capture_output=True,
                 text=True,
                 timeout=5,
