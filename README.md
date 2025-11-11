@@ -41,15 +41,44 @@ If any of these are of interest to you, read on.
 
 </details>
 
-## Setup
+## Installation
 
-This README assumes you've cloned **monitor@** in `/opt/monitor@/` and the configuration file in `~/.config/monitor@/config.yaml`.
+Both installation methods assume you are using a configuration file at `~/.config/monitor@/config.yaml`.
 
-### Web server
+### Pip (easier)
+```bash
+pip install monitorat
+```
 
-monitor@ runs as a [gunicorn](https://gunicorn.org/) daemon.
+Then run with:
+```bash
+gunicorn monitorat.monitor:app --bind localhost:6161
+```
 
-The typical setup on Debian is
+#### Systemd service (pip)
+
+Download the service file, replace `__user__` and `__group__` with your username and group, then
+```bash
+curl -o monitor@.service https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/systemd/monitor%40pip.service
+sudo mv monitor@.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now monitor@.service
+```
+
+### Installing from source
+
+You can also clone **monitor@** in `/opt/monitor@/` (or anywhere else). This involves creating the correct virtual environment for your OS and installing dependencies.
+
+Clone this repository
+```bash
+sudo apt install python3 python3-pip
+sudo mkdir -p /opt/monitor@
+sudo chown -R __user__:__group__ /opt/monitor@
+cd /opt/monitor@
+git clone https://github.com/brege/monitorat.git .
+```
+
+The typical virtualenv setup is
 ```bash
 cd www
 python3 -m venv .venv
@@ -58,25 +87,21 @@ pip install -r requirements.txt
 deactivate
 ```
 
-Run manually
+monitor@ runs as a [gunicorn](https://gunicorn.org/) daemon. To run manually
 ```bash
 source .venv/bin/activate
-gunicorn --bind localhost:6161 monitor:app
+gunicorn --bind localhost:6161 monitor:app  # not monitorat.monitor:app
 ```
 
-This process is exactly the same when developing new widgets. The next section provides the steps to run monitor@ as a daemon.
+This process is exactly what you might do when developing new widgets.
 
-### Systemd service
+#### Systemd service (source)
 
-The systemd unit file runs in this virtual environment. If running multiple instances on the same host,
-you should adjust the port to avoid conflicts (e.g., `--bind localhost:6162`).
-
-Update `systemd/monitor@.service` with your paths, user, port, etc., then
+Update `systemd/monitor@source.service` replacing `__project__`, `__user__`, `__group__`, and `__port__`, then
 ```bash
-INSTANCE="$HOSTNAME" # or other, or leave blank
-sudo cp systemd/monitor@.service /etc/systemd/system/
+sudo cp systemd/monitor@source.service /etc/systemd/system/monitor@.service
 sudo systemctl daemon-reload
-sudo systemctl enable --now monitor@INSTANCE.service
+sudo systemctl enable --now monitor@.service
 ```
 
 ## Web UI
@@ -447,6 +472,10 @@ notifications:
 ---
 
 ## Contributors
+
+### Developing widgets
+
+See [installing from source](#installing-from-source) for initializing a development server.
 
 ### Project structure
 

@@ -1,0 +1,13 @@
+[Unit]
+Description=%i Monitor
+After=network.target
+
+[Service]
+User=__user__
+Group=__group__
+Environment="PATH=/home/__user__/.local/bin:/usr/bin:/bin"
+ExecStart=gunicorn -w 1 -b 0.0.0.0:6161 --timeout 120 monitorat.monitor:app
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
