@@ -1,4 +1,4 @@
-<img src="./docs/masthead.svg" alt="monitorat" height="200">
+<img src="./docs/masthead.svg" alt="monitor@/monitorat masthead" height="200">
 
 This file is **monitor@**'s README, which is the default document served in the web UI. Document rendering is but one widget available in monitor@.
 
