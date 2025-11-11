@@ -11,26 +11,29 @@ This file is **monitor@**'s `README`.  It's a useful reference when editing your
 
 ```
 ├── README.md                   # this document
+├── docs/img/                   # README screenshots
 ├── systemd
-│   └── monitor@.service        # systemd template service for gunicorn
+│   └── monitor@.service        # template systemd unit
 └── www/
     ├── app.js                  # frontend javascript
-    ├── config_default.yaml     # default configuration
+    ├── config_default.yaml     # all preset values
     ├── index.html              # web UI
-    ├── monitor.py              # backend gunicorn/flask web server
-    ├── requirements.txt        # flask, gunicorn
-    ├── vendors/*.{js,css}      # markdown rendering (auto-downloaded)
-    └── widgets/                # widget libraries
+    ├── monitor.py              # backend gunicorn server
+    ├── requirements.txt        # dependencies
+    ├── scripts/                # development
+    ├── shared/                 # javascript helpers for widgets
+    ├── vendors/                # markdown-it
+    └── widgets/                # widgets
 ```
 
 The `vendors/` are for rendering and styling markdown documents like `README.md` in HTML. These libraries are for markdown rendering and are automatically downloaded locally by `monitor.py` only once.
 
 This README assumes you've placed **monitor@** in `/opt/monitor@/` and the configuration file in `/home/user/.config/monitor@/config.yaml`.
-Both of these locations con be configured. 
+Both of these locations can be configured. 
 
 **monitor@** uses the [**confuse**](https://github.com/beetbox/confuse) library,
 originally written for [beets](https://github.com/beetbox/beets), because of its ergonomics and one-to-one mapping of YAML:API.
-**confuse** also handles the config look-up hierarchy and seemless YAML merging. See [confuse's docs](http://confuse.readthedocs.org/en/latest/usage.html) for more info.
+**confuse** also handles the config look-up hierarchy and seamless YAML merging. See [confuse's docs](http://confuse.readthedocs.org/en/latest/usage.html) for more info.
 
 ### Web server
 
@@ -69,7 +72,7 @@ Open `http://localhost:6161` or configure this through a reverse proxy.
 ### Configuration
 
 These are the basic monitor@ settings for your system, assuming you want to put all icons,
-data and the config file in `/home/user/.config/monitor@/`:
+data and the config file in `~/.config/monitor@/`:
 
 ```yaml
 site:
@@ -82,15 +85,11 @@ paths:
   img: "/home/user/.config/monitor@/img/"
   favicon: "/home/user/.config/monitor@/img/favicon.ico"
 
-privacy:
-  replacements:
-    "example.com": "hidden.com"
-    "my-nas": "box"
-    "user": "alpha"
-    "scraper": "beta"
-  mask_ips: true
+# privacy: { ... }
+# alerts: { ... }
+# notifications: { ... }
+# widgets: { ... }
 ```
-The privacy mask helps share your setup online without exposing personal information. Those are just string replacements; add as many as you like.
 
 ### Widgets
 
@@ -108,80 +107,42 @@ Example configuration:
 
 ```yaml
 widgets:
-  enabled: [ services, metrics, about, reminders, README ]
-  network:
-    name: "Network Status"
-    enabled: false
-  services:
-    name: "Service Status"
-    enabled: true
-  metrics:
-    name: "System Metrics"
-    enabled: true
-  README:
-    type: wiki
-    name: "README"
-    enabled: true
-    collapsible: true
-    hidden: false
-    doc: "/opt/monitor@my-nas/README.md"
-  reminders:
-    name: "Reminders"
-    enabled: true
-  about:
-    type: wiki
-    name: "wiki@my-nas"
-    enabled: true
-    collapsible: true
-    hidden: false
-    doc: "about.md"  # relative to www/
+  enabled:
+    - services
+    - metrics
+    - about        # type: wiki
+    - reminders
+    - README       # type: wiki
+    - network
+    - speedtest
 ```
 
 Each widget can be configured in its own YAML block.
-
-#### Reminders
-
-![reminders screenshot](./docs/img/reminders.png) 
-
-Example reminders (configure everything under `widgets.reminders`):
-
-```
-widgets:
-  reminders:
-    nudges: [ 14, 7 ]      # days before expiry to send gentle reminders
-    urgents: [ 3, 1, 0 ]   # days before expiry to send urgent notifications  
-    time: "21:00"          # daily check time (24h format)
-    apprise_urls:
-      - "pover://abscdefghijklmnopqrstuvwxyz1234@4321zyxwvutsrqponmlkjihgfedcba"
-      - "mailto://1234 5678 9a1b 0c1d@sent.com?user=main@fastmail.com&to=alias@sent.com"
-    items:
-      beets:
-        name: "Beets"
-        url: "https://beets.example.com"
-        icon: beets.png
-        expiry_days: 14
-        reason: "Check music inbox for new arrivals to process with beets"
-      github:
-        name: "GitHub SSH Key"
-        url: "https://github.com/login"
-        icon: github.png
-        expiry_days: 365
-        reason: "Change your GitHub SSH key once a year"
-      google_mail:
-        name: "Gmail Trashcan"
-        url: "https://mail.google.com/"
-        icon: gmail.png
-        expiry_days: 3
-        reason: |
-          You use POP3 to forward gmail, but Google leaves a copy in its Trash can.
-          Periodically clean it.
-```
 
 #### Services
 
 ![services screenshot](./docs/img/services.png)
 
-The **Service Status** widget is a simple display to show what systemd service daemons and timers are running or have failed, and checks docker container health.
+The **Service Status** widget is a simple display to show what systemd service daemons, timers and docker containers are running or have failed.
+
+```yaml
+jellyfin:
+  name: Jellyfin
+  icon: jellyfin.png
+  containers: [ "jellyfin" ]
+  url: https://example.com/jellyfin/
+  local: http://my-nas:8096/jellyfin
+
+plex:
+  name: Plex
+  icon: plex.png  
+  services: [plexmediaserver.service]
+  url: https://plex.example.com
+  local: http://my-nas:32400
+```
+
+<details>
+<summary><b>Services</b> example from screenshot</summary>
 
 ```yaml
 widgets:
@@ -217,11 +178,14 @@ widgets:
         local: "http://my-nas:8384"
 ```
 
-You can configure these to have both your URL (or WAN IP) and a local address for use offline. **monitor@ is completely encapsulated and works offline when internet is down.**
+</details>
+
+
+You can configure these to have both your URL (or WAN IP) and a local address (or LAN IP) for use offline. **monitor@ is completely encapsulated and works offline even when internet is down.**
 
 #### Wiki
 
-Some widgets you may want to use more than once. For two "wiki" documents to render in your monitor, use **`type: wiki`**. Using **`wiki: <title>`** may only be used once.
+Some widgets you may want to use more than once. For two markdown documents ("wiki"'s) to render in your monitor, use **`type: wiki`**. Using **`wiki: <title>`** may only be used once.
 
 ```yaml
 widgets:
@@ -244,6 +208,8 @@ Then, you can change the order of widgets in the UI.
 ```yaml
 widgets:
   enabled: 
+    - network
+    - speedtest
     - services
     - metrics
     - about
@@ -251,17 +217,231 @@ widgets:
     - README
 ```
 
+**monitor@ uses GitHub flavored markdown, and as such can be used as a README previewer.**
+
 #### Metrics
+
+Metrics provides an overview of system performance, including CPU, memory, disk and network usage, and temperature over time.  Data is logged to `monitor.log`.
 
 ![metrics screenshot](./docs/img/metrics.png)
 
+
+<details>
+<summary><b>Metrics</b> example from screenshot</summary>
+
+```yaml
+metrics:
+  name: System Metrics
+  enabled: true
+  default: chart  # table, none
+  periods:
+    - 30 days
+    - 1 week
+    - 24 hours
+    - 6 hours
+    - 1 hour
+    # any number of periods 
+  chart:
+    default_metric: temp_c
+    default_period: 6 hours
+    height: 300px
+    days: 30
+  table:
+    min: 5
+    max: 20
+```
+
+</details>
+
 #### Speedtests
+
+The **Speedtest** widget allows you to keep a record of your internet performance over time.
+It does not perform automated runs.
 
 ![speedtest screenshot](./docs/img/speedtest.png)
 
+<details>
+<summary><b>Speedtest</b> example from screenshot</summary>
+
+```yaml
+speedtest:
+  name: Speedtests
+  enabled: true
+  periods: [1 year, 1 month, 1 week]
+  default: chart  # table, none
+  table:
+    min: 5
+    max: 100
+  chart:
+    default_period: 1 month
+    height: 300px
+    days: 30
+```
+
+</details>
+
 #### Network
 
+The **Network** widget may be the most specific. This example uses `ddclient`-style generated logs.
+
 ![network screenshot](./docs/img/network.png)
+
+<details>
+<summary><b>Network</b> example from screenshot</summary>
+
+```yaml
+network:
+  name: Network Outages
+  log_file: /var/lib/porkbun-ddns/porkbun.log
+  enabled: true
+  collapsible: true
+  metrics:
+    show: true
+  uptime:
+    show: true
+    periods:
+      - period: '1 hour'
+        segment_size: '5 minutes'    # 12 pills
+      - period: '6 hours'
+        segment_size: '30 minutes'   # 12 pills
+      - period: '1 day'
+        segment_size: '2 hours'      # 12 pills
+      - period: '1 week'
+        segment_size: '1 day'        # 7 pills
+      - period: '2 months'
+        segment_size: '1 week'       # ~8 pills
+  gaps:
+    show: true
+    max: 3
+    cadence: 0
+```
+
+</details>
+
+#### Reminders
+
+![reminders screenshot](./docs/img/reminders.png) 
+
+Example reminders (configure everything under `widgets.reminders`):
+
+```yaml
+nudges: [ 14, 7 ]      # days before expiry to send gentle reminders
+urgents: [ 3, 1, 0 ]   # days before expiry to send urgent notifications  
+time: "21:00"          # daily check time (24h format)
+apprise_urls:
+  - "pover://abscdefghijklmnopqrstuvwxyz1234@4321zyxwvutsrqponmlkjihgfedcba"
+items:
+  my reminder:
+    name: My Reminder
+    url: https://reminder.example.com
+    icon: my-reminder.png
+    reason: "A chore I'm supposed to do on a regular basis"
+  # more reminders...
+```
+
+<details>
+<summary><b>Reminders</b> example from screenshot</summary>
+
+```yaml
+widgets:
+  reminders:
+    nudges: [ 14, 7 ]      # days before expiry to send gentle reminders
+    urgents: [ 3, 1, 0 ]   # days before expiry to send urgent notifications  
+    time: "21:00"          # daily check time (24h format)
+    apprise_urls:
+      - "pover://abscdefghijklmnopqrstuvwxyz1234@4321zyxwvutsrqponmlkjihgfedcba"
+      - "mailto://1234 5678 9a1b 0c1d@sent.com?user=main@fastmail.com&to=alias@sent.com"
+    items:
+      beets:
+        name: "Beets"
+        url: "https://beets.example.com"
+        icon: beets.png
+        expiry_days: 14
+        reason: "Check music inbox for new arrivals to process with beets"
+      github:
+        name: "GitHub SSH Key"
+        url: "https://github.com/login"
+        icon: github.png
+        expiry_days: 365
+        reason: "Change your GitHub SSH key once a year"
+      protonmail:   
+        name: Proton Mail
+        url: https://proton.me
+        icon: protonmail.png
+        expiry_days: 365
+        reason: Login every 365 days
+      google_mail:
+        name: "Gmail Trashcan"
+        url: "https://mail.google.com/"
+        icon: gmail.png
+        expiry_days: 3
+        reason: |
+          You use POP3 to forward gmail, but Google leaves a copy in its Trash can.
+          Periodically clean it.
+```
+
+</details>
+
+### Privacy
+
+The privacy mask helps share your setup online without exposing personal information. Those are just string replacements; add as many as you like.
+
+```yaml
+privacy:
+  replacements:
+    my-site.org: example.com
+    my-hostname: masked-hostname
+    my-user: user
+    # A: B such that A -> B
+  mask_ips: true
+```
+
+When sharing your config, you can generate the full runtime configuration with 
+
+```bash
+source www/.venv/bin/activate && python www/monitor.py config
+```
+
+### Alerts
+
+Alerts are tied to system metrics, where you set a threshold and a message for each event.
+
+<details>
+<summary><b>Alerts</b> example configuration</summary>
+
+```yaml
+alerts:
+  cooldown_minutes: 60  # Short cooldown for testing
+  rules:
+    high_load:
+      threshold: 2.5    # load average e.g the '1.23' in 1.23 0.45 0.06
+      priority: 0       # normal priority
+      message: High CPU load detected
+    high_temp:
+      threshold: 82.5   # celsius
+      priority: 1       # high priority  
+      message: High temperature warning
+    low_disk:
+      threshold: 95     # percent
+      priority: 0       # normal priority
+      message: Low disk space warning
+```
+
+</details>
+
+### Notifications
+
+The notifications system uses [apprise](https://github.com/caronc/apprise) to send notifications through practically any service, through apprise urls.
+
+```yaml
+notifications:
+  apprise_urls:
+    - "pover://abscdefghijklmnopqrstuvwxyz1234@4321zyxwvutsrqponmlkjihgfedcba"
+    - "mailto://1234 5678 9a1b 0c1d@sent.com?user=main@fastmail.com&to=alias@sent.com"
+    - # more apprise urls if needed...
+```
+
+---
 
 ## Contributing
 
@@ -272,6 +452,13 @@ This will install [pre-commit](https://pre-commit.com/) hooks for linting and fo
 - YAML
 - Python
 - JavaScript
+
+This project uses [confuse](https://confuse.readthedocs.io/en/latest/) for configuration management, 
+and as such, uses a common-sense config hierarchy. Parameters are set in `www/config_default.yaml` and may be overridden in `~/.config/monitor@/config.yaml`.
+
+While JavaScript uses `standard` and Python uses `ruff` for formatting, YAML is done manually. This project uses `yamlfix`, which is opinionated, but re-corrects for YAML 1.1 compatibility--necessary for confuse--for re-quoting time-like values via `scripts/yamlfixfix.py ~/.config/monitor@/config.yaml` for example.
+
+See `requirements.txt` for dependencies. All of these tools are *instrumental* to monitor@.
 
 ## License
 
