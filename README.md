@@ -1,4 +1,4 @@
-<img src="./docs/masthead.svg" alt="monitor@/monitorat masthead" height="200">
+<img src="./docs/masthead.svg" alt="monitor@/monitorat masthead that shows the french IPA phonetics and the tagline 'a system for observing and documenting status' and an icon with a monitor and superimposed at-character" width="100%">
 
 This file is **monitor@**'s README, which is the default document served in the web UI. Document rendering is but one widget available in monitor@.
 
@@ -10,7 +10,7 @@ Available widgets:
 - [speedtest](#speedtest)
 - [wiki](#wiki) (this file, maybe)
 
-Widgets have a general, self-contained structure providing both API and UI are straightforward to create.
+Widgets have a general, self-contained structure where both API and UI are straightforward to create.
 
 ```
 www/widgets/
@@ -20,7 +20,7 @@ www/widgets/
     └── my-sweet-widget.js
 ```
 
-You can also add your own documentation through the Wiki widget, which may help you or your loved ones figure out how your headless homelab or riceware works. This document and any others you add to your wiki will be rendered in[GitHub flavored markdown via [markdown-it](https://github.com/markdown-it/markdown-it).
+You can also add your own documentation through the Wiki widget, which may help you or your loved ones figure out how your headless homelab or riceware works. This document and any others you add to your wiki will be rendered in [GitHub flavored markdown via [markdown-it](https://github.com/markdown-it/markdown-it).
 
 But you want an actual monitor or dashboard.
 
@@ -33,13 +33,6 @@ You want to see [how hot your CPU got today](#metrics), or be alerted [when unde
 You'd like to keep a record and [graph your internet speed](#speedtest), to see how much your ISP is screwing you. Perhaps you just want a list of [all your reverse-proxied services](#services) as LAN-friendly bookmarks.
 
 If any of these are of interest to you, read on.
-
-<details>
-<summary><b>Contents</b><br></summary>
-
-[[toc]]
-
-</details>
 
 ## Installation
 
@@ -87,7 +80,7 @@ pip install -r requirements.txt
 deactivate
 ```
 
-monitor@ runs as a [gunicorn](https://gunicorn.org/) daemon. To run manually
+monitor@ runs as a [gunicorn](https://gunicorn.org/) daemon. To run manually:
 ```bash
 source .venv/bin/activate
 gunicorn --bind localhost:6161 monitor:app  # not monitorat.monitor:app
@@ -131,7 +124,7 @@ paths:
 
 ### Widgets
 
-**monitor@** is an extensible widget system. You can add any number of widgets to your dashboard, re-ordering them, and enable/disable any you don't need.
+**monitor@** is an extensible widget system. You can add any number of widgets to your dashboard, re-order them, and enable/disable any you don't need.
 
 ```yaml
 widgets:
@@ -213,7 +206,7 @@ You can configure these to have both your URL (or WAN IP) and a local address (o
 
 #### Wiki
 
-Some widgets you may want to use more than once. For two markdown documents ("wikis") to render in your monitor, use **`type: wiki`**. Using **`wiki: <title>`** may only be used once.
+Some widgets you may want to use more than once. For two markdown documents ("wikis") to render in your monitor, use **`type: wiki`**. **`wiki: <title>`** may only be used once.
 
 ```yaml
 widgets:
@@ -442,7 +435,7 @@ alerts:
   cooldown_minutes: 60  # Short cooldown for testing
   rules:
     high_load:
-      threshold: 2.5    # load average e.g., the '1.23' in 1.23 0.45 0.06
+      threshold: 2.5    # load average (e.g., the '1.23' in 1.23 0.45 0.06)
       priority: 0       # normal priority
       message: High CPU load detected
     high_temp:
@@ -483,7 +476,8 @@ See [installing from source](#installing-from-source) for initializing a develop
 ├── README.md                   # this document
 ├── docs/img/                   # README screenshots
 ├── systemd
-│   └── monitor@.service        # template systemd unit
+│   ├── monitor@pip.service     # systemd unit for pip installations
+│   └── monitor@source.service  # systemd unit for source installations
 └── www/
     ├── app.js                  # frontend javascript
     ├── config_default.yaml     # all preset values
@@ -525,7 +519,7 @@ Register your widget in `www/monitor.py` and declare presets in `www/config_defa
 
 ### Roadmap
 
-Top three priorities.
+Top three priorities:
 
 - provide `~/.config/monitor@/widgets/` for user-made widgets
 - add a non-DDNS-based network logger for general users or those using Cloudflare or Tailscale
