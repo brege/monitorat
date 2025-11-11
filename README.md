@@ -1,7 +1,36 @@
-This file is **monitor@**'s `README`.  It's a useful reference when editing your own wiki/markdown files render by monitor@, as it has good coverage with markdown-it features.
+This file is **monitor@**'s README which is the default document served in the web UI. Document rendering is but one widget available in monitor@:
+
+Available widgets:
+- [metrics](#metrics)
+- [network](#network)
+- [reminders](#reminders)
+- [services](#services)
+- [speedtest](#speedtest)
+- [wiki](#wiki) (this file, maybe)
+
+Widgets have a general, self-contained structure providing both API and UI.
+```
+www/widgets/
+└── my-sweet-widget
+    ├── api.py
+    ├── my-sweet-widget.html
+    └── my-sweet-widget.js
+```
+
+You can also add your own documentation through the Wiki widget, which may help you or your loved ones figure out how your headless homelab works. This document and any others you add to your wiki will be rendered in [GitHub flavored markdown](https://github.com/markdown-it/markdown-it).
+
+But you want an actual monitor or dashboard. Something like:
+
+![monitor screenshot](./docs/img/metrics.png)
+
+You want to see how hot your CPU got today, or be alerted by high loads. 
+
+You'd like to keep a record and graph your internet speed to see how much your ISP is screwing you. Perhaps you just want a list of all your reverse-proxied services as LAN-friendly bookmarks.
+
+If these are of interest to you, read on.
 
 <details>
-<summary>Contents<br></summary>
+<summary><b>Contents</b><br></summary>
 
 [[toc]]
 
@@ -9,35 +38,13 @@ This file is **monitor@**'s `README`.  It's a useful reference when editing your
 
 ## Setup
 
-```
-├── README.md                   # this document
-├── docs/img/                   # README screenshots
-├── systemd
-│   └── monitor@.service        # template systemd unit
-└── www/
-    ├── app.js                  # frontend javascript
-    ├── config_default.yaml     # all preset values
-    ├── index.html              # web UI
-    ├── monitor.py              # backend gunicorn server
-    ├── requirements.txt        # dependencies
-    ├── scripts/                # development
-    ├── shared/                 # javascript helpers for widgets
-    ├── vendors/                # markdown-it
-    └── widgets/                # widgets
-```
-
-The `vendors/` are for rendering and styling markdown documents like `README.md` in HTML. These libraries are for markdown rendering and are automatically downloaded locally by `monitor.py` only once.
-
-This README assumes you've placed **monitor@** in `/opt/monitor@/` and the configuration file in `/home/user/.config/monitor@/config.yaml`.
-Both of these locations can be configured. 
-
-**monitor@** uses the [**confuse**](https://github.com/beetbox/confuse) library,
-originally written for [beets](https://github.com/beetbox/beets), because of its ergonomics and one-to-one mapping of YAML:API.
-**confuse** also handles the config look-up hierarchy and seamless YAML merging. See [confuse's docs](http://confuse.readthedocs.org/en/latest/usage.html) for more info.
+This README assumes you've placed **monitor@** in `/opt/monitor@/` and the configuration file in `/home/user/.config/monitor@/config.yaml`. You don't have to.
 
 ### Web server
 
-The backend is [gunicorn](https://gunicorn.org/). Setup:
+monitor@ runs as a [gunicorn](https://gunicorn.org/) daemon.
+
+The typical setup on Debian is
 ```bash
 cd www
 python3 -m venv .venv
@@ -46,18 +53,20 @@ pip install -r requirements.txt
 deactivate
 ```
 
-Run manually:
+Run manually
 ```bash
 source .venv/bin/activate
 gunicorn --bind localhost:6161 monitor:app
 ```
 
-The systemd unit file runs in this virtual environment. If running multiple instances,
-you should adjust the port to avoid conflicts (e.g., `--bind localhost:6162`).
+This process is exactly the same when developing new widgets. The next section provides the steps to run monitor@ as a daemon.
 
 ### Systemd service
 
-Update `systemd/monitor@.service` with your paths, user, port, etc. then
+The systemd unit file runs in this virtual environment. If running multiple instances on the same host,
+you should adjust the port to avoid conflicts (e.g., `--bind localhost:6162`).
+
+Update `systemd/monitor@.service` with your paths, user, port, etc., then
 ```bash
 INSTANCE="$HOSTNAME" # or other, or leave blank
 sudo cp systemd/monitor@.service /etc/systemd/system/
@@ -71,8 +80,7 @@ Open `http://localhost:6161` or configure this through a reverse proxy.
 
 ### Configuration
 
-These are the basic monitor@ settings for your system, assuming you want to put all icons,
-data and the config file in `~/.config/monitor@/`:
+These are the basic monitor@ settings for your system, assuming you want to put all icons, data and the config file in `~/.config/monitor@/` which is the default location.
 
 ```yaml
 site:
@@ -95,15 +103,7 @@ paths:
 
 **monitor@** uses a custom, extensible widget system. 
 
-Available widgets:
-- metrics
-- network
-- [reminders](#reminders)
-- [services](#services)
-- speedtest
-- wiki
-
-Example configuration:
+Example configuration
 
 ```yaml
 widgets:
@@ -185,7 +185,7 @@ You can configure these to have both your URL (or WAN IP) and a local address (o
 
 #### Wiki
 
-Some widgets you may want to use more than once. For two markdown documents ("wiki"'s) to render in your monitor, use **`type: wiki`**. Using **`wiki: <title>`** may only be used once.
+Some widgets you may want to use more than once. For two markdown documents ("wikis") to render in your monitor, use **`type: wiki`**. Using **`wiki: <title>`** may only be used once.
 
 ```yaml
 widgets:
@@ -221,7 +221,7 @@ widgets:
 
 #### Metrics
 
-Metrics provides an overview of system performance, including CPU, memory, disk and network usage, and temperature over time.  Data is logged to `monitor.log`.
+Metrics provides an overview of system performance, including CPU, memory, disk and network usage, and temperature over time.  Data is logged to `metrics.csv`.
 
 ![metrics screenshot](./docs/img/metrics.png)
 
@@ -322,7 +322,7 @@ network:
 
 ![reminders screenshot](./docs/img/reminders.png) 
 
-Example reminders (configure everything under `widgets.reminders`):
+Example reminders (configure everything under `widgets.reminders`)
 
 ```yaml
 nudges: [ 14, 7 ]      # days before expiry to send gentle reminders
@@ -414,7 +414,7 @@ alerts:
   cooldown_minutes: 60  # Short cooldown for testing
   rules:
     high_load:
-      threshold: 2.5    # load average e.g the '1.23' in 1.23 0.45 0.06
+      threshold: 2.5    # load average e.g., the '1.23' in 1.23 0.45 0.06
       priority: 0       # normal priority
       message: High CPU load detected
     high_temp:
@@ -443,22 +443,58 @@ notifications:
 
 ---
 
-## Contributing
+## Contributors
+
+### Project structure
+
+```
+├── README.md                   # this document
+├── docs/img/                   # README screenshots
+├── systemd
+│   └── monitor@.service        # template systemd unit
+└── www/
+    ├── app.js                  # frontend javascript
+    ├── config_default.yaml     # all preset values
+    ├── index.html              # web UI
+    ├── monitor.py              # backend gunicorn server
+    ├── requirements.txt        # dependencies
+    ├── scripts/                # development
+    ├── shared/                 # javascript helpers for widgets
+    ├── vendors/                # markdown-it
+    └── widgets/                # widgets
+```
+
+### Important dependencies
+
+The `vendors/` are for rendering and styling markdown documents (via [markdown-it](https://github.com/markdown-it/markdown-it)) like `README.md` in HTML. These libraries are for markdown rendering and are automatically downloaded locally by `monitor.py` only once.
+
+This project uses [confuse](https://confuse.readthedocs.io/en/latest/) for configuration management, 
+and as such uses a common-sense config hierarchy. Parameters are set in `www/config_default.yaml` and may be overridden in `~/.config/monitor@/config.yaml`.
+
+See [confuse's docs](http://confuse.readthedocs.io/en/latest/usage.html) and [source](https://github.com/beetbox/confuse) for a deeper reference.
+
+### Code quality
 
 ```bash
 pre-commit install
 ```
-This will install [pre-commit](https://pre-commit.com/) hooks for linting and formatting for:
-- YAML
-- Python
-- JavaScript
 
-This project uses [confuse](https://confuse.readthedocs.io/en/latest/) for configuration management, 
-and as such, uses a common-sense config hierarchy. Parameters are set in `www/config_default.yaml` and may be overridden in `~/.config/monitor@/config.yaml`.
+This will install [pre-commit](https://pre-commit.com/) hooks for linting and formatting for Python and JavaScript.
 
-While JavaScript uses `standard` and Python uses `ruff` for formatting, YAML is done manually. This project uses `yamlfix`, which is opinionated, but re-corrects for YAML 1.1 compatibility--necessary for confuse--for re-quoting time-like values via `scripts/yamlfixfix.py ~/.config/monitor@/config.yaml` for example.
+While JavaScript uses `standard` and Python uses `ruff` for formatting, YAML is done manually. The opinionated `yamlfix` is used via `scripts/yamlfixfix.py ~/.config/monitor@/config.yaml`.
 
 See `requirements.txt` for dependencies. All of these tools are *instrumental* to monitor@.
+
+### Adding widgets
+
+Widgets follow the three-file structure shown at the top of this document: `api.py`, `widget.html`, and `widget.js` in `www/widgets/your-widget/`.
+
+Register your widget in `www/monitor.py` and add default configuration to `www/config_default.yaml`. Reference existing widgets for patterns. PRs always welcome.
+
+### Roadmap
+
+- add a non-DDNS-based network logger for general users or those using Cloudflare or Tailscale
+- API keys for widgets for aggregating specs from multiple instances monitor@machineA and monitor@machineB viewable in monitor@local, perhaps.
 
 ## License
 
