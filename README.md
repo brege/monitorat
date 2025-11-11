@@ -1,4 +1,6 @@
-This file is **monitor@**'s README which is the default document served in the web UI. Document rendering is but one widget available in monitor@:
+<img src="./docs/masthead.svg" alt="monitorat" height="200">
+
+This file is **monitor@**'s README, which is the default document served in the web UI. Document rendering is but one widget available in monitor@.
 
 Available widgets:
 - [metrics](#metrics)
@@ -8,7 +10,8 @@ Available widgets:
 - [speedtest](#speedtest)
 - [wiki](#wiki) (this file, maybe)
 
-Widgets have a general, self-contained structure providing both API and UI.
+Widgets have a general, self-contained structure providing both API and UI are straightforward to create.
+
 ```
 www/widgets/
 └── my-sweet-widget
@@ -17,17 +20,19 @@ www/widgets/
     └── my-sweet-widget.js
 ```
 
-You can also add your own documentation through the Wiki widget, which may help you or your loved ones figure out how your headless homelab works. This document and any others you add to your wiki will be rendered in [GitHub flavored markdown](https://github.com/markdown-it/markdown-it).
+You can also add your own documentation through the Wiki widget, which may help you or your loved ones figure out how your headless homelab or riceware works. This document and any others you add to your wiki will be rendered in[GitHub flavored markdown via [markdown-it](https://github.com/markdown-it/markdown-it).
 
-But you want an actual monitor or dashboard. Something like:
+But you want an actual monitor or dashboard.
+
+Something like
 
 ![monitor screenshot](./docs/img/metrics.png)
 
-You want to see how hot your CPU got today, or be alerted by high loads. 
+You want to see [how hot your CPU got today](#metrics), or be alerted [when under high load](#alerts).
 
-You'd like to keep a record and graph your internet speed to see how much your ISP is screwing you. Perhaps you just want a list of all your reverse-proxied services as LAN-friendly bookmarks.
+You'd like to keep a record and [graph your internet speed](#speedtest), to see how much your ISP is screwing you. Perhaps you just want a list of [all your reverse-proxied services](#services) as LAN-friendly bookmarks.
 
-If these are of interest to you, read on.
+If any of these are of interest to you, read on.
 
 <details>
 <summary><b>Contents</b><br></summary>
@@ -38,7 +43,7 @@ If these are of interest to you, read on.
 
 ## Setup
 
-This README assumes you've placed **monitor@** in `/opt/monitor@/` and the configuration file in `/home/user/.config/monitor@/config.yaml`. You don't have to.
+This README assumes you've cloned **monitor@** in `/opt/monitor@/` and the configuration file in `~/.config/monitor@/config.yaml`.
 
 ### Web server
 
@@ -101,9 +106,7 @@ paths:
 
 ### Widgets
 
-**monitor@** uses a custom, extensible widget system. 
-
-Example configuration
+**monitor@** is an extensible widget system. You can add any number of widgets to your dashboard, re-ordering them, and enable/disable any you don't need.
 
 ```yaml
 widgets:
@@ -111,7 +114,7 @@ widgets:
     - services
     - metrics
     - about        # type: wiki
-    - reminders
+    - # reminders  # disabled
     - README       # type: wiki
     - network
     - speedtest
@@ -431,7 +434,7 @@ alerts:
 
 ### Notifications
 
-The notifications system uses [apprise](https://github.com/caronc/apprise) to send notifications through practically any service, through apprise urls.
+The notifications system uses [apprise](https://github.com/caronc/apprise) to notify through practically any service, via apprise URLs.
 
 ```yaml
 notifications:
@@ -466,7 +469,7 @@ notifications:
 
 ### Important dependencies
 
-The `vendors/` are for rendering and styling markdown documents (via [markdown-it](https://github.com/markdown-it/markdown-it)) like `README.md` in HTML. These libraries are for markdown rendering and are automatically downloaded locally by `monitor.py` only once.
+The `vendors/` are for rendering and styling markdown documents (via [markdown-it](https://github.com/markdown-it/markdown-it)) like `README.md` in HTML. These libraries are automatically downloaded locally by `monitor.py` only once.
 
 This project uses [confuse](https://confuse.readthedocs.io/en/latest/) for configuration management, 
 and as such uses a common-sense config hierarchy. Parameters are set in `www/config_default.yaml` and may be overridden in `~/.config/monitor@/config.yaml`.
@@ -483,16 +486,19 @@ This will install [pre-commit](https://pre-commit.com/) hooks for linting and fo
 
 While JavaScript uses `standard` and Python uses `ruff` for formatting, YAML is done manually. The opinionated `yamlfix` is used via `scripts/yamlfixfix.py ~/.config/monitor@/config.yaml`.
 
-See `requirements.txt` for dependencies. All of these tools are *instrumental* to monitor@.
+See `requirements.txt` for dependencies.
 
 ### Adding widgets
 
 Widgets follow the three-file structure shown at the top of this document: `api.py`, `widget.html`, and `widget.js` in `www/widgets/your-widget/`.
 
-Register your widget in `www/monitor.py` and add default configuration to `www/config_default.yaml`. Reference existing widgets for patterns. PRs always welcome.
+Register your widget in `www/monitor.py` and declare presets in `www/config_default.yaml`. PRs are always welcome.
 
 ### Roadmap
 
+Top three priorities.
+
+- provide `~/.config/monitor@/widgets/` for user-made widgets
 - add a non-DDNS-based network logger for general users or those using Cloudflare or Tailscale
 - API keys for widgets for aggregating specs from multiple instances monitor@machineA and monitor@machineB viewable in monitor@local, perhaps.
 

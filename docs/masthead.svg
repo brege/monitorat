@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="400" height="72" viewBox="0 0 400 72"
+     fill="none">
+  <style>
+    @media (prefers-color-scheme: dark) {
+      .text-main { fill: #eee !important; }
+      .text-sub { fill: #aaa !important; }
+      .text-desc { fill: #ccc !important; }
+    }
+  </style>
+  <!-- enlarged icon -->
+  <g transform="translate(0,6) scale(2.5)">
+    <path transform="translate(24 0) scale(-1 1)"
+          d="M8 21H16M12 17V21M14.5 3H17.7997C18.9198 3 19.4798 3 19.9076 3.21799C20.284 3.40973 20.5899 3.71569 20.7817 4.09202C20.9997 4.51984 20.9997 5.07989 20.9997 6.2V13.8C20.9997 14.9201 20.9997 15.4802 20.7817 15.908C20.5899 16.2843 20.284 16.5903 19.9076 16.782C19.4798 17 18.9198 17 17.7997 17H6C5.06812 17 4.60218 17 4.23463 16.8478C3.74458 16.6448 3.35523 16.2554 3.15224 15.7654C3 15.3978 3 14.9319 3 14"
+          stroke="rgb(35,178,109)" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="16" y="11.9"
+          font-family="monospace"
+          font-size="16"
+          fill="rgb(239,99,81)"
+          text-anchor="middle">@</text>
+  </g>
+
+  <!-- text -->
+  <g transform="translate(60,0)">
+    <text x="15" y="36"
+          font-family="Georgia,serif"
+          font-weight="700"
+          font-size="30"
+          fill="#000"
+          class="text-main">monitorat</text>
+    <text x="190" y="33"
+          font-family="Georgia,serif"
+          font-size="18"
+          fill="#555"
+          class="text-sub"> [mɔ.ni.tɔ.ʁa] </text>
+    <text x="15" y="57"
+          font-family="Georgia,serif"
+          font-size="9"
+          fill="#111"
+          class="text-desc">a system for observing and documenting status</text>
+  </g>
+</svg>
+

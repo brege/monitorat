@@ -22,6 +22,14 @@ if not WWW.exists():
     BASE = Path(__file__).parent
     WWW = BASE
 
+if __name__ != "monitor":
+    import sys
+
+    sys.modules.setdefault("monitor", sys.modules[__name__])
+    if __package__:
+        widgets_pkg = importlib.import_module(f"{__package__}.widgets")
+        sys.modules.setdefault("widgets", widgets_pkg)
+
 
 class ConfigManager:
     """Own the confuse.Configuration instance and provide reload hooks."""
@@ -541,6 +549,14 @@ def img_files(filename):
 def docs_files(filename):
     # Serve files from docs/ directory at project root
     return send_from_directory(BASE / "docs", filename)
+
+
+@app.route("/vendors/<path:filename>")
+def vendor_files(filename):
+    vendors_path = Path(config["paths"]["vendors"].as_filename())
+    if not vendors_path.is_absolute():
+        vendors_path = Path(__file__).parent / vendors_path
+    return send_from_directory(str(vendors_path), filename)
 
 
 @app.route("/<path:filename>")

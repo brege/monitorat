@@ -127,7 +127,7 @@ widgets:
       token: ''
     items: {}  # place reminder entries here (keys become reminder IDs)
   wiki:  # markdown documentation widget
-    name: Notes & Links
+    name: Documentation
     enabled: true
     collapsible: true  # enable collapse/expand
     hidden: false  # start expanded
