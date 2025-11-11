@@ -8,6 +8,7 @@ paths:
   data: data/  # relative to webroot (www/)
   img: img/  # use absolute path for ~/.config/monitor@/img
   favicon: favicon.ico
+  vendors: vendors/  # relative to monitor.py location
 notifications:
   apprise_urls: []
 widgets:

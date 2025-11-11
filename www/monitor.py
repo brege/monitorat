@@ -16,7 +16,11 @@ from pytimeparse import parse as parse_duration
 app = Flask(__name__)
 BASE = Path(__file__).parent.parent
 WWW = BASE / "www"
-VENDORS = WWW / "vendors"
+
+# Detect flat deployment - if www/ doesn't exist, we're deployed flat
+if not WWW.exists():
+    BASE = Path(__file__).parent
+    WWW = BASE
 
 
 class ConfigManager:
@@ -403,9 +407,12 @@ def strip_source_map_reference(path: Path) -> None:
 
 
 def ensure_vendors():
-    VENDORS.mkdir(exist_ok=True)
+    vendors_path = Path(config["paths"]["vendors"].as_filename())
+    if not vendors_path.is_absolute():
+        vendors_path = Path(__file__).parent / vendors_path
+    vendors_path.mkdir(exist_ok=True, parents=True)
     for filename, url in VENDOR_URLS.items():
-        filepath = VENDORS / filename
+        filepath = vendors_path / filename
         if not filepath.exists():
             print(f"Downloading {filename}...")
             urlretrieve(url, filepath)
