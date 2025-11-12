@@ -20,7 +20,7 @@ www/widgets/
     └── my-sweet-widget.js
 ```
 
-You can also add your own documentation through the Wiki widget, which may help you or your loved ones figure out how your headless homelab or riceware works. This document and any others you add to your wiki will be rendered in [GitHub flavored markdown via [markdown-it](https://github.com/markdown-it/markdown-it).
+You can also add your own documentation through the Wiki widget, which may help you or your loved ones figure out how your headless homelab or riceware works. This document and any others you add to your wiki will be rendered in GitHub flavored markdown via [markdown-it](https://github.com/markdown-it/markdown-it).
 
 But you want an actual monitor or dashboard.
 
@@ -38,7 +38,7 @@ If any of these are of interest to you, read on.
 
 Both installation methods assume you are using a configuration file at `~/.config/monitor@/config.yaml`.
 
-### Pip (easier)
+### Pip
 ```bash
 pip install monitorat
 ```
@@ -50,17 +50,27 @@ gunicorn monitorat.monitor:app --bind localhost:6161
 
 #### Systemd service (pip)
 
-Download the service file, replace `__user__` and `__group__` with your username and group, then
+One command install:
+
 ```bash
-curl -o monitor@.service https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/systemd/monitor%40pip.service
-sudo mv monitor@.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now monitor@.service
+bash <(curl -s https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/scripts/install-systemd-pip.sh)
 ```
 
-### Installing from source
+The script uses sudo **internally** to install the systemd unit for pip installations to `/etc/systemd/system/monitor@.service`. It detects your `user`, `group`, and `hostname`. Fedora Workstation can be tricky because of SELinux.
 
-You can also clone **monitor@** in `/opt/monitor@/` (or anywhere else). This involves creating the correct virtual environment for your OS and installing dependencies.
+To review the script before running:
+- [`./scripts/install-systemd-pip.sh`](./scripts/install-systemd-pip.sh) (local)
+- [View on GitHub](https://github.com/brege/monitorat/blob/main/scripts/install-systemd-pip.sh)
+
+Or download and run manually:
+```bash
+curl -O https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/scripts/install-systemd-pip.sh
+bash install-systemd-pip.sh
+```
+
+### Installing from source (instead of pip)
+
+You can also clone **monitor@** in `/opt/monitor@/` or elsewhere. This involves creating a virtual environment and installing dependencies.
 
 Clone this repository
 ```bash
@@ -71,7 +81,7 @@ cd /opt/monitor@
 git clone https://github.com/brege/monitorat.git .
 ```
 
-The typical virtualenv setup is
+The typical virtual environment setup is
 ```bash
 cd www
 python3 -m venv .venv
@@ -132,7 +142,7 @@ widgets:
     - services
     - metrics
     - about        # type: wiki
-    - # reminders  # disabled
+    - # reminders  # disables this widget
     - README       # type: wiki
     - network
     - speedtest
@@ -214,17 +224,17 @@ widgets:
     type: wiki  
     name: "wiki@my-nas"
     enabled: true
-    doc: "about.md"                          # relative to www/
+    doc: "about.md"  # relative to www/
   README:
     type: wiki
     name: "README"
     enabled: true
     collapsible: true
     hidden: false
-    doc: "/opt/monitor@my-nas/README.md"     # absolute path
+    doc: "/opt/monitor@my-nas/README.md"  # absolute path
 ```
 
-Then, you can change the order of widgets in the UI.
+Changing widget order or enabling/disabling widgets is rather straightforward.
 
 ```yaml
 widgets:
@@ -338,6 +348,8 @@ network:
 ```
 
 </details>
+
+The network widget is best used on machines with continuous uptime. You might even keep monitor@ running on your pi-hole.
 
 #### Reminders
 
@@ -492,7 +504,7 @@ See [installing from source](#installing-from-source) for initializing a develop
 
 ### Important dependencies
 
-The `vendors/` are for rendering and styling markdown documents (via [markdown-it](https://github.com/markdown-it/markdown-it)) like `README.md` in HTML. These libraries are automatically downloaded locally by `monitor.py` only once.
+The `vendors/` are for plotting and especially rendering and styling markdown documents (via [markdown-it](https://github.com/markdown-it/markdown-it)) like `README.md` in HTML. These libraries are automatically downloaded locally by `monitor.py` only once.
 
 This project uses [confuse](https://confuse.readthedocs.io/en/latest/) for configuration management, 
 and as such uses a common-sense config hierarchy. Parameters are set in `www/config_default.yaml` and may be overridden in `~/.config/monitor@/config.yaml`.
