@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # This script converts SVG to PNG with rounded corners.
-# Usage: svg-to-png.sh [../www/favicon.ico]
+# Usage: svg-to-png.sh [input.svg] [output.ico]
 
 set -euo pipefail
 if ! command -v rsvg-convert >/dev/null 2>&1; then
@@ -13,8 +13,8 @@ if ! command -v magick >/dev/null 2>&1; then
   exit 1
 fi
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-SVG="${SCRIPT_DIR}/../www/favicon.svg"
-OUTPUT="${1:-${SCRIPT_DIR}/../www/favicon.ico}"
+SVG="${1:-${SCRIPT_DIR}/../www/favicon.svg}"
+OUTPUT="${2:-${SCRIPT_DIR}/../www/favicon.ico}"
 TMP_PNG=$(mktemp --suffix=.png)
 trap 'rm -f "${TMP_PNG}"' EXIT
 rsvg-convert -w 256 -h 256 "${SVG}" -o "${TMP_PNG}"
