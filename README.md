@@ -39,8 +39,17 @@ If any of these are of interest to you, read on.
 Both installation methods assume you are using a configuration file at `~/.config/monitor@/config.yaml`.
 
 ### Installing with Pip
+
+Install from PyPI:
 ```bash
 pip install monitorat
+```
+
+Or install the package from source:
+```bash
+git clone https://github.com/brege/monitorat.git
+cd monitorat
+pip install .
 ```
 
 Then run with:
@@ -68,11 +77,11 @@ curl -O https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/script
 bash install-systemd-pip.sh
 ```
 
-### Installing from source (instead of pip)
+### Alternative: Deploy www/ directly
 
-You can also clone **monitor@** in `/opt/monitor@/` or elsewhere. This involves creating a virtual environment and installing dependencies.
+You can also deploy the `www/` directory directly to `/opt/monitor@/` or elsewhere without packaging. This is useful for development or when you want direct access to edit files.
 
-Clone this repository
+Clone this repository:
 ```bash
 sudo apt install python3 python3-pip
 sudo mkdir -p /opt/monitor@
@@ -81,7 +90,7 @@ cd /opt/monitor@
 git clone https://github.com/brege/monitorat.git .
 ```
 
-The typical virtual environment setup is
+Install dependencies:
 ```bash
 cd www
 python3 -m venv .venv
@@ -90,17 +99,15 @@ pip install -r requirements.txt
 deactivate
 ```
 
-monitor@ runs as a [gunicorn](https://gunicorn.org/) daemon. To run manually:
+Run manually:
 ```bash
 source .venv/bin/activate
 gunicorn --bind localhost:6161 monitor:app  # not monitorat.monitor:app
 ```
 
-This process is exactly what you might do when developing new widgets.
-
 #### Systemd service (source)
 
-Update `systemd/monitor@source.service` replacing `__project__`, `__user__`, `__group__`, and `__port__`, then
+Update `systemd/monitor@source.service` replacing `__project__`, `__user__`, `__group__`, and `__port__`, then:
 ```bash
 sudo cp systemd/monitor@source.service /etc/systemd/system/monitor@.service
 sudo systemctl daemon-reload
