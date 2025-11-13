@@ -30,8 +30,7 @@ class SpeedtestWidget {
       name: hasExplicitName ? config.name : this.widgetConfig.name,
       default: config.default,
       table: config.table,
-      chart: config.chart,
-      periods: config.periods
+      chart: config.chart
     }
     this.selectedPeriod = this.config.chart.default_period
 
@@ -77,12 +76,14 @@ class SpeedtestWidget {
     if (this.elements.periodSelect) {
       // Populate period options
       this.elements.periodSelect.innerHTML = '<option value="all">All</option>'
-      this.config.periods.forEach(period => {
-        const option = document.createElement('option')
-        option.value = period
-        option.textContent = period
-        this.elements.periodSelect.appendChild(option)
-      })
+      if (Array.isArray(this.config.chart.periods)) {
+        this.config.chart.periods.forEach(period => {
+          const option = document.createElement('option')
+          option.value = period
+          option.textContent = period
+          this.elements.periodSelect.appendChild(option)
+        })
+      }
 
       this.elements.periodSelect.value = this.selectedPeriod
       this.elements.periodSelect.addEventListener('change', (e) => {

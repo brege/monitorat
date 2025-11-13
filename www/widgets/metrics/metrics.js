@@ -97,8 +97,8 @@ class MetricsWidget {
     if (periodSelect) {
       // Populate period options
       periodSelect.innerHTML = '<option value="all">All</option>'
-      if (Array.isArray(this.config.periods)) {
-        this.config.periods.forEach(period => {
+      if (Array.isArray(this.config.chart.periods)) {
+        this.config.chart.periods.forEach(period => {
           const option = document.createElement('option')
           option.value = period
           option.textContent = period

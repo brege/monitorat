@@ -14,6 +14,7 @@ notifications:
 widgets:
   enabled:  # provides order and visibility
     - metrics  # www/widgets/* for available widgets
+    - speedtest
     - wiki
   metrics:  # temperature, cpu, memory, disk
     name: System Metrics
@@ -21,13 +22,6 @@ widgets:
     collapsible: false  # show hide/show toggle (default: false)
     hidden: false  # start collapsed (default: false)
     default: chart  # default view: "chart" or "table"
-    periods:  # configurable time periods for filtering
-      - 1 year
-      - 30 days
-      - 7 days
-      - 24 hours
-      - 6 hours
-      - 1 hour
     table:
       min: 5  # minimum rows to show
       max: 200  # maximum rows to load
@@ -35,7 +29,13 @@ widgets:
       default_metric: cpu_memory  # options: cpu_memory, cpu_percent, memory_percent, disk_io, net_io, temp_c, load_1min
       default_period: 1 hour  # default chart window: natural language (e.g., "1 hour", "7 days", "all")
       height: 400px  # fixed chart height
-      days: 30  # number of days to display (-1 for all)
+      periods:  # configurable time periods for filtering
+        - 1 year
+        - 30 days
+        - 7 days
+        - 24 hours
+        - 6 hours
+        - 1 hour
     daemon:
       enabled: true  # start the background metrics collector
       interval_seconds: 60  # sampling cadence for the collector
@@ -63,24 +63,21 @@ widgets:
         critical: 95
   speedtest:  # network speedtest monitoring
     name: Speedtests
-    enabled: false  # disabled by default
+    enabled: true
     collapsible: true
     hidden: false
-    default: chart              # default view: "chart" or "table"
-    periods:  # configurable time periods for filtering
-      - 1 month
-      - 1 week
-      - 3 days
-      - 1 day
-      - 12 hours
-      - 1 hour
+    default: table # chart, table, none
     table:
       min: 5  # minimum rows to show
-      max: 200  # maximum rows to load
+      max: 20  # maximum rows to load
     chart:
       height: 400px  # fixed chart height
-      days: 30  # number of days to display (-1 for all)
       default_period: all  # default chart window: natural language (e.g., "1 day", "1 week", "all")
+      periods:  # configurable time periods for charts
+        - all
+        - 1 year
+        - 1 month
+        - 1 week
   network:  # network monitoring and outage tracking
     name: Network Outages
     enabled: false  # disabled by default
