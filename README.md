@@ -38,7 +38,7 @@ If any of these are of interest to you, read on.
 
 Both installation methods assume you are using a configuration file at `~/.config/monitor@/config.yaml`.
 
-### Pip
+### Installing with Pip
 ```bash
 pip install monitorat
 ```
@@ -56,7 +56,7 @@ One command install:
 bash <(curl -s https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/scripts/install-systemd-pip.sh)
 ```
 
-The script uses sudo **internally** to install the systemd unit for pip installations to `/etc/systemd/system/monitor@.service`. It detects your `user`, `group`, and `hostname`. Fedora Workstation can be tricky because of SELinux.
+The script uses sudo internally to install the systemd unit for pip installations to `/etc/systemd/system/monitor@.service`. It detects your `user`, `group`, and `hostname`. Fedora Workstation can be tricky because of SELinux.
 
 To review the script before running:
 - [`./scripts/install-systemd-pip.sh`](./scripts/install-systemd-pip.sh) (local)
@@ -481,6 +481,18 @@ notifications:
 ### Developing widgets
 
 See [installing from source](#installing-from-source) for initializing a development server.
+
+### User interface
+
+Promise.
+- responsive for mobile and desktop
+- light and dark mode
+- use of CSS variables for theming `var(--theme-...)`
+- use of Firefox dev tools to measure performance 
+  - [a5bff64](https://github.com/brege/monitorat/commit/a5bff64)
+    [0250b50](https://github.com/brege/monitorat/commit/0250b50)
+    [14a6015](https://github.com/brege/monitorat/commit/14a6015)
+- no emojis (SVG icons encouraged)
 
 ### Project structure
 
