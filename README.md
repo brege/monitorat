@@ -487,7 +487,7 @@ notifications:
 
 ### Developing widgets
 
-See [installing from source](#installing-from-source) for initializing a development server.
+See [pin installing from source](#installing-with-pip) for initializing a development server, and [deploying `www/` directly](#alternative-deploy-www-directly) for running an alternative deployment.
 
 ### User interface
 
@@ -497,8 +497,8 @@ Promise.
 - use of CSS variables for theming `var(--theme-...)`
 - use of Firefox dev tools to measure performance 
   - [a5bff64](https://github.com/brege/monitorat/commit/a5bff64)
-    [0250b50](https://github.com/brege/monitorat/commit/0250b50)
-    [14a6015](https://github.com/brege/monitorat/commit/14a6015)
+    [473cab4](https://github.com/brege/monitorat/commit/473cab4)
+    [8d60659](https://github.com/brege/monitorat/commit/8d60659)
 - no emojis (SVG icons encouraged)
 
 ### Project structure
