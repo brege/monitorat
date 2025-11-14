@@ -48,6 +48,18 @@ class ConfigManager:
         config_obj.clear()
         config_obj.read(user=True, defaults=True)
 
+        # Load additional config files { includes: [ file1.yml, file2.yml ] }
+        try:
+            includes = config_obj["includes"].get(list)
+            config_dir = Path(config_obj.config_dir())
+            for include in includes:
+                filepath = config_dir / include
+                if filepath.exists():
+                    config_obj.set_file(filepath)
+        except Exception:
+            # No includes defined or error reading them - continue without
+            pass
+
         # Allow an explicit override file (e.g., via MONITOR_CONFIG_PATH).
         if self._project_config:
             candidate = self._project_config.expanduser()
@@ -482,10 +494,14 @@ def wiki_doc():
 @app.route("/api/config", methods=["GET"])
 def api_config():
     try:
+        widgets_merged = {}
+        for key in config["widgets"].keys():
+            widgets_merged[key] = config["widgets"][key].get()
+
         payload = {
             "site": config["site"].get(dict),
             "privacy": config["privacy"].get(dict),
-            "widgets": config["widgets"].get(dict),
+            "widgets": widgets_merged,
         }
         return jsonify(payload)
     except Exception as exc:
