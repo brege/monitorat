@@ -7,7 +7,7 @@ Available widgets:
 - [network](#network)
 - [reminders](#reminders)
 - [services](#services)
-- [speedtest](#speedtest)
+- [speedtest](#speedtests)
 - [wiki](#wiki) (this file, maybe)
 
 Widgets have a general, self-contained structure where both API and UI are straightforward to create.

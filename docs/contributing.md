@@ -11,9 +11,9 @@ Promise.
 - light and dark mode
 - use of CSS variables for theming `var(--theme-...)`
 - use of Firefox dev tools to measure performance 
-  - [a5bff64](https://github.com/brege/monitorat/commit/a5bff64)
-    [473cab4](https://github.com/brege/monitorat/commit/473cab4)
-    [8d60659](https://github.com/brege/monitorat/commit/8d60659)
+  - [5aeeff0](https://github.com/brege/monitorat/commit/5aeeff0)
+    [51557cc](https://github.com/brege/monitorat/commit/51557cc)
+    [027631b](https://github.com/brege/monitorat/commit/027631b)
 - no emojis (SVG icons encouraged)
 
 ### Project structure
