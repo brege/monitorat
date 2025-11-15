@@ -2,7 +2,7 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(dirname "$SCRIPT_DIR")"
-IMG_DIR="$REPO_ROOT/docs/img"
+IMG_DIR="$REPO_ROOT/docs/img/screenshots"
 WATERMARK="${1:-sample}"
 
 command -v magick >/dev/null || { echo "Error: imagemagick not found"; exit 1; }

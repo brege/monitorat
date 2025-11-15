@@ -1,4 +1,4 @@
-<img src="./docs/masthead.svg" alt="monitor@/monitorat masthead that shows the french IPA phonetics and the tagline 'a system for observing and documenting status' and an icon with a monitor and superimposed at-character" width="100%">
+<img src="./docs/img/masthead.svg" alt="monitor@/monitorat masthead that shows the french IPA phonetics and the tagline 'a system for observing and documenting status' and an icon with a monitor and superimposed at-character" width="100%">
 
 This file is **monitor@**'s README, which is the default document served in the web UI. Document rendering is but one widget available in monitor@.
 
@@ -26,7 +26,7 @@ But you want an actual monitor or dashboard.
 
 Something like
 
-![monitor screenshot](./docs/img/metrics.png)
+![monitor screenshot](./docs/img/screenshots/metrics.png)
 
 You want to see [how hot your CPU got today](#metrics), or be alerted [when under high load](#alerts).
 
@@ -40,7 +40,7 @@ Both installation methods assume you are using a configuration file at `~/.confi
 
 ### Installing with Pip
 
-Install from PyPI:
+The simplest way is to install from PyPI.
 ```bash
 pip install monitorat
 ```
@@ -52,67 +52,22 @@ cd monitorat
 pip install .
 ```
 
-Then run with:
+In either case, start the development server:
 ```bash
 gunicorn monitorat.monitor:app --bind localhost:6161
 ```
 
 #### Systemd service (pip)
 
-One command install:
-
+Assuming you'd like to run monitor@ as a systemd service with your normal user, group, and hostname:
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/scripts/install-systemd-pip.sh)
 ```
+The script uses sudo internally to install the systemd unit for pip installations to `/etc/systemd/system/monitor@.service`.
 
-The script uses sudo internally to install the systemd unit for pip installations to `/etc/systemd/system/monitor@.service`. It detects your `user`, `group`, and `hostname`. Fedora Workstation can be tricky because of SELinux.
+### Alternative intallations 
 
-To review the script before running:
-- [`./scripts/install-systemd-pip.sh`](./scripts/install-systemd-pip.sh) (local)
-- [View on GitHub](https://github.com/brege/monitorat/blob/main/scripts/install-systemd-pip.sh)
-
-Or download and run manually:
-```bash
-curl -O https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/scripts/install-systemd-pip.sh
-bash install-systemd-pip.sh
-```
-
-### Alternative: Deploy www/ directly
-
-You can also deploy the `www/` directory directly to `/opt/monitor@/` or elsewhere without packaging. This is useful for development or when you want direct access to edit files.
-
-Clone this repository:
-```bash
-sudo apt install python3 python3-pip
-sudo mkdir -p /opt/monitor@
-sudo chown -R __user__:__group__ /opt/monitor@
-cd /opt/monitor@
-git clone https://github.com/brege/monitorat.git .
-```
-
-Install dependencies:
-```bash
-cd www
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-deactivate
-```
-
-Run manually:
-```bash
-source .venv/bin/activate
-gunicorn --bind localhost:6161 monitor:app  # not monitorat.monitor:app
-```
-
-#### Systemd service (source)
-
-Update `systemd/monitor@source.service` replacing `__project__`, `__user__`, `__group__`, and `__port__`, then:
-```bash
-sudo cp systemd/monitor@source.service /etc/systemd/system/monitor@.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now monitor@.service
-```
+See [alternate installs](docs/install.md) to install `monitor@/www` => `/opt/monitor@` other deployments.
 
 ## Web UI
 
@@ -159,7 +114,7 @@ Each widget can be configured in its own YAML block.
 
 #### Services
 
-![services screenshot](./docs/img/services.png)
+![services screenshot](./docs/img/screenshots/services.png)
 
 The **Service Status** widget is a simple display to show what systemd service daemons, timers and docker containers are running or have failed.
 
@@ -261,7 +216,7 @@ widgets:
 
 Metrics provides an overview of system performance, including CPU, memory, disk and network usage, and temperature over time.  Data is logged to `metrics.csv`.
 
-![metrics screenshot](./docs/img/metrics.png)
+![metrics screenshot](./docs/img/screenshots/metrics.png)
 
 
 <details>
@@ -296,7 +251,7 @@ metrics:
 The **Speedtest** widget allows you to keep a record of your internet performance over time.
 It does not perform automated runs.
 
-![speedtest screenshot](./docs/img/speedtest.png)
+![speedtest screenshot](./docs/img/screenshots/speedtest.png)
 
 <details>
 <summary><b>Speedtest</b> example from screenshot</summary>
@@ -322,7 +277,7 @@ speedtest:
 
 The **Network** widget may be the most specific. This example uses `ddclient`-style generated logs.
 
-![network screenshot](./docs/img/network.png)
+![network screenshot](./docs/img/screenshots/network.png)
 
 <details>
 <summary><b>Network</b> example from screenshot</summary>
@@ -360,24 +315,7 @@ The network widget is best used on machines with continuous uptime. You might ev
 
 #### Reminders
 
-![reminders screenshot](./docs/img/reminders.png) 
-
-Example reminders (configure everything under `widgets.reminders`)
-
-```yaml
-nudges: [ 14, 7 ]      # days before expiry to send gentle reminders
-urgents: [ 3, 1, 0 ]   # days before expiry to send urgent notifications  
-time: "21:00"          # daily check time (24h format)
-apprise_urls:
-  - "pover://abscdefghijklmnopqrstuvwxyz1234@4321zyxwvutsrqponmlkjihgfedcba"
-items:
-  my reminder:
-    name: My Reminder
-    url: https://reminder.example.com
-    icon: my-reminder.png
-    reason: "A chore I'm supposed to do on a regular basis"
-  # more reminders...
-```
+![reminders screenshot](./docs/img/screenshots/reminders.png) 
 
 <details>
 <summary><b>Reminders</b> example from screenshot</summary>
@@ -485,76 +423,9 @@ notifications:
 
 ## Contributors
 
-### Developing widgets
+See [installing from source](./docs/install.md) for initializing a development server and alternative deployment methods.
 
-See [pin installing from source](#installing-with-pip) for initializing a development server, and [deploying `www/` directly](#alternative-deploy-www-directly) for running an alternative deployment.
-
-### User interface
-
-Promise.
-- responsive for mobile and desktop
-- light and dark mode
-- use of CSS variables for theming `var(--theme-...)`
-- use of Firefox dev tools to measure performance 
-  - [a5bff64](https://github.com/brege/monitorat/commit/a5bff64)
-    [473cab4](https://github.com/brege/monitorat/commit/473cab4)
-    [8d60659](https://github.com/brege/monitorat/commit/8d60659)
-- no emojis (SVG icons encouraged)
-
-### Project structure
-
-```
-├── README.md                   # this document
-├── docs/img/                   # README screenshots
-├── systemd
-│   ├── monitor@pip.service     # systemd unit for pip installations
-│   └── monitor@source.service  # systemd unit for source installations
-└── www/
-    ├── app.js                  # frontend javascript
-    ├── config_default.yaml     # all preset values
-    ├── index.html              # web UI
-    ├── monitor.py              # backend gunicorn server
-    ├── requirements.txt        # dependencies
-    ├── scripts/                # development
-    ├── shared/                 # javascript helpers for widgets
-    ├── vendors/                # markdown-it
-    └── widgets/                # widgets
-```
-
-### Important dependencies
-
-The `vendors/` are for plotting and especially rendering and styling markdown documents (via [markdown-it](https://github.com/markdown-it/markdown-it)) like `README.md` in HTML. These libraries are automatically downloaded locally by `monitor.py` only once.
-
-This project uses [confuse](https://confuse.readthedocs.io/en/latest/) for configuration management, 
-and as such uses a common-sense config hierarchy. Parameters are set in `www/config_default.yaml` and may be overridden in `~/.config/monitor@/config.yaml`.
-
-See [confuse's docs](http://confuse.readthedocs.io/en/latest/usage.html) and [source](https://github.com/beetbox/confuse) for a deeper reference.
-
-### Code quality
-
-```bash
-pre-commit install
-```
-
-This will install [pre-commit](https://pre-commit.com/) hooks for linting and formatting for Python and JavaScript.
-
-While JavaScript uses `standard` and Python uses `ruff` for formatting, YAML is done manually. The opinionated `yamlfix` is used via `scripts/yamlfixfix.py ~/.config/monitor@/config.yaml`.
-
-See `requirements.txt` for dependencies.
-
-### Adding widgets
-
-Widgets follow the three-file structure shown at the top of this document: `api.py`, `widget.html`, and `widget.js` in `www/widgets/your-widget/`.
-
-Register your widget in `www/monitor.py` and declare presets in `www/config_default.yaml`. PRs are always welcome.
-
-### Roadmap
-
-Top three priorities:
-
-- provide `~/.config/monitor@/widgets/` for user-made widgets
-- add a non-DDNS-based network logger for general users or those using Cloudflare or Tailscale
-- API keys for widgets for aggregating specs from multiple instances monitor@machineA and monitor@machineB viewable in monitor@local, perhaps.
+For all other development, see [**contributing**](./docs/contributing.md).
 
 ## License
 

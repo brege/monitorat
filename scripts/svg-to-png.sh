@@ -13,7 +13,7 @@ if ! command -v magick >/dev/null 2>&1; then
   exit 1
 fi
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-SVG="${1:-${SCRIPT_DIR}/../www/favicon.svg}"
+SVG="${1:-${SCRIPT_DIR}/../docs/img/favicon.svg}"
 OUTPUT="${2:-${SCRIPT_DIR}/../www/favicon.ico}"
 TMP_PNG=$(mktemp --suffix=.png)
 trap 'rm -f "${TMP_PNG}"' EXIT
