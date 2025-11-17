@@ -129,11 +129,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return
       }
 
-      // Skip disabled widgets but keep their placeholder in ordering
-      if (widgetConfig?.enabled === false) {
-        return
-      }
-
       const widgetType = widgetConfig?.type || widgetName
 
       return initializeWidget(widgetName, widgetType, widgetConfig)

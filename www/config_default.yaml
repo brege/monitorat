@@ -18,7 +18,6 @@ widgets:
     - wiki
   metrics:  # temperature, cpu, memory, disk
     name: System Metrics
-    enabled: true  # widget renders (default: true)
     collapsible: false  # show hide/show toggle (default: false)
     hidden: false  # start collapsed (default: false)
     default: chart  # default view: "chart" or "table"
@@ -63,7 +62,6 @@ widgets:
         critical: 95
   speedtest:  # network speedtest monitoring
     name: Speedtests
-    enabled: true
     collapsible: true
     hidden: false
     default: table # chart, table, none
@@ -80,7 +78,6 @@ widgets:
         - 1 week
   network:  # network monitoring and outage tracking
     name: Network Outages
-    enabled: false  # disabled by default
     log_file: /var/log/network.log  # path to network monitoring log
     collapsible: true
     hidden: false
@@ -106,13 +103,11 @@ widgets:
       cadenceChecks: 0  # computed from cadence for confuse
   services:  # service monitoring
     name: Services
-    enabled: false  # disabled by default
     collapsible: true
     hidden: false
     items: {}  # define monitored services here
   reminders:  # reminder notifications
     name: Reminders
-    enabled: false  # disabled by default
     collapsible: true
     hidden: false
     state_file: reminders.json  # stored under paths.data unless absolute
@@ -125,7 +120,6 @@ widgets:
     items: {}  # place reminder entries here (keys become reminder IDs)
   wiki:  # markdown documentation widget
     name: Documentation
-    enabled: true
     collapsible: true  # enable collapse/expand
     hidden: false  # start expanded
     doc: ''  # path to markdown file, defaults to README.md

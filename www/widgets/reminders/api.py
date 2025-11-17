@@ -26,8 +26,15 @@ logger = logging.getLogger(__name__)
 
 def reminders_enabled() -> bool:
     try:
-        return config["widgets"]["reminders"]["enabled"].get(bool)
+        enabled_widgets = config["widgets"]["enabled"].get(list)
+        if enabled_widgets:
+            return "reminders" in enabled_widgets
     except ConfigError:
+        pass
+
+    try:
+        return "reminders" in config["widgets"].keys()
+    except Exception:
         return False
 
 

@@ -140,7 +140,6 @@ plex:
 ```yaml
 widgets:
   services:
-    enabled: true
     items:
       jellyfin:
         name: Jellyfin
@@ -185,12 +184,10 @@ widgets:
   about:
     type: wiki  
     name: "wiki@my-nas"
-    enabled: true
     doc: "about.md"  # relative to www/
   README:
     type: wiki
     name: "README"
-    enabled: true
     collapsible: true
     hidden: false
     doc: "/opt/monitor@my-nas/README.md"  # absolute path
@@ -225,7 +222,6 @@ Metrics provides an overview of system performance, including CPU, memory, disk 
 ```yaml
 metrics:
   name: System Metrics
-  enabled: true
   default: chart  # table, none
   periods:
     - 30 days
@@ -259,7 +255,6 @@ It does not perform automated runs.
 ```yaml
 speedtest:
   name: Speedtests
-  enabled: true
   periods: [1 year, 1 month, 1 week]
   default: chart  # table, none
   table:
@@ -286,7 +281,6 @@ The **Network** widget may be the most specific. This example uses `ddclient`-st
 network:
   name: Network Outages
   log_file: /var/lib/porkbun-ddns/porkbun.log
-  enabled: true
   collapsible: true
   metrics:
     show: true
