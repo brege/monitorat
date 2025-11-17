@@ -61,7 +61,7 @@ See `requirements.txt` for dependencies.
 
 Widgets follow the three-file structure shown at the top of this document: `api.py`, `widget.html`, and `widget.js` in `www/widgets/your-widget/`.
 
-Register your widget in `www/monitor.py` and declare presets in `www/config_default.yaml`. PRs are always welcome.
+Add your widget to `www/config_default.yaml` (for defaults) and ensure its `type` matches the subdirectory name in `www/widgets/`. `monitor.py` will discover and load it automatically based on `config["widgets"]["enabled"]`. PRs are always welcome.
 
 ### Roadmap
 
@@ -70,4 +70,3 @@ Top three priorities:
 - provide `~/.config/monitor@/widgets/` for user-made widgets
 - add a non-DDNS-based network logger for general users or those using Cloudflare or Tailscale
 - API keys for widgets for aggregating specs from multiple instances monitor@machineA and monitor@machineB viewable in monitor@local, perhaps.
-

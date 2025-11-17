@@ -122,18 +122,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   const widgetOrder = Array.isArray(config.widgets?.enabled) && config.widgets.enabled.length > 0
     ? config.widgets.enabled
     : fallbackWidgetOrder
-  await Promise.all(
-    widgetOrder.map(async (widgetName) => {
-      const widgetConfig = config.widgets?.[widgetName]
-      if (!widgetConfig) {
-        return
-      }
+  for (const widgetName of widgetOrder) {
+    const widgetConfig = config.widgets?.[widgetName]
+    if (!widgetConfig) {
+      continue
+    }
 
-      const widgetType = widgetConfig?.type || widgetName
-
-      return initializeWidget(widgetName, widgetType, widgetConfig)
-    })
-  )
+    const widgetType = widgetConfig?.type || widgetName
+    // Initialize sequentially to preserve ordering in the DOM
+    // eslint-disable-next-line no-await-in-loop
+    await initializeWidget(widgetName, widgetType, widgetConfig)
+  }
 })
 
 async function loadConfig () {
@@ -215,6 +214,8 @@ function initializeConfigReloadControl () {
 }
 
 async function initializeWidget (widgetName, widgetType, config) {
+  await ensureWidgetScript(widgetType)
+
   if (config?.show === false) {
     return
   }
@@ -254,6 +255,31 @@ async function initializeWidget (widgetName, widgetType, config) {
     const widgetDisplayName = config?.name || widgetName
     container.innerHTML = `<p class="muted">Unable to load ${widgetDisplayName}: ${error.message}</p>`
   }
+}
+
+const widgetScriptPromises = new Map()
+
+async function ensureWidgetScript (widgetType) {
+  if (widgetScriptPromises.has(widgetType)) {
+    return widgetScriptPromises.get(widgetType)
+  }
+
+  const promise = new Promise((resolve, reject) => {
+    if (window.widgets?.[widgetType]) {
+      resolve()
+      return
+    }
+
+    const script = document.createElement('script')
+    script.src = `widgets/${widgetType}/${widgetType}.js`
+    script.async = true
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error(`Failed to load widget script: ${widgetType}`))
+    document.head.appendChild(script)
+  })
+
+  widgetScriptPromises.set(widgetType, promise)
+  return promise
 }
 
 function createWidgetContainer (widgetName) {

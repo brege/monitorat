@@ -531,58 +531,52 @@ def static_files(filename):
     return send_from_directory(WWW, filename)
 
 
+def register_widget_modules():
+    """Register widgets based on configured order."""
+    try:
+        widgets_cfg = config["widgets"]
+        enabled = widgets_cfg["enabled"].get(list)
+    except Exception as exc:
+        logger = logging.getLogger(__name__)
+        logger.error(f"Unable to resolve widget configuration: {exc}")
+        return
+
+    for widget_name in enabled:
+        try:
+            widget_cfg = widgets_cfg[widget_name].get(dict)
+        except Exception:
+            logger = logging.getLogger(__name__)
+            logger.warning(
+                f"Widget '{widget_name}' has no configuration block; skipping"
+            )
+            continue
+
+        widget_type = widget_cfg.get("type", widget_name)
+        module_name = f"widgets.{widget_type}.api"
+
+        try:
+            module = importlib.import_module(module_name)
+        except ImportError:
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Widget module '{module_name}' not found; skipping")
+            continue
+
+        if hasattr(module, "register_routes"):
+            module.register_routes(app)
+            logging.getLogger(__name__).info(
+                f"Loaded {widget_name} widget ({widget_type})"
+            )
+
+
 # Register widget API routes
-try:
-    import importlib
+setup_logging()
+logger = logging.getLogger(__name__)
+logger.info("Starting monitor@ application")
 
-    # Setup logging early
-    setup_logging()
-    logger = logging.getLogger(__name__)
-    logger.info("Starting monitor@ application")
+setup_alert_handler()
+logger.info("Alert handler initialized")
 
-    # Setup alert handler
-    setup_alert_handler()
-    logger.info("Alert handler initialized")
-
-    # Register network widget routes
-    network_module = importlib.import_module("widgets.network.api")
-    if hasattr(network_module, "register_routes"):
-        network_module.register_routes(app)
-        logger.info("Loaded network widget API")
-
-    # Register wiki widget routes
-    wiki_module = importlib.import_module("widgets.wiki.api")
-    if hasattr(wiki_module, "register_routes"):
-        wiki_module.register_routes(app)
-        logger.info("Loaded wiki widget API")
-
-    # Register services widget routes
-    services_module = importlib.import_module("widgets.services.api")
-    if hasattr(services_module, "register_routes"):
-        services_module.register_routes(app)
-        logger.info("Loaded services widget API")
-
-    # Register speedtest widget routes
-    speedtest_module = importlib.import_module("widgets.speedtest.api")
-    if hasattr(speedtest_module, "register_routes"):
-        speedtest_module.register_routes(app)
-        logger.info("Loaded speedtest widget API")
-
-    # Register metrics widget routes
-    metrics_module = importlib.import_module("widgets.metrics.api")
-    if hasattr(metrics_module, "register_routes"):
-        metrics_module.register_routes(app)
-        logger.info("Loaded metrics widget API")
-
-    # Register reminders widget routes
-    reminders_module = importlib.import_module("widgets.reminders.api")
-    if hasattr(reminders_module, "register_routes"):
-        reminders_module.register_routes(app)
-        logger.info("Loaded reminders widget API")
-
-except Exception as e:
-    logger = logging.getLogger(__name__)
-    logger.error(f"Error loading widget APIs: {e}")
+register_widget_modules()
 
 if __name__ == "__main__":
     import sys
