@@ -20,6 +20,7 @@ from monitor import (  # noqa: E402
 )
 
 _scheduler_thread = None
+_config_listener_registered = False
 logger = logging.getLogger(__name__)
 
 
@@ -275,9 +276,6 @@ def on_config_reloaded(_new_config):
     _refresh_notification_schedule("Updated reminder schedule")
 
 
-register_config_listener(on_config_reloaded)
-
-
 def start_notification_daemon():
     """Start the background notification scheduler"""
 
@@ -297,6 +295,15 @@ def start_notification_daemon():
     _scheduler_thread.start()
 
     return _scheduler_thread
+
+
+def _ensure_scheduler_initialized():
+    """Attach config listener and start scheduler once."""
+    global _config_listener_registered
+    if not _config_listener_registered:
+        register_config_listener(on_config_reloaded)
+        _config_listener_registered = True
+    start_notification_daemon()
 
 
 def register_routes(app):
@@ -327,3 +334,5 @@ def register_routes(app):
 
         result = send_test_notification()
         return jsonify({"success": result})
+
+    _ensure_scheduler_initialized()

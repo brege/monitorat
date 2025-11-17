@@ -580,13 +580,6 @@ try:
         reminders_module.register_routes(app)
         logger.info("Loaded reminders widget API")
 
-        # Start notification daemon for reminders
-        if hasattr(reminders_module, "start_notification_daemon"):
-            reminders_module.start_notification_daemon()
-            logger.info("Started reminders notification daemon")
-        if hasattr(reminders_module, "on_config_reloaded"):
-            register_config_listener(reminders_module.on_config_reloaded)
-
 except Exception as e:
     logger = logging.getLogger(__name__)
     logger.error(f"Error loading widget APIs: {e}")
