@@ -442,14 +442,6 @@ def ensure_vendors():
 
 ensure_vendors()
 
-# Register widget blueprints
-try:
-    from widgets.speedtest.api import api as speedtest_api
-
-    app.register_blueprint(speedtest_api, url_prefix="/api/speedtest")
-except ImportError:
-    pass
-
 
 @app.route("/")
 def index():
@@ -598,6 +590,12 @@ try:
     if hasattr(network_module, "register_routes"):
         network_module.register_routes(app)
         logger.info("Loaded network widget API")
+
+    # Register speedtest widget routes
+    speedtest_module = importlib.import_module("widgets.speedtest.api")
+    if hasattr(speedtest_module, "register_routes"):
+        speedtest_module.register_routes(app)
+        logger.info("Loaded speedtest widget API")
 
     # Register metrics widget routes
     metrics_module = importlib.import_module("widgets.metrics.api")

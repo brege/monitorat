@@ -1,23 +1,15 @@
-from flask import Blueprint, request, jsonify, send_file
+from flask import request, jsonify, send_file
 from subprocess import run, PIPE, TimeoutExpired
 from json import loads
 from datetime import datetime
-from pathlib import Path
 import logging
 
-# Import from main monitor module
-import sys
-
-sys.path.insert(0, str(Path(__file__).parent.parent))
 from monitor import get_csv_path, parse_iso_timestamp, resolve_period_cutoff
 
 SPEEDTEST = "speedtest-cli"
-
-api = Blueprint("speedtest", __name__)
 logger = logging.getLogger(__name__)
 
 
-@api.route("/run", methods=["POST"])
 def speedtest_run():
     logger.info("Starting speedtest run")
     csv_path = get_csv_path()
@@ -73,7 +65,6 @@ def speedtest_run():
     return jsonify(success=False, error="No data returned"), 500
 
 
-@api.route("/history", methods=["GET"])
 def speedtest_history():
     limit = request.args.get("limit", default=200, type=int)
     limit = max(1, min(limit or 200, 1000))
@@ -108,7 +99,6 @@ def speedtest_history():
         return jsonify(error=str(exc)), 500
 
 
-@api.route("/chart", methods=["GET"])
 def speedtest_chart():
     now = datetime.now()
 
@@ -190,7 +180,6 @@ def speedtest_chart():
         return jsonify(error=str(exc)), 500
 
 
-@api.route("/csv", methods=["GET"])
 def speedtest_csv():
     """Download the raw speedtest CSV file"""
     try:
@@ -206,3 +195,14 @@ def speedtest_csv():
         )
     except Exception as e:
         return f"Error downloading CSV: {str(e)}", 500
+
+
+def register_routes(app):
+    """Register speedtest API routes with Flask app."""
+
+    app.add_url_rule("/api/speedtest/run", view_func=speedtest_run, methods=["POST"])
+    app.add_url_rule(
+        "/api/speedtest/history", view_func=speedtest_history, methods=["GET"]
+    )
+    app.add_url_rule("/api/speedtest/chart", view_func=speedtest_chart, methods=["GET"])
+    app.add_url_rule("/api/speedtest/csv", view_func=speedtest_csv, methods=["GET"])
