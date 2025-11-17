@@ -85,10 +85,3 @@ Top three priorities:
 
 - **network logger** add a non-DDNS-based network logger for general users or those using Cloudflare or Tailscale
 - **federation** API keys for widgets for aggregating specs from multiple instances monitor@machineA and monitor@machineB viewable in monitor@local, perhaps.
-- support multiple user-defined widget locations 
-```yaml
-paths:
-  widgets:
-    - `./pack-A/widgets`
-    - `./pack-B/widgets`
-```

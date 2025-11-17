@@ -1,5 +1,5 @@
 ---
-# Minimal monitor@ configuration that renders a simple dashboard.
+# minimal monitor@ configuration that renders a simple dashboard.
 site:
   name: monitor@
   title: System Monitor
@@ -11,7 +11,8 @@ paths:
   img: img/
   favicon: favicon.ico
   vendors: vendors/
-  widgets: widgets/
+  widgets:
+    - widgets/
 notifications:
   apprise_urls: []
 widgets:
@@ -29,24 +30,19 @@ widgets:
       max: 200  # maximum rows to load
     chart:
       default_metric: cpu_memory  # options: cpu_memory, cpu_percent, memory_percent, disk_io, net_io, temp_c, load_1min
-      default_period: 1 hour  # default chart window: natural language (e.g., "1 hour", "7 days", "all")
+      default_period: 1 hour  # natural language
       height: 400px  # fixed chart height
-      periods:  # configurable time periods for filtering
-        - 1 year
-        - 30 days
-        - 7 days
-        - 24 hours
-        - 6 hours
-        - 1 hour
+      periods: [1 year, 30 days, 7 days, 24 hours, 6 hours, 1 hour]
     daemon:
-      enabled: true  # start the background metrics collector
-      interval_seconds: 60  # sampling cadence for the collector
+      enabled: true
+      interval_seconds: 60  # sampling cadence for the collector (seconds)
     history:
-      file: metrics.csv  # relative to data path unless absolute
+      file: metrics.csv  # relative to data path
       max_rows: 1000  # cap for history API responses
     storage:
       mounts: []  # optional: paths to monitor
     thresholds:  # caution/critical cutoffs for status badges
+      # will use top-level notification settings to alert
       load:
         caution: 1.0
         critical: 2.0
@@ -63,75 +59,71 @@ widgets:
       storage:
         caution: 85
         critical: 95
-  speedtest:  # network speedtest monitoring
+  speedtest:  # uses speedtest.net
     name: Speedtests
     collapsible: true
     hidden: false
-    default: table # chart, table, none
+    default: table  # chart, table, none
     table:
       min: 5  # minimum rows to show
       max: 20  # maximum rows to load
     chart:
       height: 400px  # fixed chart height
-      default_period: all  # default chart window: natural language (e.g., "1 day", "1 week", "all")
-      periods:  # configurable time periods for charts
-        - all
-        - 1 year
-        - 1 month
-        - 1 week
+      default_period: all
+      periods: [all, 1 year, 1 month, 1 week]
   network:  # network monitoring and outage tracking
     name: Network Outages
-    log_file: /var/log/network.log  # path to network monitoring log
+    log_file: /var/log/network.log  # path ddns log
     collapsible: true
     hidden: false
     metrics:
       show: true
     uptime:
       show: true
-      periods:  # configurable time windows with natural language
-        - period: "1 hour"
-          segment_size: "5 minutes"
-        - period: "1 day"
-          segment_size: "1 hour"
-        - period: "1 week"
-          segment_size: "1 day"
-        - period: "1 month"
-          segment_size: "1 day"
-        - period: "1 year"
-          segment_size: "1 month"
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+        - period: 1 day
+          segment_size: 1 hour
+        - period: 1 week
+          segment_size: 1 day
+        - period: 1 month
+          segment_size: 1 day
+        - period: 1 year
+          segment_size: 1 month
     gaps:
       show: true
-      max: 3  # maximum outages to show initially
+      max: 3  # maximum outage alerts to show initially
       cadence: 0  # minimum outage duration in minutes to show
       cadenceChecks: 0  # computed from cadence for confuse
   services:  # service monitoring
     name: Services
     collapsible: true
     hidden: false
-    items: {}  # define monitored services here
-  reminders:  # reminder notifications
+    items: {}  # { plex: {} ; jellyfin: {} ; ... }
+  reminders:  # uses top-level notification settings
     name: Reminders
     collapsible: true
     hidden: false
-    state_file: reminders.json  # stored under paths.data unless absolute
-    nudges: [14, 7]  # reminder days before due
-    urgents: [3, 1, 0]  # urgent reminder days
-    time: "23:55"  # daily reminder time
-    pushover:
-      key: ''
-      token: ''
-    items: {}  # place reminder entries here (keys become reminder IDs)
+    state_file: reminders.json  # relative to data path, or absolute 
+    nudges: [14, 7]  # days, lower priority (apprise param 0)
+    urgents: [3, 1, 0]  # days, higher priority (apprise param 1 or 2)
+    time: "23:55"  # what time to check
+    items: {}  # { protonmail: {} ; GitHub SSH Keys: {} ; ... }
   wiki:  # markdown documentation widget
     name: Documentation
     collapsible: true  # enable collapse/expand
     hidden: false  # start expanded
-    doc: ''  # path to markdown file, defaults to README.md
-    # doc: /home/__user__/documents/about.md
+    doc: ''  # path to markdown file. use '' for monitor@'s README.md
+  # OR set multiple wikis:
+  # README: 
+  #   type: wiki
+  #   doc: README.md
+  #   ...
+  # migration:
+  #   type: wiki
+  #   doc: migration.md
+  #   ...
 privacy:  # toggle, for screenshots
   mask_ips: true
-  replacements: {}
-# Global services configuration
-# services:
-#   my systemd service:
-#     url: http://example.com
-#     local: http://localhost:8080
+  replacements: {}  # { my-site.com: example.com ; ... }

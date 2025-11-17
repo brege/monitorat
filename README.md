@@ -65,7 +65,7 @@ bash <(curl -s https://raw.githubusercontent.com/brege/monitorat/refs/heads/main
 ```
 The script uses sudo internally to install the systemd unit for pip installations to `/etc/systemd/system/monitor@.service`.
 
-### Alternative intallations 
+### Alternative installations
 
 See [alternate installs](docs/install.md) to install `monitor@/www` => `/opt/monitor@` other deployments.
 

@@ -129,8 +129,10 @@ def get_data_path() -> Path:
     return Path(config["paths"]["data"].as_filename())
 
 
-def get_widgets_path() -> Path:
-    return Path(config["paths"]["widgets"].as_filename())
+def get_widgets_paths() -> List[Path]:
+    """Return list of widget search paths from config."""
+    widgets_cfg = config["paths"]["widgets"].get(list)
+    return [Path(p).expanduser() for p in widgets_cfg]
 
 
 def setup_logging():
@@ -544,10 +546,10 @@ def resolve_custom_widget_asset(filename: str) -> Optional[Path]:
     if not safe_parts:
         return None
 
-    base_path = get_widgets_path()
-    candidate = base_path.joinpath(*safe_parts)
-    if candidate.exists() and candidate.is_file():
-        return candidate
+    for base_path in get_widgets_paths():
+        candidate = base_path.joinpath(*safe_parts)
+        if candidate.exists() and candidate.is_file():
+            return candidate
     return None
 
 
@@ -574,13 +576,14 @@ def extend_widget_package_path():
     if package_path is None:
         return
 
-    custom_path = str(get_widgets_path())
-    if custom_path in _CUSTOM_WIDGET_PATHS or custom_path in package_path:
-        return
+    for widget_path in get_widgets_paths():
+        custom_path = str(widget_path)
+        if custom_path in _CUSTOM_WIDGET_PATHS or custom_path in package_path:
+            continue
 
-    package_path.append(custom_path)
-    _CUSTOM_WIDGET_PATHS.add(custom_path)
-    logging.getLogger(__name__).debug(f"Added custom widget path: {custom_path}")
+        package_path.append(custom_path)
+        _CUSTOM_WIDGET_PATHS.add(custom_path)
+        logging.getLogger(__name__).debug(f"Added custom widget path: {custom_path}")
 
 
 def register_widgets():
