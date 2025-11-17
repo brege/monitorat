@@ -121,6 +121,15 @@ def get_service_status():
 def register_routes(app):
     """Register services API routes with Flask app"""
 
+    @app.route("/api/services", methods=["GET"])
+    def api_services():
+        view = config["widgets"]["services"]
+        return app.response_class(
+            response=json.dumps({"services": view["items"].get(dict)}),
+            status=200,
+            mimetype="application/json",
+        )
+
     @app.route("/api/services/status", methods=["GET"])
     def api_services_status():
         status = get_service_status()

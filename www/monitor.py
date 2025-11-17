@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from flask import Flask, send_from_directory, jsonify, request
+from flask import Flask, send_from_directory, jsonify
 from pathlib import Path
 from urllib.request import urlretrieve
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
@@ -464,25 +464,6 @@ def readme():
     return send_from_directory(BASE, "README.md")
 
 
-@app.route("/api/wiki/doc")
-def wiki_doc():
-    from flask import jsonify
-
-    try:
-        widget_name = request.args.get("widget", "wiki")
-
-        widget_config = config["widgets"][widget_name].get(dict)
-        doc_path = widget_config.get("doc")
-
-        if not doc_path:
-            return send_from_directory(BASE, "README.md")
-
-        doc_file = Path(doc_path)
-        return send_from_directory(doc_file.parent, doc_file.name)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
 @app.route("/api/config", methods=["GET"])
 def api_config():
     try:
@@ -510,28 +491,6 @@ def api_config_reload():
         return jsonify({"status": "ok"})
     except Exception as exc:
         logger.error(f"Configuration reload failed: {exc}")
-        return jsonify(error=str(exc)), 500
-
-
-@app.route("/api/services", methods=["GET"])
-def api_services():
-    try:
-        services_view = config["widgets"]["services"]
-        return jsonify({"services": services_view["items"].get(dict)})
-    except Exception as exc:
-        return jsonify(error=str(exc)), 500
-
-
-@app.route("/api/services/status", methods=["GET"])
-def api_services_status():
-    try:
-        services_module = importlib.import_module("widgets.services.api")
-        if hasattr(services_module, "get_service_status"):
-            status = services_module.get_service_status()
-        else:
-            status = {}
-        return jsonify(status)
-    except Exception as exc:
         return jsonify(error=str(exc)), 500
 
 
@@ -590,6 +549,18 @@ try:
     if hasattr(network_module, "register_routes"):
         network_module.register_routes(app)
         logger.info("Loaded network widget API")
+
+    # Register wiki widget routes
+    wiki_module = importlib.import_module("widgets.wiki.api")
+    if hasattr(wiki_module, "register_routes"):
+        wiki_module.register_routes(app)
+        logger.info("Loaded wiki widget API")
+
+    # Register services widget routes
+    services_module = importlib.import_module("widgets.services.api")
+    if hasattr(services_module, "register_routes"):
+        services_module.register_routes(app)
+        logger.info("Loaded services widget API")
 
     # Register speedtest widget routes
     speedtest_module = importlib.import_module("widgets.speedtest.api")
