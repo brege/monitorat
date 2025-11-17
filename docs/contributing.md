@@ -59,9 +59,9 @@ See `requirements.txt` for dependencies.
 
 ### Adding widgets
 
-Widgets follow the three-file structure shown at the top of this document: `api.py`, `widget.html`, and `widget.js` in `www/widgets/your-widget/`.
+Widgets follow the three-file structure shown at the top of this document: `api.py`, `widget.html`, and `widget.js` in `www/widgets/your-widget/`, or, users can drop custom widgets into the directory referenced by `paths.widgets` (default: `~/.config/monitor@/widgets/`) and reference them in `widgets.enabled`.
 
-Add your widget to `www/config_default.yaml` (for defaults) and ensure its `type` matches the subdirectory name in `www/widgets/`. `monitor.py` will discover and load it automatically based on `config["widgets"]["enabled"]`. PRs are always welcome.
+monitor@ will automatically load the matching backend `api.py` and its presets (a *local* `config_default.yaml`) and serve the widget's HTML/JS from that directory.
 
 ### Roadmap
 

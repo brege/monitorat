@@ -98,21 +98,25 @@ paths:
 
 ### Widgets
 
-**monitor@** is an extensible widget system. You can add any number of widgets to your dashboard, re-order them, and enable/disable any you don't need. Drop custom widgets into the directory referenced by `paths.widgets` (default: `~/.config/monitor@/widgets/`) and reference them in `widgets.enabled`; monitor@ will automatically load the matching backend `api.py` and serve the widget's HTML/JS from that directory.
+**monitor@** is an extensible widget system. You can add any number of widgets to your dashboard, re-order them, and enable/disable any you don't need. You can add more widgets from others in `~/.config/monitor@/widgets/`.
 
 ```yaml
 widgets:
   enabled:
     - services
     - metrics
-    - about        # type: wiki
-    - # reminders  # disables this widget
-    - README       # type: wiki
+    - about            # type: wiki
+    - # reminders      # disables this widget
+    - README           # type: wiki
     - network
     - speedtest
+    - my-sweet-widget  # in ~/.config/monitor@/widgets
 ```
 
-Each widget can be configured in its own YAML block.
+Each widget can be configured in its own YAML block. To configure a widget in its own file,
+```yaml
+include: "/home/user/.config/monitor@/widgets/my-sweet-widget.yaml"
+```
 
 #### Services
 
@@ -174,12 +178,11 @@ widgets:
 
 </details>
 
-
 You can configure these to have both your URL (or WAN IP) and a local address (or LAN IP) for use offline. **monitor@ is completely encapsulated and works offline even when internet is down.**
 
 #### Wiki
 
-Some widgets you may want to use more than once. For two markdown documents ("wikis") to render in your monitor, use **`type: wiki`**. **`wiki: <title>`** may only be used once.
+Some widgets you may want to use more than once. For two markdown documents ("wikis"), use **`type: wiki`**. **`wiki: <title>`** may only be used once.
 
 ```yaml
 widgets:
