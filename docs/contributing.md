@@ -4,6 +4,22 @@
 
 See [install.md](install.md) for initializing a development server and running an alternative deployment.
 
+### Agentic Archetype
+
+An external repository for a widget created by AI is provided. This widget displays the number of system packages installed on a Fedora Workstation.
+
+https://github.com/brege/monitorat-widget-packages
+
+The AI agent (codex) created this widget in 12 minutes from this exact context.
+
+1. dropped in monitor@'s project directory
+2. providing `prompt.md` with a description of the widget the user wants to create
+3. configuring the agents with `AGENTS.md`
+
+Full transparency logs are provided in `logs/`:
+
+https://github.com/brege/monitorat-widget-packages/tree/main/logs
+
 ### User interface
 
 Promise.
@@ -67,6 +83,12 @@ monitor@ will automatically load the matching backend `api.py` and its presets (
 
 Top three priorities:
 
-- provide `~/.config/monitor@/widgets/` for user-made widgets
-- add a non-DDNS-based network logger for general users or those using Cloudflare or Tailscale
-- API keys for widgets for aggregating specs from multiple instances monitor@machineA and monitor@machineB viewable in monitor@local, perhaps.
+- **network logger** add a non-DDNS-based network logger for general users or those using Cloudflare or Tailscale
+- **federation** API keys for widgets for aggregating specs from multiple instances monitor@machineA and monitor@machineB viewable in monitor@local, perhaps.
+- support multiple user-defined widget locations 
+```yaml
+paths:
+  widgets:
+    - `./pack-A/widgets`
+    - `./pack-B/widgets`
+```
