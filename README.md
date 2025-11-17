@@ -13,7 +13,7 @@ Available widgets:
 Widgets have a general, self-contained structure where both API and UI are straightforward to create.
 
 ```
-www/widgets/
+~/.config/monitor@/widgets/
 └── my-sweet-widget
     ├── api.py
     ├── my-sweet-widget.html
