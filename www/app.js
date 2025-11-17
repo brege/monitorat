@@ -122,17 +122,34 @@ document.addEventListener('DOMContentLoaded', async () => {
   const widgetOrder = Array.isArray(config.widgets?.enabled) && config.widgets.enabled.length > 0
     ? config.widgets.enabled
     : fallbackWidgetOrder
-  for (const widgetName of widgetOrder) {
+
+  const containersByWidget = new Map()
+
+  widgetOrder.forEach((widgetName) => {
     const widgetConfig = config.widgets?.[widgetName]
     if (!widgetConfig) {
-      continue
+      return
     }
+    const container = document.getElementById(`${widgetName}-widget`) || createWidgetContainer(widgetName)
+    containersByWidget.set(widgetName, container)
+  })
 
-    const widgetType = widgetConfig?.type || widgetName
-    // Initialize sequentially to preserve ordering in the DOM
-    // eslint-disable-next-line no-await-in-loop
-    await initializeWidget(widgetName, widgetType, widgetConfig)
-  }
+  await Promise.all(
+    widgetOrder.map(async (widgetName) => {
+      const widgetConfig = config.widgets?.[widgetName]
+      if (!widgetConfig) {
+        return
+      }
+
+      const widgetType = widgetConfig?.type || widgetName
+      const container = containersByWidget.get(widgetName)
+      if (!container) {
+        return
+      }
+
+      return initializeWidget(widgetName, widgetType, widgetConfig, container)
+    })
+  )
 })
 
 async function loadConfig () {
@@ -213,14 +230,14 @@ function initializeConfigReloadControl () {
   })
 }
 
-async function initializeWidget (widgetName, widgetType, config) {
+async function initializeWidget (widgetName, widgetType, config, containerOverride) {
   await ensureWidgetScript(widgetType)
 
   if (config?.show === false) {
     return
   }
 
-  let container = document.getElementById(`${widgetName}-widget`)
+  let container = containerOverride || document.getElementById(`${widgetName}-widget`)
   if (!container) {
     container = createWidgetContainer(widgetName)
   }

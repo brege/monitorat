@@ -531,7 +531,7 @@ def static_files(filename):
     return send_from_directory(WWW, filename)
 
 
-def register_widget_modules():
+def register_widgets():
     """Register widgets based on configured order."""
     try:
         widgets_cfg = config["widgets"]
@@ -576,7 +576,7 @@ logger.info("Starting monitor@ application")
 setup_alert_handler()
 logger.info("Alert handler initialized")
 
-register_widget_modules()
+register_widgets()
 
 if __name__ == "__main__":
     import sys
