@@ -10,7 +10,7 @@ import confuse
 from apprise import Apprise, common as apprise_common
 import logging
 import time
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Set
 from pytimeparse import parse as parse_duration
 
 app = Flask(__name__)
@@ -127,6 +127,10 @@ def register_config_listener(callback: Callable[[confuse.Configuration], None]) 
 
 def get_data_path() -> Path:
     return Path(config["paths"]["data"].as_filename())
+
+
+def get_widgets_path() -> Path:
+    return Path(config["paths"]["widgets"].as_filename())
 
 
 def setup_logging():
@@ -526,13 +530,63 @@ def vendor_files(filename):
     return send_from_directory(str(vendors_path), filename)
 
 
+def resolve_custom_widget_asset(filename: str) -> Optional[Path]:
+    requested = Path(filename)
+    if not requested.parts or requested.parts[0] != "widgets":
+        return None
+
+    safe_parts = []
+    for part in requested.parts[1:]:
+        if part in ("", ".", ".."):
+            return None
+        safe_parts.append(part)
+
+    if not safe_parts:
+        return None
+
+    base_path = get_widgets_path()
+    candidate = base_path.joinpath(*safe_parts)
+    if candidate.exists() and candidate.is_file():
+        return candidate
+    return None
+
+
 @app.route("/<path:filename>")
 def static_files(filename):
+    custom_asset = resolve_custom_widget_asset(filename)
+    if custom_asset:
+        return send_from_directory(str(custom_asset.parent), custom_asset.name)
     return send_from_directory(WWW, filename)
+
+
+_CUSTOM_WIDGET_PATHS: Set[str] = set()
+
+
+def extend_widget_package_path():
+    """Add configured widget directories to the widgets package search path."""
+    try:
+        import widgets
+    except ImportError:
+        logging.getLogger(__name__).warning("Widgets package not available")
+        return
+
+    package_path = getattr(widgets, "__path__", None)
+    if package_path is None:
+        return
+
+    custom_path = str(get_widgets_path())
+    if custom_path in _CUSTOM_WIDGET_PATHS or custom_path in package_path:
+        return
+
+    package_path.append(custom_path)
+    _CUSTOM_WIDGET_PATHS.add(custom_path)
+    logging.getLogger(__name__).debug(f"Added custom widget path: {custom_path}")
 
 
 def register_widgets():
     """Register widgets based on configured order."""
+    extend_widget_package_path()
+
     try:
         widgets_cfg = config["widgets"]
         enabled = widgets_cfg["enabled"].get(list)

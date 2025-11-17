@@ -87,6 +87,8 @@ paths:
   data: "/home/user/.config/monitor@/data/"
   img: "/home/user/.config/monitor@/img/"
   favicon: "/home/user/.config/monitor@/img/favicon.ico"
+  vendors: "/home/user/.config/monitor@/vendors/"
+  widgets: "/home/user/.config/monitor@/widgets/"
 
 # privacy: { ... }
 # alerts: { ... }
@@ -96,7 +98,7 @@ paths:
 
 ### Widgets
 
-**monitor@** is an extensible widget system. You can add any number of widgets to your dashboard, re-order them, and enable/disable any you don't need.
+**monitor@** is an extensible widget system. You can add any number of widgets to your dashboard, re-order them, and enable/disable any you don't need. Drop custom widgets into the directory referenced by `paths.widgets` (default: `~/.config/monitor@/widgets/`) and reference them in `widgets.enabled`; monitor@ will automatically load the matching backend `api.py` and serve the widget's HTML/JS from that directory.
 
 ```yaml
 widgets:
