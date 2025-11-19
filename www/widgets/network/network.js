@@ -1,9 +1,7 @@
-const NET_EXPECTED_INTERVAL_MS = 5 * 60 * 1000
 const NET_TOLERANCE_MS = 90 * 1000
 const NET_MINUTE_MS = 60 * 1000
 const NET_HOUR_MS = 60 * NET_MINUTE_MS
 const NET_DAY_MS = 24 * NET_HOUR_MS
-const NET_MINUTES_PER_CHECK = NET_EXPECTED_INTERVAL_MS / 60000
 const MONTH_INDEX = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 }
 
 function parseNaturalTime (timeStr) {
@@ -57,6 +55,10 @@ class NetworkWidget {
     this.container = null
     this.config = mergeNetworkConfig(config)
     this.periodsConfig = this.config.uptime.periods
+    // Calculate expected interval in milliseconds from config
+    const intervalSeconds = this.config.chirper.interval_seconds
+    this.expectedIntervalMs = intervalSeconds * 1000
+    this.minutesPerCheck = this.expectedIntervalMs / 60000
     this.state = {
       entries: [],
       analysis: null,
@@ -148,7 +150,7 @@ class NetworkWidget {
       this.state.gapsExpanded = false
       setText(this.elements.logStatus, 'No log file configured.')
       this.state.entries = []
-      this.state.analysis = analyzeEntries([], this.periodsConfig)
+      this.state.analysis = analyzeEntries([], this.periodsConfig, this.expectedIntervalMs)
       this.state.logFingerprint = null
       this.updateSummary()
       this.renderUptime()
@@ -176,7 +178,7 @@ class NetworkWidget {
 
       this.state.logFingerprint = fingerprint
       this.state.entries = parseLog(text)
-      this.state.analysis = analyzeEntries(this.state.entries, this.periodsConfig)
+      this.state.analysis = analyzeEntries(this.state.entries, this.periodsConfig, this.expectedIntervalMs)
       this.state.gapsExpanded = false
       this.updateSummary()
       this.renderUptime()
@@ -192,7 +194,7 @@ class NetworkWidget {
       setText(this.elements.logStatus, `Unable to load log: ${error.message}`)
       this.state.gapsExpanded = false
       this.state.entries = []
-      this.state.analysis = analyzeEntries([], this.periodsConfig)
+      this.state.analysis = analyzeEntries([], this.periodsConfig, this.expectedIntervalMs)
       this.state.logFingerprint = null
       this.updateSummary()
       this.renderUptime()
@@ -351,7 +353,7 @@ class NetworkWidget {
       }
       pill.className = 'uptime-pill'
       applySegmentClasses(pill, segment)
-      pill.title = buildSegmentTooltip(stat.label, segment)
+      pill.title = buildSegmentTooltip(stat.label, segment, this.expectedIntervalMs)
       fragment.appendChild(pill)
       seenSegments.add(segment.key)
     })
@@ -382,7 +384,7 @@ class NetworkWidget {
 
     const misses = document.createElement('span')
     if (stat.missed) {
-      misses.textContent = `${formatNumber(stat.missed)} missed (${formatDuration(stat.missed * NET_EXPECTED_INTERVAL_MS)})`
+      misses.textContent = `${formatNumber(stat.missed)} missed (${formatDuration(stat.missed * this.expectedIntervalMs)})`
     } else {
       misses.textContent = 'No missed checks'
     }
@@ -468,9 +470,11 @@ function mergeNetworkConfig (config) {
   // Trust that confuse provides complete merged config
   // Just add computed values that depend on config values
   const cfg = config || {}
+  const intervalSeconds = cfg.chirper.interval_seconds
+  const minutesPerCheck = (intervalSeconds * 1000) / 60000
   const cadenceRaw = Number(cfg.gaps?.cadence)
   const cadenceMinutes = Number.isFinite(cadenceRaw) ? Math.max(0, cadenceRaw) : 0
-  const cadenceChecks = Math.max(0, Math.ceil(cadenceMinutes / NET_MINUTES_PER_CHECK))
+  const cadenceChecks = Math.max(0, Math.ceil(cadenceMinutes / minutesPerCheck))
 
   return {
     ...cfg,
@@ -536,7 +540,7 @@ function parseTimestamp (label) {
   return Number.isNaN(candidate.getTime()) ? null : candidate
 }
 
-function analyzeEntries (entries, periodsConfig) {
+function analyzeEntries (entries, periodsConfig, expectedIntervalMs) {
   if (!entries.length) {
     const now = new Date()
     return {
@@ -548,13 +552,13 @@ function analyzeEntries (entries, periodsConfig) {
       uptimeText: '–',
       firstEntry: null,
       lastEntry: null,
-      windowStats: computeWindowStats([], [], now, periodsConfig)
+      windowStats: computeWindowStats([], [], now, periodsConfig, expectedIntervalMs)
     }
   }
 
   const gaps = []
   let missed = 0
-  const slotNumbers = buildSlotNumbers(entries)
+  const slotNumbers = buildSlotNumbers(entries, expectedIntervalMs)
 
   for (let index = 0; index < entries.length - 1; index += 1) {
     const current = entries[index]
@@ -563,13 +567,13 @@ function analyzeEntries (entries, periodsConfig) {
 
     // Adjust for DST: if timezone offset changed, the wall-clock gap isn't a real outage
     const dstShiftMs = (current.timestamp.getTimezoneOffset() - next.timestamp.getTimezoneOffset()) * 60000
-    const missing = Math.floor((diff + dstShiftMs - NET_TOLERANCE_MS) / NET_EXPECTED_INTERVAL_MS)
+    const missing = Math.floor((diff + dstShiftMs - NET_TOLERANCE_MS) / expectedIntervalMs)
 
     if (missing > 0) {
       missed += missing
       gaps.push({
         type: 'outage',
-        start: new Date(current.timestamp.getTime() + NET_EXPECTED_INTERVAL_MS),
+        start: new Date(current.timestamp.getTime() + expectedIntervalMs),
         end: new Date(next.timestamp.getTime()),
         missedChecks: missing,
         open: false
@@ -587,12 +591,12 @@ function analyzeEntries (entries, periodsConfig) {
 
   const lastEntry = entries[entries.length - 1]
   const now = new Date()
-  const tailMissing = Math.floor((now.getTime() - lastEntry.timestamp.getTime() - NET_TOLERANCE_MS) / NET_EXPECTED_INTERVAL_MS)
+  const tailMissing = Math.floor((now.getTime() - lastEntry.timestamp.getTime() - NET_TOLERANCE_MS) / expectedIntervalMs)
   if (tailMissing > 0) {
     missed += tailMissing
     gaps.push({
       type: 'outage',
-      start: new Date(lastEntry.timestamp.getTime() + NET_EXPECTED_INTERVAL_MS),
+      start: new Date(lastEntry.timestamp.getTime() + expectedIntervalMs),
       end: now,
       missedChecks: tailMissing,
       open: true
@@ -608,7 +612,7 @@ function analyzeEntries (entries, periodsConfig) {
   const expectedChecks = entries.length + missed
   const uptimeValue = expectedChecks ? (entries.length / expectedChecks) * 100 : 100
   const uptimeText = expectedChecks ? `${uptimeValue.toFixed(2)}%` : '100%'
-  const windowStats = computeWindowStats(entries, slotNumbers, now, periodsConfig)
+  const windowStats = computeWindowStats(entries, slotNumbers, now, periodsConfig, expectedIntervalMs)
 
   return {
     entries,
@@ -623,11 +627,11 @@ function analyzeEntries (entries, periodsConfig) {
   }
 }
 
-function buildSlotNumbers (entries) {
+function buildSlotNumbers (entries, expectedIntervalMs) {
   const slots = []
   let previous = null
   entries.forEach((entry) => {
-    const slot = Math.round(entry.timestamp.getTime() / NET_EXPECTED_INTERVAL_MS)
+    const slot = Math.round(entry.timestamp.getTime() / expectedIntervalMs)
     if (slot !== previous) {
       slots.push(slot)
       previous = slot
@@ -636,8 +640,8 @@ function buildSlotNumbers (entries) {
   return slots
 }
 
-function computeWindowStats (entries, slotNumbers, now, periodsConfig) {
-  const definitions = buildPeriodsDefinitions(now, periodsConfig)
+function computeWindowStats (entries, slotNumbers, now, periodsConfig, expectedIntervalMs) {
+  const definitions = buildPeriodsDefinitions(now, periodsConfig, expectedIntervalMs)
   if (!entries.length) {
     return definitions.map((definition) => ({
       key: definition.key,
@@ -662,11 +666,11 @@ function computeWindowStats (entries, slotNumbers, now, periodsConfig) {
   }
 
   const nowMs = now.getTime()
-  const nowSlot = Math.floor(nowMs / NET_EXPECTED_INTERVAL_MS)
-  const firstSlot = Math.floor(entries[0].timestamp.getTime() / NET_EXPECTED_INTERVAL_MS)
+  const nowSlot = Math.floor(nowMs / expectedIntervalMs)
+  const firstSlot = Math.floor(entries[0].timestamp.getTime() / expectedIntervalMs)
 
   return definitions.map((definition) => {
-    const segments = definition.segments.map((segment) => analyzeSegment(segment, slotNumbers, firstSlot, nowSlot))
+    const segments = definition.segments.map((segment) => analyzeSegment(segment, slotNumbers, firstSlot, nowSlot, expectedIntervalMs))
     const observed = segments.reduce((sum, item) => sum + item.observed, 0)
     const expected = segments.reduce((sum, item) => sum + item.expected, 0)
     const available = segments.reduce((sum, item) => sum + item.available, 0)
@@ -687,7 +691,7 @@ function computeWindowStats (entries, slotNumbers, now, periodsConfig) {
   })
 }
 
-function buildPeriodsDefinitions (now, periodsConfig) {
+function buildPeriodsDefinitions (now, periodsConfig, expectedIntervalMs) {
   const nowMs = now.getTime()
 
   return periodsConfig.map((periodConfig, index) => {
@@ -700,7 +704,7 @@ function buildPeriodsDefinitions (now, periodsConfig) {
     }
 
     const segmentCount = Math.ceil(periodMs / segmentMs)
-    const segments = buildCustomPeriodSegments(periodConfig.period, periodMs, segmentMs, segmentCount, nowMs)
+    const segments = buildCustomPeriodSegments(periodConfig.period, periodMs, segmentMs, segmentCount, nowMs, expectedIntervalMs)
 
     return {
       key: `period-${index}`,
@@ -710,17 +714,17 @@ function buildPeriodsDefinitions (now, periodsConfig) {
   })
 }
 
-function buildCustomPeriodSegments (periodLabel, periodMs, segmentMs, segmentCount, nowMs) {
-  const segmentSlots = Math.max(1, Math.round(segmentMs / NET_EXPECTED_INTERVAL_MS))
-  const endSlot = Math.floor(nowMs / NET_EXPECTED_INTERVAL_MS)
+function buildCustomPeriodSegments (periodLabel, periodMs, segmentMs, segmentCount, nowMs, expectedIntervalMs) {
+  const segmentSlots = Math.max(1, Math.round(segmentMs / expectedIntervalMs))
+  const endSlot = Math.floor(nowMs / expectedIntervalMs)
   const firstStartSlot = endSlot - (segmentCount * segmentSlots) + 1
   const segments = []
 
   for (let index = 0; index < segmentCount; index += 1) {
     const startSlot = firstStartSlot + index * segmentSlots
     const endSlotForSegment = startSlot + segmentSlots - 1
-    const startMs = startSlot * NET_EXPECTED_INTERVAL_MS
-    const endMs = (endSlotForSegment + 1) * NET_EXPECTED_INTERVAL_MS
+    const startMs = startSlot * expectedIntervalMs
+    const endMs = (endSlotForSegment + 1) * expectedIntervalMs
 
     segments.push({
       key: `${periodLabel.replace(/\s+/g, '-')}-${index}`,
@@ -735,7 +739,7 @@ function buildCustomPeriodSegments (periodLabel, periodMs, segmentMs, segmentCou
   return segments
 }
 
-function analyzeSegment (segment, slotNumbers, firstSlot, nowSlot) {
+function analyzeSegment (segment, slotNumbers, firstSlot, nowSlot, expectedIntervalMs) {
   const startSlot = segment.startSlot
   const endSlot = segment.endSlot
   const startMs = segment.startMs
@@ -750,7 +754,7 @@ function analyzeSegment (segment, slotNumbers, firstSlot, nowSlot) {
   const missed = Math.max(0, expected - observed)
   const uptime = expected > 0 ? (observed / expected) * 100 : null
   const coverage = available > 0 ? expected / available : 0
-  const endMsClamped = Math.min(endMs, (clampedEndSlot + 1) * NET_EXPECTED_INTERVAL_MS)
+  const endMsClamped = Math.min(endMs, (clampedEndSlot + 1) * expectedIntervalMs)
 
   return {
     ...segment,
@@ -848,7 +852,7 @@ function applySegmentClasses (pill, segment) {
   }
 }
 
-function buildSegmentTooltip (windowLabel, segment) {
+function buildSegmentTooltip (windowLabel, segment, expectedIntervalMs) {
   const lines = []
   if (segment.label) {
     lines.push(`${windowLabel} • ${segment.label}`)
@@ -865,7 +869,7 @@ function buildSegmentTooltip (windowLabel, segment) {
   } else {
     lines.push(`${formatNumber(segment.observed)} / ${formatNumber(segment.expected)} checks (${formatPercent(segment.uptime)})`)
     if (segment.missed) {
-      lines.push(`${segment.missed} missed (~${formatDuration(segment.missed * NET_EXPECTED_INTERVAL_MS)})`)
+      lines.push(`${segment.missed} missed (~${formatDuration(segment.missed * expectedIntervalMs)})`)
     } else {
       lines.push('No missed checks.')
     }

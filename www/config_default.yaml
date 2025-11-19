@@ -11,8 +11,7 @@ paths:
   img: img/
   favicon: favicon.ico
   vendors: vendors/
-  widgets:
-    - widgets/
+  widgets: [widgets/]
 notifications:
   apprise_urls: []
 widgets:
@@ -73,9 +72,14 @@ widgets:
       periods: [all, 1 year, 1 month, 1 week]
   network:  # network monitoring and outage tracking
     name: Network Outages
-    log_file: /var/log/network.log  # path ddns log
     collapsible: true
     hidden: false
+    log_file: network.log  # relative to data path, or absolute if external
+    external: false  # overrides chirper.enabled
+    chirper:
+      enabled: true
+      interval_seconds: 300  # check IP every 5 minutes
+      mode: ipv4  # or ipv6
     metrics:
       show: true
     uptime:
