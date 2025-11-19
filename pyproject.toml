@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "monitorat"
-version = "0.3"
+version = "0.4"
 description = "Flask-based dashboard for monitoring services, network status, and reminders"
 readme = "README.md"
 license = { file = "LICENSE" }
