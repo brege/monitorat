@@ -4,13 +4,18 @@ from pathlib import Path
 from monitor import BASE, config
 
 
-def register_routes(app):
-    """Register wiki widget API routes with Flask app."""
+def register_routes(app, instance="wiki"):
+    """Register wiki widget API routes with Flask app.
 
-    @app.route("/api/wiki/doc")
+    Args:
+        app: Flask application instance
+        instance: Widget instance name (multiple wiki instances)
+    """
+
+    @app.route("/api/wiki/doc", endpoint=f"wiki_doc_{instance}")
     def wiki_doc():
         try:
-            widget_name = request.args.get("widget", "wiki")
+            widget_name = request.args.get("widget", instance)
 
             widget_config = config["widgets"][widget_name].get(dict)
             doc_path = widget_config.get("doc")

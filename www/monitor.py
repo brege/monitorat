@@ -619,7 +619,11 @@ def register_widgets():
             continue
 
         if hasattr(module, "register_routes"):
-            module.register_routes(app)
+            # special case: wiki widget supports multiple instances
+            if widget_type == "wiki":
+                module.register_routes(app, widget_name)
+            else:
+                module.register_routes(app)
             logging.getLogger(__name__).info(
                 f"Loaded {widget_name} widget ({widget_type})"
             )
