@@ -4,14 +4,13 @@ from pathlib import Path
 from urllib.request import urlretrieve
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 from datetime import datetime, timedelta, timezone
-import threading
 import importlib
-import confuse
 from apprise import Apprise, common as apprise_common
 import logging
 import time
-from typing import Callable, List, Optional, Set
+from typing import List, Optional, Set
 from pytimeparse import parse as parse_duration
+from config import config, reload_config
 
 app = Flask(__name__)
 BASE = Path(__file__).parent.parent
@@ -29,100 +28,6 @@ if __name__ != "monitor":
     if __package__:
         widgets_pkg = importlib.import_module(f"{__package__}.widgets")
         sys.modules.setdefault("widgets", widgets_pkg)
-
-
-class ConfigManager:
-    """Own the confuse.Configuration instance and provide reload hooks."""
-
-    def __init__(self, config_path: Optional[Path] = None) -> None:
-        self._project_config = config_path
-        self._lock = threading.Lock()
-        self._callbacks: List[Callable[[confuse.Configuration], None]] = []
-        self._config = self._build_config()
-
-    def _build_config(self) -> confuse.Configuration:
-        config_obj = confuse.Configuration("monitor@", __name__)
-
-        # Load defaults from config_default.yaml and user configs from Confuse's
-        # standard search paths (~/.config/monitor@/config.yaml, etc.).
-        config_obj.clear()
-        config_obj.read(user=True, defaults=True)
-
-        # Load additional config files { includes: [ file1.yml, file2.yml ] }
-        try:
-            includes = config_obj["includes"].get(list)
-            config_dir = Path(config_obj.config_dir())
-            for include in includes:
-                filepath = config_dir / include
-                if filepath.exists():
-                    config_obj.set_file(filepath)
-        except Exception:
-            # No includes defined or error reading them - continue without
-            pass
-
-        # Allow an explicit override file (e.g., via MONITOR_CONFIG_PATH).
-        if self._project_config:
-            candidate = self._project_config.expanduser()
-            if candidate.exists():
-                config_obj.set_file(candidate, base_for_paths=True)
-
-        # Mark sensitive fields for redaction
-        config_obj["notifications"]["apprise_urls"].redact = True
-        return config_obj
-
-    def get(self) -> confuse.Configuration:
-        return self._config
-
-    def reload(self) -> confuse.Configuration:
-        with self._lock:
-            reloaded = self._build_config()
-            self._config = reloaded
-            for callback in list(self._callbacks):
-                try:
-                    callback(reloaded)
-                except Exception as exc:
-                    print(f"Config reload callback failed: {exc}")
-            return reloaded
-
-    def register_callback(
-        self, callback: Callable[[confuse.Configuration], None]
-    ) -> None:
-        self._callbacks.append(callback)
-
-
-class ConfigProxy:
-    """Lightweight proxy so existing code can keep using `config[...]`."""
-
-    def __init__(self, manager: ConfigManager) -> None:
-        self._manager = manager
-
-    def __getitem__(self, key):
-        return self._manager.get()[key]
-
-    def __getattr__(self, item):
-        return getattr(self._manager.get(), item)
-
-    def get(self, *args, **kwargs):
-        return self._manager.get().get(*args, **kwargs)
-
-    def __repr__(self) -> str:
-        return repr(self._manager.get())
-
-
-config_manager = ConfigManager()
-config = ConfigProxy(config_manager)
-
-
-def get_config() -> confuse.Configuration:
-    return config_manager.get()
-
-
-def reload_config() -> confuse.Configuration:
-    return config_manager.reload()
-
-
-def register_config_listener(callback: Callable[[confuse.Configuration], None]) -> None:
-    config_manager.register_callback(callback)
 
 
 def get_data_path() -> Path:
@@ -640,12 +545,5 @@ logger.info("Alert handler initialized")
 register_widgets()
 
 if __name__ == "__main__":
-    import sys
-
-    # Handle config command
-    if len(sys.argv) > 1 and sys.argv[1] == "config":
-        print(config_manager.get().dump(full=True, redact=True))
-        sys.exit(0)
-
     setup_logging()
     app.run()

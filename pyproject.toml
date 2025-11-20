@@ -40,6 +40,9 @@ classifiers = [
 [project.urls]
 Repository = "https://github.com/brege/monitorat"
 
+[project.scripts]
+monitorat = "monitorat.cli:main"
+
 [tool.hatch.build.targets.sdist]
 include = [
   "/www",
