@@ -83,5 +83,9 @@ monitor@ will automatically load the matching backend `api.py` and its presets (
 
 Top three priorities:
 
-- **network logger** add a non-DDNS-based network logger for general users or those using Cloudflare or Tailscale
+- **cli*** register "monitorat" as a command that can check 
+  - `monitorat help`
+  - `monitorat config`
+  - `monitorat ls-widgets`
+
 - **federation** API keys for widgets for aggregating specs from multiple instances monitor@machineA and monitor@machineB viewable in monitor@local, perhaps.
