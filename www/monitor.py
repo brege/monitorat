@@ -10,9 +10,12 @@ import logging
 import time
 from typing import List, Optional, Set
 from pytimeparse import parse as parse_duration
-from config import config, reload_config
 
-app = Flask(__name__)
+try:
+    from .config import config, reload_config
+except ImportError:
+    from config import config, reload_config
+
 BASE = Path(__file__).parent.parent
 WWW = BASE / "www"
 
@@ -20,6 +23,8 @@ WWW = BASE / "www"
 if not WWW.exists():
     BASE = Path(__file__).parent
     WWW = BASE
+
+app = Flask(__name__)
 
 if __name__ != "monitor":
     import sys
@@ -356,7 +361,7 @@ ensure_vendors()
 
 @app.route("/")
 def index():
-    return send_from_directory(WWW, "index.html")
+    return send_from_directory(WWW / "static", "index.html")
 
 
 @app.route("/data/<path:filename>")
@@ -463,7 +468,9 @@ def static_files(filename):
     custom_asset = resolve_custom_widget_asset(filename)
     if custom_asset:
         return send_from_directory(str(custom_asset.parent), custom_asset.name)
-    return send_from_directory(WWW, filename)
+    if filename.startswith("widgets/"):
+        return send_from_directory(WWW, filename)
+    return send_from_directory(WWW / "static", filename)
 
 
 _CUSTOM_WIDGET_PATHS: Set[str] = set()
