@@ -76,7 +76,7 @@ def extend_widget_package_path():
 
 
 def get_builtin_widgets() -> dict:
-    """Discover built-in widgets from www/widgets directory."""
+    """Discover built-in widgets from monitorat/widgets directory."""
     widgets_dir = Path(__file__).parent / "widgets"
     result = {}
 

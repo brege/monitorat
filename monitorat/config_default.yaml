@@ -16,7 +16,7 @@ notifications:
   apprise_urls: []
 widgets:
   enabled:  # provides order and visibility
-    - metrics  # www/widgets/* for available widgets
+    - metrics  # monitorat/widgets/* for available widgets
     - speedtest
     - wiki
   metrics:  # temperature, cpu, memory, disk

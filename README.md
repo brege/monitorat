@@ -67,7 +67,7 @@ The script uses sudo internally to install the systemd unit for pip installation
 
 ### Alternative installations
 
-See [alternate installs](docs/install.md) to install `monitor@/www` => `/opt/monitor@` other deployments.
+See [alternate installs](docs/install.md) to install `monitor@/monitorat` => `/opt/monitor@` other deployments.
 
 ## Web UI
 
@@ -187,9 +187,9 @@ Some widgets you may want to use more than once. For two markdown documents ("wi
 ```yaml
 widgets:
   about:
-    type: wiki  
+    type: wiki
     name: "wiki@my-nas"
-    doc: "about.md"  # relative to www/
+    doc: "about.md"  # relative to monitorat/
   README:
     type: wiki
     name: "README"
@@ -373,10 +373,10 @@ privacy:
   mask_ips: true
 ```
 
-When sharing your config, you can generate the full runtime configuration with 
+When sharing your config, you can generate the full runtime configuration with
 
 ```bash
-source www/.venv/bin/activate && python www/monitor.py config
+source monitorat/.venv/bin/activate && python monitorat/monitor.py config
 ```
 
 ### Alerts

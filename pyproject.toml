@@ -45,7 +45,7 @@ monitorat = "monitorat.cli:main"
 
 [tool.hatch.build.targets.sdist]
 include = [
-  "/www",
+  "/monitorat",
   "/README.md",
   "/LICENSE",
   "/docs",
@@ -53,10 +53,7 @@ include = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["www"]
-
-[tool.hatch.build.targets.wheel.sources]
-"www" = "monitorat"
+packages = ["monitorat"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "README.md" = "monitorat/README.md"

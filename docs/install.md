@@ -41,9 +41,9 @@ curl -O https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/script
 bash install-systemd-pip.sh
 ```
 
-### Alternative: Deploy www/ directly
+### Alternative: Deploy monitorat/ directly
 
-You can also deploy the `www/` directory directly to `/opt/monitor@/` or elsewhere without packaging. This is useful for development or when you want direct access to edit files.
+You can also deploy the `monitorat/` directory directly to `/opt/monitor@/` or elsewhere without packaging. This is useful for development or when you want direct access to edit files.
 
 Clone this repository:
 ```bash
@@ -56,7 +56,7 @@ git clone https://github.com/brege/monitorat.git .
 
 Install dependencies:
 ```bash
-cd www
+cd monitorat
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt

@@ -40,7 +40,7 @@ Promise.
 ├── systemd
 │   ├── monitor@pip.service     # systemd unit for pip installations
 │   └── monitor@source.service  # systemd unit for source installations
-└── www/
+└── monitorat/
     ├── app.js                  # frontend javascript
     ├── config_default.yaml     # all preset values
     ├── index.html              # web UI
@@ -56,8 +56,8 @@ Promise.
 
 The `vendors/` are for plotting and especially rendering and styling markdown documents (via [markdown-it](https://github.com/markdown-it/markdown-it)) like `README.md` in HTML. These libraries are automatically downloaded locally by `monitor.py` only once.
 
-This project uses [confuse](https://confuse.readthedocs.io/en/latest/) for configuration management, 
-and as such uses a common-sense config hierarchy. Parameters are set in `www/config_default.yaml` and may be overridden in `~/.config/monitor@/config.yaml`.
+This project uses [confuse](https://confuse.readthedocs.io/en/latest/) for configuration management,
+and as such uses a common-sense config hierarchy. Parameters are set in `monitorat/config_default.yaml` and may be overridden in `~/.config/monitor@/config.yaml`.
 
 See [confuse's docs](http://confuse.readthedocs.io/en/latest/usage.html) and [source](https://github.com/beetbox/confuse) for a deeper reference.
 
@@ -75,7 +75,7 @@ See `requirements.txt` for dependencies.
 
 ### Adding widgets
 
-Widgets follow the three-file structure shown at the top of this document: `api.py`, `widget.html`, and `widget.js` in `www/widgets/your-widget/`, or, users can drop custom widgets into the directory referenced by `paths.widgets` (default: `~/.config/monitor@/widgets/`) and reference them in `widgets.enabled`.
+Widgets follow the three-file structure shown at the top of this document: `api.py`, `widget.html`, and `widget.js` in `monitorat/widgets/your-widget/`, or, users can drop custom widgets into the directory referenced by `paths.widgets` (default: `~/.config/monitor@/widgets/`) and reference them in `widgets.enabled`.
 
 monitor@ will automatically load the matching backend `api.py` and its presets (a *local* `config_default.yaml`) and serve the widget's HTML/JS from that directory.
 
