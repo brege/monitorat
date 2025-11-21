@@ -11,7 +11,6 @@ from monitor import config
 logger = logging.getLogger(__name__)
 
 BASE = Path(__file__).parent.parent.parent.parent
-SYSTEMCTL = shutil.which("systemctl")
 
 
 def services_items():
@@ -23,7 +22,6 @@ def get_docker_status():
     container_statuses = {}
 
     # Check if docker is available before trying to run commands
-    import shutil
 
     if not shutil.which("docker"):
         logger.debug("Docker not available in PATH, skipping Docker status check")
@@ -70,15 +68,11 @@ def get_systemd_status():
         if "timers" in service_info:
             all_timers.update(service_info["timers"])
 
-    if not SYSTEMCTL:
-        logger.debug("systemctl not found in PATH; skipping systemd checks")
-        return service_statuses
-
     # Check services
     for service in all_services:
         try:
             result = subprocess.run(
-                [SYSTEMCTL, "is-active", service],
+                ["systemctl", "is-active", service],
                 capture_output=True,
                 text=True,
                 timeout=5,
@@ -92,8 +86,9 @@ def get_systemd_status():
     # Check timers
     for timer in all_timers:
         try:
+            timer_name = timer if timer.endswith(".timer") else f"{timer}.timer"
             result = subprocess.run(
-                [SYSTEMCTL, "is-active", f"{timer}.timer"],
+                ["systemctl", "is-active", timer_name],
                 capture_output=True,
                 text=True,
                 timeout=5,
