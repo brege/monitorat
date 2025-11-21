@@ -12,9 +12,11 @@ from typing import List, Optional, Set
 from pytimeparse import parse as parse_duration
 
 try:
-    from .config import config, reload_config
+    from .config import config, reload_config, register_config_listener
 except ImportError:
-    from config import config, reload_config
+    from config import config, reload_config, register_config_listener
+
+__all__ = ["config", "reload_config", "register_config_listener"]
 
 BASE = Path(__file__).parent.parent
 WWW = BASE / "www"
