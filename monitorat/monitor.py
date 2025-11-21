@@ -152,12 +152,18 @@ def data_files(filename):
 
 @app.route("/about.md")
 def about():
-    return send_from_directory(BASE, "about.md")
+    path = BASE / "about.md"
+    if not path.exists():
+        path = WWW / "about.md"
+    return send_from_directory(str(path.parent), path.name)
 
 
 @app.route("/README.md")
 def readme():
-    return send_from_directory(BASE, "README.md")
+    path = BASE / "README.md"
+    if not path.exists():
+        path = WWW / "README.md"
+    return send_from_directory(str(path.parent), path.name)
 
 
 @app.route("/api/config", methods=["GET"])
@@ -192,13 +198,16 @@ def api_config_reload():
 
 @app.route("/favicon.ico")
 def favicon():
-    default_favicon = WWW / "favicon.ico"
     try:
         configured = Path(config["paths"]["favicon"].as_filename())
+        if configured.exists():
+            return send_from_directory(str(configured.parent), configured.name)
     except Exception:
-        configured = default_favicon
+        pass
 
-    path = configured if configured.exists() else default_favicon
+    path = WWW / "static" / "favicon.ico"
+    if not path.exists():
+        path = WWW / "favicon.ico"
     return send_from_directory(str(path.parent), path.name)
 
 
@@ -210,8 +219,10 @@ def img_files(filename):
 
 @app.route("/docs/<path:filename>")
 def docs_files(filename):
-    # Serve files from docs/ directory at project root
-    return send_from_directory(BASE / "docs", filename)
+    docs_dir = BASE / "docs"
+    if not docs_dir.exists():
+        docs_dir = WWW / "docs"
+    return send_from_directory(docs_dir, filename)
 
 
 @app.route("/vendors/<path:filename>")
