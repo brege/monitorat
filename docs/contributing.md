@@ -83,9 +83,4 @@ monitor@ will automatically load the matching backend `api.py` and its presets (
 
 Top three priorities:
 
-- **cli*** register "monitorat" as a command that can check 
-  - `monitorat help`
-  - `monitorat config`
-  - `monitorat ls-widgets`
-
 - **federation** API keys for widgets for aggregating specs from multiple instances monitor@machineA and monitor@machineB viewable in monitor@local, perhaps.

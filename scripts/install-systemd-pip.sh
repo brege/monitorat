@@ -8,6 +8,9 @@ fi
 
 echo "Installing monitorat systemd service for pip installation..."
 
+echo "Removing old monitor@* service files..."
+sudo rm -f /etc/systemd/system/monitor@*.service
+
 curl -o monitor@.service https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/systemd/monitor%40pip.service
 sed -i "s|/home/__user__|$HOME|g; s/__user__/$USER/g; s/__group__/$(id -gn)/g" monitor@.service
 
