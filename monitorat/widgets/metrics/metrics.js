@@ -244,6 +244,7 @@ class MetricsWidget {
         DataFormatter.formatNumber(entry.net_tx_rate, 1),
         DataFormatter.formatNumber(entry.load_1min, 2),
         DataFormatter.formatNumber(entry.temp_c, 1) + '°C',
+        DataFormatter.formatNumber(entry.battery_percent, 1) + '%',
         entry.source || ''
       ]
     })

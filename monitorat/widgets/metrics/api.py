@@ -6,11 +6,10 @@ import psutil
 import threading
 import time
 import logging
-from pathlib import Path
 from datetime import datetime
 from typing import List
 
-from monitor import config, get_data_path, parse_iso_timestamp, resolve_period_cutoff, CSVHandler
+from monitor import config, parse_iso_timestamp, resolve_period_cutoff, CSVHandler
 from flask import request, send_file
 
 logger = logging.getLogger(__name__)
@@ -234,15 +233,6 @@ def get_system_metrics():
         except Exception:
             temp = 0
             temp_str = "Unknown"
-
-        # Battery
-        battery_percent = 0.0
-        try:
-            battery = psutil.sensors_battery()
-            if battery:
-                battery_percent = battery.percent
-        except Exception:
-            battery_percent = 0.0
 
         # Disk usage
         disk = psutil.disk_usage("/")

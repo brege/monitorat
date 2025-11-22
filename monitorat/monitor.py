@@ -16,7 +16,13 @@ except ImportError:
     from config import config, reload_config, register_config_listener
     from alerts import NotificationHandler, setup_alert_handler
 
-__all__ = ["config", "reload_config", "register_config_listener", "NotificationHandler", "CSVHandler"]
+__all__ = [
+    "config",
+    "reload_config",
+    "register_config_listener",
+    "NotificationHandler",
+    "CSVHandler",
+]
 
 BASE = Path(__file__).parent.parent
 WWW = BASE / "monitorat"
@@ -101,6 +107,32 @@ class CSVHandler:
     def __init__(self, widget_name: str, columns: List[str]):
         self.path = get_data_path() / f"{widget_name}.csv"
         self.columns = columns
+        self._migrate_schema_if_needed()
+
+    def _migrate_schema_if_needed(self) -> None:
+        """Migrate CSV to canonical schema if headers differ"""
+        if not self.path.exists():
+            return
+
+        with self.path.open("r", newline="") as f:
+            reader = csv.DictReader(f)
+            existing_headers = reader.fieldnames or []
+            existing_rows = list(reader)
+
+        if not existing_headers or set(existing_headers) == set(self.columns):
+            return
+
+        canonical_set = set(self.columns)
+        existing_set = set(existing_headers)
+        extra = existing_set - canonical_set
+
+        final_headers = self.columns + [col for col in existing_headers if col in extra]
+
+        with self.path.open("w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=final_headers)
+            writer.writeheader()
+            for row in existing_rows:
+                writer.writerow(row)
 
     def append(self, row: dict) -> None:
         """Append row to CSV, creating file with header if needed"""

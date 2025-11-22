@@ -374,6 +374,17 @@ class ChartManager {
         allValues = loadValues
         break
       }
+
+      case 'battery_percent': {
+        const batteryValues = chronological.map(row => parseFloat(row.battery_percent))
+        datasets = this.buildGhostedDatasets({
+          label: 'Battery %',
+          color: 'rgb(34, 197, 94)',
+          rawValues: batteryValues
+        })
+        allValues = batteryValues
+        break
+      }
     }
 
     return { labels, datasets, allValues }
@@ -384,6 +395,7 @@ class ChartManager {
       case 'cpu_memory':
       case 'cpu_percent':
       case 'memory_percent':
+      case 'battery_percent':
         return 'Percentage'
       case 'disk_io':
       case 'net_io':
