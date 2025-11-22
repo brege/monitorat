@@ -3,18 +3,19 @@ from subprocess import run, PIPE, TimeoutExpired
 from json import loads
 from datetime import datetime
 import logging
+from typing import List
 
-from monitor import get_csv_path, parse_iso_timestamp, resolve_period_cutoff
+from monitor import CSVHandler, parse_iso_timestamp, resolve_period_cutoff
 
 SPEEDTEST = "speedtest-cli"
 logger = logging.getLogger(__name__)
 
+SPEEDTEST_COLUMNS: List[str] = ["timestamp", "download", "upload", "ping", "server"]
+csv_handler = CSVHandler("speedtest", SPEEDTEST_COLUMNS)
+
 
 def speedtest_run():
     logger.info("Starting speedtest run")
-    csv_path = get_csv_path()
-    if not csv_path.exists():
-        csv_path.write_text("timestamp,download,upload,ping,server\n")
 
     try:
         proc = run(
@@ -35,15 +36,14 @@ def speedtest_run():
     if data:
         try:
             parsed = loads(data)
-            line = "{},{},{},{},{}\n".format(
-                parsed["timestamp"],
-                parsed["download"],
-                parsed["upload"],
-                parsed["ping"],
-                parsed["server"]["sponsor"].replace(",", " "),
-            )
-            with csv_path.open("a") as f:
-                f.write(line)
+            row = {
+                "timestamp": parsed["timestamp"],
+                "download": str(parsed["download"]),
+                "upload": str(parsed["upload"]),
+                "ping": str(parsed["ping"]),
+                "server": parsed["server"]["sponsor"].replace(",", " "),
+            }
+            csv_handler.append(row)
             download_mbps = parsed["download"] / 1_000_000
             upload_mbps = parsed["upload"] / 1_000_000
             logger.info(
@@ -69,31 +69,10 @@ def speedtest_history():
     limit = request.args.get("limit", default=200, type=int)
     limit = max(1, min(limit or 200, 1000))
 
-    csv_path = get_csv_path()
-    if not csv_path.exists():
-        return jsonify(entries=[])
-
     try:
-        with csv_path.open("r") as f:
-            lines = [line.strip() for line in f.readlines()[1:] if line.strip()]
-
-        recent = lines[-limit:]
-        entries = []
-        for row in reversed(recent):
-            parts = row.split(",", 4)
-            if len(parts) < 5:
-                continue
-            timestamp, download, upload, ping, server = parts
-            entries.append(
-                {
-                    "timestamp": timestamp,
-                    "download": download,
-                    "upload": upload,
-                    "ping": ping,
-                    "server": server,
-                }
-            )
-
+        all_rows = csv_handler.read_all()
+        recent = all_rows[-limit:]
+        entries = [row for row in reversed(recent)]
         return jsonify(entries=entries)
     except Exception as exc:
         return jsonify(error=str(exc)), 500
@@ -105,32 +84,25 @@ def speedtest_chart():
     period = request.args.get("period", default="all", type=str)
     period_cutoff = resolve_period_cutoff(period, now=now)
 
-    csv_path = get_csv_path()
-    if not csv_path.exists():
-        return jsonify(labels=[], datasets=[])
-
     try:
-        with csv_path.open("r") as f:
-            lines = [line.strip() for line in f.readlines()[1:] if line.strip()]
-
-        effective_cutoff = period_cutoff
+        all_rows = csv_handler.read_all()
 
         labels = []
         download_data = []
         upload_data = []
         ping_data = []
 
-        for row in lines:
-            parts = row.split(",", 4)
-            if len(parts) < 5:
-                continue
-            timestamp, download, upload, ping, server = parts
+        for row in all_rows:
+            timestamp = row.get("timestamp", "")
+            download = row.get("download", "")
+            upload = row.get("upload", "")
+            ping = row.get("ping", "")
 
             dt = parse_iso_timestamp(timestamp)
             if not dt:
                 continue
 
-            if effective_cutoff is not None and dt < effective_cutoff:
+            if period_cutoff is not None and dt < period_cutoff:
                 continue
 
             try:
@@ -183,12 +155,11 @@ def speedtest_chart():
 def speedtest_csv():
     """Download the raw speedtest CSV file"""
     try:
-        csv_path = get_csv_path()
-        if not csv_path.exists():
+        if not csv_handler.path.exists():
             return "No speedtest data available", 404
 
         return send_file(
-            csv_path,
+            csv_handler.path,
             as_attachment=True,
             download_name="speedtest.csv",
             mimetype="text/csv",

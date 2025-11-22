@@ -5,6 +5,7 @@ from urllib.request import urlretrieve
 from datetime import datetime, timedelta, timezone
 import importlib
 import logging
+import csv
 from typing import List, Optional, Set
 from pytimeparse import parse as parse_duration
 
@@ -15,7 +16,7 @@ except ImportError:
     from config import config, reload_config, register_config_listener
     from alerts import NotificationHandler, setup_alert_handler
 
-__all__ = ["config", "reload_config", "register_config_listener", "NotificationHandler"]
+__all__ = ["config", "reload_config", "register_config_listener", "NotificationHandler", "CSVHandler"]
 
 BASE = Path(__file__).parent.parent
 WWW = BASE / "monitorat"
@@ -66,10 +67,6 @@ def setup_logging():
     )
 
 
-def get_csv_path():
-    return get_data_path() / "speedtest.csv"
-
-
 def resolve_period_cutoff(period_str: Optional[str], now: Optional[datetime] = None):
     """Return the datetime cutoff for a natural-language period."""
     if not period_str or period_str.lower() == "all":
@@ -96,6 +93,34 @@ def parse_iso_timestamp(value: Optional[str]):
         return dt
     except ValueError:
         return None
+
+
+class CSVHandler:
+    """Handles CSV storage for widget data with DictWriter/DictReader"""
+
+    def __init__(self, widget_name: str, columns: List[str]):
+        self.path = get_data_path() / f"{widget_name}.csv"
+        self.columns = columns
+
+    def append(self, row: dict) -> None:
+        """Append row to CSV, creating file with header if needed"""
+        file_exists = self.path.exists()
+        if not file_exists:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+
+        with self.path.open("a", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=self.columns)
+            if not file_exists:
+                writer.writeheader()
+            writer.writerow(row)
+
+    def read_all(self) -> List[dict]:
+        """Read all rows as dicts"""
+        if not self.path.exists():
+            return []
+
+        with self.path.open("r", newline="") as f:
+            return list(csv.DictReader(f))
 
 
 VENDOR_URLS = {

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import csv
 import json
 import os
 import psutil
@@ -9,11 +8,28 @@ import time
 import logging
 from pathlib import Path
 from datetime import datetime
+from typing import List
 
-from monitor import config, get_data_path, parse_iso_timestamp, resolve_period_cutoff
+from monitor import config, get_data_path, parse_iso_timestamp, resolve_period_cutoff, CSVHandler
 from flask import request, send_file
 
 logger = logging.getLogger(__name__)
+
+METRICS_COLUMNS: List[str] = [
+    "timestamp",
+    "cpu_percent",
+    "memory_percent",
+    "disk_read_mb",
+    "disk_write_mb",
+    "net_rx_mb",
+    "net_tx_mb",
+    "load_1min",
+    "temp_c",
+    "battery_percent",
+    "source",
+]
+
+csv_handler = CSVHandler("metrics", METRICS_COLUMNS)
 
 
 def metrics_config():
@@ -94,22 +110,8 @@ def get_metric_status(metric_type, value, thresholds=None):
     return "ok"
 
 
-def get_metrics_csv_path():
-    """Get path to metrics CSV file"""
-    filename = get_history_file()
-    path = Path(filename)
-    if path.is_absolute():
-        return path
-    return get_data_path() / path
-
-
 def log_metrics_to_csv(metrics_data, source="refresh"):
     """Log metrics data to CSV file"""
-    csv_path = get_metrics_csv_path()
-
-    # Ensure directory exists
-    csv_path.parent.mkdir(parents=True, exist_ok=True)
-
     # Extract numeric values from metrics
     load_parts = metrics_data["load"].split()
     load_1min = float(load_parts[0]) if load_parts else 0.0
@@ -150,39 +152,30 @@ def log_metrics_to_csv(metrics_data, source="refresh"):
     # CPU percentage
     cpu_percent = psutil.cpu_percent(interval=0.1)
 
-    row = [
-        datetime.now().isoformat(),
-        f"{cpu_percent:.1f}",
-        f"{memory_percent:.1f}",
-        f"{disk_read_mb:.1f}",
-        f"{disk_write_mb:.1f}",
-        f"{net_rx_mb:.1f}",
-        f"{net_tx_mb:.1f}",
-        f"{load_1min:.2f}",
-        f"{temp_c:.1f}",
-        source,
-    ]
+    # Battery percentage
+    battery_percent = 0.0
+    try:
+        battery = psutil.sensors_battery()
+        if battery:
+            battery_percent = battery.percent
+    except Exception:
+        battery_percent = 0.0
 
-    # Write header if file doesn't exist
-    file_exists = csv_path.exists()
-    with open(csv_path, "a", newline="") as f:
-        writer = csv.writer(f)
-        if not file_exists:
-            writer.writerow(
-                [
-                    "timestamp",
-                    "cpu_percent",
-                    "memory_percent",
-                    "disk_read_mb",
-                    "disk_write_mb",
-                    "net_rx_mb",
-                    "net_tx_mb",
-                    "load_1min",
-                    "temp_c",
-                    "source",
-                ]
-            )
-        writer.writerow(row)
+    row = {
+        "timestamp": datetime.now().isoformat(),
+        "cpu_percent": f"{cpu_percent:.1f}",
+        "memory_percent": f"{memory_percent:.1f}",
+        "disk_read_mb": f"{disk_read_mb:.1f}",
+        "disk_write_mb": f"{disk_write_mb:.1f}",
+        "net_rx_mb": f"{net_rx_mb:.1f}",
+        "net_tx_mb": f"{net_tx_mb:.1f}",
+        "load_1min": f"{load_1min:.2f}",
+        "temp_c": f"{temp_c:.1f}",
+        "battery_percent": f"{battery_percent:.1f}",
+        "source": source,
+    }
+
+    csv_handler.append(row)
 
 
 def resolve_storage_usage():
@@ -241,6 +234,15 @@ def get_system_metrics():
         except Exception:
             temp = 0
             temp_str = "Unknown"
+
+        # Battery
+        battery_percent = 0.0
+        try:
+            battery = psutil.sensors_battery()
+            if battery:
+                battery_percent = battery.percent
+        except Exception:
+            battery_percent = 0.0
 
         # Disk usage
         disk = psutil.disk_usage("/")
@@ -466,19 +468,7 @@ def register_routes(app):
     def api_metrics_history():
         """Get historical metrics data from CSV with optional period filtering"""
         try:
-            csv_path = get_metrics_csv_path()
-            if not csv_path.exists():
-                return app.response_class(
-                    response=json.dumps({"data": []}),
-                    status=200,
-                    mimetype="application/json",
-                )
-
-            data = []
-            with open(csv_path, "r") as f:
-                reader = csv.DictReader(f)
-                for row in reader:
-                    data.append(row)
+            data = csv_handler.read_all()
 
             # Apply period filtering if specified
             period = request.args.get("period")
@@ -502,8 +492,7 @@ def register_routes(app):
     def api_metrics_csv():
         """Download the raw metrics CSV file"""
         try:
-            csv_path = get_metrics_csv_path()
-            if not csv_path.exists():
+            if not csv_handler.path.exists():
                 return app.response_class(
                     response="No metrics data available",
                     status=404,
@@ -511,7 +500,7 @@ def register_routes(app):
                 )
 
             return send_file(
-                csv_path,
+                csv_handler.path,
                 as_attachment=True,
                 download_name="metrics.csv",
                 mimetype="text/csv",

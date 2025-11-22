@@ -28,7 +28,7 @@ widgets:
       min: 5  # minimum rows to show
       max: 200  # maximum rows to load
     chart:
-      default_metric: cpu_memory  # options: cpu_memory, cpu_percent, memory_percent, disk_io, net_io, temp_c, load_1min
+      default_metric: cpu_memory  # options: cpu_memory, cpu_percent, memory_percent, disk_io, net_io, temp_c, load_1min, battery_percent
       default_period: 1 hour  # natural language
       height: 400px  # fixed chart height
       periods: [1 year, 30 days, 7 days, 24 hours, 6 hours, 1 hour]
