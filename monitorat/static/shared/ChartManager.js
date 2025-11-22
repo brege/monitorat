@@ -7,6 +7,7 @@ class ChartManager {
     this.chartOptions = config.chartOptions || {}
     this.dataUrl = config.dataUrl
     this.dataParams = config.dataParams || {}
+    this.metricConfig = config.metricConfig || {}
 
     this.chart = null
     this.chartInitPromise = null
@@ -266,147 +267,44 @@ class ChartManager {
     ]
   }
 
-  static createMetricsChartData (entries, selectedMetric, DataFormatter) {
-    if (!entries || !entries.length) return { labels: [], datasets: [] }
+  createChartData (entries, selectedItem, DataFormatter) {
+    if (!entries || !entries.length) return { labels: [], datasets: [], allValues: [] }
+    if (!this.metricConfig[selectedItem]) return { labels: [], datasets: [], allValues: [] }
 
     const chronological = entries.slice()
     const labels = chronological.map(row => DataFormatter.formatTime(row.timestamp))
+    const metricDef = this.metricConfig[selectedItem]
 
     let datasets = []
     let allValues = []
 
-    switch (selectedMetric) {
-      case 'cpu_memory': {
-        const cpuData = chronological.map(row => parseFloat(row.cpu_percent))
-        const memoryData = chronological.map(row => parseFloat(row.memory_percent))
-        datasets = [
-          ...this.buildGhostedDatasets({
-            label: 'CPU %',
-            color: 'rgb(75, 192, 192)',
-            rawValues: cpuData
-          }),
-          ...this.buildGhostedDatasets({
-            label: 'Memory %',
-            color: 'rgb(255, 159, 64)',
-            rawValues: memoryData
-          })
-        ]
-        allValues = [...cpuData, ...memoryData]
-        break
+    if (metricDef.metrics) {
+      // Multi-metric case (cpu_memory, disk_io, net_io)
+      for (const m of metricDef.metrics) {
+        const values = chronological.map(row => parseFloat(row[m.dataField]) || 0)
+        datasets.push(...this.constructor.buildGhostedDatasets({
+          label: m.label,
+          color: m.color,
+          rawValues: values
+        }))
+        allValues.push(...values)
       }
-
-      case 'cpu_percent': {
-        const cpuValues = chronological.map(row => parseFloat(row.cpu_percent))
-        datasets = this.buildGhostedDatasets({
-          label: 'CPU %',
-          color: 'rgb(75, 192, 192)',
-          rawValues: cpuValues
-        })
-        allValues = cpuValues
-        break
-      }
-
-      case 'memory_percent': {
-        const memValues = chronological.map(row => parseFloat(row.memory_percent))
-        datasets = this.buildGhostedDatasets({
-          label: 'Memory %',
-          color: 'rgb(255, 159, 64)',
-          rawValues: memValues
-        })
-        allValues = memValues
-        break
-      }
-
-      case 'disk_io': {
-        const diskDeltas = this.calculateDeltas(chronological, 'disk_read_mb', 'disk_write_mb')
-        datasets = [
-          ...this.buildGhostedDatasets({
-            label: 'Read MB/min',
-            color: 'rgb(54, 162, 235)',
-            rawValues: diskDeltas.read
-          }),
-          ...this.buildGhostedDatasets({
-            label: 'Write MB/min',
-            color: 'rgb(255, 99, 132)',
-            rawValues: diskDeltas.write
-          })
-        ]
-        allValues = [...diskDeltas.read, ...diskDeltas.write]
-        break
-      }
-
-      case 'net_io': {
-        const netDeltas = this.calculateDeltas(chronological, 'net_rx_mb', 'net_tx_mb')
-        datasets = [
-          ...this.buildGhostedDatasets({
-            label: 'RX MB/min',
-            color: 'rgb(75, 192, 192)',
-            rawValues: netDeltas.read
-          }),
-          ...this.buildGhostedDatasets({
-            label: 'TX MB/min',
-            color: 'rgb(255, 159, 64)',
-            rawValues: netDeltas.write
-          })
-        ]
-        allValues = [...netDeltas.read, ...netDeltas.write]
-        break
-      }
-
-      case 'temp_c': {
-        const tempValues = chronological.map(row => parseFloat(row.temp_c))
-        datasets = this.buildGhostedDatasets({
-          label: 'Temperature (°C)',
-          color: 'rgb(255, 99, 132)',
-          rawValues: tempValues
-        })
-        allValues = tempValues
-        break
-      }
-
-      case 'load_1min': {
-        const loadValues = chronological.map(row => parseFloat(row.load_1min))
-        datasets = this.buildGhostedDatasets({
-          label: 'Load Average',
-          color: 'rgb(153, 102, 255)',
-          rawValues: loadValues
-        })
-        allValues = loadValues
-        break
-      }
-
-      case 'battery_percent': {
-        const batteryValues = chronological.map(row => parseFloat(row.battery_percent))
-        datasets = this.buildGhostedDatasets({
-          label: 'Battery %',
-          color: 'rgb(34, 197, 94)',
-          rawValues: batteryValues
-        })
-        allValues = batteryValues
-        break
-      }
+    } else {
+      // Single metric case
+      const values = chronological.map(row => parseFloat(row[metricDef.dataField]) || 0)
+      datasets = this.constructor.buildGhostedDatasets({
+        label: metricDef.label,
+        color: metricDef.color,
+        rawValues: values
+      })
+      allValues = values
     }
 
     return { labels, datasets, allValues }
   }
 
-  static getMetricsYAxisLabel (selectedMetric) {
-    switch (selectedMetric) {
-      case 'cpu_memory':
-      case 'cpu_percent':
-      case 'memory_percent':
-      case 'battery_percent':
-        return 'Percentage'
-      case 'disk_io':
-      case 'net_io':
-        return 'MB/min'
-      case 'temp_c':
-        return 'Temperature (°C)'
-      case 'load_1min':
-        return 'Load Average'
-      default:
-        return 'Value'
-    }
+  getYAxisLabel (selectedItem) {
+    return this.metricConfig[selectedItem]?.yAxisLabel || 'Value'
   }
 
   static filterDataByPeriod (data, period) {

@@ -26,6 +26,63 @@ class MetricsWidget {
     this.entries = []
     this.selectedMetric = 'cpu_memory'
     this.selectedPeriod = 'all'
+
+    this.metricConfig = {
+      cpu_memory: {
+        label: 'CPU + Memory',
+        yAxisLabel: 'Percentage',
+        metrics: [
+          { dataField: 'cpu_percent', label: 'CPU %', color: 'rgb(75, 192, 192)' },
+          { dataField: 'memory_percent', label: 'Memory %', color: 'rgb(255, 159, 64)' }
+        ]
+      },
+      cpu_percent: {
+        label: 'CPU %',
+        yAxisLabel: 'Percentage',
+        dataField: 'cpu_percent',
+        color: 'rgb(75, 192, 192)'
+      },
+      memory_percent: {
+        label: 'Memory %',
+        yAxisLabel: 'Percentage',
+        dataField: 'memory_percent',
+        color: 'rgb(255, 159, 64)'
+      },
+      disk_io: {
+        label: 'Disk I/O',
+        yAxisLabel: 'MB/min',
+        metrics: [
+          { dataField: 'disk_read_rate', label: 'Read MB/min', color: 'rgb(54, 162, 235)' },
+          { dataField: 'disk_write_rate', label: 'Write MB/min', color: 'rgb(255, 99, 132)' }
+        ]
+      },
+      net_io: {
+        label: 'Network I/O',
+        yAxisLabel: 'MB/min',
+        metrics: [
+          { dataField: 'net_rx_rate', label: 'RX MB/min', color: 'rgb(75, 192, 192)' },
+          { dataField: 'net_tx_rate', label: 'TX MB/min', color: 'rgb(255, 159, 64)' }
+        ]
+      },
+      temp_c: {
+        label: 'Temperature',
+        yAxisLabel: 'Temperature (°C)',
+        dataField: 'temp_c',
+        color: 'rgb(255, 99, 132)'
+      },
+      load_1min: {
+        label: 'Load Average',
+        yAxisLabel: 'Load Average',
+        dataField: 'load_1min',
+        color: 'rgb(153, 102, 255)'
+      },
+      battery_percent: {
+        label: 'Battery',
+        yAxisLabel: 'Percentage',
+        dataField: 'battery_percent',
+        color: 'rgb(34, 197, 94)'
+      }
+    }
   }
 
   buildConfig (overrides = {}) {
@@ -225,7 +282,8 @@ class MetricsWidget {
       containerElement: this.container.querySelector('[data-metrics="chart-container"]'),
       height: this.config.chart.height,
       dataUrl: null,
-      chartOptions: {}
+      chartOptions: {},
+      metricConfig: this.metricConfig
     })
 
     this.tableManager = new TableManager({
@@ -295,7 +353,7 @@ class MetricsWidget {
     if (!this.chartManager || !this.chartManager.chart || !this.entries.length) return
 
     const DataFormatter = window.monitorShared.DataFormatter
-    const chartData = ChartManager.createMetricsChartData(this.entries, this.selectedMetric, DataFormatter)
+    const chartData = this.chartManager.createChartData(this.entries, this.selectedMetric, DataFormatter)
 
     if (!chartData.allValues || !chartData.allValues.length) return
 
@@ -307,7 +365,7 @@ class MetricsWidget {
       y: {
         title: {
           display: true,
-          text: ChartManager.getMetricsYAxisLabel(this.selectedMetric)
+          text: this.chartManager.getYAxisLabel(this.selectedMetric)
         },
         min: Math.max(0, min - padding),
         max: max + padding
