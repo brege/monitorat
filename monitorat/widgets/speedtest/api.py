@@ -74,7 +74,7 @@ def speedtest_run():
                 "timestamp": parsed["timestamp"],
             }
             if is_metric_enabled("server"):
-                row["server"] = parsed["server"]["sponsor"].replace(",", " ")
+                row["server"] = parsed["server"]["sponsor"]
             if is_metric_enabled("download"):
                 row["download"] = str(parsed["download"])
             if is_metric_enabled("upload"):
@@ -113,8 +113,7 @@ def speedtest_history():
     try:
         all_rows = csv_handler.read_all()
         recent = all_rows[-limit:]
-        entries = [row for row in reversed(recent)]
-        return jsonify(entries=entries)
+        return jsonify(entries=[row for row in reversed(recent)])
     except Exception as exc:
         return jsonify(error=str(exc)), 500
 
@@ -144,6 +143,10 @@ def speedtest_chart():
             download = row.get("download") if is_metric_enabled("download") else None
             upload = row.get("upload") if is_metric_enabled("upload") else None
             ping = row.get("ping") if is_metric_enabled("ping") else None
+            server = row.get("server", "") if is_metric_enabled("server") else ""
+            ip_address = (
+                row.get("ip_address", "") if is_metric_enabled("ip_address") else ""
+            )
 
             dt = parse_iso_timestamp(timestamp)
             if not dt:
@@ -162,6 +165,12 @@ def speedtest_chart():
                     ),
                     **({"upload": upload} if "upload" in metrics_to_include else {}),
                     **({"ping": ping} if "ping" in metrics_to_include else {}),
+                    **({"server": server} if is_metric_enabled("server") else {}),
+                    **(
+                        {"ip_address": ip_address}
+                        if is_metric_enabled("ip_address")
+                        else {}
+                    ),
                 }
             )
 

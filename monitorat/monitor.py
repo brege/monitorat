@@ -230,11 +230,16 @@ def api_config():
     try:
         widgets_merged = {}
         for key in config["widgets"].keys():
-            widgets_merged[key] = config["widgets"][key].get()
+            # {widget}.enabled = list
+            if key == "enabled":
+                widgets_merged[key] = config["widgets"][key].get()
+                continue
+            # merge values from all sources
+            widgets_merged[key] = config["widgets"][key].flatten()
 
         payload = {
-            "site": config["site"].get(dict),
-            "privacy": config["privacy"].get(dict),
+            "site": config["site"].flatten(),
+            "privacy": config["privacy"].flatten(),
             "widgets": widgets_merged,
         }
         return jsonify(payload)

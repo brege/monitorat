@@ -78,7 +78,7 @@ widgets:
       - upload
       - ping
       - server
-      - ip_address
+      #- ip_address
     metadata:
       field: server
       label: Server

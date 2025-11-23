@@ -166,17 +166,17 @@ class TimeSeriesHandler {
       row.push(DataFormatter.formatBySchema(entry[metric.field], metric))
     }
 
-    if (metadataField && (!Array.isArray(metadataFields) || metadataFields.length === 0)) {
-      row.push(entry.source || entry[metadataField] || '')
+    const metadataFieldName = metadataField || null
+    if (metadataFieldName) {
+      row.push(entry.source || entry[metadataFieldName] || '')
     }
 
     if (Array.isArray(metadataFields)) {
       for (const field of metadataFields) {
-        if (typeof field === 'string') {
-          row.push(entry[field] || '')
-        } else if (field && typeof field.field === 'string') {
-          row.push(entry[field.field] || '')
-        }
+        const fieldName = typeof field === 'string' ? field : field?.field
+        if (!fieldName) continue
+        if (fieldName === metadataFieldName) continue
+        row.push(entry[fieldName] || '')
       }
     }
 
