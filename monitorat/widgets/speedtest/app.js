@@ -47,7 +47,7 @@ class SpeedtestWidget {
     await this.loadSchema()
     this.metricFields = this.resolveMetricFields()
 
-    const response = await fetch('widgets/speedtest/speedtest.html')
+    const response = await fetch('widgets/speedtest/index.html')
     const html = await response.text()
     container.innerHTML = html
 

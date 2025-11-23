@@ -75,7 +75,7 @@ class NetworkWidget {
     this.container = container
     this.config = { ...this.config, ...config }
 
-    const response = await fetch('widgets/network/network.html')
+    const response = await fetch('widgets/network/index.html')
     const html = await response.text()
     container.innerHTML = html
 

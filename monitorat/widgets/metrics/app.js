@@ -52,7 +52,7 @@ class MetricsWidget {
     await this.loadSchema()
     this.selectedMetric = this.config.chart.default_metric || this.defaults.chart.default_metric
 
-    const response = await fetch('widgets/metrics/metrics.html')
+    const response = await fetch('widgets/metrics/index.html')
     const html = await response.text()
     container.innerHTML = html
 

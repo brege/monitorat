@@ -8,7 +8,7 @@ class WikiWidget {
     this.container = container
     this.config = { ...this.config, ...config }
 
-    const response = await fetch('widgets/wiki/wiki.html')
+    const response = await fetch('widgets/wiki/index.html')
     const html = await response.text()
     container.innerHTML = html
 

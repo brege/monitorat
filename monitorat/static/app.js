@@ -288,7 +288,7 @@ async function ensureWidgetScript (widgetType) {
     }
 
     const script = document.createElement('script')
-    script.src = `widgets/${widgetType}/${widgetType}.js`
+    script.src = `widgets/${widgetType}/app.js`
     script.async = true
     script.onload = () => resolve()
     script.onerror = () => reject(new Error(`Failed to load widget script: ${widgetType}`))

@@ -11,7 +11,7 @@ class ServicesWidget {
     this.config = { ...this.config, ...config }
 
     // Load HTML template
-    const response = await fetch('widgets/services/services.html')
+    const response = await fetch('widgets/services/index.html')
     const html = await response.text()
     container.innerHTML = html
 

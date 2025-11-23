@@ -12,7 +12,7 @@ class RemindersWidget {
     this.config = { ...this.config, ...config }
 
     // Load HTML template
-    const response = await fetch('widgets/reminders/reminders.html')
+    const response = await fetch('widgets/reminders/index.html')
     const html = await response.text()
     container.innerHTML = html
 
