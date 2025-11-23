@@ -1,4 +1,4 @@
-/* global ChartManager, DataFormatter, MetricsWidget, WidgetHelpers, ChartTableWidgetMethods */
+/* global TimeSeriesHandler, ChartTableWidgetMethods */
 class SpeedtestWidget {
   constructor (widgetConfig = {}) {
     this.container = null
@@ -29,7 +29,7 @@ class SpeedtestWidget {
   }
 
   buildConfig (overrides = {}) {
-    return WidgetHelpers.buildConfig(this.defaults, this.widgetConfig, overrides)
+    return TimeSeriesHandler.buildConfig(this.defaults, this.widgetConfig, overrides)
   }
 
   resolveMetricFields () {
@@ -76,7 +76,7 @@ class SpeedtestWidget {
     if (run) run.addEventListener('click', () => this.runSpeedtest())
     this.wireViewToggles()
 
-    WidgetHelpers.setupPeriodSelect(periodSelect, this.config.chart.periods, this.selectedPeriod, (period) => {
+    TimeSeriesHandler.setupPeriodSelect(periodSelect, this.config.chart.periods, this.selectedPeriod, (period) => {
       this.selectedPeriod = period
       if (this.chartManager?.hasChart()) {
         this.chartManager.dataParams.period = this.selectedPeriod
@@ -87,7 +87,6 @@ class SpeedtestWidget {
 
   initManagers () {
     const ChartManager = window.monitorShared?.ChartManager
-    const TableManager = window.monitorShared?.TableManager
 
     const axes = this.schema?.axes && Object.keys(this.schema.axes).length > 0 ? this.schema.axes : {}
     const scales = ChartManager.buildScalesFromSchema(axes)
@@ -105,16 +104,6 @@ class SpeedtestWidget {
     })
 
     this.tableManager = this.createTableManager()
-  }
-
-  rebuildTableHeaders () {
-    const metadataLabel = this.schema?.metadata?.label || 'Server'
-    const TableManager = window.monitorShared.TableManager
-    TableManager.buildTableHeaders(this.container, this.metricFields, metadataLabel)
-  }
-
-  formatTableRow (entry) {
-    return ChartTableWidgetMethods.formatTableRow.call(this, entry)
   }
 
   async runSpeedtest () {
@@ -193,12 +182,6 @@ class SpeedtestWidget {
 }
 
 Object.assign(SpeedtestWidget.prototype, window.monitorShared.ChartTableWidgetMethods || ChartTableWidgetMethods)
-
-SpeedtestWidget.prototype.getViewControls = function () {
-  return [
-    this.getElement('period-select')
-  ]
-}
 
 window.widgets = window.widgets || {}
 window.widgets.speedtest = SpeedtestWidget

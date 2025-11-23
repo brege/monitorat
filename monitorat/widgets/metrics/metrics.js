@@ -1,5 +1,5 @@
 // Metrics Widget
-/* global ChartManager, DataFormatter, WidgetHelpers, ChartTableWidgetMethods */
+/* global ChartManager, TimeSeriesHandler, ChartTableWidgetMethods */
 class MetricsWidget {
   constructor (widgetConfig = {}) {
     this.container = null
@@ -32,7 +32,7 @@ class MetricsWidget {
   }
 
   buildConfig (overrides = {}) {
-    return WidgetHelpers.buildConfig(this.defaults, this.widgetConfig, overrides)
+    return TimeSeriesHandler.buildConfig(this.defaults, this.widgetConfig, overrides)
   }
 
   resolveMetricFields () {
@@ -101,7 +101,7 @@ class MetricsWidget {
       })
     }
 
-    WidgetHelpers.setupPeriodSelect(periodSelect, this.config.chart.periods, this.selectedPeriod, (period) => {
+    TimeSeriesHandler.setupPeriodSelect(periodSelect, this.config.chart.periods, this.selectedPeriod, (period) => {
       this.selectedPeriod = period
       this.loadHistory()
     })
@@ -218,7 +218,6 @@ class MetricsWidget {
 
   initManagers () {
     const ChartManager = window.monitorShared?.ChartManager
-    const TableManager = window.monitorShared?.TableManager
 
     this.chartManager = new ChartManager({
       canvasElement: this.getElement('chart'),
@@ -296,7 +295,7 @@ class MetricsWidget {
   }
 
   updateViewToggle (hasEntries) {
-    this.currentView = WidgetHelpers.updateViewToggle({
+    this.currentView = TimeSeriesHandler.updateViewToggle({
       container: this.container,
       attributeName: this.attributeName,
       hasEntries,
