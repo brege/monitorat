@@ -9,17 +9,17 @@ class DataFormatter {
     }, 'Unknown')
   }
 
-  static formatMbps (value) {
+  static formatMbps (value, decimals = 2) {
     const num = Number(value)
     if (!Number.isFinite(num)) return '–'
-    return (num / 1_000_000).toFixed(2)
+    return (num / 1_000_000).toFixed(decimals)
   }
 
-  static formatPing (value) {
+  static formatPing (value, decimals = 1) {
     const num = Number(value)
     if (!Number.isFinite(num)) return '–'
-    const text = num.toFixed(1)
-    return text.endsWith('.0') ? text.slice(0, -2) : text
+    const text = num.toFixed(decimals)
+    return decimals === 1 && text.endsWith('.0') ? text.slice(0, -2) : text
   }
 
   static formatNumber (value, decimals = 1) {
@@ -60,6 +60,27 @@ class DataFormatter {
       th.textContent = header
       thead.appendChild(th)
     }
+  }
+
+  static formatBySchema (value, metricSchema = {}) {
+    if (value === null || value === undefined) return '–'
+
+    const unit = typeof metricSchema.unit === 'string' ? metricSchema.unit : ''
+    const formatType = metricSchema.format || 'number'
+    const decimals = Number.isFinite(metricSchema.decimals) ? metricSchema.decimals : 1
+
+    if (formatType === 'mbps') {
+      const formattedMbps = this.formatNumber(value / 1_000_000, Number.isFinite(metricSchema.decimals) ? metricSchema.decimals : 2)
+      return formattedMbps === '–' ? formattedMbps : `${formattedMbps}${unit}`
+    }
+
+    if (formatType === 'ping') {
+      const formattedPing = this.formatPing(value, decimals)
+      return formattedPing === '–' ? formattedPing : `${formattedPing}${unit}`
+    }
+
+    const formattedNumber = this.formatNumber(value, decimals)
+    return formattedNumber === '–' ? formattedNumber : `${formattedNumber}${unit}`
   }
 }
 

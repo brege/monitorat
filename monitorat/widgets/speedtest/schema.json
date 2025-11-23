@@ -1,35 +1,70 @@
 {
+  "metadata": {
+    "field": "server",
+    "label": "Server",
+    "emptyMessage": "No speedtests logged yet."
+  },
+  "axes": {
+    "x": {
+      "display": true,
+      "title": {
+        "display": true,
+        "text": "Timestamp"
+      },
+      "grid": {
+        "display": false
+      }
+    },
+    "speed": {
+      "type": "linear",
+      "position": "left",
+      "title": {
+        "display": true,
+        "text": "Speed (Mbps)"
+      }
+    },
+    "ping": {
+      "type": "linear",
+      "position": "right",
+      "title": {
+        "display": true,
+        "text": "Ping (ms)"
+      },
+      "grid": {
+        "drawOnChartArea": false
+      }
+    }
+  },
   "metrics": [
     {
       "field": "download",
-      "label": "Download",
+      "label": "Download (Mbps)",
       "unit": "Mbps",
+      "format": "mbps",
       "decimals": 2,
       "color": "rgb(59, 130, 246)",
       "yAxisID": "speed",
-      "converter": "mbps"
+      "yAxisLabel": "Speed (Mbps)"
     },
     {
       "field": "upload",
-      "label": "Upload",
+      "label": "Upload (Mbps)",
       "unit": "Mbps",
+      "format": "mbps",
       "decimals": 2,
       "color": "rgb(239, 68, 68)",
       "yAxisID": "speed",
-      "converter": "mbps"
+      "yAxisLabel": "Speed (Mbps)"
     },
     {
       "field": "ping",
-      "label": "Ping",
+      "label": "Ping (ms)",
       "unit": "ms",
+      "format": "ping",
       "decimals": 1,
       "color": "rgb(16, 185, 129)",
       "yAxisID": "ping",
-      "converter": "none"
+      "yAxisLabel": "Ping (ms)"
     }
-  ],
-  "metadata": {
-    "field": "server",
-    "label": "Server"
-  }
+  ]
 }

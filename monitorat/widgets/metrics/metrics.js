@@ -1,9 +1,10 @@
 // Metrics Widget
-/* global ChartManager, DataFormatter */
+/* global ChartManager, DataFormatter, WidgetHelpers */
 class MetricsWidget {
   constructor (widgetConfig = {}) {
     this.container = null
     this.widgetConfig = widgetConfig
+    this.attributeName = 'data-metrics'
     this.defaults = {
       name: 'System Metrics',
       default: 'chart',
@@ -27,22 +28,24 @@ class MetricsWidget {
     if (this.schema) return
     const response = await fetch('api/metrics/schema')
     this.schema = await response.json()
-    this.metricFields = [...this.schema.metrics, ...this.schema.computed.flatMap(g => g.fields)]
+    this.metricFields = this.resolveMetricFields()
   }
 
   buildConfig (overrides = {}) {
-    const merged = { ...this.widgetConfig, ...overrides }
-    const table = { ...this.defaults.table, ...(this.widgetConfig.table || {}), ...(overrides.table || {}) }
-    const chart = { ...this.defaults.chart, ...(this.widgetConfig.chart || {}), ...(overrides.chart || {}) }
-    const periods = Array.isArray(merged.periods) ? [...merged.periods] : [...this.defaults.periods]
-    return {
-      _suppressHeader: merged._suppressHeader,
-      name: typeof merged.name !== 'undefined' ? merged.name : this.defaults.name,
-      default: typeof merged.default === 'string' ? merged.default : this.defaults.default,
-      table,
-      chart,
-      periods
+    return WidgetHelpers.buildConfig(this.defaults, this.widgetConfig, overrides)
+  }
+
+  resolveMetricFields () {
+    const allMetrics = [...(this.schema?.metrics || []), ...(this.schema?.computed || []).flatMap(group => group.fields)]
+    const enabled = this.config?.metrics?.enabled
+    if (Array.isArray(enabled) && enabled.length > 0) {
+      return allMetrics.filter(metric => enabled.includes(metric.field))
     }
+    return allMetrics
+  }
+
+  getElement (name) {
+    return this.container?.querySelector(`[${this.attributeName}="${name}"]`)
   }
 
   async init (container, config = {}) {
@@ -76,10 +79,10 @@ class MetricsWidget {
   }
 
   setupEventListeners () {
-    const viewChart = this.container.querySelector('[data-metrics="view-chart"]')
-    const viewTable = this.container.querySelector('[data-metrics="view-table"]')
-    const metricSelect = this.container.querySelector('[data-metrics="metric-select"]')
-    const periodSelect = this.container.querySelector('[data-metrics="period-select"]')
+    const viewChart = this.getElement('view-chart')
+    const viewTable = this.getElement('view-table')
+    const metricSelect = this.getElement('metric-select')
+    const periodSelect = this.getElement('period-select')
 
     if (viewChart) viewChart.addEventListener('click', () => this.setView('chart'))
     if (viewTable) viewTable.addEventListener('click', () => this.setView('table'))
@@ -99,28 +102,16 @@ class MetricsWidget {
         metricSelect.appendChild(option)
       }
       metricSelect.value = this.selectedMetric
-      metricSelect.addEventListener('change', (e) => {
-        this.selectedMetric = e.target.value
+      metricSelect.addEventListener('change', (event) => {
+        this.selectedMetric = event.target.value
         if (this.chartManager?.hasChart()) this.updateChart()
       })
     }
 
-    if (periodSelect) {
-      periodSelect.innerHTML = '<option value="all">All</option>'
-      if (Array.isArray(this.config.chart.periods)) {
-        this.config.chart.periods.forEach(period => {
-          const option = document.createElement('option')
-          option.value = period
-          option.textContent = period
-          periodSelect.appendChild(option)
-        })
-      }
-      periodSelect.value = this.selectedPeriod
-      periodSelect.addEventListener('change', (e) => {
-        this.selectedPeriod = e.target.value
-        this.loadHistory()
-      })
-    }
+    WidgetHelpers.setupPeriodSelect(periodSelect, this.config.chart.periods, this.selectedPeriod, (period) => {
+      this.selectedPeriod = period
+      this.loadHistory()
+    })
   }
 
   async loadData () {
@@ -165,15 +156,11 @@ class MetricsWidget {
     const thead = this.container.querySelector('thead tr')
     if (!thead) return
     const headers = ['Timestamp']
-    const enabled = this.config.metrics?.enabled
-    const all = !enabled || enabled.length === 0
-
     for (const metric of this.metricFields) {
-      if (all || enabled.includes(metric.field)) {
-        headers.push(metric.label)
-      }
+      headers.push(metric.label)
     }
-    headers.push('Source')
+    const metadataLabel = this.schema?.metadata?.label || 'Source'
+    headers.push(metadataLabel)
     const DataFormatter = window.monitorShared.DataFormatter
     DataFormatter.updateTableHeaders(thead, headers)
   }
@@ -239,79 +226,54 @@ class MetricsWidget {
   formatTableRow (entry) {
     const DataFormatter = window.monitorShared.DataFormatter
     const row = [DataFormatter.formatTimestamp(entry.timestamp)]
-    const enabled = this.config.metrics?.enabled
-    const all = !enabled || enabled.length === 0
-
     for (const metric of this.metricFields) {
-      if (all || enabled.includes(metric.field)) {
-        const value = entry[metric.field]
-        const formatted = value === null || value === undefined ? '–' : DataFormatter.formatNumber(value, metric.decimals)
-        row.push(formatted + metric.unit)
-      }
+      row.push(DataFormatter.formatBySchema(entry[metric.field], metric))
     }
-
-    row.push(entry.source || '')
+    const metadataField = this.schema?.metadata?.field
+    row.push(entry.source || entry[metadataField] || '')
     return row
   }
 
   setView (view) {
-    const DataFormatter = window.monitorShared.DataFormatter
-    const elements = DataFormatter.selectByAttribute(this.container, 'data-metrics', [
-      'view-toggle', 'chart-container', 'table-container', 'view-chart', 'view-table', 'metric-select', 'period-select'
-    ])
+    const controls = [
+      this.getElement('metric-select'),
+      this.getElement('period-select')
+    ]
 
-    const targetView = view === 'table' ? 'table' : view === 'none' ? 'none' : 'chart'
-    if (this.currentView === targetView) return
+    this.currentView = WidgetHelpers.setView({
+      view,
+      currentView: this.currentView,
+      container: this.container,
+      attributeName: this.attributeName,
+      chartManager: this.chartManager,
+      onChartReady: () => {
+        if (this.chartManager?.hasChart()) this.updateChart()
+      },
+      controlsForChart: controls
+    })
 
-    if (targetView === 'none') {
-      elements['view-toggle'].style.display = 'none'
-      elements['chart-container'].style.display = 'none'
-      elements['table-container'].style.display = 'none'
-    } else {
-      elements['view-toggle'].style.display = ''
-      if (targetView === 'chart') {
-        elements['chart-container'].style.display = ''
-        elements['table-container'].style.display = 'none'
-        elements['view-chart'].classList.add('active')
-        elements['view-table'].classList.remove('active')
-        if (this.chartManager) {
-          this.chartManager.ensureChart().then(() => {
-            if (this.chartManager.hasChart()) this.updateChart()
-          })
-        }
-      } else {
-        elements['chart-container'].style.display = 'none'
-        elements['table-container'].style.display = ''
-        elements['view-chart'].classList.remove('active')
-        elements['view-table'].classList.add('active')
-      }
-      if (elements['metric-select']) elements['metric-select'].style.display = targetView === 'chart' ? '' : 'none'
-      if (elements['period-select']) elements['period-select'].style.display = targetView === 'chart' ? '' : 'none'
-    }
-
-    this.currentView = targetView
     if (this.tableManager) this.tableManager.updateToggleVisibility()
+    return this.currentView
   }
 
   initManagers () {
-    const DataFormatter = window.monitorShared?.DataFormatter
     const ChartManager = window.monitorShared?.ChartManager
     const TableManager = window.monitorShared?.TableManager
 
     this.chartManager = new ChartManager({
-      canvasElement: this.container.querySelector('[data-metrics="chart"]'),
-      containerElement: this.container.querySelector('[data-metrics="chart-container"]'),
+      canvasElement: this.getElement('chart'),
+      containerElement: this.getElement('chart-container'),
       height: this.config.chart.height,
       dataUrl: null,
       chartOptions: {}
     })
 
     this.tableManager = new TableManager({
-      statusElement: this.container.querySelector('[data-metrics="history-status"]'),
-      rowsElement: this.container.querySelector('[data-metrics="rows"]'),
-      toggleElement: this.container.querySelector('[data-metrics="toggle"]'),
+      statusElement: this.getElement('history-status'),
+      rowsElement: this.getElement('rows'),
+      toggleElement: this.getElement('toggle'),
       previewCount: this.config.table.min,
-      emptyMessage: 'No metrics history yet.',
+      emptyMessage: this.schema?.metadata?.emptyMessage || 'No metrics history yet.',
       isTableViewActive: () => this.currentView === 'table',
       rowFormatter: (entry) => this.formatTableRow(entry)
     })
@@ -337,7 +299,7 @@ class MetricsWidget {
       const tableLimit = Number.isFinite(this.config.table?.max) ? this.config.table.max : this.defaults.table.max
       const tableEntries = this.transformedEntries.slice(-tableLimit).reverse()
       this.tableManager.setEntries(tableEntries)
-      this.updateViewToggle()
+      this.updateViewToggle(tableEntries.length > 0)
 
       if (this.chartManager?.hasChart()) this.updateChart()
     } catch (error) {
@@ -352,34 +314,37 @@ class MetricsWidget {
     const DataFormatter = window.monitorShared.DataFormatter
     const chartData = this.createChartData(this.transformedEntries, this.selectedMetric, DataFormatter)
 
-    if (!chartData.allValues?.length) return
+    const filteredValues = chartData.allValues.filter((value) => Number.isFinite(value))
+    if (!filteredValues.length) return
 
-    const min = Math.min(...chartData.allValues.filter(v => !isNaN(v)))
-    const max = Math.max(...chartData.allValues.filter(v => !isNaN(v)))
+    const min = Math.min(...filteredValues)
+    const max = Math.max(...filteredValues)
     const padding = (max - min) * 0.1
 
     const yAxisLabel = this.schema.computed.find(g => g.group === this.selectedMetric)?.yAxisLabel ||
                        this.schema.metrics.find(m => m.field === this.selectedMetric)?.yAxisLabel ||
                        'Value'
 
-    const scales = {
-      x: { display: true },
+    const axes = this.schema?.axes && Object.keys(this.schema.axes).length > 0 ? this.schema.axes : { x: { display: true }, y: { display: true } }
+    const scales = WidgetHelpers.buildScalesFromSchema(axes, {
       y: {
-        title: { display: true, text: yAxisLabel },
+        title: { text: yAxisLabel },
         min: Math.max(0, min - padding),
         max: max + padding
       }
-    }
+    })
 
     this.chartManager.updateChart({ labels: chartData.labels, datasets: chartData.datasets }, scales)
   }
 
-  updateViewToggle () {
-    const viewToggle = this.container.querySelector('[data-metrics="view-toggle"]')
-    if (viewToggle) {
-      viewToggle.style.display = ''
-      if (!this.currentView) this.setView('chart')
-    }
+  updateViewToggle (hasEntries) {
+    this.currentView = WidgetHelpers.updateViewToggle({
+      container: this.container,
+      attributeName: this.attributeName,
+      hasEntries,
+      currentView: this.currentView,
+      defaultViewSetter: () => this.setView(this.config.default || this.defaults.default)
+    })
   }
 }
 

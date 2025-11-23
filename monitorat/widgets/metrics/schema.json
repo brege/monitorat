@@ -1,9 +1,38 @@
 {
+  "metadata": {
+    "field": "source",
+    "label": "Source",
+    "emptyMessage": "No metrics history yet."
+  },
+  "axes": {
+    "x": {
+      "display": true,
+      "title": {
+        "display": true,
+        "text": "Timestamp"
+      },
+      "grid": {
+        "display": false
+      }
+    },
+    "y": {
+      "type": "linear",
+      "position": "left",
+      "title": {
+        "display": true,
+        "text": "Value"
+      },
+      "grid": {
+        "display": true
+      }
+    }
+  },
   "metrics": [
     {
       "field": "cpu_percent",
       "label": "CPU %",
       "unit": "%",
+      "format": "number",
       "decimals": 1,
       "color": "rgb(75, 192, 192)",
       "yAxisLabel": "Percentage"
@@ -12,6 +41,7 @@
       "field": "memory_percent",
       "label": "Memory %",
       "unit": "%",
+      "format": "number",
       "decimals": 1,
       "color": "rgb(255, 159, 64)",
       "yAxisLabel": "Percentage"
@@ -20,6 +50,7 @@
       "field": "load_1min",
       "label": "Load Average",
       "unit": "",
+      "format": "number",
       "decimals": 2,
       "color": "rgb(153, 102, 255)",
       "yAxisLabel": "Load Average"
@@ -28,6 +59,7 @@
       "field": "temp_c",
       "label": "Temperature",
       "unit": "°C",
+      "format": "number",
       "decimals": 1,
       "color": "rgb(255, 99, 132)",
       "yAxisLabel": "Temperature (°C)"
@@ -36,6 +68,7 @@
       "field": "battery_percent",
       "label": "Battery",
       "unit": "%",
+      "format": "number",
       "decimals": 1,
       "color": "rgb(34, 197, 94)",
       "yAxisLabel": "Percentage"
@@ -51,6 +84,7 @@
           "field": "disk_read_rate",
           "label": "Read MB/min",
           "unit": "MB/min",
+          "format": "number",
           "decimals": 1,
           "color": "rgb(54, 162, 235)",
           "source": "disk_read_mb"
@@ -59,6 +93,7 @@
           "field": "disk_write_rate",
           "label": "Write MB/min",
           "unit": "MB/min",
+          "format": "number",
           "decimals": 1,
           "color": "rgb(255, 99, 132)",
           "source": "disk_write_mb"
@@ -74,6 +109,7 @@
           "field": "net_rx_rate",
           "label": "RX MB/min",
           "unit": "MB/min",
+          "format": "number",
           "decimals": 1,
           "color": "rgb(75, 192, 192)",
           "source": "net_rx_mb"
@@ -82,6 +118,7 @@
           "field": "net_tx_rate",
           "label": "TX MB/min",
           "unit": "MB/min",
+          "format": "number",
           "decimals": 1,
           "color": "rgb(255, 159, 64)",
           "source": "net_tx_mb"
