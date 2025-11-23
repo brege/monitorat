@@ -1,5 +1,5 @@
 // Metrics Widget
-/* global ChartManager, DataFormatter, WidgetHelpers */
+/* global ChartManager, DataFormatter, WidgetHelpers, ChartTableWidgetMethods */
 class MetricsWidget {
   constructor (widgetConfig = {}) {
     this.container = null
@@ -44,10 +44,6 @@ class MetricsWidget {
     return allMetrics
   }
 
-  getElement (name) {
-    return this.container?.querySelector(`[${this.attributeName}="${name}"]`)
-  }
-
   async init (container, config = {}) {
     this.container = container
     this.config = this.buildConfig(config)
@@ -79,10 +75,10 @@ class MetricsWidget {
   }
 
   setupEventListeners () {
-    const viewChart = this.getElement('view-chart')
-    const viewTable = this.getElement('view-table')
-    const metricSelect = this.getElement('metric-select')
-    const periodSelect = this.getElement('period-select')
+    const viewChart = WidgetHelpers.getElement(this.container, this.attributeName, 'view-chart')
+    const viewTable = WidgetHelpers.getElement(this.container, this.attributeName, 'view-table')
+    const metricSelect = WidgetHelpers.getElement(this.container, this.attributeName, 'metric-select')
+    const periodSelect = WidgetHelpers.getElement(this.container, this.attributeName, 'period-select')
 
     if (viewChart) viewChart.addEventListener('click', () => this.setView('chart'))
     if (viewTable) viewTable.addEventListener('click', () => this.setView('table'))
@@ -153,16 +149,8 @@ class MetricsWidget {
   }
 
   rebuildTableHeaders () {
-    const thead = this.container.querySelector('thead tr')
-    if (!thead) return
-    const headers = ['Timestamp']
-    for (const metric of this.metricFields) {
-      headers.push(metric.label)
-    }
     const metadataLabel = this.schema?.metadata?.label || 'Source'
-    headers.push(metadataLabel)
-    const DataFormatter = window.monitorShared.DataFormatter
-    DataFormatter.updateTableHeaders(thead, headers)
+    WidgetHelpers.buildTableHeaders(this.container, this.metricFields, metadataLabel)
   }
 
   calculateTableDeltas (data) {
@@ -224,36 +212,26 @@ class MetricsWidget {
   }
 
   formatTableRow (entry) {
-    const DataFormatter = window.monitorShared.DataFormatter
-    const row = [DataFormatter.formatTimestamp(entry.timestamp)]
-    for (const metric of this.metricFields) {
-      row.push(DataFormatter.formatBySchema(entry[metric.field], metric))
-    }
-    const metadataField = this.schema?.metadata?.field
-    row.push(entry.source || entry[metadataField] || '')
-    return row
+    return ChartTableWidgetMethods.formatTableRow.call(this, entry)
+  }
+
+  rebuildTableHeaders () {
+    return ChartTableWidgetMethods.rebuildTableHeaders.call(this)
   }
 
   setView (view) {
-    const controls = [
-      this.getElement('metric-select'),
-      this.getElement('period-select')
+    return ChartTableWidgetMethods.setView.call(this, view)
+  }
+
+  updateViewToggle (hasEntries) {
+    return ChartTableWidgetMethods.updateViewToggle.call(this, hasEntries)
+  }
+
+  getViewControls () {
+    return [
+      WidgetHelpers.getElement(this.container, this.attributeName, 'metric-select'),
+      WidgetHelpers.getElement(this.container, this.attributeName, 'period-select')
     ]
-
-    this.currentView = WidgetHelpers.setView({
-      view,
-      currentView: this.currentView,
-      container: this.container,
-      attributeName: this.attributeName,
-      chartManager: this.chartManager,
-      onChartReady: () => {
-        if (this.chartManager?.hasChart()) this.updateChart()
-      },
-      controlsForChart: controls
-    })
-
-    if (this.tableManager) this.tableManager.updateToggleVisibility()
-    return this.currentView
   }
 
   initManagers () {
@@ -261,17 +239,17 @@ class MetricsWidget {
     const TableManager = window.monitorShared?.TableManager
 
     this.chartManager = new ChartManager({
-      canvasElement: this.getElement('chart'),
-      containerElement: this.getElement('chart-container'),
+      canvasElement: WidgetHelpers.getElement(this.container, this.attributeName, 'chart'),
+      containerElement: WidgetHelpers.getElement(this.container, this.attributeName, 'chart-container'),
       height: this.config.chart.height,
       dataUrl: null,
       chartOptions: {}
     })
 
     this.tableManager = new TableManager({
-      statusElement: this.getElement('history-status'),
-      rowsElement: this.getElement('rows'),
-      toggleElement: this.getElement('toggle'),
+      statusElement: WidgetHelpers.getElement(this.container, this.attributeName, 'history-status'),
+      rowsElement: WidgetHelpers.getElement(this.container, this.attributeName, 'rows'),
+      toggleElement: WidgetHelpers.getElement(this.container, this.attributeName, 'toggle'),
       previewCount: this.config.table.min,
       emptyMessage: this.schema?.metadata?.emptyMessage || 'No metrics history yet.',
       isTableViewActive: () => this.currentView === 'table',

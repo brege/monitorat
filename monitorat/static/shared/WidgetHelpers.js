@@ -44,6 +44,11 @@ class WidgetHelpers {
     return DataFormatter.selectByAttribute(container, attributeName, names)
   }
 
+  static getElement (container, attributeName, name) {
+    if (!container) return null
+    return container.querySelector(`[${attributeName}="${name}"]`)
+  }
+
   static toggleControls (controls, show) {
     if (!Array.isArray(controls)) return
     controls.filter(Boolean).forEach((element) => {
@@ -116,6 +121,32 @@ class WidgetHelpers {
     })
 
     return scales
+  }
+
+  static buildTableHeaders (container, metricFields = [], metadataLabel = 'Source') {
+    const headerRow = container?.querySelector('thead tr')
+    if (!headerRow) return
+
+    const headers = ['Timestamp']
+    for (const metric of metricFields) {
+      headers.push(metric.label)
+    }
+    headers.push(metadataLabel)
+
+    const DataFormatter = window.monitorShared.DataFormatter
+    DataFormatter.updateTableHeaders(headerRow, headers)
+  }
+
+  static formatTableRow ({ entry, metricFields = [], metadataField }) {
+    const DataFormatter = window.monitorShared.DataFormatter
+    const row = [DataFormatter.formatTimestamp(entry.timestamp)]
+
+    for (const metric of metricFields) {
+      row.push(DataFormatter.formatBySchema(entry[metric.field], metric))
+    }
+
+    row.push(entry.source || entry[metadataField] || '')
+    return row
   }
 }
 

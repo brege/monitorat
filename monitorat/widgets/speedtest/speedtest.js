@@ -1,4 +1,4 @@
-/* global ChartManager, DataFormatter, MetricsWidget, WidgetHelpers */
+/* global ChartManager, DataFormatter, MetricsWidget, WidgetHelpers, ChartTableWidgetMethods */
 class SpeedtestWidget {
   constructor (widgetConfig = {}) {
     this.container = null
@@ -40,10 +40,6 @@ class SpeedtestWidget {
     return this.schema?.metrics || []
   }
 
-  getElement (name) {
-    return this.container?.querySelector(`[${this.attributeName}="${name}"]`)
-  }
-
   async init (container, config = {}) {
     this.container = container
     this.config = this.buildConfig(config)
@@ -74,10 +70,10 @@ class SpeedtestWidget {
   }
 
   setupEventListeners () {
-    const run = this.getElement('run')
-    const viewChart = this.getElement('view-chart')
-    const viewTable = this.getElement('view-table')
-    const periodSelect = this.getElement('period-select')
+    const run = WidgetHelpers.getElement(this.container, this.attributeName, 'run')
+    const viewChart = WidgetHelpers.getElement(this.container, this.attributeName, 'view-chart')
+    const viewTable = WidgetHelpers.getElement(this.container, this.attributeName, 'view-table')
+    const periodSelect = WidgetHelpers.getElement(this.container, this.attributeName, 'period-select')
 
     if (run) run.addEventListener('click', () => this.runSpeedtest())
     if (viewChart) viewChart.addEventListener('click', () => this.setView('chart'))
@@ -100,8 +96,8 @@ class SpeedtestWidget {
     const scales = WidgetHelpers.buildScalesFromSchema(axes)
 
     this.chartManager = new ChartManager({
-      canvasElement: this.getElement('chart'),
-      containerElement: this.getElement('chart-container'),
+      canvasElement: WidgetHelpers.getElement(this.container, this.attributeName, 'chart'),
+      containerElement: WidgetHelpers.getElement(this.container, this.attributeName, 'chart-container'),
       height: this.config.chart.height,
       dataUrl: 'api/speedtest/chart',
       dataParams: {
@@ -112,9 +108,9 @@ class SpeedtestWidget {
     })
 
     this.tableManager = new TableManager({
-      statusElement: this.getElement('history-status'),
-      rowsElement: this.getElement('rows'),
-      toggleElement: this.getElement('toggle'),
+      statusElement: WidgetHelpers.getElement(this.container, this.attributeName, 'history-status'),
+      rowsElement: WidgetHelpers.getElement(this.container, this.attributeName, 'rows'),
+      toggleElement: WidgetHelpers.getElement(this.container, this.attributeName, 'toggle'),
       previewCount: this.config.table.min,
       emptyMessage: this.schema?.metadata?.emptyMessage || 'No speedtests logged yet.',
       isTableViewActive: () => this.currentView === 'table',
@@ -123,35 +119,17 @@ class SpeedtestWidget {
   }
 
   rebuildTableHeaders () {
-    const headerRow = this.container.querySelector('thead tr')
-    if (!headerRow) return
-
-    const headers = ['Timestamp']
-    for (const metric of this.metricFields) {
-      headers.push(metric.label)
-    }
     const metadataLabel = this.schema?.metadata?.label || 'Server'
-    headers.push(metadataLabel)
-
-    const DataFormatter = window.monitorShared.DataFormatter
-    DataFormatter.updateTableHeaders(headerRow, headers)
+    WidgetHelpers.buildTableHeaders(this.container, this.metricFields, metadataLabel)
   }
 
   formatTableRow (entry) {
-    const DataFormatter = window.monitorShared.DataFormatter
-    const row = [DataFormatter.formatTimestamp(entry.timestamp)]
-
-    for (const metric of this.metricFields) {
-      row.push(DataFormatter.formatBySchema(entry[metric.field], metric))
-    }
-    const metadataField = this.schema?.metadata?.field
-    row.push(entry.source || entry[metadataField] || '')
-    return row
+    return ChartTableWidgetMethods.formatTableRow.call(this, entry)
   }
 
   async runSpeedtest () {
-    const button = this.getElement('run')
-    const status = this.getElement('status')
+    const button = WidgetHelpers.getElement(this.container, this.attributeName, 'run')
+    const status = WidgetHelpers.getElement(this.container, this.attributeName, 'status')
     if (button) button.disabled = true
     if (status) status.textContent = 'Running speedtest…'
 
@@ -206,32 +184,21 @@ class SpeedtestWidget {
   }
 
   setView (view) {
-    const controls = [this.getElement('period-select')]
-
-    this.currentView = WidgetHelpers.setView({
-      view,
-      currentView: this.currentView,
-      container: this.container,
-      attributeName: this.attributeName,
-      chartManager: this.chartManager,
-      onChartReady: () => {
-        if (this.chartManager?.hasChart()) this.chartManager.loadData()
-      },
-      controlsForChart: controls
-    })
-
-    if (this.tableManager) this.tableManager.updateToggleVisibility()
-    return this.currentView
+    return ChartTableWidgetMethods.setView.call(this, view)
   }
 
   updateViewToggle (hasEntries) {
-    this.currentView = WidgetHelpers.updateViewToggle({
-      container: this.container,
-      attributeName: this.attributeName,
-      hasEntries,
-      currentView: this.currentView,
-      defaultViewSetter: () => this.setView(this.config.default)
-    })
+    return ChartTableWidgetMethods.updateViewToggle.call(this, hasEntries)
+  }
+
+  rebuildTableHeaders () {
+    return ChartTableWidgetMethods.rebuildTableHeaders.call(this)
+  }
+
+  getViewControls () {
+    return [
+      WidgetHelpers.getElement(this.container, this.attributeName, 'period-select')
+    ]
   }
 }
 
