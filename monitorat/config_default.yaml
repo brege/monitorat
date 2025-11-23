@@ -73,6 +73,11 @@ widgets:
     collapsible: true
     hidden: false
     default: table  # chart, table, none
+    metrics:
+      enabled: [download, upload, ping, server, ip_address]
+    metadata:
+      field: server
+      label: Server
     table:
       min: 5  # minimum rows to show
       max: 20  # maximum rows to load

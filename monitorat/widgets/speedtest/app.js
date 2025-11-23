@@ -20,12 +20,14 @@ class SpeedtestWidget {
     this.selectedPeriod = 'all'
     this.selectedMetric = 'all'
     this.schema = null
+    this.chartEntries = []
   }
 
   async loadSchema () {
     if (this.schema) return
     const response = await fetch('api/speedtest/schema')
     this.schema = await response.json()
+    this.applyMetadataConfig()
     this.metricFields = this.resolveMetricFields()
   }
 
@@ -36,9 +38,23 @@ class SpeedtestWidget {
   resolveMetricFields () {
     const enabled = this.config?.metrics?.enabled
     if (Array.isArray(enabled) && enabled.length > 0) {
-      return (this.schema?.metrics || []).filter(metric => enabled.includes(metric.field))
+      return (this.schema.metrics || []).filter(metric => enabled.includes(metric.field))
     }
-    return this.schema?.metrics || []
+    return this.schema.metrics || []
+  }
+
+  applyMetadataConfig () {
+    const metadataConfig = this.config?.metadata || {}
+    if (!this.schema.metadata) {
+      this.schema.metadata = {}
+    }
+    if (metadataConfig.field) {
+      this.schema.metadata.field = metadataConfig.field
+    }
+    if (metadataConfig.label) {
+      this.schema.metadata.label = metadataConfig.label
+    }
+    this.metadataField = this.schema.metadata.field
   }
 
   async init (container, config = {}) {
@@ -83,9 +99,10 @@ class SpeedtestWidget {
 
     if (metricSelect) {
       metricSelect.innerHTML = ''
+      const allLabel = this.schema.chart.default_metric_label
       const allOption = document.createElement('option')
       allOption.value = 'all'
-      allOption.textContent = 'All metrics'
+      allOption.textContent = allLabel
       metricSelect.appendChild(allOption)
       for (const metric of this.metricFields) {
         const option = document.createElement('option')
@@ -96,27 +113,18 @@ class SpeedtestWidget {
       metricSelect.value = this.selectedMetric
       metricSelect.addEventListener('change', (event) => {
         this.selectedMetric = event.target.value
-        if (this.chartManager) {
-          if (this.selectedMetric === 'all') {
-            delete this.chartManager.dataParams.metric
-          } else {
-            this.chartManager.dataParams.metric = this.selectedMetric
-          }
-          if (this.chartManager.hasChart()) {
-            this.chartManager.loadData()
-          }
-        }
+        this.updateChart()
       })
       metricSelect.style.display = this.metricFields.length > 0 ? '' : 'none'
     }
 
     TimeSeriesHandler.setupPeriodSelect(periodSelect, this.config.chart.periods, this.selectedPeriod, (period) => {
       this.selectedPeriod = period
-      if (this.chartManager?.hasChart()) {
-        this.chartManager.dataParams.period = this.selectedPeriod
-        this.chartManager.loadData()
-      }
+      this.loadChartData()
     })
+    if (periodSelect) {
+      periodSelect.style.display = ''
+    }
   }
 
   initManagers () {
@@ -129,12 +137,8 @@ class SpeedtestWidget {
       canvasElement: this.getElement('chart'),
       containerElement: this.getElement('chart-container'),
       height: this.config.chart.height,
-      dataUrl: 'api/speedtest/chart',
-      dataParams: {
-        days: this.config.chart.days,
-        period: this.selectedPeriod,
-        ...(this.selectedMetric === 'all' ? {} : { metric: this.selectedMetric })
-      },
+      dataUrl: null,
+      dataParams: null,
       chartOptions: { scales }
     })
 
@@ -162,7 +166,19 @@ class SpeedtestWidget {
         const upload = DataFormatter.formatBySchema(result.upload, uploadMetric)
         const ping = DataFormatter.formatBySchema(result.ping, pingMetric)
         const serverLabel = result.server || 'unknown'
-        status.textContent = `${DataFormatter.formatTimestamp(result.timestamp)} — ↓ ${download}, ↑ ${upload}, ${ping} (${serverLabel})`
+        const statusTemplate = this.schema.chart.status_template
+        const replacements = {
+          '{timestamp}': DataFormatter.formatTimestamp(result.timestamp),
+          '{download}': download,
+          '{upload}': upload,
+          '{ping}': ping,
+          '{server}': serverLabel
+        }
+        let text = statusTemplate
+        for (const [needle, value] of Object.entries(replacements)) {
+          text = text.replace(needle, value)
+        }
+        status.textContent = text
       }
     } catch (error) {
       console.error('Speedtest run failed:', error)
@@ -188,25 +204,82 @@ class SpeedtestWidget {
       this.entries = payload.entries || []
       this.tableManager.setEntries(this.entries)
       this.updateViewToggle(this.entries.length > 0)
-      if (this.chartManager?.hasChart()) {
-        await this.chartManager.loadData()
-      }
+      await this.loadChartData()
     } catch (error) {
       console.error('Speedtest history failed:', error)
       this.tableManager.setStatus(`Unable to load speedtests: ${error.message}`)
     }
   }
 
+  async loadChartData () {
+    if (!this.chartManager) return
+    await this.chartManager.ensureChart()
+    try {
+      const params = new URLSearchParams()
+      params.set('period', this.selectedPeriod)
+      params.set('ts', Date.now())
+      const response = await fetch(`api/speedtest/chart?${params.toString()}`, { cache: 'no-store' })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      const payload = await response.json()
+      this.chartEntries = payload.entries || []
+      this.updateChart()
+    } catch (error) {
+      console.error('Speedtest chart load failed:', error)
+    }
+  }
+
+  updateChart () {
+    if (!this.chartManager?.hasChart()) return
+    const ChartManager = window.monitorShared?.ChartManager
+    const DataFormatter = window.monitorShared?.DataFormatter
+    const labels = this.chartEntries.map(entry => DataFormatter.formatTime(entry.timestamp))
+    const datasets = []
+    const metricsToUse = this.selectedMetric === 'all'
+      ? this.metricFields
+      : this.metricFields.filter(metric => metric.field === this.selectedMetric)
+
+    for (const metric of metricsToUse) {
+      const values = this.chartEntries.map((entry) => {
+        const raw = entry[metric.field]
+        if (raw === null || raw === undefined) return null
+        const numeric = Number(raw)
+        if (!Number.isFinite(numeric)) return null
+        if (metric.format === 'mbps') {
+          return Number((numeric / 1_000_000).toFixed(metric.decimals ?? 2))
+        }
+        if (metric.format === 'ping') {
+          return Number(numeric.toFixed(metric.decimals ?? 1))
+        }
+        return numeric
+      })
+
+      const color = metric.color
+      const backgroundAlpha = this.schema?.chart?.backgroundAlpha ?? 0.1
+      const backgroundColor = ChartManager.withAlpha(color, backgroundAlpha)
+
+      datasets.push({
+        label: metric.label || metric.field,
+        data: values,
+        borderColor: color,
+        backgroundColor,
+        tension: this.schema?.chart?.tension ?? 0.1,
+        yAxisID: metric.yAxisID
+      })
+    }
+
+    this.chartManager.updateChart({ labels, datasets })
+  }
+
   setView (view) {
     return ChartTableWidgetMethods.setView.call(this, view)
   }
 
-  updateViewToggle (hasEntries) {
-    return ChartTableWidgetMethods.updateViewToggle.call(this, hasEntries)
+  updateChartView () {
+    this.loadChartData()
   }
 
-  rebuildTableHeaders () {
-    return ChartTableWidgetMethods.rebuildTableHeaders.call(this)
+  updateViewToggle (hasEntries) {
+    return ChartTableWidgetMethods.updateViewToggle.call(this, hasEntries)
   }
 
   getViewControls () {

@@ -159,14 +159,27 @@ class TimeSeriesHandler {
     return currentView
   }
 
-  static formatTableRow ({ entry, metricFields = [], metadataField }) {
+  static formatTableRow ({ entry, metricFields = [], metadataField, metadataFields = [] }) {
     const row = [DataFormatter.formatTimestamp(entry.timestamp)]
 
     for (const metric of metricFields) {
       row.push(DataFormatter.formatBySchema(entry[metric.field], metric))
     }
 
-    row.push(entry.source || entry[metadataField] || '')
+    if (metadataField && (!Array.isArray(metadataFields) || metadataFields.length === 0)) {
+      row.push(entry.source || entry[metadataField] || '')
+    }
+
+    if (Array.isArray(metadataFields)) {
+      for (const field of metadataFields) {
+        if (typeof field === 'string') {
+          row.push(entry[field] || '')
+        } else if (field && typeof field.field === 'string') {
+          row.push(entry[field.field] || '')
+        }
+      }
+    }
+
     return row
   }
 }
@@ -223,16 +236,19 @@ const ChartTableWidgetMethods = {
 
   rebuildTableHeaders () {
     const metadataLabel = this.schema?.metadata?.label || 'Source'
+    const metadataFields = Array.isArray(this.schema?.metadata?.fields) ? this.schema.metadata.fields : []
     const TableManager = window.monitorShared.TableManager
-    TableManager.buildTableHeaders(this.container, this.metricFields, metadataLabel)
+    TableManager.buildTableHeaders(this.container, this.metricFields, metadataLabel, metadataFields)
   },
 
   formatTableRow (entry) {
     const metadataField = this.schema?.metadata?.field
+    const metadataFields = Array.isArray(this.schema?.metadata?.fields) ? this.schema.metadata.fields : []
     return TimeSeriesHandler.formatTableRow({
       entry,
       metricFields: this.metricFields,
-      metadataField
+      metadataField,
+      metadataFields
     })
   },
 

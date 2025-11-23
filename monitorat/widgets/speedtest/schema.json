@@ -2,6 +2,10 @@
   "metadata": {
     "field": "server",
     "label": "Server",
+    "fields": [
+      { "field": "server", "label": "Server" },
+      { "field": "ip_address", "label": "IP Address" }
+    ],
     "emptyMessage": "No speedtests logged yet."
   },
   "axes": {
@@ -34,6 +38,12 @@
         "drawOnChartArea": false
       }
     }
+  },
+  "chart": {
+    "tension": 0.1,
+    "backgroundAlpha": 0.1,
+    "default_metric_label": "All",
+    "status_template": "{timestamp} — ↓ {download}, ↑ {upload}, {ping} ({server})"
   },
   "metrics": [
     {

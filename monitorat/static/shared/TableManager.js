@@ -91,7 +91,7 @@ class TableManager {
     }
   }
 
-  static buildTableHeaders (container, metricFields = [], metadataLabel = 'Source') {
+  static buildTableHeaders (container, metricFields = [], metadataLabel = 'Source', metadataFields = []) {
     const headerRow = container?.querySelector('thead tr')
     if (!headerRow) return
 
@@ -99,7 +99,19 @@ class TableManager {
     for (const metric of metricFields) {
       headers.push(metric.label)
     }
-    headers.push(metadataLabel)
+    if (Array.isArray(metadataFields) && metadataFields.length > 0) {
+      for (const field of metadataFields) {
+        if (typeof field === 'string') {
+          headers.push(field)
+        } else if (field && typeof field.label === 'string') {
+          headers.push(field.label)
+        } else if (field && typeof field.field === 'string') {
+          headers.push(field.field)
+        }
+      }
+    } else {
+      headers.push(metadataLabel)
+    }
 
     this.updateTableHeaders(headerRow, headers)
   }

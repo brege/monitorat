@@ -7,12 +7,19 @@ from typing import List
 from pathlib import Path
 import json
 
-from monitor import CSVHandler, parse_iso_timestamp, resolve_period_cutoff
+from monitor import CSVHandler, parse_iso_timestamp, resolve_period_cutoff, config
 
 SPEEDTEST = "speedtest-cli"
 logger = logging.getLogger(__name__)
 
-SPEEDTEST_COLUMNS: List[str] = ["timestamp", "download", "upload", "ping", "server"]
+SPEEDTEST_COLUMNS: List[str] = [
+    "timestamp",
+    "download",
+    "upload",
+    "ping",
+    "server",
+    "ip_address",
+]
 csv_handler = CSVHandler("speedtest", SPEEDTEST_COLUMNS)
 _SPEEDTEST_SCHEMA = None
 
@@ -24,6 +31,21 @@ def get_speedtest_schema():
         with open(schema_path, encoding="utf-8") as f:
             _SPEEDTEST_SCHEMA = json.load(f)
     return _SPEEDTEST_SCHEMA
+
+
+def get_enabled_metrics():
+    try:
+        enabled = config["widgets"]["speedtest"]["metrics"]["enabled"].get(list)
+        return enabled if enabled else None
+    except Exception:
+        return None
+
+
+def is_metric_enabled(metric):
+    enabled = get_enabled_metrics()
+    if enabled is None:
+        return True
+    return metric in enabled
 
 
 def speedtest_run():
@@ -50,11 +72,17 @@ def speedtest_run():
             parsed = loads(data)
             row = {
                 "timestamp": parsed["timestamp"],
-                "download": str(parsed["download"]),
-                "upload": str(parsed["upload"]),
-                "ping": str(parsed["ping"]),
-                "server": parsed["server"]["sponsor"].replace(",", " "),
             }
+            if is_metric_enabled("server"):
+                row["server"] = parsed["server"]["sponsor"].replace(",", " ")
+            if is_metric_enabled("download"):
+                row["download"] = str(parsed["download"])
+            if is_metric_enabled("upload"):
+                row["upload"] = str(parsed["upload"])
+            if is_metric_enabled("ping"):
+                row["ping"] = str(parsed["ping"])
+            if is_metric_enabled("ip_address"):
+                row["ip_address"] = parsed.get("client", {}).get("ip")
             csv_handler.append(row)
             download_mbps = parsed["download"] / 1_000_000
             upload_mbps = parsed["upload"] / 1_000_000
@@ -68,6 +96,7 @@ def speedtest_run():
                 upload=parsed["upload"],
                 ping=parsed["ping"],
                 server=parsed["server"].get("sponsor"),
+                ip_address=parsed.get("client", {}).get("ip"),
             )
         except Exception as e:
             logger.error(f"Error parsing speedtest results: {e}")
@@ -94,29 +123,27 @@ def speedtest_chart():
     now = datetime.now()
 
     period = request.args.get("period", default="all", type=str)
-    metric = request.args.get("metric")
-    schema = get_speedtest_schema()
-    metric_definitions = {
-        entry["field"]: entry for entry in schema.get("metrics", []) if "field" in entry
-    }
-    metric = metric if metric in metric_definitions else None
     period_cutoff = resolve_period_cutoff(period, now=now)
+    schema = get_speedtest_schema()
+    available_fields = [
+        entry["field"] for entry in schema.get("metrics", []) if "field" in entry
+    ]
+    enabled = get_enabled_metrics()
+    if enabled is None:
+        metrics_to_include = set(available_fields)
+    else:
+        metrics_to_include = {field for field in enabled if field in available_fields}
 
     try:
         all_rows = csv_handler.read_all()
 
-        labels = []
-        values_by_field = {
-            "download": [],
-            "upload": [],
-            "ping": [],
-        }
+        entries = []
 
         for row in all_rows:
             timestamp = row.get("timestamp", "")
-            download = row.get("download", "")
-            upload = row.get("upload", "")
-            ping = row.get("ping", "")
+            download = row.get("download") if is_metric_enabled("download") else None
+            upload = row.get("upload") if is_metric_enabled("upload") else None
+            ping = row.get("ping") if is_metric_enabled("ping") else None
 
             dt = parse_iso_timestamp(timestamp)
             if not dt:
@@ -125,39 +152,20 @@ def speedtest_chart():
             if period_cutoff is not None and dt < period_cutoff:
                 continue
 
-            try:
-                download_mbps = float(download) / 1_000_000
-                upload_mbps = float(upload) / 1_000_000
-                ping_ms = float(ping)
-            except (ValueError, TypeError):
-                continue
+            entries.append(
+                {
+                    "timestamp": dt.isoformat(),
+                    **(
+                        {"download": download}
+                        if "download" in metrics_to_include
+                        else {}
+                    ),
+                    **({"upload": upload} if "upload" in metrics_to_include else {}),
+                    **({"ping": ping} if "ping" in metrics_to_include else {}),
+                }
+            )
 
-            labels.append(dt.strftime("%m/%d %H:%M"))
-            values_by_field["download"].append(round(download_mbps, 2))
-            values_by_field["upload"].append(round(upload_mbps, 2))
-            values_by_field["ping"].append(round(ping_ms, 1))
-
-        datasets_with_fields = []
-        for field, definition in metric_definitions.items():
-            dataset = {
-                "label": definition.get("label", field),
-                "data": values_by_field.get(field, []),
-                "borderColor": definition.get("color"),
-                "backgroundColor": definition.get("backgroundColor")
-                or definition.get("color"),
-                "tension": 0.1,
-                "yAxisID": definition.get("yAxisID"),
-            }
-            datasets_with_fields.append((field, dataset))
-
-        if metric:
-            datasets_with_fields = [
-                item for item in datasets_with_fields if item[0] == metric
-            ]
-
-        datasets = [dataset for _, dataset in datasets_with_fields]
-
-        return jsonify({"labels": labels, "datasets": datasets})
+        return jsonify({"entries": entries})
     except Exception as exc:
         return jsonify(error=str(exc)), 500
 
