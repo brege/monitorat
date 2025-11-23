@@ -292,22 +292,21 @@ class MetricsWidget {
       toggleElement: this.container.querySelector('[data-metrics="toggle"]'),
       previewCount: this.config.table.min,
       emptyMessage: 'No metrics history yet.',
+      isTableViewActive: () => this.currentView === 'table',
       rowFormatter: (entry) => [
         DataFormatter.formatTimestamp(entry.timestamp),
         DataFormatter.formatNumber(entry.cpu_percent, 1) + '%',
         DataFormatter.formatNumber(entry.memory_percent, 1) + '%',
-        DataFormatter.formatNumber(entry.disk_read_rate, 1),
-        DataFormatter.formatNumber(entry.disk_write_rate, 1),
-        DataFormatter.formatNumber(entry.net_rx_rate, 1),
-        DataFormatter.formatNumber(entry.net_tx_rate, 1),
+        DataFormatter.formatNumber(entry.disk_read_mb, 1),
+        DataFormatter.formatNumber(entry.disk_write_mb, 1),
+        DataFormatter.formatNumber(entry.net_rx_mb, 1),
+        DataFormatter.formatNumber(entry.net_tx_mb, 1),
         DataFormatter.formatNumber(entry.load_1min, 2),
         DataFormatter.formatNumber(entry.temp_c, 1) + '°C',
-        DataFormatter.formatNumber(entry.battery_percent, 1) + '%',
+        entry.battery_percent ? DataFormatter.formatNumber(entry.battery_percent, 1) + '%' : '–',
         entry.source || ''
       ]
     })
-
-    this.tableManager.isTableViewActive = () => this.currentView === 'table'
   }
 
   async loadHistory () {

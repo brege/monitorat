@@ -6,6 +6,7 @@ class TableManager {
     this.previewCount = config.previewCount || 5
     this.emptyMessage = config.emptyMessage || 'No data yet.'
     this.rowFormatter = config.rowFormatter
+    this.isTableViewActive = config.isTableViewActive || (() => true)
 
     this.entries = []
     this.expanded = false
@@ -73,10 +74,6 @@ class TableManager {
     } else {
       this.toggleElement.style.display = 'none'
     }
-  }
-
-  isTableViewActive () {
-    return true
   }
 
   toggleExpansion () {

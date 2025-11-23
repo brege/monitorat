@@ -151,6 +151,7 @@ class SpeedtestWidget {
       toggleElement: this.elements.toggle,
       previewCount: this.config.table.min,
       emptyMessage: 'No speedtests logged yet.',
+      isTableViewActive: () => this.currentView === 'table',
       rowFormatter: (entry) => [
         DataFormatter.formatTimestamp(entry.timestamp),
         DataFormatter.formatMbps(entry.download),
@@ -159,8 +160,6 @@ class SpeedtestWidget {
         entry.server || ''
       ]
     })
-
-    this.tableManager.isTableViewActive = () => this.currentView === 'table'
   }
 
   async runSpeedtest () {

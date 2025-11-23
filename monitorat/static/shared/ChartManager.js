@@ -155,6 +155,11 @@ class ChartManager {
         memory_percent: parseFloat(row.memory_percent),
         load_1min: parseFloat(row.load_1min),
         temp_c: parseFloat(row.temp_c),
+        battery_percent: row.battery_percent,
+        disk_read_mb: parseFloat(row.disk_read_mb),
+        disk_write_mb: parseFloat(row.disk_write_mb),
+        net_rx_mb: parseFloat(row.net_rx_mb),
+        net_tx_mb: parseFloat(row.net_tx_mb),
         source: row.source || ''
       }
 
