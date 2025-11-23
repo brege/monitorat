@@ -171,6 +171,20 @@ def speedtest_csv():
 def register_routes(app):
     """Register speedtest API routes with Flask app."""
 
+    @app.route("/api/speedtest/schema", methods=["GET"])
+    def speedtest_schema():
+        import json
+        from pathlib import Path
+
+        schema_path = Path(__file__).parent / "schema.json"
+        with open(schema_path) as f:
+            schema = json.load(f)
+        return app.response_class(
+            response=json.dumps(schema),
+            status=200,
+            mimetype="application/json",
+        )
+
     app.add_url_rule("/api/speedtest/run", view_func=speedtest_run, methods=["POST"])
     app.add_url_rule(
         "/api/speedtest/history", view_func=speedtest_history, methods=["GET"]

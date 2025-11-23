@@ -1,0 +1,35 @@
+{
+  "metrics": [
+    {
+      "field": "download",
+      "label": "Download",
+      "unit": "Mbps",
+      "decimals": 2,
+      "color": "rgb(59, 130, 246)",
+      "yAxisID": "speed",
+      "converter": "mbps"
+    },
+    {
+      "field": "upload",
+      "label": "Upload",
+      "unit": "Mbps",
+      "decimals": 2,
+      "color": "rgb(239, 68, 68)",
+      "yAxisID": "speed",
+      "converter": "mbps"
+    },
+    {
+      "field": "ping",
+      "label": "Ping",
+      "unit": "ms",
+      "decimals": 1,
+      "color": "rgb(16, 185, 129)",
+      "yAxisID": "ping",
+      "converter": "none"
+    }
+  ],
+  "metadata": {
+    "field": "server",
+    "label": "Server"
+  }
+}

@@ -288,11 +288,11 @@ def get_system_metrics():
             "storage": get_metric_status("storage", storage_percent, thresholds),
         }
 
-        return metrics, statuses
+        return metrics, statuses, list(metrics.keys())
 
     except Exception as e:
         logger.error(f"Error getting system metrics: {e}")
-        return {}, {}
+        return {}, {}, []
 
 
 _metrics_thread = None
@@ -322,7 +322,7 @@ def _metrics_collector():
                 time.sleep(interval)
                 continue
 
-            metrics, statuses = get_system_metrics()
+            metrics, statuses, _ = get_system_metrics()
             if metrics:
                 log_metrics_to_csv(metrics, source="daemon")
                 check_metric_alerts(metrics, statuses)
@@ -465,9 +465,23 @@ def register_routes(app):
     # Start background metrics collection
     start_metrics_daemon()
 
+    @app.route("/api/metrics/schema", methods=["GET"])
+    def api_metrics_schema():
+        import json
+        from pathlib import Path
+
+        schema_path = Path(__file__).parent / "schema.json"
+        with open(schema_path) as f:
+            schema = json.load(f)
+        return app.response_class(
+            response=json.dumps(schema),
+            status=200,
+            mimetype="application/json",
+        )
+
     @app.route("/api/metrics", methods=["GET"])
     def api_metrics():
-        metrics, statuses = get_system_metrics()
+        metrics, statuses, keys = get_system_metrics()
 
         # Log this refresh to CSV
         if metrics:
@@ -477,7 +491,9 @@ def register_routes(app):
                 logger.error(f"Error logging metrics: {e}")
 
         return app.response_class(
-            response=json.dumps({"metrics": metrics, "metric_statuses": statuses}),
+            response=json.dumps(
+                {"metrics": metrics, "metric_statuses": statuses, "keys": keys}
+            ),
             status=200,
             mimetype="application/json",
         )

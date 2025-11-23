@@ -44,6 +44,23 @@ class DataFormatter {
     if (Number.isNaN(date.getTime())) return value
     return date.toLocaleString(undefined, options)
   }
+
+  static selectByAttribute (container, attributeName, values) {
+    const result = {}
+    for (const value of values) {
+      result[value] = container.querySelector(`[${attributeName}="${value}"]`)
+    }
+    return result
+  }
+
+  static updateTableHeaders (thead, headers) {
+    thead.innerHTML = ''
+    for (const header of headers) {
+      const th = document.createElement('th')
+      th.textContent = header
+      thead.appendChild(th)
+    }
+  }
 }
 
 window.monitorShared = window.monitorShared || {}

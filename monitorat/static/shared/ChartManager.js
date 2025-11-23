@@ -7,7 +7,6 @@ class ChartManager {
     this.chartOptions = config.chartOptions || {}
     this.dataUrl = config.dataUrl
     this.dataParams = config.dataParams || {}
-    this.metricConfig = config.metricConfig || {}
 
     this.chart = null
     this.chartInitPromise = null
@@ -115,82 +114,6 @@ class ChartManager {
     return !!this.chart
   }
 
-  static calculateDeltas (data, readField, writeField) {
-    const result = { read: [], write: [] }
-    let prevRead = null; let prevWrite = null; let prevTime = null
-
-    for (const row of data) {
-      const currentRead = parseFloat(row[readField])
-      const currentWrite = parseFloat(row[writeField])
-      const currentTime = new Date(row.timestamp)
-
-      if (prevRead !== null && prevTime !== null) {
-        const timeDelta = (currentTime - prevTime) / 60000
-        const readRate = timeDelta > 0 ? Math.max(0, (currentRead - prevRead) / timeDelta) : 0
-        const writeRate = timeDelta > 0 ? Math.max(0, (currentWrite - prevWrite) / timeDelta) : 0
-
-        result.read.push(Math.min(readRate, 100))
-        result.write.push(Math.min(writeRate, 100))
-      } else {
-        result.read.push(0)
-        result.write.push(0)
-      }
-
-      prevRead = currentRead
-      prevWrite = currentWrite
-      prevTime = currentTime
-    }
-
-    return result
-  }
-
-  static calculateTableDeltas (data) {
-    const result = []
-    let prevRow = null
-
-    for (const row of data) {
-      const entry = {
-        timestamp: row.timestamp,
-        cpu_percent: parseFloat(row.cpu_percent),
-        memory_percent: parseFloat(row.memory_percent),
-        load_1min: parseFloat(row.load_1min),
-        temp_c: parseFloat(row.temp_c),
-        battery_percent: row.battery_percent,
-        disk_read_mb: parseFloat(row.disk_read_mb),
-        disk_write_mb: parseFloat(row.disk_write_mb),
-        net_rx_mb: parseFloat(row.net_rx_mb),
-        net_tx_mb: parseFloat(row.net_tx_mb),
-        source: row.source || ''
-      }
-
-      if (prevRow) {
-        const timeDelta = (new Date(row.timestamp) - new Date(prevRow.timestamp)) / 60000
-
-        if (timeDelta > 0) {
-          entry.disk_read_rate = Math.max(0, (parseFloat(row.disk_read_mb) - parseFloat(prevRow.disk_read_mb)) / timeDelta)
-          entry.disk_write_rate = Math.max(0, (parseFloat(row.disk_write_mb) - parseFloat(prevRow.disk_write_mb)) / timeDelta)
-          entry.net_rx_rate = Math.max(0, (parseFloat(row.net_rx_mb) - parseFloat(prevRow.net_rx_mb)) / timeDelta)
-          entry.net_tx_rate = Math.max(0, (parseFloat(row.net_tx_mb) - parseFloat(prevRow.net_tx_mb)) / timeDelta)
-        } else {
-          entry.disk_read_rate = 0
-          entry.disk_write_rate = 0
-          entry.net_rx_rate = 0
-          entry.net_tx_rate = 0
-        }
-      } else {
-        entry.disk_read_rate = 0
-        entry.disk_write_rate = 0
-        entry.net_rx_rate = 0
-        entry.net_tx_rate = 0
-      }
-
-      result.push(entry)
-      prevRow = row
-    }
-
-    return result
-  }
-
   static withAlpha (color, alpha) {
     if (typeof color !== 'string') {
       return color
@@ -270,46 +193,6 @@ class ChartManager {
         order: 1
       }
     ]
-  }
-
-  createChartData (entries, selectedItem, DataFormatter) {
-    if (!entries || !entries.length) return { labels: [], datasets: [], allValues: [] }
-    if (!this.metricConfig[selectedItem]) return { labels: [], datasets: [], allValues: [] }
-
-    const chronological = entries.slice()
-    const labels = chronological.map(row => DataFormatter.formatTime(row.timestamp))
-    const metricDef = this.metricConfig[selectedItem]
-
-    let datasets = []
-    let allValues = []
-
-    if (metricDef.metrics) {
-      // Multi-metric case (cpu_memory, disk_io, net_io)
-      for (const m of metricDef.metrics) {
-        const values = chronological.map(row => parseFloat(row[m.dataField]) || 0)
-        datasets.push(...this.constructor.buildGhostedDatasets({
-          label: m.label,
-          color: m.color,
-          rawValues: values
-        }))
-        allValues.push(...values)
-      }
-    } else {
-      // Single metric case
-      const values = chronological.map(row => parseFloat(row[metricDef.dataField]) || 0)
-      datasets = this.constructor.buildGhostedDatasets({
-        label: metricDef.label,
-        color: metricDef.color,
-        rawValues: values
-      })
-      allValues = values
-    }
-
-    return { labels, datasets, allValues }
-  }
-
-  getYAxisLabel (selectedItem) {
-    return this.metricConfig[selectedItem]?.yAxisLabel || 'Value'
   }
 
   static filterDataByPeriod (data, period) {

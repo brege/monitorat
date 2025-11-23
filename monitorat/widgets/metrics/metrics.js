@@ -1,5 +1,5 @@
 // Metrics Widget
-/* global ChartManager */
+/* global ChartManager, DataFormatter */
 class MetricsWidget {
   constructor (widgetConfig = {}) {
     this.container = null
@@ -8,98 +8,33 @@ class MetricsWidget {
       name: 'System Metrics',
       default: 'chart',
       periods: [],
-      table: {
-        min: 5,
-        max: 200
-      },
-      chart: {
-        default_metric: 'cpu_memory',
-        default_period: 'all',
-        height: '400px',
-        days: 30
-      }
+      table: { min: 5, max: 200 },
+      chart: { default_metric: 'cpu_percent', default_period: 'all', height: '400px', days: 30 }
     }
     this.config = this.buildConfig()
     this.chartManager = null
     this.tableManager = null
     this.currentView = null
     this.entries = []
-    this.selectedMetric = 'cpu_memory'
+    this.transformedEntries = []
+    this.selectedMetric = 'cpu_percent'
     this.selectedPeriod = 'all'
+    this.schema = null
+    this.metricFields = null
+  }
 
-    this.metricConfig = {
-      cpu_memory: {
-        label: 'CPU + Memory',
-        yAxisLabel: 'Percentage',
-        metrics: [
-          { dataField: 'cpu_percent', label: 'CPU %', color: 'rgb(75, 192, 192)' },
-          { dataField: 'memory_percent', label: 'Memory %', color: 'rgb(255, 159, 64)' }
-        ]
-      },
-      cpu_percent: {
-        label: 'CPU %',
-        yAxisLabel: 'Percentage',
-        dataField: 'cpu_percent',
-        color: 'rgb(75, 192, 192)'
-      },
-      memory_percent: {
-        label: 'Memory %',
-        yAxisLabel: 'Percentage',
-        dataField: 'memory_percent',
-        color: 'rgb(255, 159, 64)'
-      },
-      disk_io: {
-        label: 'Disk I/O',
-        yAxisLabel: 'MB/min',
-        metrics: [
-          { dataField: 'disk_read_rate', label: 'Read MB/min', color: 'rgb(54, 162, 235)' },
-          { dataField: 'disk_write_rate', label: 'Write MB/min', color: 'rgb(255, 99, 132)' }
-        ]
-      },
-      net_io: {
-        label: 'Network I/O',
-        yAxisLabel: 'MB/min',
-        metrics: [
-          { dataField: 'net_rx_rate', label: 'RX MB/min', color: 'rgb(75, 192, 192)' },
-          { dataField: 'net_tx_rate', label: 'TX MB/min', color: 'rgb(255, 159, 64)' }
-        ]
-      },
-      temp_c: {
-        label: 'Temperature',
-        yAxisLabel: 'Temperature (°C)',
-        dataField: 'temp_c',
-        color: 'rgb(255, 99, 132)'
-      },
-      load_1min: {
-        label: 'Load Average',
-        yAxisLabel: 'Load Average',
-        dataField: 'load_1min',
-        color: 'rgb(153, 102, 255)'
-      },
-      battery_percent: {
-        label: 'Battery',
-        yAxisLabel: 'Percentage',
-        dataField: 'battery_percent',
-        color: 'rgb(34, 197, 94)'
-      }
-    }
+  async loadSchema () {
+    if (this.schema) return
+    const response = await fetch('api/metrics/schema')
+    this.schema = await response.json()
+    this.metricFields = [...this.schema.metrics, ...this.schema.computed.flatMap(g => g.fields)]
   }
 
   buildConfig (overrides = {}) {
     const merged = { ...this.widgetConfig, ...overrides }
-    const table = {
-      ...this.defaults.table,
-      ...(this.widgetConfig.table || {}),
-      ...(overrides.table || {})
-    }
-    const chart = {
-      ...this.defaults.chart,
-      ...(this.widgetConfig.chart || {}),
-      ...(overrides.chart || {})
-    }
-
+    const table = { ...this.defaults.table, ...(this.widgetConfig.table || {}), ...(overrides.table || {}) }
+    const chart = { ...this.defaults.chart, ...(this.widgetConfig.chart || {}), ...(overrides.chart || {}) }
     const periods = Array.isArray(merged.periods) ? [...merged.periods] : [...this.defaults.periods]
-
     return {
       _suppressHeader: merged._suppressHeader,
       name: typeof merged.name !== 'undefined' ? merged.name : this.defaults.name,
@@ -114,14 +49,15 @@ class MetricsWidget {
     this.container = container
     this.config = this.buildConfig(config)
     this.selectedPeriod = this.config.chart.default_period || this.defaults.chart.default_period
-    this.selectedMetric = (this.config.chart.default_metric || this.defaults.chart.default_metric).toLowerCase()
+
+    await this.loadSchema()
+    this.selectedMetric = this.config.chart.default_metric || this.defaults.chart.default_metric
 
     const response = await fetch('widgets/metrics/metrics.html')
     const html = await response.text()
     container.innerHTML = html
 
     this.rebuildTableHeaders()
-
     const applyWidgetHeader = window.monitor?.applyWidgetHeader
     if (applyWidgetHeader) {
       applyWidgetHeader(container, {
@@ -132,29 +68,44 @@ class MetricsWidget {
       })
     }
 
-    const viewChart = container.querySelector('[data-metrics="view-chart"]')
-    const viewTable = container.querySelector('[data-metrics="view-table"]')
-    const metricSelect = container.querySelector('[data-metrics="metric-select"]')
-    const periodSelect = container.querySelector('[data-metrics="period-select"]')
+    this.setupEventListeners()
+    this.initManagers()
+    await this.loadData()
+    this.setView(this.config.default || this.defaults.default)
+    await this.loadHistory()
+  }
 
-    if (viewChart) {
-      viewChart.addEventListener('click', () => this.setView('chart'))
-    }
-    if (viewTable) {
-      viewTable.addEventListener('click', () => this.setView('table'))
-    }
+  setupEventListeners () {
+    const viewChart = this.container.querySelector('[data-metrics="view-chart"]')
+    const viewTable = this.container.querySelector('[data-metrics="view-table"]')
+    const metricSelect = this.container.querySelector('[data-metrics="metric-select"]')
+    const periodSelect = this.container.querySelector('[data-metrics="period-select"]')
+
+    if (viewChart) viewChart.addEventListener('click', () => this.setView('chart'))
+    if (viewTable) viewTable.addEventListener('click', () => this.setView('table'))
 
     if (metricSelect) {
+      metricSelect.innerHTML = ''
+      for (const metric of this.schema.metrics) {
+        const option = document.createElement('option')
+        option.value = metric.field
+        option.textContent = metric.label
+        metricSelect.appendChild(option)
+      }
+      for (const group of this.schema.computed) {
+        const option = document.createElement('option')
+        option.value = group.group
+        option.textContent = group.label
+        metricSelect.appendChild(option)
+      }
       metricSelect.value = this.selectedMetric
       metricSelect.addEventListener('change', (e) => {
         this.selectedMetric = e.target.value
-        if (this.chartManager && this.chartManager.hasChart()) {
-          this.updateChart()
-        }
+        if (this.chartManager?.hasChart()) this.updateChart()
       })
     }
+
     if (periodSelect) {
-      // Populate period options
       periodSelect.innerHTML = '<option value="all">All</option>'
       if (Array.isArray(this.config.chart.periods)) {
         this.config.chart.periods.forEach(period => {
@@ -164,102 +115,125 @@ class MetricsWidget {
           periodSelect.appendChild(option)
         })
       }
-
       periodSelect.value = this.selectedPeriod
       periodSelect.addEventListener('change', (e) => {
         this.selectedPeriod = e.target.value
         this.loadHistory()
       })
     }
-
-    this.initManagers()
-    await this.loadData()
-    this.setView(this.config.default || this.defaults.default)
-    await this.loadHistory()
   }
 
   async loadData () {
+    const response = await fetch('api/metrics')
+    const data = await response.json()
+    this.update(data)
     try {
-      const response = await fetch('api/metrics')
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
-      const data = await response.json()
-      this.update(data)
+      await fetch('api/metrics', { method: 'GET' })
     } catch (error) {
-      console.error('Unable to load metrics:', error.message)
+      console.error('Unable to log metrics:', error)
     }
   }
 
   update (data) {
     if (!data.metrics || !data.metric_statuses) return
 
-    const elements = {
-      uptime: document.getElementById('uptime-value'),
-      load: document.getElementById('load-value'),
-      memory: document.getElementById('memory-value'),
-      temp: document.getElementById('temp-value'),
-      disk: document.getElementById('disk-value'),
-      storage: document.getElementById('storage-value')
-    }
+    const keys = data.keys || Object.keys(data.metrics).filter(k => k !== 'status' && k !== 'lastUpdated')
+    const valueElements = {}
+    const statElements = {}
 
-    const stats = {
-      uptime: document.querySelector('#uptime-value')?.closest('.stat'),
-      load: document.querySelector('#load-value')?.closest('.stat'),
-      memory: document.querySelector('#memory-value')?.closest('.stat'),
-      temp: document.querySelector('#temp-value')?.closest('.stat'),
-      disk: document.querySelector('#disk-value')?.closest('.stat'),
-      storage: document.querySelector('#storage-value')?.closest('.stat')
-    }
-
-    if (elements.uptime && data.metrics.uptime) {
-      elements.uptime.textContent = data.metrics.uptime
-    }
-    if (elements.load && data.metrics.load) {
-      elements.load.textContent = data.metrics.load
-    }
-    if (elements.memory && data.metrics.memory) {
-      elements.memory.textContent = data.metrics.memory
-    }
-    if (elements.temp && data.metrics.temp) {
-      elements.temp.textContent = data.metrics.temp
-    }
-    if (elements.disk && data.metrics.disk) {
-      elements.disk.textContent = data.metrics.disk
-    }
-    if (elements.storage && data.metrics.storage) {
-      elements.storage.textContent = data.metrics.storage
-    }
-
-    Object.keys(stats).forEach(key => {
-      if (stats[key] && data.metric_statuses[key]) {
-        const status = data.metric_statuses[key]
-        stats[key].className = stats[key].className.replace(/status-\w+/g, '')
-        stats[key].classList.add(`status-${status}`)
+    for (const key of keys) {
+      const element = this.container.querySelector(`#${key}-value`)
+      if (element) {
+        valueElements[key] = element
+        statElements[key] = element.closest('.stat')
       }
-    })
+    }
+
+    for (const key of keys) {
+      if (valueElements[key] && data.metrics[key]) {
+        valueElements[key].textContent = data.metrics[key]
+      }
+      if (statElements[key] && data.metric_statuses[key]) {
+        const status = data.metric_statuses[key]
+        statElements[key].className = statElements[key].className.replace(/status-\w+/g, '')
+        statElements[key].classList.add(`status-${status}`)
+      }
+    }
   }
 
   rebuildTableHeaders () {
     const thead = this.container.querySelector('thead tr')
     if (!thead) return
-
     const headers = ['Timestamp']
     const enabled = this.config.metrics?.enabled
     const all = !enabled || enabled.length === 0
 
-    if (all || enabled.includes('cpu_percent')) headers.push('CPU %')
-    if (all || enabled.includes('memory_percent')) headers.push('Memory %')
-    if (all || enabled.includes('disk_read_mb')) headers.push('Disk Read MB')
-    if (all || enabled.includes('disk_write_mb')) headers.push('Disk Write MB')
-    if (all || enabled.includes('net_rx_mb')) headers.push('Net RX MB')
-    if (all || enabled.includes('net_tx_mb')) headers.push('Net TX MB')
-    if (all || enabled.includes('load_1min')) headers.push('Load')
-    if (all || enabled.includes('temp_c')) headers.push('Temp °C')
-    if (all || enabled.includes('battery_percent')) headers.push('Battery %')
+    for (const metric of this.metricFields) {
+      if (all || enabled.includes(metric.field)) {
+        headers.push(metric.label)
+      }
+    }
     headers.push('Source')
+    const DataFormatter = window.monitorShared.DataFormatter
+    DataFormatter.updateTableHeaders(thead, headers)
+  }
 
-    thead.innerHTML = headers.map(h => `<th>${h}</th>`).join('')
+  calculateTableDeltas (data) {
+    const result = []
+    let prevRow = null
+
+    for (const row of data) {
+      const entry = { timestamp: row.timestamp, source: row.source || '' }
+
+      for (const metric of this.metricFields) {
+        if (metric.source) {
+          entry[metric.field] = 0
+        } else {
+          entry[metric.field] = parseFloat(row[metric.field]) || 0
+        }
+      }
+
+      if (prevRow) {
+        const timeDelta = (new Date(row.timestamp) - new Date(prevRow.timestamp)) / 60000
+        if (timeDelta > 0) {
+          for (const metric of this.metricFields) {
+            if (metric.source) {
+              const current = parseFloat(row[metric.source]) || 0
+              const prev = parseFloat(prevRow[metric.source]) || 0
+              entry[metric.field] = Math.max(0, (current - prev) / timeDelta)
+            }
+          }
+        }
+      }
+
+      result.push(entry)
+      prevRow = row
+    }
+
+    return result
+  }
+
+  createChartData (entries, selectedItem, DataFormatter) {
+    const chronological = entries.slice()
+    const labels = chronological.map(row => DataFormatter.formatTime(row.timestamp))
+    const datasets = []
+    const allValues = []
+
+    const group = this.schema.computed.find(g => g.group === selectedItem)
+    const metricsToChart = group ? group.fields : this.schema.metrics.find(m => m.field === selectedItem) ? [this.schema.metrics.find(m => m.field === selectedItem)] : []
+
+    const ChartManager = window.monitorShared.ChartManager
+    for (const metric of metricsToChart) {
+      const values = chronological.map(row => parseFloat(row[metric.field]) || 0)
+      datasets.push(...ChartManager.buildGhostedDatasets({
+        label: metric.label,
+        color: metric.color,
+        rawValues: values
+      }))
+      allValues.push(...values)
+    }
+
+    return { labels, datasets, allValues }
   }
 
   formatTableRow (entry) {
@@ -268,48 +242,55 @@ class MetricsWidget {
     const enabled = this.config.metrics?.enabled
     const all = !enabled || enabled.length === 0
 
-    if (all || enabled.includes('cpu_percent')) row.push(DataFormatter.formatNumber(entry.cpu_percent, 1) + '%')
-    if (all || enabled.includes('memory_percent')) row.push(DataFormatter.formatNumber(entry.memory_percent, 1) + '%')
-    if (all || enabled.includes('disk_read_mb')) row.push(DataFormatter.formatNumber(entry.disk_read_mb, 1))
-    if (all || enabled.includes('disk_write_mb')) row.push(DataFormatter.formatNumber(entry.disk_write_mb, 1))
-    if (all || enabled.includes('net_rx_mb')) row.push(DataFormatter.formatNumber(entry.net_rx_mb, 1))
-    if (all || enabled.includes('net_tx_mb')) row.push(DataFormatter.formatNumber(entry.net_tx_mb, 1))
-    if (all || enabled.includes('load_1min')) row.push(DataFormatter.formatNumber(entry.load_1min, 2))
-    if (all || enabled.includes('temp_c')) row.push(DataFormatter.formatNumber(entry.temp_c, 1) + '°C')
-    if (all || enabled.includes('battery_percent')) row.push(entry.battery_percent ? DataFormatter.formatNumber(entry.battery_percent, 1) + '%' : '–')
+    for (const metric of this.metricFields) {
+      if (all || enabled.includes(metric.field)) {
+        const value = entry[metric.field]
+        const formatted = value === null || value === undefined ? '–' : DataFormatter.formatNumber(value, metric.decimals)
+        row.push(formatted + metric.unit)
+      }
+    }
 
     row.push(entry.source || '')
     return row
   }
 
   setView (view) {
-    const elements = {
-      viewToggle: this.container.querySelector('[data-metrics="view-toggle"]'),
-      chartContainer: this.container.querySelector('[data-metrics="chart-container"]'),
-      tableContainer: this.container.querySelector('[data-metrics="table-container"]'),
-      viewChart: this.container.querySelector('[data-metrics="view-chart"]'),
-      viewTable: this.container.querySelector('[data-metrics="view-table"]'),
-      metricSelect: this.container.querySelector('[data-metrics="metric-select"]'),
-      periodSelect: this.container.querySelector('[data-metrics="period-select"]')
-    }
+    const DataFormatter = window.monitorShared.DataFormatter
+    const elements = DataFormatter.selectByAttribute(this.container, 'data-metrics', [
+      'view-toggle', 'chart-container', 'table-container', 'view-chart', 'view-table', 'metric-select', 'period-select'
+    ])
 
     const targetView = view === 'table' ? 'table' : view === 'none' ? 'none' : 'chart'
+    if (this.currentView === targetView) return
 
-    // Show/hide metric and period selects based on view
-    if (elements.metricSelect) {
-      elements.metricSelect.style.display = targetView === 'chart' ? '' : 'none'
-    }
-    if (elements.periodSelect) {
-      elements.periodSelect.style.display = targetView === 'chart' ? '' : 'none'
+    if (targetView === 'none') {
+      elements['view-toggle'].style.display = 'none'
+      elements['chart-container'].style.display = 'none'
+      elements['table-container'].style.display = 'none'
+    } else {
+      elements['view-toggle'].style.display = ''
+      if (targetView === 'chart') {
+        elements['chart-container'].style.display = ''
+        elements['table-container'].style.display = 'none'
+        elements['view-chart'].classList.add('active')
+        elements['view-table'].classList.remove('active')
+        if (this.chartManager) {
+          this.chartManager.ensureChart().then(() => {
+            if (this.chartManager.hasChart()) this.updateChart()
+          })
+        }
+      } else {
+        elements['chart-container'].style.display = 'none'
+        elements['table-container'].style.display = ''
+        elements['view-chart'].classList.remove('active')
+        elements['view-table'].classList.add('active')
+      }
+      if (elements['metric-select']) elements['metric-select'].style.display = targetView === 'chart' ? '' : 'none'
+      if (elements['period-select']) elements['period-select'].style.display = targetView === 'chart' ? '' : 'none'
     }
 
-    this.currentView = ChartManager.setView(view, elements, this.currentView, this.chartManager, () => {
-      this.updateChart()
-    })
-
-    if (this.tableManager) {
-      this.tableManager.updateToggleVisibility()
-    }
+    this.currentView = targetView
+    if (this.tableManager) this.tableManager.updateToggleVisibility()
   }
 
   initManagers () {
@@ -317,17 +298,12 @@ class MetricsWidget {
     const ChartManager = window.monitorShared?.ChartManager
     const TableManager = window.monitorShared?.TableManager
 
-    if (!DataFormatter || !ChartManager || !TableManager) {
-      throw new Error('Shared modules not available')
-    }
-
     this.chartManager = new ChartManager({
       canvasElement: this.container.querySelector('[data-metrics="chart"]'),
       containerElement: this.container.querySelector('[data-metrics="chart-container"]'),
       height: this.config.chart.height,
       dataUrl: null,
-      chartOptions: {},
-      metricConfig: this.metricConfig
+      chartOptions: {}
     })
 
     this.tableManager = new TableManager({
@@ -342,8 +318,6 @@ class MetricsWidget {
   }
 
   async loadHistory () {
-    if (!this.tableManager) return
-
     this.tableManager.setEntries([])
     this.tableManager.setStatus('Loading metrics history…')
 
@@ -355,25 +329,17 @@ class MetricsWidget {
       url.searchParams.set('ts', Date.now())
 
       const response = await fetch(url, { cache: 'no-store' })
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
       const payload = await response.json()
       const data = payload.data || []
       this.entries = data
+      this.transformedEntries = this.calculateTableDeltas(this.entries)
 
-      // Calculate deltas for I/O metrics using shared utility
-      const transformedEntries = ChartManager.calculateTableDeltas(this.entries)
-
-      // Table gets limited entries, chart gets all entries
       const tableLimit = Number.isFinite(this.config.table?.max) ? this.config.table.max : this.defaults.table.max
-      const tableEntries = transformedEntries.slice(-tableLimit).reverse()
+      const tableEntries = this.transformedEntries.slice(-tableLimit).reverse()
       this.tableManager.setEntries(tableEntries)
       this.updateViewToggle()
 
-      if (this.chartManager && this.chartManager.hasChart()) {
-        this.updateChart()
-      }
+      if (this.chartManager?.hasChart()) this.updateChart()
     } catch (error) {
       console.error('Metrics history API call failed:', error)
       this.tableManager.setStatus(`Unable to load metrics history: ${error.message}`)
@@ -381,23 +347,25 @@ class MetricsWidget {
   }
 
   updateChart () {
-    if (!this.chartManager || !this.chartManager.chart || !this.entries.length) return
+    if (!this.chartManager?.chart || !this.transformedEntries.length) return
 
     const DataFormatter = window.monitorShared.DataFormatter
-    const chartData = this.chartManager.createChartData(this.entries, this.selectedMetric, DataFormatter)
+    const chartData = this.createChartData(this.transformedEntries, this.selectedMetric, DataFormatter)
 
-    if (!chartData.allValues || !chartData.allValues.length) return
+    if (!chartData.allValues?.length) return
 
     const min = Math.min(...chartData.allValues.filter(v => !isNaN(v)))
     const max = Math.max(...chartData.allValues.filter(v => !isNaN(v)))
     const padding = (max - min) * 0.1
 
+    const yAxisLabel = this.schema.computed.find(g => g.group === this.selectedMetric)?.yAxisLabel ||
+                       this.schema.metrics.find(m => m.field === this.selectedMetric)?.yAxisLabel ||
+                       'Value'
+
     const scales = {
+      x: { display: true },
       y: {
-        title: {
-          display: true,
-          text: this.chartManager.getYAxisLabel(this.selectedMetric)
-        },
+        title: { display: true, text: yAxisLabel },
         min: Math.max(0, min - padding),
         max: max + padding
       }
@@ -410,13 +378,10 @@ class MetricsWidget {
     const viewToggle = this.container.querySelector('[data-metrics="view-toggle"]')
     if (viewToggle) {
       viewToggle.style.display = ''
-      if (!this.currentView) {
-        this.setView('chart')
-      }
+      if (!this.currentView) this.setView('chart')
     }
   }
 }
 
-// Register widget
 window.widgets = window.widgets || {}
 window.widgets.metrics = MetricsWidget

@@ -1,38 +1,48 @@
-/* global ChartManager */
+/* global ChartManager, DataFormatter, MetricsWidget */
 class SpeedtestWidget {
   constructor (widgetConfig = {}) {
     this.container = null
     this.widgetConfig = widgetConfig
-    this.config = {
+    this.defaults = {
       default: 'chart',
-      table: {
-        min: 5,
-        max: 200
-      },
-      chart: {
-        height: '400px',
-        days: 30
-      }
+      table: { min: 5, max: 200 },
+      chart: { height: '400px', days: 30 }
     }
+    this.config = this.buildConfig()
     this.elements = {}
     this.entries = []
     this.chartManager = null
     this.tableManager = null
     this.currentView = null
     this.selectedPeriod = 'all'
+    this.schema = null
+  }
+
+  async loadSchema () {
+    if (this.schema) return
+    const response = await fetch('api/speedtest/schema')
+    this.schema = await response.json()
+  }
+
+  buildConfig (overrides = {}) {
+    const merged = { ...this.widgetConfig, ...overrides }
+    const table = { ...this.defaults.table, ...(this.widgetConfig.table || {}), ...(overrides.table || {}) }
+    const chart = { ...this.defaults.chart, ...(this.widgetConfig.chart || {}), ...(overrides.chart || {}) }
+    const periods = Array.isArray(merged.periods) ? [...merged.periods] : [...this.defaults.periods || []]
+    return {
+      _suppressHeader: merged._suppressHeader,
+      name: merged.name || 'Speedtest',
+      default: typeof merged.default === 'string' ? merged.default : this.defaults.default,
+      table,
+      chart,
+      periods
+    }
   }
 
   async init (container, config = {}) {
     this.container = container
-    const hasExplicitName = Object.prototype.hasOwnProperty.call(config, 'name')
-    this.config = {
-      _suppressHeader: config._suppressHeader,
-      name: hasExplicitName ? config.name : this.widgetConfig.name,
-      default: config.default,
-      table: config.table,
-      chart: config.chart
-    }
-    this.selectedPeriod = this.config.chart.default_period
+    this.config = this.buildConfig(config)
+    await this.loadSchema()
 
     const response = await fetch('widgets/speedtest/speedtest.html')
     const html = await response.text()
@@ -48,58 +58,41 @@ class SpeedtestWidget {
       })
     }
 
-    this.elements = {
-      run: container.querySelector('[data-speedtest="run"]'),
-      status: container.querySelector('[data-speedtest="status"]'),
-      historyStatus: container.querySelector('[data-speedtest="history-status"]'),
-      rows: container.querySelector('[data-speedtest="rows"]'),
-      toggle: container.querySelector('[data-speedtest="toggle"]'),
-      viewToggle: container.querySelector('[data-speedtest="view-toggle"]'),
-      viewChart: container.querySelector('[data-speedtest="view-chart"]'),
-      viewTable: container.querySelector('[data-speedtest="view-table"]'),
-      chartContainer: container.querySelector('[data-speedtest="chart-container"]'),
-      chartCanvas: container.querySelector('[data-speedtest="chart"]'),
-      tableContainer: container.querySelector('[data-speedtest="table-container"]'),
-      periodSelect: container.querySelector('[data-speedtest="period-select"]')
-    }
+    this.setupEventListeners()
+    this.initManagers()
+    this.setView(this.config.default)
+    await this.loadHistory()
+  }
 
-    if (this.elements.run) {
-      this.elements.run.addEventListener('click', () => this.runSpeedtest())
-    }
-    if (this.elements.viewChart) {
-      this.elements.viewChart.addEventListener('click', () => this.setView('chart'))
-    }
-    if (this.elements.viewTable) {
-      this.elements.viewTable.addEventListener('click', () => this.setView('table'))
-    }
+  setupEventListeners () {
+    const run = this.container.querySelector('[data-speedtest="run"]')
+    const viewChart = this.container.querySelector('[data-speedtest="view-chart"]')
+    const viewTable = this.container.querySelector('[data-speedtest="view-table"]')
+    const periodSelect = this.container.querySelector('[data-speedtest="period-select"]')
 
-    if (this.elements.periodSelect) {
-      // Populate period options
-      this.elements.periodSelect.innerHTML = '<option value="all">All</option>'
+    if (run) run.addEventListener('click', () => this.runSpeedtest())
+    if (viewChart) viewChart.addEventListener('click', () => this.setView('chart'))
+    if (viewTable) viewTable.addEventListener('click', () => this.setView('table'))
+
+    if (periodSelect) {
+      periodSelect.innerHTML = '<option value="all">All</option>'
       if (Array.isArray(this.config.chart.periods)) {
         this.config.chart.periods.forEach(period => {
           const option = document.createElement('option')
           option.value = period
           option.textContent = period
-          this.elements.periodSelect.appendChild(option)
+          periodSelect.appendChild(option)
         })
       }
-
-      this.elements.periodSelect.value = this.selectedPeriod
-      this.elements.periodSelect.addEventListener('change', (e) => {
+      periodSelect.value = this.selectedPeriod
+      periodSelect.addEventListener('change', (e) => {
         this.selectedPeriod = e.target.value
-        if (this.chartManager) {
+        if (this.chartManager?.hasChart()) {
           this.chartManager.dataParams.period = this.selectedPeriod
-          if (this.chartManager.hasChart()) {
-            this.chartManager.loadData()
-          }
+          this.chartManager.loadData()
         }
       })
     }
-
-    this.initManagers()
-    this.setView(this.config.default)
-    await this.loadHistory()
   }
 
   initManagers () {
@@ -107,13 +100,9 @@ class SpeedtestWidget {
     const ChartManager = window.monitorShared?.ChartManager
     const TableManager = window.monitorShared?.TableManager
 
-    if (!DataFormatter || !ChartManager || !TableManager) {
-      throw new Error('Shared modules not available')
-    }
-
     this.chartManager = new ChartManager({
-      canvasElement: this.elements.chartCanvas,
-      containerElement: this.elements.chartContainer,
+      canvasElement: this.container.querySelector('[data-speedtest="chart"]'),
+      containerElement: this.container.querySelector('[data-speedtest="chart-container"]'),
       height: this.config.chart.height,
       dataUrl: 'api/speedtest/chart',
       dataParams: {
@@ -125,64 +114,71 @@ class SpeedtestWidget {
           speed: {
             type: 'linear',
             position: 'left',
-            title: {
-              display: true,
-              text: 'Speed (Mbps)'
-            }
+            title: { display: true, text: 'Speed (Mbps)' }
           },
           ping: {
             type: 'linear',
             position: 'right',
-            title: {
-              display: true,
-              text: 'Ping (ms)'
-            },
-            grid: {
-              drawOnChartArea: false
-            }
+            title: { display: true, text: 'Ping (ms)' },
+            grid: { drawOnChartArea: false }
           }
         }
       }
     })
 
     this.tableManager = new TableManager({
-      statusElement: this.elements.historyStatus,
-      rowsElement: this.elements.rows,
-      toggleElement: this.elements.toggle,
+      statusElement: this.container.querySelector('[data-speedtest="history-status"]'),
+      rowsElement: this.container.querySelector('[data-speedtest="rows"]'),
+      toggleElement: this.container.querySelector('[data-speedtest="toggle"]'),
       previewCount: this.config.table.min,
       emptyMessage: 'No speedtests logged yet.',
       isTableViewActive: () => this.currentView === 'table',
-      rowFormatter: (entry) => [
-        DataFormatter.formatTimestamp(entry.timestamp),
-        DataFormatter.formatMbps(entry.download),
-        DataFormatter.formatMbps(entry.upload),
-        DataFormatter.formatPing(entry.ping),
-        entry.server || ''
-      ]
+      rowFormatter: (entry) => this.formatTableRow(entry)
     })
   }
 
+  formatTableRow (entry) {
+    const DataFormatter = window.monitorShared.DataFormatter
+    const row = [DataFormatter.formatTimestamp(entry.timestamp)]
+
+    for (const metric of this.schema.metrics) {
+      const value = entry[metric.field]
+      if (value === null || value === undefined) {
+        row.push('–')
+      } else {
+        const numValue = parseFloat(value)
+        const formatted = metric.converter === 'mbps'
+          ? DataFormatter.formatMbps(numValue * 1_000_000)
+          : DataFormatter.formatNumber(numValue, metric.decimals)
+        row.push(formatted + metric.unit)
+      }
+    }
+
+    row.push(entry[this.schema.metadata.field] || '')
+    return row
+  }
+
   async runSpeedtest () {
-    const button = this.elements.run
-    const status = this.elements.status
+    const button = this.container.querySelector('[data-speedtest="run"]')
+    const status = this.container.querySelector('[data-speedtest="status"]')
     if (button) button.disabled = true
     if (status) status.textContent = 'Running speedtest…'
 
     try {
       const response = await fetch('api/speedtest/run', { method: 'POST' })
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const result = await response.json()
-      if (!result.success) {
-        throw new Error(result.error || 'Speedtest failed')
-      }
+      if (!result.success) throw new Error(result.error || 'Speedtest failed')
+
       if (status) {
         const DataFormatter = window.monitorShared.DataFormatter
-        status.textContent = `${DataFormatter.formatTimestamp(result.timestamp)} — ↓ ${DataFormatter.formatMbps(result.download)} Mbps, ↑ ${DataFormatter.formatMbps(result.upload)} Mbps, ${DataFormatter.formatPing(result.ping)} ms (${result.server || 'unknown server'})`
+        const download = DataFormatter.formatMbps(result.download)
+        const upload = DataFormatter.formatMbps(result.upload)
+        const ping = DataFormatter.formatPing(result.ping)
+        status.textContent = `${DataFormatter.formatTimestamp(result.timestamp)} — ↓ ${download} Mbps, ↑ ${upload} Mbps, ${ping} ms (${result.server || 'unknown'})`
       }
     } catch (error) {
-      console.error('Speedtest run API call failed:', error)
+      console.error('Speedtest run failed:', error)
       if (status) status.textContent = `Speedtest error: ${error.message}`
     } finally {
       if (button) button.disabled = false
@@ -191,10 +187,6 @@ class SpeedtestWidget {
   }
 
   async loadHistory () {
-    if (!this.tableManager) {
-      return
-    }
-
     this.tableManager.setEntries([])
     this.tableManager.setStatus('Loading speedtest history…')
 
@@ -204,48 +196,68 @@ class SpeedtestWidget {
       params.set('ts', Date.now())
 
       const response = await fetch(`api/speedtest/history?${params.toString()}`, { cache: 'no-store' })
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const payload = await response.json()
       this.entries = payload.entries || []
       this.tableManager.setEntries(this.entries)
       this.updateViewToggle()
-      if (this.chartManager && this.chartManager.hasChart()) {
+      if (this.chartManager?.hasChart()) {
         await this.chartManager.loadData()
       }
     } catch (error) {
-      console.error('Speedtest history API call failed:', error)
+      console.error('Speedtest history failed:', error)
       this.tableManager.setStatus(`Unable to load speedtests: ${error.message}`)
     }
   }
 
   setView (view) {
+    const DataFormatter = window.monitorShared.DataFormatter
+    const elements = DataFormatter.selectByAttribute(this.container, 'data-speedtest', [
+      'view-toggle', 'chart-container', 'table-container', 'view-chart', 'view-table', 'period-select'
+    ])
+
     const targetView = view === 'table' ? 'table' : view === 'none' ? 'none' : 'chart'
+    if (this.currentView === targetView) return
 
-    // Show/hide period select based on view
-    if (this.elements.periodSelect) {
-      this.elements.periodSelect.style.display = targetView === 'chart' ? '' : 'none'
+    if (targetView === 'none') {
+      elements['view-toggle'].style.display = 'none'
+      elements['chart-container'].style.display = 'none'
+      elements['table-container'].style.display = 'none'
+    } else {
+      elements['view-toggle'].style.display = ''
+      if (targetView === 'chart') {
+        elements['chart-container'].style.display = ''
+        elements['table-container'].style.display = 'none'
+        elements['view-chart'].classList.add('active')
+        elements['view-table'].classList.remove('active')
+        if (this.chartManager) {
+          this.chartManager.ensureChart().then(() => {
+            if (this.chartManager.hasChart()) this.chartManager.loadData()
+          })
+        }
+      } else {
+        elements['chart-container'].style.display = 'none'
+        elements['table-container'].style.display = ''
+        elements['view-chart'].classList.remove('active')
+        elements['view-table'].classList.add('active')
+      }
+      if (elements['period-select']) {
+        elements['period-select'].style.display = targetView === 'chart' ? '' : 'none'
+      }
     }
 
-    this.currentView = ChartManager.setView(view, this.elements, this.currentView, this.chartManager)
-
-    // Update toggle visibility when view changes
-    if (this.tableManager) {
-      this.tableManager.updateToggleVisibility()
-    }
+    this.currentView = targetView
+    if (this.tableManager) this.tableManager.updateToggleVisibility()
   }
 
   updateViewToggle () {
-    if (!this.elements.viewToggle) return
-
+    const viewToggle = this.container.querySelector('[data-speedtest="view-toggle"]')
+    if (!viewToggle) return
     if (this.entries.length > 0) {
-      this.elements.viewToggle.style.display = ''
-      if (!this.currentView) {
-        this.setView(this.config.default)
-      }
+      viewToggle.style.display = ''
+      if (!this.currentView) this.setView(this.config.default)
     } else {
-      this.elements.viewToggle.style.display = 'none'
+      viewToggle.style.display = 'none'
     }
   }
 }
