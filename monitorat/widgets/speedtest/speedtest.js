@@ -90,7 +90,7 @@ class SpeedtestWidget {
     const TableManager = window.monitorShared?.TableManager
 
     const axes = this.schema?.axes && Object.keys(this.schema.axes).length > 0 ? this.schema.axes : {}
-    const scales = WidgetHelpers.buildScalesFromSchema(axes)
+    const scales = ChartManager.buildScalesFromSchema(axes)
 
     this.chartManager = new ChartManager({
       canvasElement: this.getElement('chart'),
@@ -109,7 +109,8 @@ class SpeedtestWidget {
 
   rebuildTableHeaders () {
     const metadataLabel = this.schema?.metadata?.label || 'Server'
-    WidgetHelpers.buildTableHeaders(this.container, this.metricFields, metadataLabel)
+    const TableManager = window.monitorShared.TableManager
+    TableManager.buildTableHeaders(this.container, this.metricFields, metadataLabel)
   }
 
   formatTableRow (entry) {

@@ -240,6 +240,35 @@ class ChartManager {
 
     return targetView
   }
+
+  static cloneObject (object) {
+    return JSON.parse(JSON.stringify(object || {}))
+  }
+
+  static mergeObjects (baseObject, overrideObject) {
+    const merged = this.cloneObject(baseObject)
+    Object.entries(overrideObject || {}).forEach(([key, value]) => {
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        merged[key] = this.mergeObjects(merged[key] || {}, value)
+      } else {
+        merged[key] = value
+      }
+    })
+    return merged
+  }
+
+  static buildScalesFromSchema (axes = {}, overrides = {}) {
+    const scales = {}
+    Object.entries(axes || {}).forEach(([scaleId, config]) => {
+      scales[scaleId] = this.cloneObject(config)
+    })
+
+    Object.entries(overrides || {}).forEach(([scaleId, overrideConfig]) => {
+      scales[scaleId] = this.mergeObjects(scales[scaleId] || {}, overrideConfig)
+    })
+
+    return scales
+  }
 }
 
 window.monitorShared = window.monitorShared || {}

@@ -53,15 +53,6 @@ class DataFormatter {
     return result
   }
 
-  static updateTableHeaders (thead, headers) {
-    thead.innerHTML = ''
-    for (const header of headers) {
-      const th = document.createElement('th')
-      th.textContent = header
-      thead.appendChild(th)
-    }
-  }
-
   static formatBySchema (value, metricSchema = {}) {
     if (value === null || value === undefined) return '–'
 

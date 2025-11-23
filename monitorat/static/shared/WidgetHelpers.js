@@ -39,40 +39,28 @@ class WidgetHelpers {
     }
   }
 
-  static selectElements (container, attributeName, names) {
-    const DataFormatter = window.monitorShared.DataFormatter
-    return DataFormatter.selectByAttribute(container, attributeName, names)
-  }
-
-  static getElement (container, attributeName, name) {
-    if (!container) return null
-    return container.querySelector(`[${attributeName}="${name}"]`)
-  }
-
-  static toggleControls (controls, show) {
-    if (!Array.isArray(controls)) return
-    controls.filter(Boolean).forEach((element) => {
-      element.style.display = show ? '' : 'none'
-    })
-  }
-
   static setView ({ view, currentView, container, attributeName, chartManager, onChartReady, controlsForChart = [] }) {
-    const elements = this.selectElements(container, attributeName, [
-      'view-toggle', 'chart-container', 'table-container', 'view-chart', 'view-table'
-    ])
+    const q = (name) => container?.querySelector(`[${attributeName}="${name}"]`)
+    const elements = {
+      viewToggle: q('view-toggle'),
+      chartContainer: q('chart-container'),
+      tableContainer: q('table-container'),
+      viewChart: q('view-chart'),
+      viewTable: q('view-table')
+    }
 
     const nextView = window.monitorShared.ChartManager.setView(view, {
-      viewToggle: elements['view-toggle'],
-      chartContainer: elements['chart-container'],
-      tableContainer: elements['table-container'],
-      viewChart: elements['view-chart'],
-      viewTable: elements['view-table']
+      viewToggle: elements.viewToggle,
+      chartContainer: elements.chartContainer,
+      tableContainer: elements.tableContainer,
+      viewChart: elements.viewChart,
+      viewTable: elements.viewTable
     }, currentView, chartManager, onChartReady)
 
-    this.toggleControls(controlsForChart, nextView === 'chart')
-    if (nextView !== 'chart') {
-      this.toggleControls(controlsForChart, false)
-    }
+    const showControls = nextView === 'chart'
+    controlsForChart.filter(Boolean).forEach((element) => {
+      element.style.display = showControls ? '' : 'none'
+    })
 
     return nextView
   }
@@ -94,49 +82,6 @@ class WidgetHelpers {
     return currentView
   }
 
-  static cloneObject (object) {
-    return JSON.parse(JSON.stringify(object || {}))
-  }
-
-  static mergeObjects (baseObject, overrideObject) {
-    const merged = this.cloneObject(baseObject)
-    Object.entries(overrideObject || {}).forEach(([key, value]) => {
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
-        merged[key] = this.mergeObjects(merged[key] || {}, value)
-      } else {
-        merged[key] = value
-      }
-    })
-    return merged
-  }
-
-  static buildScalesFromSchema (axes = {}, overrides = {}) {
-    const scales = {}
-    Object.entries(axes || {}).forEach(([scaleId, config]) => {
-      scales[scaleId] = this.cloneObject(config)
-    })
-
-    Object.entries(overrides || {}).forEach(([scaleId, overrideConfig]) => {
-      scales[scaleId] = this.mergeObjects(scales[scaleId] || {}, overrideConfig)
-    })
-
-    return scales
-  }
-
-  static buildTableHeaders (container, metricFields = [], metadataLabel = 'Source') {
-    const headerRow = container?.querySelector('thead tr')
-    if (!headerRow) return
-
-    const headers = ['Timestamp']
-    for (const metric of metricFields) {
-      headers.push(metric.label)
-    }
-    headers.push(metadataLabel)
-
-    const DataFormatter = window.monitorShared.DataFormatter
-    DataFormatter.updateTableHeaders(headerRow, headers)
-  }
-
   static formatTableRow ({ entry, metricFields = [], metadataField }) {
     const DataFormatter = window.monitorShared.DataFormatter
     const row = [DataFormatter.formatTimestamp(entry.timestamp)]
@@ -152,3 +97,85 @@ class WidgetHelpers {
 
 window.monitorShared = window.monitorShared || {}
 window.monitorShared.WidgetHelpers = WidgetHelpers
+
+const ChartTableWidgetMethods = {
+  getElement (name) {
+    return this.container?.querySelector(`[${this.attributeName}="${name}"]`)
+  },
+
+  setView (view) {
+    const controls = this.getViewControls()
+
+    this.currentView = WidgetHelpers.setView({
+      view,
+      currentView: this.currentView,
+      container: this.container,
+      attributeName: this.attributeName,
+      chartManager: this.chartManager,
+      onChartReady: () => {
+        if (typeof this.updateChartView === 'function') {
+          this.updateChartView()
+        } else if (this.chartManager?.hasChart()) {
+          this.chartManager.loadData()
+        }
+      },
+      controlsForChart: controls
+    })
+
+    if (this.tableManager) this.tableManager.updateToggleVisibility()
+    return this.currentView
+  },
+
+  updateViewToggle (hasEntries) {
+    this.currentView = WidgetHelpers.updateViewToggle({
+      container: this.container,
+      attributeName: this.attributeName,
+      hasEntries,
+      currentView: this.currentView,
+      defaultViewSetter: () => this.setView(this.config.default || this.defaults.default)
+    })
+  },
+
+  getViewControls () {
+    return []
+  },
+
+  wireViewToggles () {
+    const viewChart = this.getElement('view-chart')
+    const viewTable = this.getElement('view-table')
+
+    if (viewChart) viewChart.addEventListener('click', () => this.setView('chart'))
+    if (viewTable) viewTable.addEventListener('click', () => this.setView('table'))
+  },
+
+  rebuildTableHeaders () {
+    const metadataLabel = this.schema?.metadata?.label || 'Source'
+    const TableManager = window.monitorShared.TableManager
+    TableManager.buildTableHeaders(this.container, this.metricFields, metadataLabel)
+  },
+
+  formatTableRow (entry) {
+    const metadataField = this.schema?.metadata?.field
+    return WidgetHelpers.formatTableRow({
+      entry,
+      metricFields: this.metricFields,
+      metadataField
+    })
+  },
+
+  createTableManager () {
+    const TableManager = window.monitorShared?.TableManager
+
+    return new TableManager({
+      statusElement: this.getElement('history-status'),
+      rowsElement: this.getElement('rows'),
+      toggleElement: this.getElement('toggle'),
+      previewCount: this.config.table.min,
+      emptyMessage: this.schema?.metadata?.emptyMessage || 'No entries yet.',
+      isTableViewActive: () => this.currentView === 'table',
+      rowFormatter: (entry) => this.formatTableRow(entry)
+    })
+  }
+}
+
+window.monitorShared.ChartTableWidgetMethods = ChartTableWidgetMethods

@@ -147,7 +147,8 @@ class MetricsWidget {
 
   rebuildTableHeaders () {
     const metadataLabel = this.schema?.metadata?.label || 'Source'
-    WidgetHelpers.buildTableHeaders(this.container, this.metricFields, metadataLabel)
+    const TableManager = window.monitorShared.TableManager
+    TableManager.buildTableHeaders(this.container, this.metricFields, metadataLabel)
   }
 
   calculateTableDeltas (data) {
@@ -277,7 +278,7 @@ class MetricsWidget {
                        'Value'
 
     const axes = this.schema?.axes && Object.keys(this.schema.axes).length > 0 ? this.schema.axes : { x: { display: true }, y: { display: true } }
-    const scales = WidgetHelpers.buildScalesFromSchema(axes, {
+    const scales = ChartManager.buildScalesFromSchema(axes, {
       y: {
         title: { text: yAxisLabel },
         min: Math.max(0, min - padding),

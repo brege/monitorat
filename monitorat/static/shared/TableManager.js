@@ -80,6 +80,29 @@ class TableManager {
     this.expanded = !this.expanded
     this.render()
   }
+
+  static updateTableHeaders (thead, headers) {
+    if (!thead) return
+    thead.innerHTML = ''
+    for (const header of headers) {
+      const th = document.createElement('th')
+      th.textContent = header
+      thead.appendChild(th)
+    }
+  }
+
+  static buildTableHeaders (container, metricFields = [], metadataLabel = 'Source') {
+    const headerRow = container?.querySelector('thead tr')
+    if (!headerRow) return
+
+    const headers = ['Timestamp']
+    for (const metric of metricFields) {
+      headers.push(metric.label)
+    }
+    headers.push(metadataLabel)
+
+    this.updateTableHeaders(headerRow, headers)
+  }
 }
 
 window.monitorShared = window.monitorShared || {}
