@@ -120,6 +120,8 @@ class MetricsWidget {
     const html = await response.text()
     container.innerHTML = html
 
+    this.rebuildTableHeaders()
+
     const applyWidgetHeader = window.monitor?.applyWidgetHeader
     if (applyWidgetHeader) {
       applyWidgetHeader(container, {
@@ -238,6 +240,48 @@ class MetricsWidget {
     })
   }
 
+  rebuildTableHeaders () {
+    const thead = this.container.querySelector('thead tr')
+    if (!thead) return
+
+    const headers = ['Timestamp']
+    const enabled = this.config.metrics?.enabled
+    const all = !enabled || enabled.length === 0
+
+    if (all || enabled.includes('cpu_percent')) headers.push('CPU %')
+    if (all || enabled.includes('memory_percent')) headers.push('Memory %')
+    if (all || enabled.includes('disk_read_mb')) headers.push('Disk Read MB')
+    if (all || enabled.includes('disk_write_mb')) headers.push('Disk Write MB')
+    if (all || enabled.includes('net_rx_mb')) headers.push('Net RX MB')
+    if (all || enabled.includes('net_tx_mb')) headers.push('Net TX MB')
+    if (all || enabled.includes('load_1min')) headers.push('Load')
+    if (all || enabled.includes('temp_c')) headers.push('Temp °C')
+    if (all || enabled.includes('battery_percent')) headers.push('Battery %')
+    headers.push('Source')
+
+    thead.innerHTML = headers.map(h => `<th>${h}</th>`).join('')
+  }
+
+  formatTableRow (entry) {
+    const DataFormatter = window.monitorShared.DataFormatter
+    const row = [DataFormatter.formatTimestamp(entry.timestamp)]
+    const enabled = this.config.metrics?.enabled
+    const all = !enabled || enabled.length === 0
+
+    if (all || enabled.includes('cpu_percent')) row.push(DataFormatter.formatNumber(entry.cpu_percent, 1) + '%')
+    if (all || enabled.includes('memory_percent')) row.push(DataFormatter.formatNumber(entry.memory_percent, 1) + '%')
+    if (all || enabled.includes('disk_read_mb')) row.push(DataFormatter.formatNumber(entry.disk_read_mb, 1))
+    if (all || enabled.includes('disk_write_mb')) row.push(DataFormatter.formatNumber(entry.disk_write_mb, 1))
+    if (all || enabled.includes('net_rx_mb')) row.push(DataFormatter.formatNumber(entry.net_rx_mb, 1))
+    if (all || enabled.includes('net_tx_mb')) row.push(DataFormatter.formatNumber(entry.net_tx_mb, 1))
+    if (all || enabled.includes('load_1min')) row.push(DataFormatter.formatNumber(entry.load_1min, 2))
+    if (all || enabled.includes('temp_c')) row.push(DataFormatter.formatNumber(entry.temp_c, 1) + '°C')
+    if (all || enabled.includes('battery_percent')) row.push(entry.battery_percent ? DataFormatter.formatNumber(entry.battery_percent, 1) + '%' : '–')
+
+    row.push(entry.source || '')
+    return row
+  }
+
   setView (view) {
     const elements = {
       viewToggle: this.container.querySelector('[data-metrics="view-toggle"]'),
@@ -293,19 +337,7 @@ class MetricsWidget {
       previewCount: this.config.table.min,
       emptyMessage: 'No metrics history yet.',
       isTableViewActive: () => this.currentView === 'table',
-      rowFormatter: (entry) => [
-        DataFormatter.formatTimestamp(entry.timestamp),
-        DataFormatter.formatNumber(entry.cpu_percent, 1) + '%',
-        DataFormatter.formatNumber(entry.memory_percent, 1) + '%',
-        DataFormatter.formatNumber(entry.disk_read_mb, 1),
-        DataFormatter.formatNumber(entry.disk_write_mb, 1),
-        DataFormatter.formatNumber(entry.net_rx_mb, 1),
-        DataFormatter.formatNumber(entry.net_tx_mb, 1),
-        DataFormatter.formatNumber(entry.load_1min, 2),
-        DataFormatter.formatNumber(entry.temp_c, 1) + '°C',
-        entry.battery_percent ? DataFormatter.formatNumber(entry.battery_percent, 1) + '%' : '–',
-        entry.source || ''
-      ]
+      rowFormatter: (entry) => this.formatTableRow(entry)
     })
   }
 

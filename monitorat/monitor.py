@@ -134,6 +134,8 @@ class CSVHandler:
             for row in existing_rows:
                 writer.writerow(row)
 
+        self.columns = final_headers
+
     def append(self, row: dict) -> None:
         """Append row to CSV, creating file with header if needed"""
         file_exists = self.path.exists()

@@ -89,6 +89,23 @@ def get_load_average():
         return [0.0, 0.0, 0.0]
 
 
+def get_enabled_metrics():
+    """Get list of enabled metrics from config (None = all enabled)"""
+    try:
+        enabled = metrics_config()["enabled"].get(list)
+        return enabled if enabled else None
+    except Exception:
+        return None
+
+
+def is_metric_enabled(metric_name):
+    """Check if a metric should be collected and recorded"""
+    enabled = get_enabled_metrics()
+    if enabled is None:
+        return True
+    return metric_name in enabled
+
+
 def get_metric_status(metric_type, value, thresholds=None):
     """Determine status (ok/caution/critical) for a metric"""
     thresholds = thresholds or {}
@@ -111,6 +128,7 @@ def get_metric_status(metric_type, value, thresholds=None):
 
 def log_metrics_to_csv(metrics_data, source="refresh"):
     """Log metrics data to CSV file"""
+
     # Extract numeric values from metrics
     load_parts = metrics_data["load"].split()
     load_1min = float(load_parts[0]) if load_parts else 0.0
@@ -136,18 +154,6 @@ def log_metrics_to_csv(metrics_data, source="refresh"):
         else 0.0
     )
 
-    # Get I/O counters
-    try:
-        disk_io = psutil.disk_io_counters()
-        disk_read_mb = disk_io.read_bytes / (1024**2) if disk_io else 0.0
-        disk_write_mb = disk_io.write_bytes / (1024**2) if disk_io else 0.0
-
-        net_io = psutil.net_io_counters()
-        net_rx_mb = net_io.bytes_recv / (1024**2) if net_io else 0.0
-        net_tx_mb = net_io.bytes_sent / (1024**2) if net_io else 0.0
-    except Exception:
-        disk_read_mb = disk_write_mb = net_rx_mb = net_tx_mb = 0.0
-
     # CPU percentage
     cpu_percent = psutil.cpu_percent(interval=0.1)
 
@@ -160,19 +166,41 @@ def log_metrics_to_csv(metrics_data, source="refresh"):
     except Exception:
         battery_percent = 0.0
 
+    # Get I/O counters (always needed for CSV)
+    try:
+        disk_io = psutil.disk_io_counters()
+        disk_read_mb = disk_io.read_bytes / (1024**2) if disk_io else 0.0
+        disk_write_mb = disk_io.write_bytes / (1024**2) if disk_io else 0.0
+
+        net_io = psutil.net_io_counters()
+        net_rx_mb = net_io.bytes_recv / (1024**2) if net_io else 0.0
+        net_tx_mb = net_io.bytes_sent / (1024**2) if net_io else 0.0
+    except Exception:
+        disk_read_mb = disk_write_mb = net_rx_mb = net_tx_mb = 0.0
+
     row = {
         "timestamp": datetime.now().isoformat(),
-        "cpu_percent": f"{cpu_percent:.1f}",
-        "memory_percent": f"{memory_percent:.1f}",
-        "disk_read_mb": f"{disk_read_mb:.1f}",
-        "disk_write_mb": f"{disk_write_mb:.1f}",
-        "net_rx_mb": f"{net_rx_mb:.1f}",
-        "net_tx_mb": f"{net_tx_mb:.1f}",
-        "load_1min": f"{load_1min:.2f}",
-        "temp_c": f"{temp_c:.1f}",
-        "battery_percent": f"{battery_percent:.1f}",
         "source": source,
     }
+
+    if is_metric_enabled("cpu_percent"):
+        row["cpu_percent"] = f"{cpu_percent:.1f}"
+    if is_metric_enabled("memory_percent"):
+        row["memory_percent"] = f"{memory_percent:.1f}"
+    if is_metric_enabled("disk_read_mb"):
+        row["disk_read_mb"] = f"{disk_read_mb:.1f}"
+    if is_metric_enabled("disk_write_mb"):
+        row["disk_write_mb"] = f"{disk_write_mb:.1f}"
+    if is_metric_enabled("net_rx_mb"):
+        row["net_rx_mb"] = f"{net_rx_mb:.1f}"
+    if is_metric_enabled("net_tx_mb"):
+        row["net_tx_mb"] = f"{net_tx_mb:.1f}"
+    if is_metric_enabled("load_1min"):
+        row["load_1min"] = f"{load_1min:.2f}"
+    if is_metric_enabled("temp_c"):
+        row["temp_c"] = f"{temp_c:.1f}"
+    if is_metric_enabled("battery_percent"):
+        row["battery_percent"] = f"{battery_percent:.1f}"
 
     csv_handler.append(row)
 
