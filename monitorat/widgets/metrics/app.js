@@ -37,9 +37,13 @@ class MetricsWidget {
 
   resolveMetricFields () {
     const allMetrics = [...(this.schema?.metrics || []), ...(this.schema?.computed || []).flatMap(group => group.fields)]
-    const enabled = this.config?.metrics?.enabled
+    const enabled = this.config?.enabled
     if (Array.isArray(enabled) && enabled.length > 0) {
-      return allMetrics.filter(metric => enabled.includes(metric.field))
+      return allMetrics.filter((metric) => {
+        if (enabled.includes(metric.field)) return true
+        if (metric.source && enabled.includes(metric.source)) return true
+        return false
+      })
     }
     return allMetrics
   }
@@ -50,7 +54,9 @@ class MetricsWidget {
     this.selectedPeriod = this.config.chart.default_period || this.defaults.chart.default_period
 
     await this.loadSchema()
-    this.selectedMetric = this.config.chart.default_metric || this.defaults.chart.default_metric
+    const metricFields = this.metricFields.map((metric) => metric.field)
+    const preferredMetric = this.config.chart.default_metric || this.defaults.chart.default_metric
+    this.selectedMetric = metricFields.includes(preferredMetric) ? preferredMetric : (metricFields[0] || preferredMetric)
 
     const response = await fetch('widgets/metrics/index.html')
     const html = await response.text()
@@ -82,13 +88,20 @@ class MetricsWidget {
 
     if (metricSelect) {
       metricSelect.innerHTML = ''
-      for (const metric of this.schema.metrics) {
+      const allowedFields = new Set(this.metricFields.map((metric) => metric.field))
+
+      const allowedMetrics = (this.schema.metrics || []).filter((metric) => allowedFields.has(metric.field))
+      const allowedComputed = (this.schema.computed || []).filter((group) =>
+        group.fields.some((field) => allowedFields.has(field.field))
+      )
+
+      for (const metric of allowedMetrics) {
         const option = document.createElement('option')
         option.value = metric.field
         option.textContent = metric.label
         metricSelect.appendChild(option)
       }
-      for (const group of this.schema.computed) {
+      for (const group of allowedComputed) {
         const option = document.createElement('option')
         option.value = group.group
         option.textContent = group.label
