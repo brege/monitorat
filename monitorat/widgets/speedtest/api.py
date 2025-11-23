@@ -35,7 +35,7 @@ def get_speedtest_schema():
 
 def get_enabled_metrics():
     try:
-        enabled = config["widgets"]["speedtest"]["metrics"]["enabled"].get(list)
+        enabled = config["widgets"]["speedtest"]["enabled"].get(list)
         return enabled if enabled else None
     except Exception:
         return None

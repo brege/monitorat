@@ -73,8 +73,12 @@ widgets:
     collapsible: true
     hidden: false
     default: table  # chart, table, none
-    metrics:
-      enabled: [download, upload, ping, server, ip_address]
+    enabled: 
+      - download
+      - upload
+      - ping
+      - server
+      - ip_address
     metadata:
       field: server
       label: Server

@@ -36,7 +36,7 @@ class SpeedtestWidget {
   }
 
   resolveMetricFields () {
-    const enabled = this.config?.metrics?.enabled
+    const enabled = this.config?.enabled
     if (Array.isArray(enabled) && enabled.length > 0) {
       return (this.schema.metrics || []).filter(metric => enabled.includes(metric.field))
     }
@@ -54,7 +54,17 @@ class SpeedtestWidget {
     if (metadataConfig.label) {
       this.schema.metadata.label = metadataConfig.label
     }
-    this.metadataField = this.schema.metadata.field
+    const enabledSet = new Set(this.config?.enabled || [])
+    const metadataFields = Array.isArray(this.schema.metadata.fields) ? this.schema.metadata.fields : []
+    const filteredMetadata = metadataFields.filter((field) => {
+      if (typeof field === 'string') return enabledSet.has(field)
+      if (field && typeof field.field === 'string') return enabledSet.has(field.field)
+      return false
+    })
+    this.schema.metadata.fields = filteredMetadata
+    if (filteredMetadata.length === 0 || (filteredMetadata.length === 1 && !enabledSet.has(this.schema.metadata.field))) {
+      this.schema.metadata.field = null
+    }
   }
 
   async init (container, config = {}) {
