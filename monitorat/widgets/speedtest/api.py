@@ -4,6 +4,8 @@ from json import loads
 from datetime import datetime
 import logging
 from typing import List
+from pathlib import Path
+import json
 
 from monitor import CSVHandler, parse_iso_timestamp, resolve_period_cutoff
 
@@ -12,6 +14,16 @@ logger = logging.getLogger(__name__)
 
 SPEEDTEST_COLUMNS: List[str] = ["timestamp", "download", "upload", "ping", "server"]
 csv_handler = CSVHandler("speedtest", SPEEDTEST_COLUMNS)
+_SPEEDTEST_SCHEMA = None
+
+
+def get_speedtest_schema():
+    global _SPEEDTEST_SCHEMA
+    if _SPEEDTEST_SCHEMA is None:
+        schema_path = Path(__file__).parent / "schema.json"
+        with open(schema_path, encoding="utf-8") as f:
+            _SPEEDTEST_SCHEMA = json.load(f)
+    return _SPEEDTEST_SCHEMA
 
 
 def speedtest_run():
@@ -82,15 +94,23 @@ def speedtest_chart():
     now = datetime.now()
 
     period = request.args.get("period", default="all", type=str)
+    metric = request.args.get("metric")
+    schema = get_speedtest_schema()
+    metric_definitions = {
+        entry["field"]: entry for entry in schema.get("metrics", []) if "field" in entry
+    }
+    metric = metric if metric in metric_definitions else None
     period_cutoff = resolve_period_cutoff(period, now=now)
 
     try:
         all_rows = csv_handler.read_all()
 
         labels = []
-        download_data = []
-        upload_data = []
-        ping_data = []
+        values_by_field = {
+            "download": [],
+            "upload": [],
+            "ping": [],
+        }
 
         for row in all_rows:
             timestamp = row.get("timestamp", "")
@@ -113,41 +133,31 @@ def speedtest_chart():
                 continue
 
             labels.append(dt.strftime("%m/%d %H:%M"))
-            download_data.append(round(download_mbps, 2))
-            upload_data.append(round(upload_mbps, 2))
-            ping_data.append(round(ping_ms, 1))
+            values_by_field["download"].append(round(download_mbps, 2))
+            values_by_field["upload"].append(round(upload_mbps, 2))
+            values_by_field["ping"].append(round(ping_ms, 1))
 
-        return jsonify(
-            {
-                "labels": labels,
-                "datasets": [
-                    {
-                        "label": "Download (Mbps)",
-                        "data": download_data,
-                        "borderColor": "#3b82f6",
-                        "backgroundColor": "rgba(59, 130, 246, 0.1)",
-                        "tension": 0.1,
-                        "yAxisID": "speed",
-                    },
-                    {
-                        "label": "Upload (Mbps)",
-                        "data": upload_data,
-                        "borderColor": "#ef4444",
-                        "backgroundColor": "rgba(239, 68, 68, 0.1)",
-                        "tension": 0.1,
-                        "yAxisID": "speed",
-                    },
-                    {
-                        "label": "Ping (ms)",
-                        "data": ping_data,
-                        "borderColor": "#10b981",
-                        "backgroundColor": "rgba(16, 185, 129, 0.1)",
-                        "tension": 0.1,
-                        "yAxisID": "ping",
-                    },
-                ],
+        datasets_with_fields = []
+        for field, definition in metric_definitions.items():
+            dataset = {
+                "label": definition.get("label", field),
+                "data": values_by_field.get(field, []),
+                "borderColor": definition.get("color"),
+                "backgroundColor": definition.get("backgroundColor")
+                or definition.get("color"),
+                "tension": 0.1,
+                "yAxisID": definition.get("yAxisID"),
             }
-        )
+            datasets_with_fields.append((field, dataset))
+
+        if metric:
+            datasets_with_fields = [
+                item for item in datasets_with_fields if item[0] == metric
+            ]
+
+        datasets = [dataset for _, dataset in datasets_with_fields]
+
+        return jsonify({"labels": labels, "datasets": datasets})
     except Exception as exc:
         return jsonify(error=str(exc)), 500
 

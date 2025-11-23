@@ -9,7 +9,7 @@ class SpeedtestWidget {
       default: 'chart',
       periods: [],
       table: { min: 5, max: 200 },
-      chart: { height: '400px', days: 30, default_period: 'all' }
+      chart: { height: '400px', days: 30, default_period: 'all', default_metric: 'all' }
     }
     this.config = this.buildConfig()
     this.entries = []
@@ -18,6 +18,7 @@ class SpeedtestWidget {
     this.tableManager = null
     this.currentView = null
     this.selectedPeriod = 'all'
+    this.selectedMetric = 'all'
     this.schema = null
   }
 
@@ -46,6 +47,9 @@ class SpeedtestWidget {
     this.selectedPeriod = this.config.chart.default_period || this.defaults.chart.default_period
     await this.loadSchema()
     this.metricFields = this.resolveMetricFields()
+    const metricFields = this.metricFields.map((metric) => metric.field)
+    const preferredMetric = this.config.chart.default_metric || this.defaults.chart.default_metric
+    this.selectedMetric = preferredMetric === 'all' ? 'all' : (metricFields.includes(preferredMetric) ? preferredMetric : (metricFields[0] || 'all'))
 
     const response = await fetch('widgets/speedtest/index.html')
     const html = await response.text()
@@ -72,9 +76,39 @@ class SpeedtestWidget {
   setupEventListeners () {
     const run = this.getElement('run')
     const periodSelect = this.getElement('period-select')
+    const metricSelect = this.getElement('metric-select')
 
     if (run) run.addEventListener('click', () => this.runSpeedtest())
     this.wireViewToggles()
+
+    if (metricSelect) {
+      metricSelect.innerHTML = ''
+      const allOption = document.createElement('option')
+      allOption.value = 'all'
+      allOption.textContent = 'All metrics'
+      metricSelect.appendChild(allOption)
+      for (const metric of this.metricFields) {
+        const option = document.createElement('option')
+        option.value = metric.field
+        option.textContent = metric.label
+        metricSelect.appendChild(option)
+      }
+      metricSelect.value = this.selectedMetric
+      metricSelect.addEventListener('change', (event) => {
+        this.selectedMetric = event.target.value
+        if (this.chartManager) {
+          if (this.selectedMetric === 'all') {
+            delete this.chartManager.dataParams.metric
+          } else {
+            this.chartManager.dataParams.metric = this.selectedMetric
+          }
+          if (this.chartManager.hasChart()) {
+            this.chartManager.loadData()
+          }
+        }
+      })
+      metricSelect.style.display = this.metricFields.length > 0 ? '' : 'none'
+    }
 
     TimeSeriesHandler.setupPeriodSelect(periodSelect, this.config.chart.periods, this.selectedPeriod, (period) => {
       this.selectedPeriod = period
@@ -98,7 +132,8 @@ class SpeedtestWidget {
       dataUrl: 'api/speedtest/chart',
       dataParams: {
         days: this.config.chart.days,
-        period: this.selectedPeriod
+        period: this.selectedPeriod,
+        ...(this.selectedMetric === 'all' ? {} : { metric: this.selectedMetric })
       },
       chartOptions: { scales }
     })
