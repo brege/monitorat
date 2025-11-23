@@ -70,14 +70,11 @@ class SpeedtestWidget {
   }
 
   setupEventListeners () {
-    const run = WidgetHelpers.getElement(this.container, this.attributeName, 'run')
-    const viewChart = WidgetHelpers.getElement(this.container, this.attributeName, 'view-chart')
-    const viewTable = WidgetHelpers.getElement(this.container, this.attributeName, 'view-table')
-    const periodSelect = WidgetHelpers.getElement(this.container, this.attributeName, 'period-select')
+    const run = this.getElement('run')
+    const periodSelect = this.getElement('period-select')
 
     if (run) run.addEventListener('click', () => this.runSpeedtest())
-    if (viewChart) viewChart.addEventListener('click', () => this.setView('chart'))
-    if (viewTable) viewTable.addEventListener('click', () => this.setView('table'))
+    this.wireViewToggles()
 
     WidgetHelpers.setupPeriodSelect(periodSelect, this.config.chart.periods, this.selectedPeriod, (period) => {
       this.selectedPeriod = period
@@ -96,8 +93,8 @@ class SpeedtestWidget {
     const scales = WidgetHelpers.buildScalesFromSchema(axes)
 
     this.chartManager = new ChartManager({
-      canvasElement: WidgetHelpers.getElement(this.container, this.attributeName, 'chart'),
-      containerElement: WidgetHelpers.getElement(this.container, this.attributeName, 'chart-container'),
+      canvasElement: this.getElement('chart'),
+      containerElement: this.getElement('chart-container'),
       height: this.config.chart.height,
       dataUrl: 'api/speedtest/chart',
       dataParams: {
@@ -107,15 +104,7 @@ class SpeedtestWidget {
       chartOptions: { scales }
     })
 
-    this.tableManager = new TableManager({
-      statusElement: WidgetHelpers.getElement(this.container, this.attributeName, 'history-status'),
-      rowsElement: WidgetHelpers.getElement(this.container, this.attributeName, 'rows'),
-      toggleElement: WidgetHelpers.getElement(this.container, this.attributeName, 'toggle'),
-      previewCount: this.config.table.min,
-      emptyMessage: this.schema?.metadata?.emptyMessage || 'No speedtests logged yet.',
-      isTableViewActive: () => this.currentView === 'table',
-      rowFormatter: (entry) => this.formatTableRow(entry)
-    })
+    this.tableManager = this.createTableManager()
   }
 
   rebuildTableHeaders () {
@@ -128,8 +117,8 @@ class SpeedtestWidget {
   }
 
   async runSpeedtest () {
-    const button = WidgetHelpers.getElement(this.container, this.attributeName, 'run')
-    const status = WidgetHelpers.getElement(this.container, this.attributeName, 'status')
+    const button = this.getElement('run')
+    const status = this.getElement('status')
     if (button) button.disabled = true
     if (status) status.textContent = 'Running speedtest…'
 
@@ -197,9 +186,17 @@ class SpeedtestWidget {
 
   getViewControls () {
     return [
-      WidgetHelpers.getElement(this.container, this.attributeName, 'period-select')
+      this.getElement('period-select')
     ]
   }
+}
+
+Object.assign(SpeedtestWidget.prototype, window.monitorShared.ChartTableWidgetMethods || ChartTableWidgetMethods)
+
+SpeedtestWidget.prototype.getViewControls = function () {
+  return [
+    this.getElement('period-select')
+  ]
 }
 
 window.widgets = window.widgets || {}

@@ -75,13 +75,10 @@ class MetricsWidget {
   }
 
   setupEventListeners () {
-    const viewChart = WidgetHelpers.getElement(this.container, this.attributeName, 'view-chart')
-    const viewTable = WidgetHelpers.getElement(this.container, this.attributeName, 'view-table')
-    const metricSelect = WidgetHelpers.getElement(this.container, this.attributeName, 'metric-select')
-    const periodSelect = WidgetHelpers.getElement(this.container, this.attributeName, 'period-select')
+    const metricSelect = this.getElement('metric-select')
+    const periodSelect = this.getElement('period-select')
 
-    if (viewChart) viewChart.addEventListener('click', () => this.setView('chart'))
-    if (viewTable) viewTable.addEventListener('click', () => this.setView('table'))
+    this.wireViewToggles()
 
     if (metricSelect) {
       metricSelect.innerHTML = ''
@@ -211,26 +208,10 @@ class MetricsWidget {
     return { labels, datasets, allValues }
   }
 
-  formatTableRow (entry) {
-    return ChartTableWidgetMethods.formatTableRow.call(this, entry)
-  }
-
-  rebuildTableHeaders () {
-    return ChartTableWidgetMethods.rebuildTableHeaders.call(this)
-  }
-
-  setView (view) {
-    return ChartTableWidgetMethods.setView.call(this, view)
-  }
-
-  updateViewToggle (hasEntries) {
-    return ChartTableWidgetMethods.updateViewToggle.call(this, hasEntries)
-  }
-
   getViewControls () {
     return [
-      WidgetHelpers.getElement(this.container, this.attributeName, 'metric-select'),
-      WidgetHelpers.getElement(this.container, this.attributeName, 'period-select')
+      this.getElement('metric-select'),
+      this.getElement('period-select')
     ]
   }
 
@@ -239,22 +220,14 @@ class MetricsWidget {
     const TableManager = window.monitorShared?.TableManager
 
     this.chartManager = new ChartManager({
-      canvasElement: WidgetHelpers.getElement(this.container, this.attributeName, 'chart'),
-      containerElement: WidgetHelpers.getElement(this.container, this.attributeName, 'chart-container'),
+      canvasElement: this.getElement('chart'),
+      containerElement: this.getElement('chart-container'),
       height: this.config.chart.height,
       dataUrl: null,
       chartOptions: {}
     })
 
-    this.tableManager = new TableManager({
-      statusElement: WidgetHelpers.getElement(this.container, this.attributeName, 'history-status'),
-      rowsElement: WidgetHelpers.getElement(this.container, this.attributeName, 'rows'),
-      toggleElement: WidgetHelpers.getElement(this.container, this.attributeName, 'toggle'),
-      previewCount: this.config.table.min,
-      emptyMessage: this.schema?.metadata?.emptyMessage || 'No metrics history yet.',
-      isTableViewActive: () => this.currentView === 'table',
-      rowFormatter: (entry) => this.formatTableRow(entry)
-    })
+    this.tableManager = this.createTableManager()
   }
 
   async loadHistory () {
@@ -315,6 +288,12 @@ class MetricsWidget {
     this.chartManager.updateChart({ labels: chartData.labels, datasets: chartData.datasets }, scales)
   }
 
+  updateChartView () {
+    if (this.chartManager?.hasChart()) {
+      this.updateChart()
+    }
+  }
+
   updateViewToggle (hasEntries) {
     this.currentView = WidgetHelpers.updateViewToggle({
       container: this.container,
@@ -324,6 +303,15 @@ class MetricsWidget {
       defaultViewSetter: () => this.setView(this.config.default || this.defaults.default)
     })
   }
+}
+
+Object.assign(MetricsWidget.prototype, window.monitorShared.ChartTableWidgetMethods || ChartTableWidgetMethods)
+
+MetricsWidget.prototype.getViewControls = function () {
+  return [
+    this.getElement('metric-select'),
+    this.getElement('period-select')
+  ]
 }
 
 window.widgets = window.widgets || {}

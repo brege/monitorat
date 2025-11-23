@@ -1,5 +1,9 @@
 /* global ChartManager, WidgetHelpers */
 const ChartTableWidgetMethods = {
+  getElement (name) {
+    return this.container?.querySelector(`[${this.attributeName}="${name}"]`)
+  },
+
   setView (view) {
     const controls = this.getViewControls()
 
@@ -37,6 +41,14 @@ const ChartTableWidgetMethods = {
     return []
   },
 
+  wireViewToggles () {
+    const viewChart = this.getElement('view-chart')
+    const viewTable = this.getElement('view-table')
+
+    if (viewChart) viewChart.addEventListener('click', () => this.setView('chart'))
+    if (viewTable) viewTable.addEventListener('click', () => this.setView('table'))
+  },
+
   rebuildTableHeaders () {
     const metadataLabel = this.schema?.metadata?.label || 'Source'
     WidgetHelpers.buildTableHeaders(this.container, this.metricFields, metadataLabel)
@@ -48,6 +60,20 @@ const ChartTableWidgetMethods = {
       entry,
       metricFields: this.metricFields,
       metadataField
+    })
+  },
+
+  createTableManager () {
+    const TableManager = window.monitorShared?.TableManager
+
+    return new TableManager({
+      statusElement: this.getElement('history-status'),
+      rowsElement: this.getElement('rows'),
+      toggleElement: this.getElement('toggle'),
+      previewCount: this.config.table.min,
+      emptyMessage: this.schema?.metadata?.emptyMessage || 'No entries yet.',
+      isTableViewActive: () => this.currentView === 'table',
+      rowFormatter: (entry) => this.formatTableRow(entry)
     })
   }
 }
