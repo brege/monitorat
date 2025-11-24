@@ -125,16 +125,12 @@ class SpeedtestWidget {
         this.selectedMetric = event.target.value
         this.updateChart()
       })
-      metricSelect.style.display = this.metricFields.length > 0 ? '' : 'none'
     }
 
     TimeSeriesHandler.setupPeriodSelect(periodSelect, this.config.chart.periods, this.selectedPeriod, (period) => {
       this.selectedPeriod = period
       this.loadChartData()
     })
-    if (periodSelect) {
-      periodSelect.style.display = ''
-    }
   }
 
   initManagers () {
@@ -280,10 +276,6 @@ class SpeedtestWidget {
     this.chartManager.updateChart({ labels, datasets })
   }
 
-  setView (view) {
-    return ChartTableWidgetMethods.setView.call(this, view)
-  }
-
   updateChartView () {
     this.loadChartData()
   }
@@ -291,15 +283,16 @@ class SpeedtestWidget {
   updateViewToggle (hasEntries) {
     return ChartTableWidgetMethods.updateViewToggle.call(this, hasEntries)
   }
-
-  getViewControls () {
-    return [
-      this.getElement('period-select')
-    ]
-  }
 }
 
 Object.assign(SpeedtestWidget.prototype, window.monitorShared.ChartTableWidgetMethods || ChartTableWidgetMethods)
+
+SpeedtestWidget.prototype.getViewControls = function () {
+  return [
+    this.getElement('metric-select'),
+    this.getElement('period-select')
+  ]
+}
 
 window.widgets = window.widgets || {}
 window.widgets.speedtest = SpeedtestWidget
