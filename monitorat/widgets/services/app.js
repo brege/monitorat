@@ -148,11 +148,10 @@ class ServicesWidget {
       // Check timers
       if (service.timers) {
         service.timers.forEach(timer => {
-          const timerName = timer.replace('.timer', '')
-          const status = statusData[timerName]
+          const status = statusData[timer]
           if (status === 'down') overallStatus = 'down'
           else if (status === 'unknown' && overallStatus === 'ok') overallStatus = 'unknown'
-          statusParts.push(`${timerName}: ${status || 'unknown'}`)
+          statusParts.push(`${timer}: ${status || 'unknown'}`)
         })
       }
 
