@@ -67,7 +67,7 @@ The script uses sudo internally to install the systemd unit for pip installation
 
 ### Alternative installations
 
-See [alternate installs](docs/install.md) to install `monitor@/monitorat` => `/opt/monitor@` other deployments.
+See [alternate installs](docs/install.md) to install `monitor@/monitorat` => `/opt/monitor@` and other deployments.
 
 ## Web UI
 
