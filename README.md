@@ -374,9 +374,8 @@ privacy:
 ```
 
 When sharing your config, you can generate the full runtime configuration with
-
 ```bash
-source monitorat/.venv/bin/activate && python monitorat/monitor.py config
+monitorat config
 ```
 
 ### Alerts
