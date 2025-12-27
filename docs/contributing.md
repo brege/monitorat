@@ -45,7 +45,6 @@ Promise.
     ├── config_default.yaml     # all preset values
     ├── index.html              # web UI
     ├── monitor.py              # backend gunicorn server
-    ├── requirements.txt        # dependencies
     ├── scripts/                # development
     ├── shared/                 # javascript helpers for widgets
     ├── vendors/                # markdown-it
@@ -67,11 +66,9 @@ See [confuse's docs](http://confuse.readthedocs.io/en/latest/usage.html) and [so
 pre-commit install
 ```
 
-This will install [pre-commit](https://pre-commit.com/) hooks for linting and formatting for Python and JavaScript.
+This will install [pre-commit](https://pre-commit.com/) hooks for linting and formatting for Python and JavaScript via [**standard**](https://github.com/standard/standard) and [**ruff**](https://github.com/astral-sh/ruff), respectively.
 
-While JavaScript uses `standard` and Python uses `ruff` for formatting, YAML is done manually. The opinionated `yamlfix` is used via `scripts/yamlfixfix.py ~/.config/monitor@/config.yaml`.
-
-See `requirements.txt` for dependencies.
+See `pyproject.toml` for dependencies.
 
 ### Adding widgets
 

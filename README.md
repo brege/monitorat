@@ -14,10 +14,10 @@ Widgets have a general, self-contained structure where both API and UI are strai
 
 ```
 ~/.config/monitor@/widgets/
-└── my-sweet-widget
+└── my-widget
     ├── api.py
-    ├── my-sweet-widget.html
-    └── my-sweet-widget.js
+    ├── index.html
+    └── app.js
 ```
 
 You can also add your own documentation through the Wiki widget, which may help you or your loved ones figure out how your headless homelab or riceware works. This document and any others you add to your wiki will be rendered in GitHub flavored markdown via [markdown-it](https://github.com/markdown-it/markdown-it).
@@ -28,28 +28,28 @@ Something like
 
 ![monitor screenshot](./docs/img/screenshots/metrics.png)
 
-You want to see [how hot your CPU got today](#metrics), or be alerted [when under high load](#alerts).
+See [how hot your CPU got today](#metrics). Be alerted [when under high load](#alerts).
 
-You'd like to keep a record and [graph your internet speed](#speedtest), to see how much your ISP is screwing you. Perhaps you just want a list of [all your reverse-proxied services](#services) as LAN-friendly bookmarks.
+Keep a record and [graph your internet speed](#speedtest)--*how much is my ISP screwing me?* Perhaps you just want a list of [all your reverse-proxied services](#services) as LAN-friendly bookmarks.
 
-If any of these are of interest to you, read on.
 
 ## Installation
 
 Both installation methods assume you are using a configuration file at `~/.config/monitor@/config.yaml`.
 
-### Installing with Pip
+### Installing with uv
 
 The simplest way is to install from PyPI.
 ```bash
-pip install monitorat
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv pip install monitorat
 ```
 
 Or install the package from source:
 ```bash
 git clone https://github.com/brege/monitorat.git
 cd monitorat
-pip install .
+uv pip install .
 ```
 
 In either case, start the development server:
@@ -110,12 +110,12 @@ widgets:
     - README           # type: wiki
     - network
     - speedtest
-    - my-sweet-widget  # in ~/.config/monitor@/widgets
+    - my-widget  # in ~/.config/monitor@/widgets
 ```
 
 Each widget can be configured in its own YAML block. To configure a widget in its own file,
 ```yaml
-include: "/home/user/.config/monitor@/widgets/my-sweet-widget.yaml"
+include: "/home/user/.config/monitor@/widgets/my-widget.yaml"
 ```
 
 #### Services

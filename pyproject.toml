@@ -4,12 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "monitorat"
-version = "0.6.2"
-description = "Flask-based dashboard for monitoring services, network status, and reminders"
+version = "0.6.3"
+description = "An offline-embracing, modular, multi-instance monitor for homelabs and linux computers"
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
-  { name = "Wyatt Brege" },
+  { name = "Wyatt Brege", email = "wyatt@brege.org" }
 ]
 requires-python = ">=3.9"
 dependencies = [
@@ -24,17 +24,13 @@ dependencies = [
   "pytimeparse>=1.1.8",
 ]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
   "Framework :: Flask",
   "Intended Audience :: System Administrators",
   "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
   "Operating System :: POSIX :: Linux",
   "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Topic :: System :: Monitoring",
+  "Topic :: System :: Dashboard",
 ]
 
 [project.urls]

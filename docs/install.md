@@ -2,18 +2,19 @@
 
 Both installation methods assume you are using a configuration file at `~/.config/monitor@/config.yaml`.
 
-### Installing with Pip
+### Installing with uv
 
 Install from PyPI:
 ```bash
-pip install monitorat
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv pip install monitorat
 ```
 
 Or install the package from source:
 ```bash
 git clone https://github.com/brege/monitorat.git
 cd monitorat
-pip install .
+uv pip install .
 ```
 
 Then run with:
@@ -41,13 +42,32 @@ curl -O https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/script
 bash install-systemd-pip.sh
 ```
 
+### Installing with pip
+
+Install from PyPI:
+```bash
+pip install monitorat
+```
+
+Or install the package from source:
+```bash
+git clone https://github.com/brege/monitorat.git
+cd monitorat
+pip install .
+```
+
+Then run with:
+```bash
+gunicorn monitorat.monitor:app --bind localhost:6161
+```
+
 ### Alternative: Deploy monitorat/ directly
 
 You can also deploy the `monitorat/` directory directly to `/opt/monitor@/` or elsewhere without packaging. This is useful for development or when you want direct access to edit files.
 
 Clone this repository:
 ```bash
-sudo apt install python3 python3-pip
+sudo apt install python3
 sudo mkdir -p /opt/monitor@
 sudo chown -R __user__:__group__ /opt/monitor@
 cd /opt/monitor@
@@ -59,7 +79,7 @@ Install dependencies:
 cd monitorat
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+uv pip install .
 deactivate
 ```
 
