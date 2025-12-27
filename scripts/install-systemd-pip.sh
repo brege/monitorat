@@ -6,6 +6,16 @@ if [ "$EUID" -eq 0 ]; then
    exit 1
 fi
 
+if ! command -v uv >/dev/null 2>&1; then
+   echo "uv is required but was not found in PATH." >&2
+   exit 1
+fi
+
+if ! uv tool list | grep -q "^monitorat[[:space:]]"; then
+   echo "monitorat is not installed as a uv tool. Run: uv tool install monitorat" >&2
+   exit 1
+fi
+
 echo "Installing monitorat systemd service for pip installation..."
 
 echo "Removing old monitor@* service files..."
@@ -27,6 +37,7 @@ sudo systemctl daemon-reload
 
 echo "Enabling and starting monitor@${HOSTNAME}.service..."
 sudo systemctl enable --now "monitor@${HOSTNAME}.service"
+sudo systemctl restart "monitor@${HOSTNAME}.service"
 
 echo ""
 echo "Service installed successfully!"
