@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "monitorat"
-version = "0.6.5"
+version = "0.6.6"
 description = "An offline-embracing, modular, multi-instance monitor for homelabs and linux computers"
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -56,6 +56,3 @@ packages = ["monitorat"]
 "LICENSE" = "monitorat/LICENSE"
 "docs" = "monitorat/docs"
 "systemd" = "monitorat/systemd"
-"monitorat/config_default.yaml" = "monitorat/config_default.yaml"
-"monitorat/static" = "monitorat/static"
-"monitorat/widgets" = "monitorat/widgets"
