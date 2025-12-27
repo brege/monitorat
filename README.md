@@ -49,7 +49,7 @@ Or install the package from source/development:
 ```bash
 git clone https://github.com/brege/monitorat.git
 cd monitorat
-uv tool install .  # or pip install -e . if planning to develop
+uv tool install .
 ```
 
 In either case, start the development server:
@@ -57,13 +57,13 @@ In either case, start the development server:
 gunicorn monitorat.monitor:app --bind localhost:6161
 ```
 
-#### Systemd service (pip)
+#### Systemd service (uv)
 
 Assuming you'd like to run monitor@ as a systemd service with your normal user, group, and hostname:
 ```bash
-bash <(curl -s https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/scripts/install-systemd-pip.sh)
+bash <(curl -s https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/scripts/install-systemd-uv.sh)
 ```
-The script uses sudo internally to install the systemd unit for pip installations to `/etc/systemd/system/monitor@.service`.
+The script uses sudo internally to install the systemd unit for uv tool installations to `/etc/systemd/system/monitor@.service`.
 
 ### Alternative installations
 
