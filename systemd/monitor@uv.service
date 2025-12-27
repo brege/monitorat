@@ -6,7 +6,7 @@ After=network.target
 User=__user__
 Group=__group__
 Environment="PATH=/home/__user__/.local/bin:/usr/local/bin:/usr/bin:/bin"
-ExecStart=/usr/bin/env gunicorn -w 1 -b 0.0.0.0:6161 --timeout 120 monitorat.monitor:app
+ExecStart=/usr/bin/env uv tool run --from monitorat gunicorn -w 1 -b 0.0.0.0:6161 --timeout 120 monitorat.monitor:app
 Restart=on-failure
 
 [Install]

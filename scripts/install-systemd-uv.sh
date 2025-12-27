@@ -6,12 +6,22 @@ if [ "$EUID" -eq 0 ]; then
    exit 1
 fi
 
-echo "Installing monitorat systemd service for pip installation..."
+if ! command -v uv >/dev/null 2>&1; then
+   echo "uv is required but was not found in PATH." >&2
+   exit 1
+fi
+
+if ! uv tool list | grep -q "^monitorat[[:space:]]"; then
+   echo "monitorat is not installed as a uv tool. Run: uv tool install monitorat" >&2
+   exit 1
+fi
+
+echo "Installing monitorat systemd service for uv tool installation..."
 
 echo "Removing old monitor@* service files..."
 sudo rm -f /etc/systemd/system/monitor@*.service
 
-curl -o monitor@.service https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/systemd/monitor%40pip.service
+curl -o monitor@.service https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/systemd/monitor%40uv.service
 sed -i "s|/home/__user__|$HOME|g; s/__user__/$USER/g; s/__group__/$(id -gn)/g" monitor@.service
 
 echo "Moving service file to /etc/systemd/system/..."
