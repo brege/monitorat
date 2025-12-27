@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import importlib.metadata
 from pathlib import Path
 import sys
 
@@ -108,6 +109,12 @@ def get_custom_widgets() -> dict:
 def main():
     parser = argparse.ArgumentParser(
         prog="monitorat", description="monitor@ system dashboard and monitoring tool"
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=importlib.metadata.version("monitorat"),
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")

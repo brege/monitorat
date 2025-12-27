@@ -42,14 +42,14 @@ Both installation methods assume you are using a configuration file at `~/.confi
 The simplest way is to install from PyPI.
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
-uv pip install monitorat
+uv tool install monitorat
 ```
 
-Or install the package from source:
+Or install the package from source/development:
 ```bash
 git clone https://github.com/brege/monitorat.git
 cd monitorat
-uv pip install .
+uv tool install .  # or pip install -e . if planning to develop
 ```
 
 In either case, start the development server:

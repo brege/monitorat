@@ -4,21 +4,24 @@ Both installation methods assume you are using a configuration file at `~/.confi
 
 ### Installing with uv
 
-Install from PyPI:
+Install the package from PyPI:
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
-uv pip install monitorat
+uv tool install monitorat
 ```
 
 Or install the package from source:
 ```bash
 git clone https://github.com/brege/monitorat.git
 cd monitorat
-uv pip install .
+uv tool install .
 ```
 
-Then run with:
+To run the server with gunicorn, install into a venv:
 ```bash
+uv venv .venv
+source .venv/bin/activate
+uv pip install monitorat
 gunicorn monitorat.monitor:app --bind localhost:6161
 ```
 
