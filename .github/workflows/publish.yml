@@ -26,11 +26,8 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v3
 
-      - name: Install build dependencies
-        run: uv pip install --upgrade build
-
       - name: Build package
-        run: python -m build
+        run: uv tool run --from build python -m build
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

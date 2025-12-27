@@ -52,9 +52,9 @@ cd monitorat
 uv tool install .
 ```
 
-In either case, start the development server:
+In either case, start the server:
 ```bash
-gunicorn monitorat.monitor:app --bind localhost:6161
+uv tool run --from monitorat gunicorn monitorat.monitor:app --bind localhost:6161
 ```
 
 #### Systemd service (uv)
