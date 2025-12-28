@@ -127,7 +127,8 @@ def main():
         version=importlib.metadata.version("monitorat"),
     )
     parser.add_argument(
-        "--config",
+        "-c",
+        dest="config",
         type=Path,
         help="Path to config.yaml to load before running the command.",
     )

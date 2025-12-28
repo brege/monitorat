@@ -150,7 +150,7 @@ class NetworkWidget {
       this.state.gapsExpanded = false
       setText(this.elements.logStatus, 'No log file configured.')
       this.state.entries = []
-      this.state.analysis = analyzeEntries([], this.periodsConfig, this.expectedIntervalMs)
+      this.state.analysis = analyzeEntries([], this.periodsConfig, this.expectedIntervalMs, this.resolveNowOverride())
       this.state.logFingerprint = null
       this.updateSummary()
       this.renderUptime()
@@ -178,7 +178,12 @@ class NetworkWidget {
 
       this.state.logFingerprint = fingerprint
       this.state.entries = parseLog(text)
-      this.state.analysis = analyzeEntries(this.state.entries, this.periodsConfig, this.expectedIntervalMs)
+      this.state.analysis = analyzeEntries(
+        this.state.entries,
+        this.periodsConfig,
+        this.expectedIntervalMs,
+        this.resolveNowOverride()
+      )
       this.state.gapsExpanded = false
       this.updateSummary()
       this.renderUptime()
@@ -194,7 +199,7 @@ class NetworkWidget {
       setText(this.elements.logStatus, `Unable to load log: ${error.message}`)
       this.state.gapsExpanded = false
       this.state.entries = []
-      this.state.analysis = analyzeEntries([], this.periodsConfig, this.expectedIntervalMs)
+      this.state.analysis = analyzeEntries([], this.periodsConfig, this.expectedIntervalMs, this.resolveNowOverride())
       this.state.logFingerprint = null
       this.updateSummary()
       this.renderUptime()
@@ -464,6 +469,15 @@ class NetworkWidget {
       }
     }
   }
+
+  resolveNowOverride () {
+    const isDemoEnabled = window.monitor?.demoEnabled === true
+    if (!isDemoEnabled || !this.state.entries.length) {
+      return null
+    }
+    const lastEntry = this.state.entries[this.state.entries.length - 1]
+    return new Date(lastEntry.timestamp.getTime() + NET_MINUTE_MS)
+  }
 }
 
 function mergeNetworkConfig (config) {
@@ -544,9 +558,9 @@ function parseTimestamp (label) {
   return Number.isNaN(candidate.getTime()) ? null : candidate
 }
 
-function analyzeEntries (entries, periodsConfig, expectedIntervalMs) {
+function analyzeEntries (entries, periodsConfig, expectedIntervalMs, nowOverride = null) {
   if (!entries.length) {
-    const now = new Date()
+    const now = nowOverride || new Date()
     return {
       entries: [],
       gaps: [],
@@ -594,7 +608,7 @@ function analyzeEntries (entries, periodsConfig, expectedIntervalMs) {
   }
 
   const lastEntry = entries[entries.length - 1]
-  const now = new Date()
+  const now = nowOverride || new Date()
   const tailMissing = Math.floor((now.getTime() - lastEntry.timestamp.getTime() - NET_TOLERANCE_MS) / expectedIntervalMs)
   if (tailMissing > 0) {
     missed += tailMissing
