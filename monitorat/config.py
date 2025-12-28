@@ -14,6 +14,7 @@ __all__ = [
     "register_config_listener",
     "get_widgets_paths",
     "set_project_config_path",
+    "get_project_config_dir",
 ]
 
 
@@ -86,6 +87,11 @@ class ConfigManager:
     ) -> None:
         self._callbacks.append(callback)
 
+    def get_project_config_dir(self) -> Optional[Path]:
+        if self._project_config is None:
+            return None
+        return self._project_config.expanduser().parent
+
 
 class ConfigProxy:
     """Lightweight proxy so existing code can keep using `config[...]`."""
@@ -124,6 +130,10 @@ def register_config_listener(callback: Callable[[confuse.Configuration], None]) 
 
 def set_project_config_path(config_path: Path) -> confuse.Configuration:
     return config_manager.set_project_config(config_path)
+
+
+def get_project_config_dir() -> Optional[Path]:
+    return config_manager.get_project_config_dir()
 
 
 def get_widgets_paths() -> List[Path]:

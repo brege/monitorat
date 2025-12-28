@@ -11,10 +11,20 @@ from typing import List, Optional, Set
 from pytimeparse import parse as parse_duration
 
 try:
-    from .config import config, reload_config, register_config_listener
+    from .config import (
+        config,
+        reload_config,
+        register_config_listener,
+        get_project_config_dir,
+    )
     from .alerts import NotificationHandler, setup_alert_handler
 except ImportError:
-    from config import config, reload_config, register_config_listener
+    from config import (
+        config,
+        reload_config,
+        register_config_listener,
+        get_project_config_dir,
+    )
     from alerts import NotificationHandler, setup_alert_handler
 
 __all__ = [
@@ -25,6 +35,7 @@ __all__ = [
     "CSVHandler",
     "is_demo_enabled",
     "register_snapshot_provider",
+    "get_project_config_dir",
 ]
 
 BASE = Path(__file__).parent.parent
