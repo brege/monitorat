@@ -25,9 +25,10 @@ class WikiWidget {
 
   async loadContent () {
     try {
-      const docPath = this.config.doc?.startsWith('/')
-        ? `api/wiki/doc?widget=${this.config._widgetName || 'wiki'}`
-        : this.config.doc || 'README.md'
+      const widgetName = this.config._widgetName || 'wiki'
+      const docPath = this.config.doc
+        ? `api/wiki/doc?widget=${widgetName}`
+        : 'README.md'
       const response = await fetch(docPath)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
