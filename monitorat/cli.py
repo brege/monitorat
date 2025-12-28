@@ -109,10 +109,12 @@ def get_custom_widgets() -> dict:
 def command_server(args):
     """Run the development server."""
     try:
-        from .monitor import app as flask_app
+        from .monitor import app as flask_app, is_demo_enabled
     except ImportError:
-        from monitor import app as flask_app
+        from monitor import app as flask_app, is_demo_enabled
 
+    mode_label = "on" if is_demo_enabled() else "off"
+    print(f" * Demo mode: {mode_label}")
     flask_app.run(host=args.host, port=args.port, debug=args.debug)
 
 

@@ -30,7 +30,10 @@ class ConfigManager:
         config_obj = confuse.Configuration("monitor@", __name__)
 
         config_obj.clear()
-        config_obj.read(user=True, defaults=True)
+        if self._project_config:
+            config_obj.read(user=False, defaults=True)
+        else:
+            config_obj.read(user=True, defaults=True)
 
         try:
             includes = config_obj["includes"].get(list)

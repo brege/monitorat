@@ -452,7 +452,7 @@ def register_widgets():
 # Register widget API routes
 setup_logging()
 logger = logging.getLogger(__name__)
-logger.info("Starting monitor@ application")
+logger.info("Starting monitor@ application (demo=%s)", is_demo_enabled())
 
 if not is_demo_enabled():
     setup_alert_handler()
