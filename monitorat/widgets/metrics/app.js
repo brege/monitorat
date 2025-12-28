@@ -124,10 +124,12 @@ class MetricsWidget {
     const response = await fetch('api/metrics')
     const data = await response.json()
     this.update(data)
-    try {
-      await fetch('api/metrics', { method: 'GET' })
-    } catch (error) {
-      console.error('Unable to log metrics:', error)
+    if (window.monitor?.demoEnabled !== true) {
+      try {
+        await fetch('api/metrics', { method: 'GET' })
+      } catch (error) {
+        console.error('Unable to log metrics:', error)
+      }
     }
   }
 

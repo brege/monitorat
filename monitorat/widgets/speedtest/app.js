@@ -103,8 +103,16 @@ class SpeedtestWidget {
     const run = this.getElement('run')
     const periodSelect = this.getElement('period-select')
     const metricSelect = this.getElement('metric-select')
+    const demoEnabled = window.monitor?.demoEnabled === true
 
-    if (run) run.addEventListener('click', () => this.runSpeedtest())
+    if (run) {
+      if (demoEnabled) {
+        run.disabled = true
+        run.setAttribute('title', 'Disabled in demo mode')
+      } else {
+        run.addEventListener('click', () => this.runSpeedtest())
+      }
+    }
     this.wireViewToggles()
 
     if (metricSelect) {

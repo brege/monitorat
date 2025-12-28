@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 import importlib
 import logging
 import csv
+import json
 from typing import List, Optional, Set
 from pytimeparse import parse as parse_duration
 
@@ -22,6 +23,8 @@ __all__ = [
     "register_config_listener",
     "NotificationHandler",
     "CSVHandler",
+    "is_demo_enabled",
+    "register_snapshot_provider",
 ]
 
 BASE = Path(__file__).parent.parent
@@ -45,6 +48,19 @@ if __name__ != "monitor":
 
 def get_data_path() -> Path:
     return Path(config["paths"]["data"].as_filename())
+
+
+def is_demo_enabled() -> bool:
+    return config["demo"].get(bool)
+
+
+_snapshot_providers = {}
+
+
+def register_snapshot_provider(name: str, provider) -> None:
+    if name in _snapshot_providers:
+        raise ValueError(f"Snapshot provider already registered: {name}")
+    _snapshot_providers[name] = provider
 
 
 def get_widgets_paths() -> List[Path]:
@@ -232,7 +248,10 @@ def api_config():
         for key in config["widgets"].keys():
             # {widget}.enabled = list
             if key == "enabled":
-                widgets_merged[key] = config["widgets"][key].get()
+                enabled = config["widgets"][key].get()
+                if is_demo_enabled():
+                    enabled = [name for name in enabled if name != "reminders"]
+                widgets_merged[key] = enabled
                 continue
             # merge values from all sources
             widgets_merged[key] = config["widgets"][key].flatten()
@@ -240,6 +259,7 @@ def api_config():
         payload = {
             "site": config["site"].flatten(),
             "privacy": config["privacy"].flatten(),
+            "demo": is_demo_enabled(),
             "widgets": widgets_merged,
         }
         return jsonify(payload)
@@ -250,6 +270,8 @@ def api_config():
 @app.route("/api/config/reload", methods=["POST"])
 def api_config_reload():
     logger = logging.getLogger(__name__)
+    if is_demo_enabled():
+        return jsonify(error="Config reload disabled in demo mode"), 403
     try:
         logger.info("Configuration reload requested")
         reload_config()
@@ -258,6 +280,31 @@ def api_config_reload():
     except Exception as exc:
         logger.error(f"Configuration reload failed: {exc}")
         return jsonify(error=str(exc)), 500
+
+
+def append_snapshot(payload: dict) -> None:
+    snapshot_path = get_data_path() / "snapshot.jsonl"
+    snapshot_path.parent.mkdir(parents=True, exist_ok=True)
+    with snapshot_path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(payload))
+        handle.write("\n")
+
+
+@app.route("/api/snapshot", methods=["POST"])
+def api_snapshot():
+    if is_demo_enabled():
+        return jsonify(error="Snapshot disabled in demo mode"), 403
+
+    snapshot_payload = {
+        name: provider() for name, provider in _snapshot_providers.items()
+    }
+    append_snapshot(
+        {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "snapshot": snapshot_payload,
+        }
+    )
+    return jsonify({"status": "ok"})
 
 
 @app.route("/favicon.ico")
@@ -366,6 +413,8 @@ def register_widgets():
         return
 
     for widget_name in enabled:
+        if is_demo_enabled() and widget_name == "reminders":
+            continue
         try:
             widget_cfg = widgets_cfg[widget_name].get(dict)
         except Exception:
@@ -401,8 +450,9 @@ setup_logging()
 logger = logging.getLogger(__name__)
 logger.info("Starting monitor@ application")
 
-setup_alert_handler()
-logger.info("Alert handler initialized")
+if not is_demo_enabled():
+    setup_alert_handler()
+    logger.info("Alert handler initialized")
 
 register_widgets()
 

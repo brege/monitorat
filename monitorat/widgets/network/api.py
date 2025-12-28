@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from flask import jsonify, Response
 from pathlib import Path
-from monitor import config, get_data_path
+from monitor import config, get_data_path, is_demo_enabled
 import logging
 import threading
 import time
@@ -105,7 +105,8 @@ def append_log_entry(ip_address):
 def register_routes(app):
     """Register network widget API routes"""
 
-    start_chirper_daemon()
+    if not is_demo_enabled():
+        start_chirper_daemon()
 
     @app.route("/api/network/log", methods=["GET"])
     def network_log():

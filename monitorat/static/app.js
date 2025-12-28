@@ -100,10 +100,15 @@ monitorAPI.applyWidgetHeader = function applyWidgetHeader (container, options = 
 
 document.addEventListener('DOMContentLoaded', async () => {
   initializeThemeToggle()
-  initializeConfigReloadControl()
   syncPrivacyToggleState()
 
   const config = await loadConfig()
+
+  monitorAPI.demoEnabled = config.demo === true
+  initializeConfigReloadControl({ demoEnabled: monitorAPI.demoEnabled })
+  if (!monitorAPI.demoEnabled) {
+    fetch('api/snapshot', { method: 'POST', cache: 'no-store' })
+  }
 
   privacyState.config = config.privacy
 
@@ -165,7 +170,8 @@ async function loadConfig () {
   }
 }
 
-function initializeConfigReloadControl () {
+function initializeConfigReloadControl (options = {}) {
+  const { demoEnabled = false } = options
   const button = document.getElementById('config-reload')
   if (!button) {
     return
@@ -184,6 +190,11 @@ function initializeConfigReloadControl () {
 
   button.addEventListener('click', async () => {
     if (button.dataset.state === 'loading') {
+      return
+    }
+
+    if (demoEnabled) {
+      window.location.reload()
       return
     }
 

@@ -9,7 +9,7 @@ import logging
 from datetime import datetime
 from typing import List
 
-from monitor import config, parse_iso_timestamp, resolve_period_cutoff, CSVHandler
+from monitor import config, parse_iso_timestamp, resolve_period_cutoff, CSVHandler, is_demo_enabled, register_snapshot_provider, get_data_path
 from flask import request, send_file
 
 logger = logging.getLogger(__name__)
@@ -295,6 +295,36 @@ def get_system_metrics():
         return {}, {}, []
 
 
+def get_demo_metrics():
+    snapshot_path = get_data_path() / "snapshot.jsonl"
+    if snapshot_path.exists():
+        with snapshot_path.open("r", encoding="utf-8") as handle:
+            last_line = None
+            for line in handle:
+                if line.strip():
+                    last_line = line
+            if last_line is None:
+                raise FileNotFoundError("snapshot.jsonl is empty")
+
+        snapshot_entry = json.loads(last_line)
+        if "snapshot" not in snapshot_entry:
+            raise KeyError("Missing snapshot payload")
+        snapshot_payload = snapshot_entry["snapshot"]
+        if "metrics" not in snapshot_payload:
+            raise KeyError("Missing metrics snapshot")
+        metrics_snapshot = snapshot_payload["metrics"]
+        for key in ["metrics", "metric_statuses", "metric_keys"]:
+            if key not in metrics_snapshot:
+                raise KeyError(f"Missing metrics snapshot key: {key}")
+        return (
+            metrics_snapshot["metrics"],
+            metrics_snapshot["metric_statuses"],
+            metrics_snapshot["metric_keys"],
+        )
+
+    return {}, {}, []
+
+
 _metrics_thread = None
 
 
@@ -463,7 +493,18 @@ def register_routes(app):
     """Register metrics API routes with Flask app"""
 
     # Start background metrics collection
-    start_metrics_daemon()
+    if not is_demo_enabled():
+        start_metrics_daemon()
+
+    def metrics_snapshot():
+        metrics, statuses, keys = get_system_metrics()
+        return {
+            "metrics": metrics,
+            "metric_statuses": statuses,
+            "metric_keys": keys,
+        }
+
+    register_snapshot_provider("metrics", metrics_snapshot)
 
     @app.route("/api/metrics/schema", methods=["GET"])
     def api_metrics_schema():
@@ -481,10 +522,13 @@ def register_routes(app):
 
     @app.route("/api/metrics", methods=["GET"])
     def api_metrics():
-        metrics, statuses, keys = get_system_metrics()
+        if is_demo_enabled():
+            metrics, statuses, keys = get_demo_metrics()
+        else:
+            metrics, statuses, keys = get_system_metrics()
 
         # Log this refresh to CSV
-        if metrics:
+        if metrics and not is_demo_enabled():
             try:
                 log_metrics_to_csv(metrics, source="refresh")
             except Exception as e:

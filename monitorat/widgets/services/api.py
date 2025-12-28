@@ -6,7 +6,7 @@ import subprocess
 from pathlib import Path
 import logging
 
-from monitor import config
+from monitor import config, register_snapshot_provider, get_data_path, is_demo_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +104,25 @@ def get_systemd_status():
 
 def get_service_status():
     """Get combined status of all services"""
+    if is_demo_enabled():
+        snapshot_path = get_data_path() / "snapshot.jsonl"
+        if not snapshot_path.exists():
+            raise FileNotFoundError("snapshot.jsonl not found")
+        with snapshot_path.open("r", encoding="utf-8") as handle:
+            last_line = None
+            for line in handle:
+                if line.strip():
+                    last_line = line
+            if last_line is None:
+                raise FileNotFoundError("snapshot.jsonl is empty")
+        entry = json.loads(last_line)
+        if "snapshot" not in entry:
+            raise KeyError("Missing snapshot payload")
+        snapshot_payload = entry["snapshot"]
+        if "services" not in snapshot_payload:
+            raise KeyError("Missing services snapshot")
+        return snapshot_payload["services"]
+
     docker_status = get_docker_status()
     systemd_status = get_systemd_status()
 
@@ -113,8 +132,15 @@ def get_service_status():
     return all_status
 
 
+
+
 def register_routes(app):
     """Register services API routes with Flask app"""
+
+    def services_snapshot():
+        return get_service_status()
+
+    register_snapshot_provider("services", services_snapshot)
 
     @app.route("/api/services", methods=["GET"])
     def api_services():
