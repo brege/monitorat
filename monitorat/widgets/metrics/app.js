@@ -257,6 +257,9 @@ class MetricsWidget {
       url.searchParams.set('ts', Date.now())
 
       const response = await fetch(url, { cache: 'no-store' })
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
       const payload = await response.json()
       const data = payload.data || []
       this.entries = data

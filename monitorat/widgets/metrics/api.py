@@ -6,7 +6,7 @@ import psutil
 import threading
 import time
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 
 from monitor import (
@@ -483,9 +483,9 @@ def check_metric_alerts(metrics, statuses):
         logger.error(f"Alert check traceback: {traceback.format_exc()}")
 
 
-def filter_data_by_period(data, period_str):
+def filter_data_by_period(data, period_str, now_override=None):
     """Filter data by natural time period (e.g., '1 hour', '30 days', '1 week')"""
-    cutoff = resolve_period_cutoff(period_str)
+    cutoff = resolve_period_cutoff(period_str, now_override)
     if cutoff is None:
         return data
 
@@ -555,11 +555,15 @@ def register_routes(app):
         """Get historical metrics data from CSV with optional period filtering"""
         try:
             data = csv_handler.read_all()
-
             # Apply period filtering if specified
             period = request.args.get("period")
             if period and period.lower() != "all":
-                data = filter_data_by_period(data, period)
+                now_override = None
+                if is_demo_enabled() and data:
+                    last_timestamp = parse_iso_timestamp(data[-1].get("timestamp"))
+                    if last_timestamp:
+                        now_override = last_timestamp + timedelta(minutes=1)
+                data = filter_data_by_period(data, period, now_override)
 
             # Return all filtered data
             return app.response_class(

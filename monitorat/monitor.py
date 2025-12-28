@@ -121,9 +121,13 @@ class CSVHandler:
     """Handles CSV storage for widget data with DictWriter/DictReader"""
 
     def __init__(self, widget_name: str, columns: List[str]):
-        self.path = get_data_path() / f"{widget_name}.csv"
+        self.filename = f"{widget_name}.csv"
         self.columns = columns
         self._migrate_schema_if_needed()
+
+    @property
+    def path(self) -> Path:
+        return get_data_path() / self.filename
 
     def _migrate_schema_if_needed(self) -> None:
         """Migrate CSV to canonical schema if headers differ"""
