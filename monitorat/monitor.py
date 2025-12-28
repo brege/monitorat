@@ -253,8 +253,6 @@ def api_config():
             # {widget}.enabled = list
             if key == "enabled":
                 enabled = config["widgets"][key].get()
-                if is_demo_enabled():
-                    enabled = [name for name in enabled if name != "reminders"]
                 widgets_merged[key] = enabled
                 continue
             # merge values from all sources
@@ -417,8 +415,6 @@ def register_widgets():
         return
 
     for widget_name in enabled:
-        if is_demo_enabled() and widget_name == "reminders":
-            continue
         try:
             widget_cfg = widgets_cfg[widget_name].get(dict)
         except Exception:

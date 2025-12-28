@@ -127,8 +127,8 @@ def register_routes(app):
                 return jsonify({"error": f"Path is not a file: {log_path}"}), 400
 
             try:
-                with open(log_path, "r") as f:
-                    content = f.read()
+                with open(log_path, "r", encoding="utf-8") as handle:
+                    content = handle.read()
                 logger.info(f"Served network log file ({len(content)} bytes)")
                 return Response(content, mimetype="text/plain")
             except PermissionError:

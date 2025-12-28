@@ -564,7 +564,6 @@ def register_routes(app):
                     if last_timestamp:
                         now_override = last_timestamp + timedelta(minutes=1)
                 data = filter_data_by_period(data, period, now_override)
-
             # Return all filtered data
             return app.response_class(
                 response=json.dumps({"data": data}),

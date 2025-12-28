@@ -16,6 +16,7 @@ from monitor import (  # noqa: E402
     NotificationHandler,
     config,
     get_data_path,
+    is_demo_enabled,
     register_config_listener,
 )
 
@@ -184,6 +185,8 @@ def _get_apprise_urls():
 
 
 def send_notifications():
+    if is_demo_enabled():
+        return False
     if not reminders_enabled():
         return False
 
@@ -248,6 +251,8 @@ def send_test_notification(priority=0):
     Args:
         priority (int): Priority level (-1=low, 0=normal, 1=high)
     """
+    if is_demo_enabled():
+        return False
     apprise_urls = _get_apprise_urls()
     if not apprise_urls:
         return False
@@ -259,6 +264,9 @@ def send_test_notification(priority=0):
 
 def scheduled_notification_check():
     """Function called by the scheduler"""
+    if is_demo_enabled():
+        logger.info("Skipping notification check in demo mode")
+        return
     if not reminders_enabled():
         logger.info("Skipping notification check because reminders are disabled")
         return
@@ -306,6 +314,8 @@ def start_notification_daemon():
 
 def _ensure_scheduler_initialized():
     """Attach config listener and start scheduler once."""
+    if is_demo_enabled():
+        return
     global _config_listener_registered
     if not _config_listener_registered:
         register_config_listener(on_config_reloaded)
@@ -327,6 +337,8 @@ def register_routes(app):
     def api_reminder_touch(reminder_id):
         from flask import jsonify, redirect
 
+        if is_demo_enabled():
+            return jsonify({"error": "reminders disabled in demo mode"}), 403
         reminders_items = config["widgets"]["reminders"]["items"].get(dict)
         if reminder_id not in reminders_items:
             return jsonify({"error": "reminder not found"}), 404
@@ -339,6 +351,8 @@ def register_routes(app):
     def api_reminder_test_notification():
         from flask import jsonify
 
+        if is_demo_enabled():
+            return jsonify({"error": "reminders disabled in demo mode"}), 403
         result = send_test_notification()
         return jsonify({"success": result})
 
