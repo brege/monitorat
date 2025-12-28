@@ -132,8 +132,6 @@ def get_service_status():
     return all_status
 
 
-
-
 def register_routes(app):
     """Register services API routes with Flask app"""
 

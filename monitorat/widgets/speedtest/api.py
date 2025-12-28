@@ -7,7 +7,13 @@ from typing import List
 from pathlib import Path
 import json
 
-from monitor import CSVHandler, parse_iso_timestamp, resolve_period_cutoff, config, is_demo_enabled
+from monitor import (
+    CSVHandler,
+    parse_iso_timestamp,
+    resolve_period_cutoff,
+    config,
+    is_demo_enabled,
+)
 
 SPEEDTEST = "speedtest-cli"
 logger = logging.getLogger(__name__)
@@ -50,9 +56,7 @@ def is_metric_enabled(metric):
 
 def speedtest_run():
     if is_demo_enabled():
-        return jsonify(
-            success=False, error="Speedtest disabled in demo mode"
-        ), 403
+        return jsonify(success=False, error="Speedtest disabled in demo mode"), 403
 
     logger.info("Starting speedtest run")
 

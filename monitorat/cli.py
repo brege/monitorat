@@ -5,9 +5,9 @@ from pathlib import Path
 import sys
 
 try:
-    from .config import config_manager, get_widgets_paths
+    from .config import config_manager, get_widgets_paths, set_project_config_path
 except ImportError:
-    from config import config_manager, get_widgets_paths
+    from config import config_manager, get_widgets_paths, set_project_config_path
 
 
 def command_config(args):
@@ -106,6 +106,16 @@ def get_custom_widgets() -> dict:
     return result
 
 
+def command_server(args):
+    """Run the development server."""
+    try:
+        from .monitor import app as flask_app
+    except ImportError:
+        from monitor import app as flask_app
+
+    flask_app.run(host=args.host, port=args.port, debug=args.debug)
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="monitorat", description="monitor@ system dashboard and monitoring tool"
@@ -116,6 +126,11 @@ def main():
         action="version",
         version=importlib.metadata.version("monitorat"),
     )
+    parser.add_argument(
+        "--config",
+        type=Path,
+        help="Path to config.yaml to load before running the command.",
+    )
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
@@ -124,13 +139,35 @@ def main():
     )
 
     subparsers.add_parser("ls-widgets", help="List available widgets and their status")
+    server_parser = subparsers.add_parser("server", help="Run the development server")
+    server_parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Host interface to bind.",
+    )
+    server_parser.add_argument(
+        "--port",
+        type=int,
+        default=6161,
+        help="Port to bind.",
+    )
+    server_parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable debug mode.",
+    )
 
     args = parser.parse_args()
+
+    if args.config:
+        set_project_config_path(args.config)
 
     if args.command == "config":
         command_config(args)
     elif args.command == "ls-widgets":
         command_ls_widgets(args)
+    elif args.command == "server":
+        command_server(args)
     else:
         parser.print_help()
 

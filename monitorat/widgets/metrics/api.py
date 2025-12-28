@@ -9,7 +9,15 @@ import logging
 from datetime import datetime
 from typing import List
 
-from monitor import config, parse_iso_timestamp, resolve_period_cutoff, CSVHandler, is_demo_enabled, register_snapshot_provider, get_data_path
+from monitor import (
+    config,
+    parse_iso_timestamp,
+    resolve_period_cutoff,
+    CSVHandler,
+    is_demo_enabled,
+    register_snapshot_provider,
+    get_data_path,
+)
 from flask import request, send_file
 
 logger = logging.getLogger(__name__)
