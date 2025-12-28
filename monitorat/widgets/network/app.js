@@ -445,6 +445,9 @@ class NetworkWidget {
       if (gap.type === 'ipchange') {
         item.className = 'gap ipchange'
         item.innerHTML = `<strong>IP address changed</strong> from ${gap.oldIp} to ${gap.newIp} at ${formatDateTime(gap.timestamp)}`
+      } else if (gap.type === 'failure') {
+        item.className = 'gap failure'
+        item.innerHTML = `<strong>Connection failure</strong> at ${formatDateTime(gap.timestamp)} (${gap.message})`
       } else {
         item.className = 'gap'
         if (gap.open) {
@@ -507,18 +510,38 @@ function parseLog (text) {
   const entries = []
   const lines = text.split(/\r?\n/)
   const detectedPattern = /^([A-Za-z]{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})\s+[^\s]+\s+[^\s]+(?:\[\d+\])?:\s+[A-Z]+:\s+(?:\[[^\]]+\]>\s+)?detected IPv4 address\s+([0-9.]+)/i
+  const failedPattern = /^([A-Za-z]{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})\s+[^\s]+\s+[^\s]+(?:\[\d+\])?:\s+FAILED:\s+(.*)$/i
+  let lastIp = null
 
   for (const line of lines) {
-    if (!line.includes('detected IPv4 address')) continue
-    const match = line.match(detectedPattern)
-    if (!match) continue
-    const timestamp = parseTimestamp(match[1])
-    if (!timestamp) continue
-    entries.push({ timestamp, ip: match[2].trim() })
+    if (line.includes('detected IPv4 address')) {
+      const match = line.match(detectedPattern)
+      if (!match) continue
+      const timestamp = parseTimestamp(match[1])
+      if (!timestamp) continue
+      lastIp = match[2].trim()
+      entries.push({ timestamp, ip: lastIp })
+      continue
+    }
+    if (line.includes('FAILED:')) {
+      const match = line.match(failedPattern)
+      if (!match) continue
+      const timestamp = parseTimestamp(match[1])
+      if (!timestamp) continue
+      if (!lastIp) continue
+      const message = normalizeFailureMessage(match[2].trim())
+      entries.push({ timestamp, ip: lastIp, failure: true, message })
+    }
   }
 
   entries.sort((a, b) => a.timestamp - b.timestamp)
   return entries
+}
+
+function normalizeFailureMessage (message) {
+  let cleaned = message.replace(/^\[[^\]]+]>\s*/, '')
+  cleaned = cleaned.replace(/^updating\s+[^:]+:\s*/i, '')
+  return cleaned || message
 }
 
 function computeLogFingerprint (text) {
@@ -570,7 +593,7 @@ function analyzeEntries (entries, periodsConfig, expectedIntervalMs, nowOverride
       uptimeText: '–',
       firstEntry: null,
       lastEntry: null,
-      windowStats: computeWindowStats([], [], now, periodsConfig, expectedIntervalMs)
+      windowStats: computeWindowStats([], [], now, periodsConfig, expectedIntervalMs, [])
     }
   }
 
@@ -597,7 +620,7 @@ function analyzeEntries (entries, periodsConfig, expectedIntervalMs, nowOverride
         open: false
       })
     }
-    if (current.ip !== next.ip) {
+    if (current.ip && next.ip && current.ip !== next.ip) {
       gaps.push({
         type: 'ipchange',
         timestamp: next.timestamp,
@@ -605,6 +628,22 @@ function analyzeEntries (entries, periodsConfig, expectedIntervalMs, nowOverride
         newIp: next.ip
       })
     }
+    if (current.failure) {
+      gaps.push({
+        type: 'failure',
+        timestamp: current.timestamp,
+        message: current.message || 'Failed to resolve current IP'
+      })
+    }
+  }
+
+  if (entries.length && entries[entries.length - 1].failure) {
+    const lastEntry = entries[entries.length - 1]
+    gaps.push({
+      type: 'failure',
+      timestamp: lastEntry.timestamp,
+      message: lastEntry.message || 'Failed to resolve current IP'
+    })
   }
 
   const lastEntry = entries[entries.length - 1]
@@ -630,7 +669,7 @@ function analyzeEntries (entries, periodsConfig, expectedIntervalMs, nowOverride
   const expectedChecks = entries.length + missed
   const uptimeValue = expectedChecks ? (entries.length / expectedChecks) * 100 : 100
   const uptimeText = expectedChecks ? `${uptimeValue.toFixed(2)}%` : '100%'
-  const windowStats = computeWindowStats(entries, slotNumbers, now, periodsConfig, expectedIntervalMs)
+  const windowStats = computeWindowStats(entries, slotNumbers, now, periodsConfig, expectedIntervalMs, gaps)
 
   return {
     entries,
@@ -658,7 +697,7 @@ function buildSlotNumbers (entries, expectedIntervalMs) {
   return slots
 }
 
-function computeWindowStats (entries, slotNumbers, now, periodsConfig, expectedIntervalMs) {
+function computeWindowStats (entries, slotNumbers, now, periodsConfig, expectedIntervalMs, gaps) {
   const definitions = buildPeriodsDefinitions(now, periodsConfig, expectedIntervalMs)
   if (!entries.length) {
     return definitions.map((definition) => ({
@@ -688,7 +727,7 @@ function computeWindowStats (entries, slotNumbers, now, periodsConfig, expectedI
   const firstSlot = Math.floor(entries[0].timestamp.getTime() / expectedIntervalMs)
 
   return definitions.map((definition) => {
-    const segments = definition.segments.map((segment) => analyzeSegment(segment, slotNumbers, firstSlot, nowSlot, expectedIntervalMs))
+    const segments = definition.segments.map((segment) => analyzeSegment(segment, slotNumbers, firstSlot, nowSlot, expectedIntervalMs, gaps))
     const observed = segments.reduce((sum, item) => sum + item.observed, 0)
     const expected = segments.reduce((sum, item) => sum + item.expected, 0)
     const available = segments.reduce((sum, item) => sum + item.available, 0)
@@ -757,7 +796,7 @@ function buildCustomPeriodSegments (periodLabel, periodMs, segmentMs, segmentCou
   return segments
 }
 
-function analyzeSegment (segment, slotNumbers, firstSlot, nowSlot, expectedIntervalMs) {
+function analyzeSegment (segment, slotNumbers, firstSlot, nowSlot, expectedIntervalMs, gaps) {
   const startSlot = segment.startSlot
   const endSlot = segment.endSlot
   const startMs = segment.startMs
@@ -783,7 +822,8 @@ function analyzeSegment (segment, slotNumbers, firstSlot, nowSlot, expectedInter
     uptime,
     coverage,
     start: new Date(Math.max(startMs, 0)),
-    end: new Date(Math.max(endMsClamped, Math.max(startMs, 0)))
+    end: new Date(Math.max(endMsClamped, Math.max(startMs, 0))),
+    status: resolveSegmentStatus(startMs, endMsClamped, gaps)
   }
 }
 
@@ -861,13 +901,35 @@ function applySegmentClasses (pill, segment) {
     pill.classList.add('future')
   } else if (!segment.expected) {
     pill.classList.add('idle')
-  } else if (segment.uptime >= 99) {
-    pill.classList.add('ok')
-  } else if (segment.uptime >= 95) {
+  } else if (segment.status === 'systemDown') {
+    pill.classList.add('bad')
+  } else if (segment.status === 'connectionFailure') {
     pill.classList.add('warn')
   } else {
-    pill.classList.add('bad')
+    pill.classList.add('ok')
   }
+}
+
+function resolveSegmentStatus (startMs, endMs, gaps) {
+  if (!gaps || !gaps.length) {
+    return 'normal'
+  }
+  let hasFailure = false
+  for (const gap of gaps) {
+    if (gap.type === 'outage') {
+      const gapStart = gap.start.getTime()
+      const gapEnd = gap.end.getTime()
+      if (startMs <= gapEnd && endMs >= gapStart) {
+        return 'systemDown'
+      }
+    } else if (gap.type === 'failure') {
+      const failureTime = gap.timestamp.getTime()
+      if (failureTime >= startMs && failureTime <= endMs) {
+        hasFailure = true
+      }
+    }
+  }
+  return hasFailure ? 'connectionFailure' : 'normal'
 }
 
 function buildSegmentTooltip (windowLabel, segment, expectedIntervalMs) {

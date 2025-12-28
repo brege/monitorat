@@ -16,12 +16,15 @@
   --uptime-pill-base: var(--border-muted);
   --uptime-pill-idle: rgba(var(--status-unknown-rgb), 0.6);
   --uptime-pill-future: rgba(var(--status-unknown-rgb), 0.35);
-  --gap-bg-default: rgba(var(--status-warn-rgb), 0.18);
-  --gap-border-default: rgb(var(--status-warn-rgb));
+  --gap-bg-default: rgba(var(--status-critical-rgb), 0.18);
+  --gap-border-default: rgb(var(--status-critical-rgb));
   --gap-color-default: var(--text-heading);
   --gap-bg-open: rgba(var(--status-critical-rgb), 0.18);
   --gap-border-open: rgb(var(--status-critical-rgb));
   --gap-color-open: var(--text-heading);
+  --gap-bg-failure: rgba(var(--status-warn-rgb), 0.18);
+  --gap-border-failure: rgb(var(--status-warn-rgb));
+  --gap-color-failure: var(--text-heading);
   --gap-bg-ipchange: rgba(var(--status-ok-rgb), 0.18);
   --gap-border-ipchange: rgb(var(--status-ok-rgb));
   --gap-color-ipchange: var(--text-heading);
@@ -57,6 +60,7 @@
 .network-container .gap-list { display: flex; flex-direction: column; gap: 10px; }
 .network-container .gap { padding: 12px 14px; background: var(--gap-bg-default); border-radius: 8px; border-left: 5px solid var(--gap-border-default); font-size: 0.95rem; line-height: 1.4; color: var(--gap-color-default); }
 .network-container .gap.open { background: var(--gap-bg-open); border-left-color: var(--gap-border-open); color: var(--gap-color-open); }
+.network-container .gap.failure { background: var(--gap-bg-failure); border-left-color: var(--gap-border-failure); color: var(--gap-color-failure); }
 .network-container .gap.ipchange { background: var(--gap-bg-ipchange); border-left-color: var(--gap-border-ipchange); color: var(--gap-color-ipchange); }
 .network-container .hidden { display: none !important; }
 @media (max-width: 640px) {
@@ -70,12 +74,15 @@
   --uptime-pill-base: rgba(var(--status-unknown-rgb), 0.35);
   --uptime-pill-idle: rgba(var(--status-unknown-rgb), 0.55);
   --uptime-pill-future: rgba(var(--status-unknown-rgb), 0.25);
-  --gap-bg-default: rgba(var(--status-warn-rgb), 0.16);
-  --gap-border-default: rgb(var(--status-warn-rgb));
+  --gap-bg-default: rgba(var(--status-critical-rgb), 0.16);
+  --gap-border-default: rgb(var(--status-critical-rgb));
   --gap-color-default: var(--text-primary);
   --gap-bg-open: rgba(var(--status-critical-rgb), 0.16);
   --gap-border-open: rgb(var(--status-critical-rgb));
   --gap-color-open: var(--text-primary);
+  --gap-bg-failure: rgba(var(--status-warn-rgb), 0.16);
+  --gap-border-failure: rgb(var(--status-warn-rgb));
+  --gap-color-failure: var(--text-primary);
   --gap-bg-ipchange: rgba(var(--status-ok-rgb), 0.16);
   --gap-border-ipchange: rgb(var(--status-ok-rgb));
   --gap-color-ipchange: var(--text-primary);
@@ -85,12 +92,15 @@
     --uptime-pill-base: rgba(var(--status-unknown-rgb), 0.35);
     --uptime-pill-idle: rgba(var(--status-unknown-rgb), 0.55);
     --uptime-pill-future: rgba(var(--status-unknown-rgb), 0.25);
-    --gap-bg-default: rgba(var(--status-warn-rgb), 0.16);
-    --gap-border-default: rgb(var(--status-warn-rgb));
+    --gap-bg-default: rgba(var(--status-critical-rgb), 0.16);
+    --gap-border-default: rgb(var(--status-critical-rgb));
     --gap-color-default: var(--text-primary);
     --gap-bg-open: rgba(var(--status-critical-rgb), 0.16);
     --gap-border-open: rgb(var(--status-critical-rgb));
     --gap-color-open: var(--text-primary);
+    --gap-bg-failure: rgba(var(--status-warn-rgb), 0.16);
+    --gap-border-failure: rgb(var(--status-warn-rgb));
+    --gap-color-failure: var(--text-primary);
     --gap-bg-ipchange: rgba(var(--status-ok-rgb), 0.16);
     --gap-border-ipchange: rgb(var(--status-ok-rgb));
     --gap-color-ipchange: var(--text-primary);
