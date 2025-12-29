@@ -21,19 +21,19 @@ PROJECT_ROOT = Path(__file__).parent.parent
 SERVERS = [
     {
         "name": "nas-1",
-        "config": "test/config-nas-1.yaml",
+        "config": "test/fixtures/nas-1.yaml",
         "port": 6601,
         "health_url": "http://localhost:6601/",
     },
     {
         "name": "nas-2",
-        "config": "test/config-nas-2.yaml",
+        "config": "test/fixtures/nas-2.yaml",
         "port": 6602,
         "health_url": "http://localhost:6602/",
     },
     {
         "name": "central",
-        "config": "test/config-central.yaml",
+        "config": "test/fixtures/central.yaml",
         "port": 6100,
         "health_url": "http://localhost:6100/",
     },
@@ -126,7 +126,7 @@ def run_smoke_tests() -> int:
     print("=" * 60 + "\n")
 
     result = subprocess.run(
-        ["uv", "run", "python", "test/smoke_federation.py"],
+        ["uv", "run", "python", "test/smoke/federation.py"],
         cwd=PROJECT_ROOT,
     )
 

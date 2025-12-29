@@ -181,20 +181,20 @@ Test configs live in `test/` to keep `demo/` pristine. Demo data (`demo/data/`) 
 ### Local Cluster Setup
 
 ```
-Head node (central):     port 6100, config: test/config-central.yaml
-Remote nas-1:            port 6601, config: test/config-nas-1.yaml
-Remote nas-2:            port 6602, config: test/config-nas-2.yaml
+Head node (central):     port 6100, config: test/fixtures/central.yaml
+Remote nas-1:            port 6601, config: test/fixtures/nas-1.yaml
+Remote nas-2:            port 6602, config: test/fixtures/nas-2.yaml
 ```
 
 ### Spin Up Test Cluster
 
 ```bash
 # Terminal 1: Head node (no auth, fetches from remotes)
-uv run monitorat -c test/config-central.yaml server --port 6100
+uv run monitorat -c test/fixtures/central.yaml server --port 6100
 
 # Terminal 2-3: Remote nodes (auth enabled)
-uv run monitorat -c test/config-nas-1.yaml server --port 6601
-uv run monitorat -c test/config-nas-2.yaml server --port 6602
+uv run monitorat -c test/fixtures/nas-1.yaml server --port 6601
+uv run monitorat -c test/fixtures/nas-2.yaml server --port 6602
 ```
 
 ### Federation Smoke Tests
@@ -221,7 +221,7 @@ uv run python demo/setup.py --test
 uv run python test/harness.py
 ```
 
-The harness spawns test nodes, runs `test/smoke_federation.py`, and terminates all servers.
+The harness spawns test nodes, runs `test/smoke/federation.py`, and terminates all servers.
 
 ---
 
@@ -260,13 +260,13 @@ Phase 2: **COMPLETE**
 - [x] `monitorat/federation.py` - FederationClient with fetch/health_check
 - [x] `monitorat/config_default.yaml` - add `federation:` block
 - [x] `pyproject.toml` - add httpx dependency
-- [x] `test/config-nas-1.yaml`, `test/config-nas-2.yaml` - test node configs
-- [x] `test/smoke_federation.py` - validation script (6/6 tests pass)
+- [x] `test/fixtures/nas-1.yaml`, `test/fixtures/nas-2.yaml` - test node configs
+- [x] `test/smoke/federation.py` - validation script (6/6 tests pass)
 
 Phase 3: **COMPLETE**
 - [x] `monitorat/monitor.py` - `register_remote_widget_proxy()` + detection in `register_widgets()`
-- [x] `test/config-central.yaml` - central node with remote widget stacking
-- [x] `test/smoke_federation.py` - updated with proxy route tests (9/9 pass)
+- [x] `test/fixtures/central.yaml` - central node with remote widget stacking
+- [x] `test/smoke/federation.py` - updated with proxy route tests (9/9 pass)
 - [x] `test/harness.py` - lifecycle-managed smoke test runner
 
 Phase 4:

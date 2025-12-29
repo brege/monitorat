@@ -4,12 +4,12 @@ Smoke tests for federation client and proxy routes.
 
 Prerequisites:
   Start test nodes before running:
-    uv run monitorat -c test/config-nas-1.yaml server --port 6601
-    uv run monitorat -c test/config-nas-2.yaml server --port 6602
-    uv run monitorat -c test/config-central.yaml server --port 6100
+  uv run monitorat -c test/fixtures/nas-1.yaml server --port 6601
+  uv run monitorat -c test/fixtures/nas-2.yaml server --port 6602
+  uv run monitorat -c test/fixtures/central.yaml server --port 6100
 
 Usage:
-    uv run python test/smoke_federation.py
+  uv run python test/smoke/federation.py
 """
 
 import sys
