@@ -1,0 +1,13 @@
+---
+widgets:
+  speedtest:
+    name: Speedtests
+    periods: [1 year, 1 month, 1 week]
+    default: chart
+    table:
+      min: 5
+      max: 100
+    chart:
+      default_period: 1 month
+      height: 300px
+      days: 30

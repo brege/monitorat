@@ -1,0 +1,56 @@
+---
+demo: true
+includes:
+  - include/metrics.yaml
+  - include/network.yaml
+  - include/services.yaml
+  - include/speedtest.yaml
+  - include/reminders.yaml
+  - include/wiki.yaml
+paths:
+  data: data/
+  img: img/
+  favicon: img/favicon.svg
+widgets:
+  enabled:
+    - wiki
+    - metrics
+    - metrics-md
+    - network
+    - network-md
+    - services
+    - services-md
+    - speedtest
+    - speedtest-md
+    - reminders
+    - reminders-md
+  metrics-md:
+    type: wiki
+    name: Metrics Notes
+    enabled: true
+    doc: ./docs/metrics.md
+    _suppressHeader: true
+  network-md:
+    type: wiki
+    name: Network Notes
+    enabled: true
+    doc: ./docs/network.md
+    _suppressHeader: true
+  services-md:
+    type: wiki
+    name: Services Notes
+    enabled: true
+    doc: ./docs/services.md
+    _suppressHeader: true
+  speedtest-md:
+    type: wiki
+    name: Speedtest Notes
+    enabled: true
+    doc: ./docs/speedtest.md
+    _suppressHeader: true
+  reminders-md:
+    type: wiki
+    name: Reminders Notes
+    enabled: true
+    doc: ./docs/reminders.md
+    _suppressHeader: true

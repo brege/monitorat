@@ -1,0 +1,33 @@
+---
+widgets:
+  reminders:
+    name: Reminders
+    enabled: true
+    nudges: [14, 7]
+    urgents: [3, 1, 0]
+    time: "21:00"
+    items:
+      github:
+        name: GitHub SSH Key
+        url: https://github.com/login
+        icon: reminders/github.png
+        expiry_days: 365
+        reason: Change your GitHub SSH key once a year
+      beets:
+        name: Beets
+        url: https://beets.example.com
+        icon: reminders/beets.png
+        expiry_days: 14
+        reason: Check music inbox for new music arrivals to process with beets
+      protonmail:
+        name: Proton Mail
+        url: https://proton.me/
+        icon: reminders/protonmail.png
+        expiry_days: 365
+        reason: Login every 365 days
+      gmail:
+        name: Gmail Trashcan
+        url: https://mail.google.com/
+        icon: reminders/gmail.png
+        expiry_days: 3
+        reason: Don't let Google mine your Trash folder even though you use POP3

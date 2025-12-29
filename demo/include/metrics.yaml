@@ -1,0 +1,23 @@
+---
+widgets:
+  metrics:
+    name: System Metrics
+    default: chart
+    enabled:
+      - cpu_percent
+      - memory_percent
+      - disk_read_mb
+      - disk_write_mb
+      - net_rx_mb
+      - net_tx_mb
+      - load_1min
+      - temp_c
+    chart:
+      periods: [30 days, 1 week, 24 hours, 6 hours, 1 hour]
+      default_metric: temp_c
+      default_period: 6 hours
+      height: 400px
+      days: 30
+    table:
+      min: 5
+      max: 20
