@@ -1,0 +1,20 @@
+includes:
+  - ../demo/include/wiki.yaml
+  - ../demo/include/metrics.yaml
+
+site:
+  name: "@auth-test"
+  title: "Auth Test"
+
+paths:
+  data: ../demo/data/
+
+auth:
+  api_key: "test-secret-key-123"
+
+demo: true
+
+widgets:
+  enabled:
+    - wiki
+    - metrics

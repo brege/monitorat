@@ -1,0 +1,20 @@
+includes:
+  - ../demo/include/wiki.yaml
+  - ../demo/include/metrics.yaml
+
+site:
+  name: "@nas-2"
+  title: "NAS-2 Test Node"
+
+paths:
+  data: ../demo/data/
+
+auth:
+  api_key: "nas-2-secret"
+
+demo: true
+
+widgets:
+  enabled:
+    - wiki
+    - metrics
