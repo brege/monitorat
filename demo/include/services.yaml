@@ -9,20 +9,24 @@ widgets:
         name: monitor@
         icon: favicon.svg
         services: [monitor@demo.service]
+        url: https://github.com/brege/monitorat
+        local: http://demo-host:6161
       ollama:
         name: Ollama
         icon: services/systemd/ollama.svg
         services: [ollama.service]
+        url: https://github.com/ollama/ollama
       plex_letterboxd:
         name: Plex Letterboxd
         icon: services/systemd/letterboxd.png
         services: [plex-letterboxd@demo.service]
         timers: [plex-letterboxd@demo.timer, plex-letterboxd@monthly.timer]
+        url: https://github.com/brege/plex-letterboxd
       jellyfin:
         name: Jellyfin
         icon: services/docker/jellyfin.png
         containers: [jellyfin]
-        url: https://example.com/jellyfin/
+        url: https://github.com/jellyfin/jellyfin
         local: http://demo-host:8096/jellyfin
       immich:
         name: Immich
@@ -33,43 +37,46 @@ widgets:
           - immich_microservices
           - immich_postgres
           - immich_redis
-        url: https://photos.example.com/
+        url: https://github.com/immich-app/immich
         local: http://demo-host:2283
       plex:
         name: Plex
         icon: services/systemd/plex.png
         services: [plexmediaserver.service]
-        url: https://example.com/plex
+        url: https://plex.tv
         local: http://demo-host:32400
       syncthing:
-        name: Syncthing
+        name: Syncthing 
         icon: services/systemd/syncthing.png
         services: [syncthing@demo.service]
-        url: https://example.com/syncthing
+        url: https://github.com/syncthing/syncthing
         local: http://demo-host:8384
       kometa:
         name: Kometa
         icon: services/systemd/kometa.png
         timers: [kometa@full.timer, kometa@recent.timer]
-        url: https://example.com/plex
+        url: https://github.com/Kometa-Team/kometa
         local: http://demo-host:32400
       tinybeans:
         name: Tinybeans Sync
         icon: services/systemd/tinybeans.png
         timers: [tinybeans-sync.timer]
-        url: https://example.com
-        local: https://photos.example.com
+        url: https://github.com/brege/tinybeans-sync
+        local: https://demo-host/tinybeans-sync
       miniflux:
         name: Miniflux
         icon: services/docker/miniflux.png
         containers: [miniflux]
-        url: https://rss.example.com
-        local: http://demo-host:1221
+        url: https://github.com/miniflux/v2
+        local: http://demo-host:1200
       porkbun_ddns:
         name: Porkbun DDNS
         icon: services/systemd/porkbun.png
         timers: [porkbun-ddns.timer]
+        url: https://github.com/brege/porkbun-ddns
       nginx:
         name: Nginx
         icon: services/systemd/nginx.png
         services: [nginx.service]
+        url: https://github.com/nginx/nginx
+        local: http://demo-host

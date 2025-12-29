@@ -1,13 +1,14 @@
 ### Demo
 
-From the repository root:
+Run the demo:
 ```bash
+git clone https://github.com/brege/monitorat
 python3 demo/init.py
 uv tool install -e .
 monitorat -c demo/config.yaml server --port 6161
 ```
 
-This demo dashboard shows the live layout and the exact widget configuration used for each section. Each widget note block is rendered by the wiki widget to keep the documentation close to the UI it describes.
+This dashboard is a read-only instance of monitor@, similar to the one you would see on your machine. monitor@ is a continuous, scroll-focused dashboard with a minimal-onboarding widget system.
 
 #### Contents
 - [Metrics](#metrics-widget)
@@ -16,13 +17,21 @@ This demo dashboard shows the live layout and the exact widget configuration use
 - [Speedtest](#speedtest-widget)
 - [Reminders](#reminders-widget)
 
+For this demo, each widget is chased by a corresponding "wiki" widget that provides documentation for said widget. On my Linux computers, I'm in the habit of using each machine's monitor@README as its systems bible. This helps one-off projects and systems-tuning feel less confusing and more enjoyable like gardening.
+
+Each widget's note block is rendered by the [**wiki widget**](https://github.com/brege/monitor@/wiki). You could keep your `docs/` directory up-to-date through [Syncthing](https://syncthing.net/) in tandem with [Obsidian](https://obsidian.md/) or [Markor](https://github.com/gsantner/markor). Documentation is an integral part of monitor@'s philosophy: it is both a manual and the gauges.    
+
 For the full project README and source, see:
-[https://github.com/brege/monitorat](https://github.com/brege/monitorat)
+[https://github.com/brege/monitorat](https://github.com/brege/monitorat).
 
 #### Config
 
 <details>
 <summary><b>Show config</b></summary>
+
+> **Note**
+>  
+> You will see in each widget's note block the config snippet for that widget. This is the *head* config that loads each of the snippets through `includes`.
 
 {{ include:code path="config.yaml" lang="yaml" }}
 </details>

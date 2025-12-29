@@ -1,6 +1,6 @@
 ### Services Widget
 
-The Services widget shows which systemd services, timers, and containers are running or have failed, along with URLs for convenient access.
+The Services widget shows which systemd services, timers, and docker containers are running or have failed, along with URLs for convenient access. The URLs in this demo simply link to their source code repository.
 
 #### Config
 <details>

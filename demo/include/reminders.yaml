@@ -9,13 +9,13 @@ widgets:
     items:
       github:
         name: GitHub SSH Key
-        url: https://github.com/login
+        url: https://github.com/settings/keys
         icon: reminders/github.png
         expiry_days: 365
         reason: Change your GitHub SSH key once a year
       beets:
         name: Beets
-        url: https://beets.example.com
+        url: https://github.com/beetbox/beets
         icon: reminders/beets.png
         expiry_days: 14
         reason: Check music inbox for new music arrivals to process with beets
