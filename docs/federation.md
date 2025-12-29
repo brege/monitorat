@@ -255,12 +255,12 @@ Phase 1: **COMPLETE**
 - [x] `pyproject.toml` - add Flask-HTTPAuth dependency
 - [x] `test/config-auth-test.yaml` - test fixture
 
-Phase 2:
-- [ ] `monitorat/federation.py` - remote client, connection management
-- [ ] `monitorat/config_default.yaml` - add `federation:` block
-- [ ] `pyproject.toml` - add httpx dependency
-- [ ] `test/config-nas-*.yaml` - test node configs
-- [ ] `test/smoke_federation.py` - validation script
+Phase 2: **COMPLETE**
+- [x] `monitorat/federation.py` - FederationClient with fetch/health_check
+- [x] `monitorat/config_default.yaml` - add `federation:` block
+- [x] `pyproject.toml` - add httpx dependency
+- [x] `test/config-nas-1.yaml`, `test/config-nas-2.yaml` - test node configs
+- [x] `test/smoke_federation.py` - validation script (6/6 tests pass)
 
 Phase 3:
 - [ ] `monitorat/monitor.py` - proxy route registration for remote widgets

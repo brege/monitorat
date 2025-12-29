@@ -16,6 +16,10 @@ notifications:
   apprise_urls: []
 auth:
   api_key: ''
+federation:
+  enabled: false
+  timeout_seconds: 10
+  remotes: []
 demo: false
 widgets:
   enabled:  # provides order and visibility
