@@ -9,4 +9,8 @@ MMM DD HH:MM:SS <host> <process>: FAILED:  [example.com]> updating example.com: 
 ```
 
 #### Config
+<details>
+<summary><b>Show config</b></summary>
+
 {{ include:code path="include/network.yaml" lang="yaml" }}
+</details>

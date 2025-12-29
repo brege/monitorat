@@ -3,4 +3,8 @@
 Metrics provides an overview of system performance, including CPU, memory, disk, network usage, and temperature over time. Data is logged to `metrics.csv`.
 
 #### Config
+<details>
+<summary><b>Show config</b></summary>
+
 {{ include:code path="include/metrics.yaml" lang="yaml" }}
+</details>

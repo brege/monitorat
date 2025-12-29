@@ -1,5 +1,8 @@
 ---
 demo: true
+site:
+  name: '@demo'
+  title: monitor@demo
 includes:
   - include/metrics.yaml
   - include/network.yaml

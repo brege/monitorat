@@ -2,6 +2,6 @@
 widgets:
   wiki:
     name: Demo Guide
-    doc: ../docs/wiki.md
+    doc: ../README.md
     _suppressHeader: true
     collapsible: false

@@ -1,5 +1,12 @@
 ### Demo
 
+From the repository root:
+```bash
+python3 demo/init.py
+uv tool install -e .
+monitorat -c demo/config.yaml server --port 6161
+```
+
 This demo dashboard shows the live layout and the exact widget configuration used for each section. Each widget note block is rendered by the wiki widget to keep the documentation close to the UI it describes.
 
 #### Contents
@@ -14,4 +21,8 @@ For the full project README and source, see:
 
 #### Config
 
+<details>
+<summary><b>Show config</b></summary>
+
 {{ include:code path="config.yaml" lang="yaml" }}
+</details>
