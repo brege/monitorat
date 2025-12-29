@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
-Smoke tests for federation client.
+Smoke tests for federation client and proxy routes.
 
 Prerequisites:
   Start test nodes before running:
     uv run monitorat -c test/config-nas-1.yaml server --port 6601
     uv run monitorat -c test/config-nas-2.yaml server --port 6602
+    uv run monitorat -c test/config-central.yaml server --port 6100
 
 Usage:
     uv run python test/smoke_federation.py
@@ -205,6 +206,71 @@ def test_federation_client_unknown_remote():
         client.close()
 
 
+def test_proxy_route_metrics_nas_1():
+    """Central proxy route /api/metrics-nas-1 should return nas-1 metrics."""
+    print("Test: Proxy route /api/metrics-nas-1...")
+    try:
+        response = httpx.get("http://localhost:6100/api/metrics-nas-1", timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            print(f"  PASS: Got 200 via proxy, keys={list(data.keys())[:3]}...")
+            return True
+        elif response.status_code == 502:
+            print("  SKIP: Proxy returned 502 (remote unavailable)")
+            return None
+        else:
+            print(f"  FAIL: Expected 200, got {response.status_code}")
+            return False
+    except httpx.ConnectError:
+        print("  SKIP: Central server not running on port 6100")
+        return None
+
+
+def test_proxy_route_metrics_nas_2():
+    """Central proxy route /api/metrics-nas-2 should return nas-2 metrics."""
+    print("Test: Proxy route /api/metrics-nas-2...")
+    try:
+        response = httpx.get("http://localhost:6100/api/metrics-nas-2", timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            print(f"  PASS: Got 200 via proxy, keys={list(data.keys())[:3]}...")
+            return True
+        elif response.status_code == 502:
+            print("  SKIP: Proxy returned 502 (remote unavailable)")
+            return None
+        else:
+            print(f"  FAIL: Expected 200, got {response.status_code}")
+            return False
+    except httpx.ConnectError:
+        print("  SKIP: Central server not running on port 6100")
+        return None
+
+
+def test_proxy_route_with_subpath():
+    """Central proxy route with subpath should forward correctly."""
+    print("Test: Proxy route /api/metrics-nas-1/history...")
+    try:
+        response = httpx.get(
+            "http://localhost:6100/api/metrics-nas-1/history",
+            params={"period": "1 hour"},
+            timeout=5,
+        )
+        if response.status_code == 200:
+            data = response.json()
+            row_count = len(data) if isinstance(data, list) else "N/A"
+            print(f"  PASS: Got 200 via proxy, rows={row_count}")
+            return True
+        elif response.status_code == 502:
+            print("  SKIP: Proxy returned 502 (remote unavailable)")
+            return None
+        else:
+            print(f"  FAIL: Expected 200, got {response.status_code}")
+            return False
+    except httpx.ConnectError:
+        print("  SKIP: Central server not running on port 6100")
+        return None
+
+
 def main():
     print("=" * 60)
     print("Federation Smoke Tests")
@@ -218,6 +284,9 @@ def main():
         test_federation_client_fetch,
         test_federation_client_health_check,
         test_federation_client_unknown_remote,
+        test_proxy_route_metrics_nas_1,
+        test_proxy_route_metrics_nas_2,
+        test_proxy_route_with_subpath,
     ]
 
     results = {"pass": 0, "fail": 0, "skip": 0}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from flask import Flask, send_from_directory, jsonify
+from flask import Flask, send_from_directory, jsonify, request, Response
 from pathlib import Path
 from urllib.request import urlretrieve
 from datetime import datetime, timedelta, timezone
@@ -19,6 +19,7 @@ try:
     )
     from .alerts import NotificationHandler, setup_alert_handler
     from .auth import require_auth_for_api
+    from .federation import federation_client
 except ImportError:
     from config import (
         config,
@@ -28,6 +29,7 @@ except ImportError:
     )
     from alerts import NotificationHandler, setup_alert_handler
     from auth import require_auth_for_api
+    from federation import federation_client
 
 __all__ = [
     "config",
@@ -416,6 +418,73 @@ def extend_widget_package_path():
         logging.getLogger(__name__).debug(f"Added custom widget path: {custom_path}")
 
 
+def register_remote_widget_proxy(widget_name: str, widget_type: str, remote_name: str):
+    """
+    Register proxy routes for a remote widget.
+
+    Routes like /api/{widget_name}/* proxy to the remote's /api/{widget_type}/*
+    """
+    logger = logging.getLogger(__name__)
+
+    remote = federation_client.get_remote(remote_name)
+    if not remote:
+        logger.error(f"Remote '{remote_name}' not found for widget '{widget_name}'")
+        return
+
+    def make_proxy_handler(widget_name: str, widget_type: str, remote_name: str):
+        def proxy_handler(subpath=""):
+            try:
+                remote_path = f"/api/{widget_type}"
+                if subpath:
+                    remote_path = f"{remote_path}/{subpath}"
+
+                query_string = request.query_string.decode("utf-8")
+                if query_string:
+                    remote_path = f"{remote_path}?{query_string}"
+
+                response = federation_client.fetch(remote_name, remote_path)
+
+                excluded_headers = {
+                    "content-encoding",
+                    "content-length",
+                    "transfer-encoding",
+                    "connection",
+                }
+                headers = [
+                    (name, value)
+                    for name, value in response.headers.items()
+                    if name.lower() not in excluded_headers
+                ]
+
+                return Response(
+                    response.content,
+                    status=response.status_code,
+                    headers=headers,
+                )
+            except Exception as exc:
+                logger.error(f"Proxy error for {widget_name}: {exc}")
+                return jsonify({"error": str(exc)}), 502
+
+        return proxy_handler
+
+    handler = make_proxy_handler(widget_name, widget_type, remote_name)
+
+    app.add_url_rule(
+        f"/api/{widget_name}",
+        endpoint=f"proxy_{widget_name}",
+        view_func=handler,
+        methods=["GET"],
+    )
+    app.add_url_rule(
+        f"/api/{widget_name}/<path:subpath>",
+        endpoint=f"proxy_{widget_name}_subpath",
+        view_func=handler,
+        methods=["GET"],
+    )
+
+    logger.info(f"Registered proxy for {widget_name} -> {remote_name}:{widget_type}")
+
+
 def register_widgets():
     """Register widgets based on configured order."""
     extend_widget_package_path()
@@ -439,6 +508,12 @@ def register_widgets():
             continue
 
         widget_type = widget_cfg.get("type", widget_name)
+        remote_name = widget_cfg.get("remote")
+
+        if remote_name:
+            register_remote_widget_proxy(widget_name, widget_type, remote_name)
+            continue
+
         module_name = f"widgets.{widget_type}.api"
 
         try:
@@ -449,7 +524,6 @@ def register_widgets():
             continue
 
         if hasattr(module, "register_routes"):
-            # special case: wiki widget supports multiple instances
             if widget_type == "wiki":
                 module.register_routes(app, widget_name)
             else:

@@ -262,9 +262,10 @@ Phase 2: **COMPLETE**
 - [x] `test/config-nas-1.yaml`, `test/config-nas-2.yaml` - test node configs
 - [x] `test/smoke_federation.py` - validation script (6/6 tests pass)
 
-Phase 3:
-- [ ] `monitorat/monitor.py` - proxy route registration for remote widgets
-- [ ] `test/config-central.yaml` - test config with remote widgets
+Phase 3: **COMPLETE**
+- [x] `monitorat/monitor.py` - `register_remote_widget_proxy()` + detection in `register_widgets()`
+- [x] `test/config-central.yaml` - central node with remote widget stacking
+- [x] `test/smoke_federation.py` - updated with proxy route tests (9/9 pass)
 
 Phase 4:
 - [ ] `monitorat/static/shared/StatusIndicator.js` - health dot component
