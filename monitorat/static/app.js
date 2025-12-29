@@ -103,8 +103,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   syncPrivacyToggleState()
 
   const config = await loadConfig()
+  const federationStatus = window.StatusIndicator
+    ? await window.StatusIndicator.fetchStatus()
+    : { enabled: false, remotes: {} }
 
   monitorAPI.demoEnabled = config.demo === true
+  monitorAPI.federationStatus = federationStatus
   initializeConfigReloadControl({ demoEnabled: monitorAPI.demoEnabled })
   if (!monitorAPI.demoEnabled) {
     fetch('api/snapshot', { method: 'POST', cache: 'no-store' })
@@ -265,20 +269,21 @@ async function initializeWidget (widgetName, widgetType, config, containerOverri
       ? container.querySelector('.widget-content')
       : container
 
-    const WidgetClass = window.widgets[widgetType]
-    const widget = new WidgetClass(config || {})
-
     const widgetConfig = config?.collapsible === true
       ? { ...config, _suppressHeader: true }
-      : config
+      : { ...config }
 
-    if (widgetType === 'speedtest') {
-      await widget.init(contentContainer, widgetConfig)
-    } else if (widgetType === 'wiki') {
-      await widget.init(contentContainer, { ...widgetConfig, _widgetName: widgetName })
-    } else {
-      await widget.init(contentContainer, widgetConfig || {})
+    if (config?.remote) {
+      widgetConfig._apiPrefix = widgetName
     }
+
+    if (widgetType === 'wiki') {
+      widgetConfig._widgetName = widgetName
+    }
+
+    const WidgetClass = window.widgets[widgetType]
+    const widget = new WidgetClass(widgetConfig)
+    await widget.init(contentContainer, widgetConfig)
   } catch (error) {
     const widgetDisplayName = config?.name || widgetName
     container.innerHTML = `<p class="muted">Unable to load ${widgetDisplayName}: ${error.message}</p>`
@@ -320,6 +325,7 @@ function createWidgetContainer (widgetName) {
 function setupCollapsibleWidget (container, widgetName, config) {
   const widgetTitle = config?.name || widgetName
   const isHidden = config?.hidden === true
+  const remoteName = config?.remote
 
   container.innerHTML = `
     <div class="widget-header">
@@ -332,6 +338,15 @@ function setupCollapsibleWidget (container, widgetName, config) {
     </div>
     <div class="widget-content" style="display: ${isHidden ? 'none' : 'block'}"></div>
   `
+
+  if (remoteName && window.StatusIndicator && monitorAPI.federationStatus?.enabled) {
+    const healthResult = monitorAPI.federationStatus.remotes?.[remoteName]
+    const indicator = window.StatusIndicator.create(remoteName, healthResult)
+    const titleElement = container.querySelector('.widget-title')
+    if (titleElement) {
+      titleElement.appendChild(indicator)
+    }
+  }
 }
 
 function toggleWidget (widgetName) {

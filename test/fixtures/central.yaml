@@ -1,12 +1,11 @@
-includes:
-  - ../demo/include/wiki.yaml
+includes: []
 
 site:
   name: "@central"
   title: "Central Command"
 
 paths:
-  data: data/central/
+  data: ../data/central/
 
 federation:
   enabled: true
@@ -23,7 +22,6 @@ demo: true
 
 widgets:
   enabled:
-    - wiki
     - metrics-nas-1
     - metrics-nas-2
 

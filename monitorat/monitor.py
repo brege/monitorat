@@ -325,6 +325,19 @@ def api_snapshot():
     return jsonify({"status": "ok"})
 
 
+@app.route("/api/federation/status", methods=["GET"])
+def api_federation_status():
+    """Return health status for all configured remotes."""
+    if not federation_client.enabled:
+        return jsonify({"enabled": False, "remotes": {}})
+
+    remotes_status = {}
+    for remote_name in federation_client.list_remotes():
+        remotes_status[remote_name] = federation_client.health_check(remote_name)
+
+    return jsonify({"enabled": True, "remotes": remotes_status})
+
+
 @app.route("/favicon.ico")
 def favicon():
     try:

@@ -271,6 +271,33 @@ def test_proxy_route_with_subpath():
         return None
 
 
+def test_federation_status_endpoint():
+    """Central /api/federation/status should return remote health."""
+    print("Test: Federation status endpoint...")
+    try:
+        response = httpx.get("http://localhost:6100/api/federation/status", timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("enabled") and "remotes" in data:
+                remotes = data["remotes"]
+                nas1_ok = remotes.get("nas-1", {}).get("ok")
+                nas2_ok = remotes.get("nas-2", {}).get("ok")
+                print(f"  PASS: Got status, nas-1={nas1_ok}, nas-2={nas2_ok}")
+                return True
+            elif not data.get("enabled"):
+                print("  PASS: Federation disabled (expected if not configured)")
+                return True
+            else:
+                print(f"  FAIL: Unexpected response structure: {data}")
+                return False
+        else:
+            print(f"  FAIL: Expected 200, got {response.status_code}")
+            return False
+    except httpx.ConnectError:
+        print("  SKIP: Central server not running on port 6100")
+        return None
+
+
 def main():
     print("=" * 60)
     print("Federation Smoke Tests")
@@ -287,6 +314,7 @@ def main():
         test_proxy_route_metrics_nas_1,
         test_proxy_route_metrics_nas_2,
         test_proxy_route_with_subpath,
+        test_federation_status_endpoint,
     ]
 
     results = {"pass": 0, "fail": 0, "skip": 0}

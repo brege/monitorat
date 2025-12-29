@@ -13,6 +13,7 @@ class MetricsWidget {
       chart: { default_metric: 'cpu_percent', default_period: 'all', height: '400px', days: 30 }
     }
     this.config = this.buildConfig()
+    this.apiPrefix = widgetConfig._apiPrefix || 'metrics'
     this.chartManager = null
     this.tableManager = null
     this.currentView = null
@@ -26,7 +27,7 @@ class MetricsWidget {
 
   async loadSchema () {
     if (this.schema) return
-    const response = await fetch('api/metrics/schema')
+    const response = await fetch(`api/${this.apiPrefix}/schema`)
     this.schema = await response.json()
     this.metricFields = this.resolveMetricFields()
   }
@@ -69,7 +70,7 @@ class MetricsWidget {
         suppressHeader: this.config._suppressHeader,
         name: this.config.name,
         downloadCsv: this.config.download_csv !== false,
-        downloadUrl: 'api/metrics/csv'
+        downloadUrl: `api/${this.apiPrefix}/csv`
       })
     }
 
@@ -121,12 +122,12 @@ class MetricsWidget {
   }
 
   async loadData () {
-    const response = await fetch('api/metrics')
+    const response = await fetch(`api/${this.apiPrefix}`)
     const data = await response.json()
     this.update(data)
     if (window.monitor?.demoEnabled !== true) {
       try {
-        await fetch('api/metrics', { method: 'GET' })
+        await fetch(`api/${this.apiPrefix}`, { method: 'GET' })
       } catch (error) {
         console.error('Unable to log metrics:', error)
       }
@@ -250,7 +251,7 @@ class MetricsWidget {
     this.tableManager.setStatus('Loading metrics history…')
 
     try {
-      const url = new URL('api/metrics/history', window.location)
+      const url = new URL(`api/${this.apiPrefix}/history`, window.location)
       if (this.selectedPeriod && this.selectedPeriod !== 'all') {
         url.searchParams.set('period', this.selectedPeriod)
       }

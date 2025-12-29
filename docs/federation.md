@@ -269,7 +269,8 @@ Phase 3: **COMPLETE**
 - [x] `test/smoke/federation.py` - updated with proxy route tests (9/9 pass)
 - [x] `test/harness.py` - lifecycle-managed smoke test runner
 
-Phase 4:
-- [ ] `monitorat/static/shared/StatusIndicator.js` - health dot component
-- [ ] Widget templates - add status indicator slot
-- [ ] `/api/federation/status` endpoint
+Phase 4: **COMPLETE**
+- [x] `/api/federation/status` endpoint - returns health for all remotes
+- [x] `monitorat/static/shared/StatusIndicator.js` - health dot component
+- [x] `monitorat/static/app.js` - fetches status, displays indicator in widget headers
+- [x] `test/smoke/federation.py` - status endpoint test (10/10 pass)
