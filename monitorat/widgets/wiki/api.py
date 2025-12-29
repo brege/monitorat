@@ -46,8 +46,11 @@ def register_routes(app, instance="wiki"):
             return send_from_directory(BASE, "README.md")
 
         doc_path = doc_view.get(str)
+        if not doc_path:
+            return send_from_directory(BASE, "README.md")
+
         doc_file = Path(doc_view.as_filename())
-        if not doc_file.exists():
+        if not doc_file.exists() or doc_file.is_dir():
             logging.getLogger(__name__).error(
                 "Wiki doc path missing (widget=%s, doc=%s, resolved=%s)",
                 widget_name,
