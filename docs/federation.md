@@ -55,11 +55,13 @@ Supports both `Authorization: Bearer <key>` and can be extended for `X-API-Key` 
 
 ### Phase 2: Remote Definitions
 
-Define remote instances in config.
+Define remote instances in config and implement the client to fetch from them.
 
 **Config:**
 ```yaml
 federation:
+  enabled: true
+  timeout_seconds: 10
   remotes:
     - name: nas-1
       url: http://192.168.1.10:6161
@@ -69,11 +71,32 @@ federation:
       api_key: "nas-2-secret"
 ```
 
-**Implementation:**
-- Add `federation` block to `config_default.yaml`
-- Remote client in `monitorat/federation.py`
-- Use httpx for HTTP/2 and future async capability
-- Timeout and retry configuration
+**Implementation: `monitorat/federation.py`**
+
+```python
+class FederationClient:
+    """HTTP client for fetching from remote monitor@ instances."""
+
+    def __init__(self):
+        self._client = None
+        self._remotes = {}
+
+    def get_remote(self, name: str) -> dict | None:
+        """Get remote config by name."""
+
+    def fetch(self, remote_name: str, path: str) -> httpx.Response:
+        """Fetch from a remote instance with auth."""
+
+    def health_check(self, remote_name: str) -> dict:
+        """Check if remote is reachable, return status dict."""
+
+federation_client = FederationClient()
+```
+
+**Exports:**
+- `federation_client` - singleton instance
+- `get_remote(name)` - lookup remote by name
+- `fetch(remote, path)` - make authenticated request
 
 **Library:** httpx
 
@@ -153,56 +176,50 @@ Deferred until stacking is stable.
 
 ## Testing Strategy
 
-The demo infrastructure (`demo/init.py`) enables local multi-instance testing without network complexity.
+Test configs live in `test/` to keep `demo/` pristine. Demo data (`demo/data/`) is reused.
 
 ### Local Cluster Setup
 
 ```
-Head node (central):     port 6100, config: demo/config-central.yaml
-Remote nas-1:            port 6601, config: demo/config-nas-1.yaml
-Remote nas-2:            port 6602, config: demo/config-nas-2.yaml
-Remote nas-3:            port 6603, config: demo/config-nas-3.yaml
+Head node (central):     port 6100, config: test/config-central.yaml
+Remote nas-1:            port 6601, config: test/config-nas-1.yaml
+Remote nas-2:            port 6602, config: test/config-nas-2.yaml
 ```
 
 ### Spin Up Test Cluster
 
 ```bash
-# Terminal 1: Head node
-monitorat -c demo/config-central.yaml server --port 6100
+# Terminal 1: Head node (no auth, fetches from remotes)
+uv run monitorat -c test/config-central.yaml server --port 6100
 
-# Terminal 2-4: Remote nodes
-monitorat -c demo/config-nas-1.yaml server --port 6601
-monitorat -c demo/config-nas-2.yaml server --port 6602
-monitorat -c demo/config-nas-3.yaml server --port 6603
+# Terminal 2-3: Remote nodes (auth enabled)
+uv run monitorat -c test/config-nas-1.yaml server --port 6601
+uv run monitorat -c test/config-nas-2.yaml server --port 6602
 ```
 
-### Auth Smoke Tests
+### Federation Smoke Tests
 
 ```bash
-# No auth configured - should succeed
-curl http://localhost:6601/api/metrics
-
-# Auth configured - should fail without key
-curl http://localhost:6601/api/metrics
+# Direct to remote - should fail without key
+curl -s -w "\n%{http_code}\n" http://localhost:6601/api/metrics
 # Expected: 401
 
-# Auth configured - should succeed with key
-curl -H "Authorization: Bearer nas-1-secret" http://localhost:6601/api/metrics
-# Expected: 200
+# Direct to remote - should succeed with key
+curl -s -H "X-API-Key: nas-1-secret" http://localhost:6601/api/metrics | jq .
+# Expected: 200 with metrics data
 
-# Central fetching from remote
-curl http://localhost:6100/api/metrics-nas-1
+# Central proxying to remote (Phase 3)
+curl -s http://localhost:6100/api/metrics-nas-1 | jq .
 # Expected: proxied response from nas-1
 ```
 
-### Demo Data Generation
+### Validation Script
 
-Extend `demo/init.py` to generate distinct synthetic data per node:
-- Different hostname in metrics
-- Unique load patterns (geometric/sinusoidal for visual distinction)
-- Staggered timestamps
-
-This provides visually distinguishable data when stacked or merged.
+`test/smoke_federation.py` automates the above checks:
+- Spawns test nodes
+- Validates auth rejection/acceptance
+- Tests proxy routes (Phase 3)
+- Reports pass/fail
 
 ---
 
@@ -231,21 +248,23 @@ dependencies = [
 
 ## File Checklist
 
-Phase 1:
-- [ ] `monitorat/auth.py` - HTTPTokenAuth setup, decorators
-- [ ] `monitorat/config_default.yaml` - add `auth:` block
-- [ ] `monitorat/monitor.py` - apply auth to `/api/*` routes
-- [ ] `pyproject.toml` - add Flask-HTTPAuth dependency
+Phase 1: **COMPLETE**
+- [x] `monitorat/auth.py` - HTTPTokenAuth setup, `before_request` handler
+- [x] `monitorat/config_default.yaml` - add `auth:` block
+- [x] `monitorat/monitor.py` - import and register auth handler
+- [x] `pyproject.toml` - add Flask-HTTPAuth dependency
+- [x] `test/config-auth-test.yaml` - test fixture
 
 Phase 2:
 - [ ] `monitorat/federation.py` - remote client, connection management
 - [ ] `monitorat/config_default.yaml` - add `federation:` block
 - [ ] `pyproject.toml` - add httpx dependency
+- [ ] `test/config-nas-*.yaml` - test node configs
+- [ ] `test/smoke_federation.py` - validation script
 
 Phase 3:
 - [ ] `monitorat/monitor.py` - proxy route registration for remote widgets
-- [ ] `demo/config-central.yaml` - test config with remote widgets
-- [ ] `demo/config-nas-*.yaml` - test configs for remote nodes
+- [ ] `test/config-central.yaml` - test config with remote widgets
 
 Phase 4:
 - [ ] `monitorat/static/shared/StatusIndicator.js` - health dot component
