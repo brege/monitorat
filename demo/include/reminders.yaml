@@ -18,16 +18,16 @@ widgets:
         url: https://github.com/beetbox/beets
         icon: reminders/beets.png
         expiry_days: 14
-        reason: Check music inbox for new music arrivals to process with beets
+        reason: Check music inbox for new music arrivals and process with beets
       protonmail:
         name: Proton Mail
         url: https://proton.me/
         icon: reminders/protonmail.png
         expiry_days: 365
         reason: Login every 365 days
-      gmail:
-        name: Gmail Trashcan
-        url: https://mail.google.com/
-        icon: reminders/gmail.png
-        expiry_days: 3
-        reason: Don't let Google mine your Trash folder even though you use POP3
+      monitorat:
+        name: Install Monitorat
+        url: https://pypi.org/project/monitorat/
+        icon: favicon.svg
+        expiry_days: 1
+        reason: "install from PyPI:  uv tool install monitorat"
