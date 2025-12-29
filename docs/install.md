@@ -17,12 +17,9 @@ cd monitorat
 uv tool install .
 ```
 
-To run the development server with gunicorn, install into a venv:
+Then run the server:
 ```bash
-uv venv .venv
-source .venv/bin/activate
-uv pip install monitorat
-gunicorn monitorat.monitor:app --bind localhost:6161
+monitorat -c /path/to/config.yaml server --host 0.0.0.0 --port 6161
 ```
 
 To run as a production server, use Systemd.
@@ -66,7 +63,7 @@ pip install .
 
 Then run with:
 ```bash
-gunicorn monitorat.monitor:app --bind localhost:6161
+monitorat -c /path/to/config.yaml server --host 0.0.0.0 --port 6161
 ```
 
 #### Systemd service (pip)
@@ -102,7 +99,7 @@ deactivate
 Run manually:
 ```bash
 source .venv/bin/activate
-gunicorn --bind localhost:6161 monitor:app  # not monitorat.monitor:app
+monitorat -c /path/to/config.yaml server --host 0.0.0.0 --port 6161
 ```
 
 #### Systemd service (source)

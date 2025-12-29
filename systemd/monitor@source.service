@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=__project__/monitorat
-ExecStart=__project__/monitorat/.venv/bin/gunicorn -w 1 -b 0.0.0.0:__port__ --timeout 120 monitor:app
+ExecStart=__project__/monitorat/.venv/bin/monitorat server --host 0.0.0.0 --port __port__
 User=__user__
 Group=__group__
 Environment="PATH=__project__/monitorat/.venv/bin:/usr/local/bin:/usr/bin:/bin"

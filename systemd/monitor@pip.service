@@ -6,7 +6,7 @@ After=network.target
 User=__user__
 Group=__group__
 Environment="PATH=/home/__user__/.local/bin:/usr/local/bin:/usr/bin:/bin"
-ExecStart=/usr/bin/env gunicorn -w 1 -b 0.0.0.0:6161 --timeout 120 monitorat.monitor:app
+ExecStart=/usr/bin/env monitorat server --host 0.0.0.0 --port 6161
 Restart=on-failure
 
 [Install]
