@@ -21,19 +21,19 @@ PROJECT_ROOT = Path(__file__).parent.parent
 SERVERS = [
     {
         "name": "nas-1",
-        "config": "test/fixtures/nas-1.yaml",
+        "config": "test/fixtures/nas-1/config.yaml",
         "port": 6601,
         "health_url": "http://localhost:6601/",
     },
     {
         "name": "nas-2",
-        "config": "test/fixtures/nas-2.yaml",
+        "config": "test/fixtures/nas-2/config.yaml",
         "port": 6602,
         "health_url": "http://localhost:6602/",
     },
     {
         "name": "central",
-        "config": "test/fixtures/central.yaml",
+        "config": "test/fixtures/central/config.yaml",
         "port": 6100,
         "health_url": "http://localhost:6100/",
     },

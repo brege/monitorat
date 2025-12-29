@@ -2,11 +2,13 @@ class WikiWidget {
   constructor (config = {}) {
     this.container = null
     this.config = config
+    this.apiPrefix = config._apiPrefix || 'wiki'
   }
 
   async init (container, config = {}) {
     this.container = container
     this.config = { ...this.config, ...config }
+    this.apiPrefix = config._apiPrefix || this.apiPrefix
 
     const response = await fetch('widgets/wiki/index.html')
     const html = await response.text()
@@ -26,9 +28,15 @@ class WikiWidget {
   async loadContent () {
     try {
       const widgetName = this.config._widgetName || 'wiki'
-      const docPath = this.config.doc
-        ? `api/wiki/doc?widget=${widgetName}`
-        : 'README.md'
+      const isRemote = this.config._apiPrefix !== undefined
+      let docPath
+      if (this.config.doc) {
+        docPath = isRemote
+          ? `api/${this.apiPrefix}/doc`
+          : `api/${this.apiPrefix}/doc?widget=${widgetName}`
+      } else {
+        docPath = 'README.md'
+      }
       const response = await fetch(docPath)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)

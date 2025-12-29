@@ -4,6 +4,7 @@ from pathlib import Path
 from urllib.request import urlretrieve
 from datetime import datetime, timedelta, timezone
 import importlib
+import importlib.metadata
 import logging
 import csv
 import json
@@ -68,6 +69,14 @@ def get_data_path() -> Path:
 
 def is_demo_enabled() -> bool:
     return config["demo"].get(bool)
+
+
+def get_package_version() -> str:
+    """Get monitorat version from package metadata."""
+    try:
+        return importlib.metadata.version("monitorat")
+    except importlib.metadata.PackageNotFoundError:
+        return "dev"
 
 
 _snapshot_providers = {}
@@ -275,6 +284,7 @@ def api_config():
             widgets_merged[key] = config["widgets"][key].flatten()
 
         payload = {
+            "version": get_package_version(),
             "site": config["site"].flatten(),
             "privacy": config["privacy"].flatten(),
             "demo": is_demo_enabled(),
@@ -328,14 +338,27 @@ def api_snapshot():
 @app.route("/api/federation/status", methods=["GET"])
 def api_federation_status():
     """Return health status for all configured remotes."""
+    local_version = get_package_version()
+
     if not federation_client.enabled:
-        return jsonify({"enabled": False, "remotes": {}})
+        return jsonify({"enabled": False, "version": local_version, "remotes": {}})
 
     remotes_status = {}
     for remote_name in federation_client.list_remotes():
-        remotes_status[remote_name] = federation_client.health_check(remote_name)
+        health = federation_client.health_check(remote_name)
+        if health.get("ok"):
+            try:
+                config_response = federation_client.fetch(remote_name, "/api/config")
+                if config_response.status_code == 200:
+                    remote_config = config_response.json()
+                    health["version"] = remote_config.get("version", "unknown")
+            except Exception:
+                health["version"] = "unknown"
+        remotes_status[remote_name] = health
 
-    return jsonify({"enabled": True, "remotes": remotes_status})
+    return jsonify(
+        {"enabled": True, "version": local_version, "remotes": remotes_status}
+    )
 
 
 @app.route("/favicon.ico")

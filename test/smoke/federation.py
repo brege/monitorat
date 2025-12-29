@@ -271,6 +271,26 @@ def test_proxy_route_with_subpath():
         return None
 
 
+def test_proxy_route_wiki_nas_1():
+    """Central proxy route /api/wiki-nas-1/doc should return nas-1 wiki doc."""
+    print("Test: Proxy route /api/wiki-nas-1/doc...")
+    try:
+        response = httpx.get("http://localhost:6100/api/wiki-nas-1/doc", timeout=5)
+        if response.status_code == 200:
+            content_type = response.headers.get("content-type", "")
+            print(f"  PASS: Got 200 via proxy, content_type={content_type[:30]}")
+            return True
+        elif response.status_code == 502:
+            print("  SKIP: Proxy returned 502 (remote unavailable)")
+            return None
+        else:
+            print(f"  FAIL: Expected 200, got {response.status_code}")
+            return False
+    except httpx.ConnectError:
+        print("  SKIP: Central server not running on port 6100")
+        return None
+
+
 def test_federation_status_endpoint():
     """Central /api/federation/status should return remote health."""
     print("Test: Federation status endpoint...")
@@ -314,6 +334,7 @@ def main():
         test_proxy_route_metrics_nas_1,
         test_proxy_route_metrics_nas_2,
         test_proxy_route_with_subpath,
+        test_proxy_route_wiki_nas_1,
         test_federation_status_endpoint,
     ]
 

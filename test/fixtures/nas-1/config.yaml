@@ -1,13 +1,12 @@
 includes:
-  - ../../demo/include/wiki.yaml
-  - ../../demo/include/metrics.yaml
+  - ../../../demo/include/metrics.yaml
 
 site:
   name: "@nas-1"
   title: "NAS-1 Test Node"
 
 paths:
-  data: ../data/nas-1/
+  data: data/
 
 auth:
   api_key: "nas-1-secret"
@@ -18,3 +17,7 @@ widgets:
   enabled:
     - wiki
     - metrics
+
+  wiki:
+    name: "NAS-1 Test Wiki"
+    doc: docs/test-doc.md

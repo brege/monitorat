@@ -339,19 +339,19 @@ def run_demo_mode(data_dir: Path) -> None:
     generate_speedtest_csv(data_dir / "speedtest.csv", now_value)
 
 
-def run_test_mode(data_dir: Path, node: str | None, hours: int) -> None:
+def run_test_mode(fixtures_dir: Path, node: str | None, hours: int) -> None:
     print("Test mode: generating test data")
     now_value = datetime.now(timezone.utc)
 
     if node:
-        node_dir = data_dir / node
-        node_dir.mkdir(parents=True, exist_ok=True)
-        generate_test_metrics(node_dir / "metrics.csv", node, now_value, hours)
+        data_dir = fixtures_dir / node / "data"
+        data_dir.mkdir(parents=True, exist_ok=True)
+        generate_test_metrics(data_dir / "metrics.csv", node, now_value, hours)
     else:
         for node_name in TEST_NODE_WAVEFORMS:
-            node_dir = data_dir / node_name
-            node_dir.mkdir(parents=True, exist_ok=True)
-            generate_test_metrics(node_dir / "metrics.csv", node_name, now_value, hours)
+            data_dir = fixtures_dir / node_name / "data"
+            data_dir.mkdir(parents=True, exist_ok=True)
+            generate_test_metrics(data_dir / "metrics.csv", node_name, now_value, hours)
 
 
 def main() -> None:
@@ -364,10 +364,10 @@ def main() -> None:
         )
         run_demo_mode(data_dir)
     elif args.test:
-        data_dir = (
-            Path(args.data_dir) if args.data_dir else project_root / "test" / "data"
+        fixtures_dir = (
+            Path(args.data_dir) if args.data_dir else project_root / "test" / "fixtures"
         )
-        run_test_mode(data_dir, args.node, args.hours)
+        run_test_mode(fixtures_dir, args.node, args.hours)
 
     print("Done")
 

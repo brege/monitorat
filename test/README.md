@@ -17,13 +17,13 @@ For browser-based inspection, start servers manually:
 
 ```bash
 # Terminal 1: Remote node (auth required)
-uv run monitorat -c test/fixtures/nas-1.yaml server --port 6601
+uv run monitorat -c test/fixtures/nas-1/config.yaml server --port 6601
 
 # Terminal 2: Remote node (auth required)
-uv run monitorat -c test/fixtures/nas-2.yaml server --port 6602
+uv run monitorat -c test/fixtures/nas-2/config.yaml server --port 6602
 
 # Terminal 3: Central node (federation enabled)
-uv run monitorat -c test/fixtures/central.yaml server --port 6100
+uv run monitorat -c test/fixtures/central/config.yaml server --port 6100
 ```
 
 ### Browser URLs

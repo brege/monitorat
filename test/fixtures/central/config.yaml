@@ -5,7 +5,7 @@ site:
   title: "Central Command"
 
 paths:
-  data: ../data/central/
+  data: data/
 
 federation:
   enabled: true
@@ -22,8 +22,15 @@ demo: true
 
 widgets:
   enabled:
+    - wiki-nas-1
     - metrics-nas-1
     - metrics-nas-2
+
+  wiki-nas-1:
+    type: wiki
+    remote: nas-1
+    name: "NAS-1 Wiki"
+    doc: true
 
   metrics-nas-1:
     type: metrics
