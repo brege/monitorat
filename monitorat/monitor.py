@@ -18,6 +18,7 @@ try:
         get_project_config_dir,
     )
     from .alerts import NotificationHandler, setup_alert_handler
+    from .auth import require_auth_for_api
 except ImportError:
     from config import (
         config,
@@ -26,6 +27,7 @@ except ImportError:
         get_project_config_dir,
     )
     from alerts import NotificationHandler, setup_alert_handler
+    from auth import require_auth_for_api
 
 __all__ = [
     "config",
@@ -47,6 +49,7 @@ if not WWW.exists():
     WWW = BASE
 
 app = Flask(__name__)
+require_auth_for_api(app)
 
 if __name__ != "monitor":
     import sys

@@ -14,6 +14,8 @@ paths:
   widgets: [widgets/]
 notifications:
   apprise_urls: []
+auth:
+  api_key: ''
 demo: false
 widgets:
   enabled:  # provides order and visibility
