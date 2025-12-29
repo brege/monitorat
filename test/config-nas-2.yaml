@@ -7,7 +7,7 @@ site:
   title: "NAS-2 Test Node"
 
 paths:
-  data: ../demo/data/
+  data: data/nas-2/
 
 auth:
   api_key: "nas-2-secret"

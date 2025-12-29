@@ -6,7 +6,7 @@ site:
   title: "Central Command"
 
 paths:
-  data: ../demo/data/
+  data: data/central/
 
 federation:
   enabled: true

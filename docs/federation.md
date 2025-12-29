@@ -215,11 +215,13 @@ curl -s http://localhost:6100/api/metrics-nas-1 | jq .
 
 ### Validation Script
 
-`test/smoke_federation.py` automates the above checks:
-- Spawns test nodes
-- Validates auth rejection/acceptance
-- Tests proxy routes (Phase 3)
-- Reports pass/fail
+Generate isolated test data, then run the harness:
+```bash
+uv run python demo/setup.py --test
+uv run python test/harness.py
+```
+
+The harness spawns test nodes, runs `test/smoke_federation.py`, and terminates all servers.
 
 ---
 
@@ -253,7 +255,6 @@ Phase 1: **COMPLETE**
 - [x] `monitorat/config_default.yaml` - add `auth:` block
 - [x] `monitorat/monitor.py` - import and register auth handler
 - [x] `pyproject.toml` - add Flask-HTTPAuth dependency
-- [x] `test/config-auth-test.yaml` - test fixture
 
 Phase 2: **COMPLETE**
 - [x] `monitorat/federation.py` - FederationClient with fetch/health_check
@@ -266,6 +267,7 @@ Phase 3: **COMPLETE**
 - [x] `monitorat/monitor.py` - `register_remote_widget_proxy()` + detection in `register_widgets()`
 - [x] `test/config-central.yaml` - central node with remote widget stacking
 - [x] `test/smoke_federation.py` - updated with proxy route tests (9/9 pass)
+- [x] `test/harness.py` - lifecycle-managed smoke test runner
 
 Phase 4:
 - [ ] `monitorat/static/shared/StatusIndicator.js` - health dot component
