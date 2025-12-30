@@ -28,6 +28,22 @@ uv run python test/harness.py --widget schema
 uv run python test/harness.py --list
 ```
 
+## Interactive Development
+
+For iterative development and debugging, use the dev harness:
+
+```bash
+uv run python test/dev.py                          # head + nas-1 + nas-2
+uv run python test/dev.py --single nas-1           # just nas-1
+uv run python test/dev.py --remote nas-1           # head + nas-1
+uv run python test/dev.py --remote nas-1 --remote nas-2  # head + both
+uv run python test/dev.py --widget metrics         # all nodes, metrics only
+uv run python test/dev.py --remote nas-1 --widget speedtest  # head + nas-1, speedtest only
+uv run python test/dev.py --list                   # show available nodes and widgets
+```
+
+Press Ctrl+C to stop all servers.
+
 ## Manual Testing (Multi-Terminal)
 
 For browser-based inspection, start servers in separate terminals:
