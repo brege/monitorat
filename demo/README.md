@@ -28,12 +28,12 @@ For the full project README and source, see:
 
 #### Config
 
-<details>
-<summary><b>Show config</b></summary>
-
 > **Note**
 >  
 > You will see in each widget's note block the config snippet for that widget. This is the *head* config that loads each of the snippets through `includes`.
+
+<details>
+<summary><b>Show config</b></summary>
 
 {{ include:code path="config.yaml" lang="yaml" }}
 </details>

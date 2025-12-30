@@ -10,7 +10,6 @@ MMM DD HH:MM:SS <host> <process>: FAILED:  [example.com]> updating example.com: 
 
 This example is limited to seven days.
 
-#### Config
 <details>
 <summary><b>Show config</b></summary>
 

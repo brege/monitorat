@@ -29,30 +29,35 @@ widgets:
     - reminders-md
   metrics-md:
     type: wiki
+    mode: rail
     name: Metrics Notes
     enabled: true
     doc: ./docs/metrics.md
     _suppressHeader: true
   network-md:
     type: wiki
+    mode: rail
     name: Network Notes
     enabled: true
     doc: ./docs/network.md
     _suppressHeader: true
   services-md:
     type: wiki
+    mode: rail
     name: Services Notes
     enabled: true
     doc: ./docs/services.md
     _suppressHeader: true
   speedtest-md:
     type: wiki
+    mode: rail
     name: Speedtest Notes
     enabled: true
     doc: ./docs/speedtest.md
     _suppressHeader: true
   reminders-md:
     type: wiki
+    mode: rail
     name: Reminders Notes
     enabled: true
     doc: ./docs/reminders.md
