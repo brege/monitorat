@@ -91,18 +91,50 @@ widgets:
     type: speedtest
     remote: nas-1
     name: "NAS-1 Speedtest"
+    default: chart
+    chart:
+      default_period: 1 month
 
   speedtest-nas-2:
     type: speedtest
     remote: nas-2
     name: "NAS-2 Speedtest"
+    default: chart
+    chart:
+      default_period: 1 month
 
   network-nas-1:
     type: network
     remote: nas-1
     name: "NAS-1 Network"
+    log_file: network.log
+    chirper:
+      interval_seconds: 300
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    alerts:
+      show: true
+      max: 3
 
   network-nas-2:
     type: network
     remote: nas-2
     name: "NAS-2 Network"
+    log_file: network.log
+    chirper:
+      interval_seconds: 300
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    alerts:
+      show: true
+      max: 3

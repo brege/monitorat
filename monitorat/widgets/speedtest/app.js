@@ -23,9 +23,13 @@ class SpeedtestWidget {
     this.chartEntries = []
   }
 
+  getApiBase () {
+    return this.config._apiPrefix ? `api/${this.config._apiPrefix}` : 'api/speedtest'
+  }
+
   async loadSchema () {
     if (this.schema) return
-    const response = await fetch('api/speedtest/schema')
+    const response = await fetch(`${this.getApiBase()}/schema`)
     this.schema = await response.json()
     this.applyMetadataConfig()
     this.metricFields = this.resolveMetricFields()
@@ -89,7 +93,7 @@ class SpeedtestWidget {
         suppressHeader: this.config._suppressHeader,
         name: this.config.name,
         downloadCsv: this.config.download_csv !== false,
-        downloadUrl: 'api/speedtest/csv'
+        downloadUrl: `${this.getApiBase()}/csv`
       })
     }
 
@@ -166,7 +170,7 @@ class SpeedtestWidget {
     if (status) status.textContent = 'Running speedtest…'
 
     try {
-      const response = await fetch('api/speedtest/run', { method: 'POST' })
+      const response = await fetch(`${this.getApiBase()}/run`, { method: 'POST' })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const result = await response.json()
       if (!result.success) throw new Error(result.error || 'Speedtest failed')
@@ -212,7 +216,7 @@ class SpeedtestWidget {
       params.set('limit', this.config.table.max)
       params.set('ts', Date.now())
 
-      const response = await fetch(`api/speedtest/history?${params.toString()}`, { cache: 'no-store' })
+      const response = await fetch(`${this.getApiBase()}/history?${params.toString()}`, { cache: 'no-store' })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const payload = await response.json()
       this.entries = payload.entries || []
@@ -232,7 +236,7 @@ class SpeedtestWidget {
       const params = new URLSearchParams()
       params.set('period', this.selectedPeriod)
       params.set('ts', Date.now())
-      const response = await fetch(`api/speedtest/chart?${params.toString()}`, { cache: 'no-store' })
+      const response = await fetch(`${this.getApiBase()}/chart?${params.toString()}`, { cache: 'no-store' })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
       const payload = await response.json()
       this.chartEntries = payload.entries || []

@@ -6,6 +6,10 @@ class ServicesWidget {
     this.config = config
   }
 
+  getApiBase () {
+    return this.config._apiPrefix ? `api/${this.config._apiPrefix}` : 'api/services'
+  }
+
   async init (container, config = {}) {
     this.container = container
     this.config = { ...this.config, ...config }
@@ -45,7 +49,7 @@ class ServicesWidget {
 
   async loadServices () {
     try {
-      const configResponse = await fetch('api/services')
+      const configResponse = await fetch(this.getApiBase())
       if (!configResponse.ok) {
         throw new Error(`HTTP ${configResponse.status}`)
       }
@@ -59,7 +63,7 @@ class ServicesWidget {
 
   async loadStatus () {
     try {
-      const response = await fetch('api/services/status')
+      const response = await fetch(`${this.getApiBase()}/status`)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
       }

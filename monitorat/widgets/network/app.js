@@ -54,7 +54,7 @@ class NetworkWidget {
   constructor (config = {}) {
     this.container = null
     this.config = mergeNetworkConfig(config)
-    this.periodsConfig = this.config.uptime.periods
+    this.periodsConfig = this.config.uptime?.periods || []
     // mergeNetworkConfig guarantees chirper.interval_seconds exists
     const intervalSeconds = this.config.chirper.interval_seconds
     this.expectedIntervalMs = intervalSeconds * 1000
@@ -69,6 +69,10 @@ class NetworkWidget {
     this.uptimeCache = {
       rows: new Map()
     }
+  }
+
+  getApiBase () {
+    return this.config._apiPrefix ? `api/${this.config._apiPrefix}` : 'api/network'
   }
 
   async init (container, config = {}) {
@@ -159,7 +163,7 @@ class NetworkWidget {
     }
 
     try {
-      const response = await fetch(`api/network/log?${Date.now()}`, { cache: 'no-store' })
+      const response = await fetch(`${this.getApiBase()}/log?${Date.now()}`, { cache: 'no-store' })
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
@@ -213,7 +217,7 @@ class NetworkWidget {
     }
     const logFilename = this.config.log_file.split('/').pop()
     const link = document.createElement('a')
-    link.href = `api/network/log?${Date.now()}`
+    link.href = `${this.getApiBase()}/log?${Date.now()}`
     link.download = logFilename
     document.body.appendChild(link)
     link.click()

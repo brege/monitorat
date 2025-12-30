@@ -7,6 +7,10 @@ class RemindersWidget {
     this.config = config
   }
 
+  getApiBase () {
+    return this.config._apiPrefix ? `api/${this.config._apiPrefix}` : 'api/reminders'
+  }
+
   async init (container, config = {}) {
     this.container = container
     this.config = { ...this.config, ...config }
@@ -32,7 +36,7 @@ class RemindersWidget {
 
   async loadData () {
     try {
-      const response = await fetch('api/reminders')
+      const response = await fetch(this.getApiBase())
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
       }
@@ -124,7 +128,7 @@ class RemindersWidget {
 
           // Touch the reminder and refresh data
           try {
-            await fetch(`api/reminders/${reminder.id}/touch`, { method: 'POST' })
+            await fetch(`${this.getApiBase()}/${reminder.id}/touch`, { method: 'POST' })
             setTimeout(() => this.loadData(), 500) // Refresh after delay to get accurate data
           } catch (error) {
             console.error('Failed to touch reminder:', error)
