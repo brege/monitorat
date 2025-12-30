@@ -40,6 +40,18 @@ TEST_NODE_WAVEFORMS = {
     "nas-3": "square",
 }
 
+TEST_NODE_REMINDERS = {
+    "nas-1": [
+        {"id": "backup", "name": "Backup Check", "days_ago": 5},
+    ],
+    "nas-2": [
+        {"id": "ssl_cert", "name": "SSL Certificate", "days_ago": 25},
+    ],
+    "nas-3": [
+        {"id": "updates", "name": "System Updates", "days_ago": 10},
+    ],
+}
+
 
 @dataclass
 class NetworkLine:
@@ -258,6 +270,115 @@ def waveform_value(waveform: str, t: float, period: float = 1.0) -> float:
     return 0.5
 
 
+def generate_test_speedtest(
+    target_path: Path,
+    node_name: str,
+    now_value: datetime,
+    days: int = 7,
+) -> None:
+    """Generate speedtest.csv with node-specific data."""
+    random_generator = random.Random(hash(node_name))
+    node_index = (
+        list(TEST_NODE_WAVEFORMS.keys()).index(node_name)
+        if node_name in TEST_NODE_WAVEFORMS
+        else 0
+    )
+    base_download = 200 + node_index * 50
+    base_upload = 40 + node_index * 10
+
+    rows = []
+    for day_offset in range(days):
+        timestamp = now_value - timedelta(
+            days=days - day_offset - 1, hours=random_generator.randint(8, 20)
+        )
+        download_mbps = base_download + random_generator.gauss(0, 20)
+        upload_mbps = base_upload + random_generator.gauss(0, 5)
+        ping_ms = 20 + node_index * 5 + random_generator.uniform(-5, 10)
+        server_name = f"Server-{node_name.upper()}-{chr(65 + day_offset % 3)}"
+
+        rows.append(
+            {
+                "timestamp": format_iso_datetime(timestamp, True),
+                "download": f"{download_mbps * 1_000_000:.6f}",
+                "upload": f"{upload_mbps * 1_000_000:.6f}",
+                "ping": f"{ping_ms:.3f}",
+                "server": server_name,
+                "ip_address": "",
+            }
+        )
+
+    with target_path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=[
+                "timestamp",
+                "download",
+                "upload",
+                "ping",
+                "server",
+                "ip_address",
+            ],
+        )
+        writer.writeheader()
+        writer.writerows(rows)
+    print(f"  Generated {target_path} ({len(rows)} rows)")
+
+
+def generate_test_network(
+    target_path: Path,
+    node_name: str,
+    now_value: datetime,
+    days: int = 3,
+    interval_seconds: int = 600,
+) -> None:
+    """Generate network.log with node-specific data."""
+    start = now_value - timedelta(days=days)
+    node_index = (
+        list(TEST_NODE_WAVEFORMS.keys()).index(node_name)
+        if node_name in TEST_NODE_WAVEFORMS
+        else 0
+    )
+    ip_address = f"192.168.1.{101 + node_index}"
+    domain = f"{node_name}.local"
+
+    entries = []
+    current = start
+    while current <= now_value:
+        message = (
+            f"{node_name} monitor-network: INFO:    "
+            f"[{domain}]> detected IPv4 address {ip_address}"
+        )
+        entries.append(NetworkLine(timestamp=current, message=message))
+        current += timedelta(seconds=interval_seconds)
+
+    output_lines = [
+        f"{entry.timestamp:%b} {entry.timestamp.day:2d} {entry.timestamp:%H:%M:%S} {entry.message}"
+        for entry in entries
+    ]
+    target_path.write_text("\n".join(output_lines) + "\n", encoding="utf-8")
+    print(f"  Generated {target_path} ({len(entries)} entries)")
+
+
+def generate_test_reminders(
+    target_path: Path,
+    node_name: str,
+    now_value: datetime,
+) -> None:
+    """Generate reminders.json with node-specific touch timestamps."""
+    import json
+
+    reminders = TEST_NODE_REMINDERS.get(node_name, [])
+    data = {}
+    for reminder in reminders:
+        touch_time = now_value - timedelta(days=reminder["days_ago"])
+        naive_time = touch_time.replace(tzinfo=None)
+        data[reminder["id"]] = naive_time.isoformat()
+
+    with target_path.open("w", encoding="utf-8") as handle:
+        json.dump(data, handle, indent=2)
+    print(f"  Generated {target_path} ({len(data)} reminders)")
+
+
 def generate_test_metrics(
     target_path: Path,
     node_name: str,
@@ -343,15 +464,19 @@ def run_test_mode(fixtures_dir: Path, node: str | None, hours: int) -> None:
     print("Test mode: generating test data")
     now_value = datetime.now(timezone.utc)
 
-    if node:
-        data_dir = fixtures_dir / node / "data"
+    def generate_node_data(node_name: str) -> None:
+        data_dir = fixtures_dir / node_name / "data"
         data_dir.mkdir(parents=True, exist_ok=True)
-        generate_test_metrics(data_dir / "metrics.csv", node, now_value, hours)
+        generate_test_metrics(data_dir / "metrics.csv", node_name, now_value, hours)
+        generate_test_speedtest(data_dir / "speedtest.csv", node_name, now_value)
+        generate_test_network(data_dir / "network.log", node_name, now_value)
+        generate_test_reminders(data_dir / "reminders.json", node_name, now_value)
+
+    if node:
+        generate_node_data(node)
     else:
         for node_name in TEST_NODE_WAVEFORMS:
-            data_dir = fixtures_dir / node_name / "data"
-            data_dir.mkdir(parents=True, exist_ok=True)
-            generate_test_metrics(data_dir / "metrics.csv", node_name, now_value, hours)
+            generate_node_data(node_name)
 
 
 def main() -> None:

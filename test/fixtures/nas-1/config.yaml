@@ -40,6 +40,10 @@ widgets:
 
   reminders:
     name: "NAS-1 Reminders"
+    state_file: reminders.json
+    nudges: [14, 7]
+    urgents: [3, 1, 0]
+    time: "23:55"
     items:
       backup:
         name: Backup Check
