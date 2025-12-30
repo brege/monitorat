@@ -4,7 +4,7 @@
 
 ```bash
 uv run python demo/setup.py --test      # Generate test data
-uv run python test/harness.py           # Run all 20 smoke tests
+uv run python test/harness.py           # Run all 26 smoke tests
 ```
 
 ## Automated Tests
@@ -22,6 +22,7 @@ uv run python test/harness.py --widget reminders
 uv run python test/harness.py --widget speedtest
 uv run python test/harness.py --widget network
 uv run python test/harness.py --widget wiki
+uv run python test/harness.py --widget schema
 
 # List available widget filters
 uv run python test/harness.py --list
@@ -63,6 +64,17 @@ uv run monitorat -c test/fixtures/central/config.yaml server --port 6100
 | wiki | /api/wiki-nas-1/doc | /api/wiki-nas-2/doc |
 | merged | /api/metrics-combined/history | (merges both sources) |
 
+#### Schema Endpoints (via proxy)
+
+| Widget | Endpoint |
+|--------|----------|
+| metrics | /api/metrics-nas-1/schema |
+| services | /api/services-nas-1/schema |
+| reminders | /api/reminders-nas-1/schema |
+| speedtest | /api/speedtest-nas-1/schema |
+| network | /api/network-nas-1/schema |
+| wiki | /api/wiki-nas-1/schema |
+
 ### Visual: Status Indicators
 
 Open http://localhost:6100 to see the central dashboard. Remote widgets display health indicators (colored dots) next to their titles:
@@ -90,6 +102,9 @@ curl -s http://localhost:6100/api/metrics-nas-1 | jq .metrics
 
 # Merged metrics from all sources
 curl -s http://localhost:6100/api/metrics-combined/history | jq '.sources, (.data | length)'
+
+# Widget schema (available for all widgets)
+curl -s http://localhost:6100/api/metrics-nas-1/schema | jq '.widget, .version, .endpoints'
 ```
 
 ## Test Data
@@ -139,4 +154,5 @@ test/fixtures/
 | reminders | 2 |
 | speedtest | 2 |
 | network | 2 |
-| **Total** | **20** |
+| schema (all widgets) | 6 |
+| **Total** | **26** |

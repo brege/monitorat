@@ -533,6 +533,66 @@ def test_proxy_route_network_nas_2():
         return None
 
 
+def _test_schema_endpoint(widget_name):
+    """Helper to test schema endpoint for a widget."""
+    endpoint = f"/api/{widget_name}-nas-1/schema"
+    print(f"Test: Schema endpoint {endpoint}...")
+    try:
+        response = httpx.get(f"http://localhost:6100{endpoint}", timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            widget = data.get("widget")
+            version = data.get("version")
+            endpoints = list(data.get("endpoints", {}).keys())
+            if widget and version:
+                print(
+                    f"  PASS: Got schema, widget={widget}, version={version}, endpoints={endpoints}"
+                )
+                return True
+            else:
+                print(f"  FAIL: Missing widget or version in schema: {data}")
+                return False
+        elif response.status_code == 502:
+            print("  SKIP: Proxy returned 502 (remote unavailable)")
+            return None
+        else:
+            print(f"  FAIL: Expected 200, got {response.status_code}")
+            return False
+    except httpx.ConnectError:
+        print("  SKIP: Central server not running on port 6100")
+        return None
+
+
+def test_schema_metrics():
+    """Metrics schema endpoint should return valid schema."""
+    return _test_schema_endpoint("metrics")
+
+
+def test_schema_services():
+    """Services schema endpoint should return valid schema."""
+    return _test_schema_endpoint("services")
+
+
+def test_schema_reminders():
+    """Reminders schema endpoint should return valid schema."""
+    return _test_schema_endpoint("reminders")
+
+
+def test_schema_speedtest():
+    """Speedtest schema endpoint should return valid schema."""
+    return _test_schema_endpoint("speedtest")
+
+
+def test_schema_network():
+    """Network schema endpoint should return valid schema."""
+    return _test_schema_endpoint("network")
+
+
+def test_schema_wiki():
+    """Wiki schema endpoint should return valid schema."""
+    return _test_schema_endpoint("wiki")
+
+
 CORE_TESTS = [
     test_direct_no_auth,
     test_direct_wrong_key,
@@ -568,6 +628,14 @@ WIDGET_TESTS = {
     "network": [
         test_proxy_route_network_nas_1,
         test_proxy_route_network_nas_2,
+    ],
+    "schema": [
+        test_schema_metrics,
+        test_schema_services,
+        test_schema_reminders,
+        test_schema_speedtest,
+        test_schema_network,
+        test_schema_wiki,
     ],
 }
 

@@ -123,7 +123,15 @@ def stop_servers(processes: list):
             print(f"  {server['name']}: already stopped")
 
 
-WIDGET_FILTERS = ["metrics", "wiki", "services", "reminders", "speedtest", "network"]
+WIDGET_FILTERS = [
+    "metrics",
+    "wiki",
+    "services",
+    "reminders",
+    "speedtest",
+    "network",
+    "schema",
+]
 
 
 def run_smoke_tests(widget_filter: str = None) -> int:
