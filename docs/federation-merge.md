@@ -155,10 +155,12 @@ All widgets support remote proxying with simple stacking.
 |------------|--------------|----------------|--------|
 | metrics    | [x]          | [x]            | done   |
 | wiki       | [x]          | [x]            | done   |
-| services   | [ ]          | [ ]            | done   |
-| reminders  | [ ]          | [ ]            | done   |
-| speedtest  | [ ]          | [ ]            | done   |
-| network    | [ ]          | [ ]            | done   |
+| services   | [x]          | [x]            | done   |
+| reminders  | [x]          | [x]            | done   |
+| speedtest  | [x]          | [x]            | done   |
+| network    | [x]          | [x]            | done   |
+
+Test coverage: 20 smoke tests (7 core + 13 widget-specific) via `uv run python test/harness.py`
 
 ### Phase 5b: Merge Infrastructure
 

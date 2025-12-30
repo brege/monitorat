@@ -4,9 +4,12 @@ Smoke tests for federation client and proxy routes.
 
 Prerequisites:
   Start test nodes before running:
-  uv run monitorat -c test/fixtures/nas-1.yaml server --port 6601
-  uv run monitorat -c test/fixtures/nas-2.yaml server --port 6602
-  uv run monitorat -c test/fixtures/central.yaml server --port 6100
+  uv run monitorat -c test/fixtures/nas-1/config.yaml server --port 6601
+  uv run monitorat -c test/fixtures/nas-2/config.yaml server --port 6602
+  uv run monitorat -c test/fixtures/central/config.yaml server --port 6100
+
+  Or use the test harness:
+  uv run python test/harness.py
 
 Usage:
   uv run python test/smoke/federation.py
@@ -354,26 +357,246 @@ def test_federation_status_endpoint():
         return None
 
 
-def main():
-    print("=" * 60)
-    print("Federation Smoke Tests")
-    print("=" * 60)
-    print()
+def test_proxy_route_services_nas_1():
+    """Central proxy route /api/services-nas-1 should return nas-1 services."""
+    print("Test: Proxy route /api/services-nas-1...")
+    try:
+        response = httpx.get("http://localhost:6100/api/services-nas-1", timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            services = data.get("services", {})
+            print(f"  PASS: Got 200 via proxy, services={list(services.keys())}")
+            return True
+        elif response.status_code == 502:
+            print("  SKIP: Proxy returned 502 (remote unavailable)")
+            return None
+        else:
+            print(f"  FAIL: Expected 200, got {response.status_code}")
+            return False
+    except httpx.ConnectError:
+        print("  SKIP: Central server not running on port 6100")
+        return None
 
-    tests = [
-        test_direct_no_auth,
-        test_direct_wrong_key,
-        test_direct_correct_key,
-        test_federation_client_fetch,
-        test_federation_client_health_check,
-        test_federation_client_unknown_remote,
+
+def test_proxy_route_services_nas_2():
+    """Central proxy route /api/services-nas-2 should return nas-2 services."""
+    print("Test: Proxy route /api/services-nas-2...")
+    try:
+        response = httpx.get("http://localhost:6100/api/services-nas-2", timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            services = data.get("services", {})
+            print(f"  PASS: Got 200 via proxy, services={list(services.keys())}")
+            return True
+        elif response.status_code == 502:
+            print("  SKIP: Proxy returned 502 (remote unavailable)")
+            return None
+        else:
+            print(f"  FAIL: Expected 200, got {response.status_code}")
+            return False
+    except httpx.ConnectError:
+        print("  SKIP: Central server not running on port 6100")
+        return None
+
+
+def test_proxy_route_reminders_nas_1():
+    """Central proxy route /api/reminders-nas-1 should return nas-1 reminders."""
+    print("Test: Proxy route /api/reminders-nas-1...")
+    try:
+        response = httpx.get("http://localhost:6100/api/reminders-nas-1", timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            count = len(data) if isinstance(data, list) else 0
+            print(f"  PASS: Got 200 via proxy, {count} reminders")
+            return True
+        elif response.status_code == 502:
+            print("  SKIP: Proxy returned 502 (remote unavailable)")
+            return None
+        else:
+            print(f"  FAIL: Expected 200, got {response.status_code}")
+            return False
+    except httpx.ConnectError:
+        print("  SKIP: Central server not running on port 6100")
+        return None
+
+
+def test_proxy_route_reminders_nas_2():
+    """Central proxy route /api/reminders-nas-2 should return nas-2 reminders."""
+    print("Test: Proxy route /api/reminders-nas-2...")
+    try:
+        response = httpx.get("http://localhost:6100/api/reminders-nas-2", timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            count = len(data) if isinstance(data, list) else 0
+            print(f"  PASS: Got 200 via proxy, {count} reminders")
+            return True
+        elif response.status_code == 502:
+            print("  SKIP: Proxy returned 502 (remote unavailable)")
+            return None
+        else:
+            print(f"  FAIL: Expected 200, got {response.status_code}")
+            return False
+    except httpx.ConnectError:
+        print("  SKIP: Central server not running on port 6100")
+        return None
+
+
+def test_proxy_route_speedtest_nas_1():
+    """Central proxy route /api/speedtest-nas-1/history should return nas-1 speedtest data."""
+    print("Test: Proxy route /api/speedtest-nas-1/history...")
+    try:
+        response = httpx.get(
+            "http://localhost:6100/api/speedtest-nas-1/history", timeout=5
+        )
+        if response.status_code == 200:
+            data = response.json()
+            rows = data.get("entries", []) if isinstance(data, dict) else data
+            print(f"  PASS: Got 200 via proxy, {len(rows)} rows")
+            return True
+        elif response.status_code == 502:
+            print("  SKIP: Proxy returned 502 (remote unavailable)")
+            return None
+        else:
+            print(f"  FAIL: Expected 200, got {response.status_code}")
+            return False
+    except httpx.ConnectError:
+        print("  SKIP: Central server not running on port 6100")
+        return None
+
+
+def test_proxy_route_speedtest_nas_2():
+    """Central proxy route /api/speedtest-nas-2/history should return nas-2 speedtest data."""
+    print("Test: Proxy route /api/speedtest-nas-2/history...")
+    try:
+        response = httpx.get(
+            "http://localhost:6100/api/speedtest-nas-2/history", timeout=5
+        )
+        if response.status_code == 200:
+            data = response.json()
+            rows = data.get("entries", []) if isinstance(data, dict) else data
+            print(f"  PASS: Got 200 via proxy, {len(rows)} rows")
+            return True
+        elif response.status_code == 502:
+            print("  SKIP: Proxy returned 502 (remote unavailable)")
+            return None
+        else:
+            print(f"  FAIL: Expected 200, got {response.status_code}")
+            return False
+    except httpx.ConnectError:
+        print("  SKIP: Central server not running on port 6100")
+        return None
+
+
+def test_proxy_route_network_nas_1():
+    """Central proxy route /api/network-nas-1/log should return nas-1 network log."""
+    print("Test: Proxy route /api/network-nas-1/log...")
+    try:
+        response = httpx.get("http://localhost:6100/api/network-nas-1/log", timeout=5)
+        if response.status_code == 200:
+            content_type = response.headers.get("content-type", "")
+            lines = (
+                len(response.text.strip().split("\n")) if response.text.strip() else 0
+            )
+            print(f"  PASS: Got 200 via proxy, {lines} lines, type={content_type[:20]}")
+            return True
+        elif response.status_code == 502:
+            print("  SKIP: Proxy returned 502 (remote unavailable)")
+            return None
+        else:
+            print(f"  FAIL: Expected 200, got {response.status_code}")
+            return False
+    except httpx.ConnectError:
+        print("  SKIP: Central server not running on port 6100")
+        return None
+
+
+def test_proxy_route_network_nas_2():
+    """Central proxy route /api/network-nas-2/log should return nas-2 network log."""
+    print("Test: Proxy route /api/network-nas-2/log...")
+    try:
+        response = httpx.get("http://localhost:6100/api/network-nas-2/log", timeout=5)
+        if response.status_code == 200:
+            content_type = response.headers.get("content-type", "")
+            lines = (
+                len(response.text.strip().split("\n")) if response.text.strip() else 0
+            )
+            print(f"  PASS: Got 200 via proxy, {lines} lines, type={content_type[:20]}")
+            return True
+        elif response.status_code == 502:
+            print("  SKIP: Proxy returned 502 (remote unavailable)")
+            return None
+        else:
+            print(f"  FAIL: Expected 200, got {response.status_code}")
+            return False
+    except httpx.ConnectError:
+        print("  SKIP: Central server not running on port 6100")
+        return None
+
+
+CORE_TESTS = [
+    test_direct_no_auth,
+    test_direct_wrong_key,
+    test_direct_correct_key,
+    test_federation_client_fetch,
+    test_federation_client_health_check,
+    test_federation_client_unknown_remote,
+    test_federation_status_endpoint,
+]
+
+WIDGET_TESTS = {
+    "metrics": [
         test_proxy_route_metrics_nas_1,
         test_proxy_route_metrics_nas_2,
         test_proxy_route_with_subpath,
-        test_proxy_route_wiki_nas_1,
         test_merged_widget_history,
-        test_federation_status_endpoint,
-    ]
+    ],
+    "wiki": [
+        test_proxy_route_wiki_nas_1,
+    ],
+    "services": [
+        test_proxy_route_services_nas_1,
+        test_proxy_route_services_nas_2,
+    ],
+    "reminders": [
+        test_proxy_route_reminders_nas_1,
+        test_proxy_route_reminders_nas_2,
+    ],
+    "speedtest": [
+        test_proxy_route_speedtest_nas_1,
+        test_proxy_route_speedtest_nas_2,
+    ],
+    "network": [
+        test_proxy_route_network_nas_1,
+        test_proxy_route_network_nas_2,
+    ],
+}
+
+
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Federation smoke tests")
+    parser.add_argument(
+        "--widget",
+        choices=list(WIDGET_TESTS.keys()),
+        help="Run only tests for specified widget type",
+    )
+    args = parser.parse_args()
+
+    print("=" * 60)
+    if args.widget:
+        print(f"Federation Smoke Tests ({args.widget})")
+    else:
+        print("Federation Smoke Tests")
+    print("=" * 60)
+    print()
+
+    if args.widget:
+        tests = CORE_TESTS + WIDGET_TESTS.get(args.widget, [])
+    else:
+        tests = CORE_TESTS[:]
+        for widget_tests in WIDGET_TESTS.values():
+            tests.extend(widget_tests)
 
     results = {"pass": 0, "fail": 0, "skip": 0}
 

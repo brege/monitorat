@@ -1,5 +1,4 @@
 includes:
-  - ../../../demo/include/wiki.yaml
   - ../../../demo/include/metrics.yaml
 
 site:
@@ -18,3 +17,54 @@ widgets:
   enabled:
     - wiki
     - metrics
+    - services
+    - reminders
+    - speedtest
+    - network
+
+  wiki:
+    name: "NAS-2 Test Wiki"
+    doc: docs/test-doc.md
+
+  services:
+    name: "NAS-2 Services"
+    items:
+      jellyfin:
+        name: Jellyfin
+        containers: [jellyfin]
+        url: https://jellyfin.org
+      immich:
+        name: Immich
+        containers: [immich_server, immich_ml]
+        url: https://immich.app
+
+  reminders:
+    name: "NAS-2 Reminders"
+    items:
+      ssl_cert:
+        name: SSL Certificate
+        url: https://nas-2.local/ssl
+        icon: favicon.svg
+        expiry_days: 30
+        reason: Renew NAS-2 SSL certificate
+
+  speedtest:
+    name: "NAS-2 Speedtest"
+    default: chart
+    chart:
+      default_period: 1 month
+
+  network:
+    name: "NAS-2 Network"
+    log_file: network.log
+    collapsible: false
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    gaps:
+      show: true
+      max: 3

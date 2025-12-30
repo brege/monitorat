@@ -23,14 +23,29 @@ demo: true
 widgets:
   enabled:
     - wiki-nas-1
+    - wiki-nas-2
     - metrics-combined
     - metrics-nas-1
     - metrics-nas-2
+    - services-nas-1
+    - services-nas-2
+    - reminders-nas-1
+    - reminders-nas-2
+    - speedtest-nas-1
+    - speedtest-nas-2
+    - network-nas-1
+    - network-nas-2
 
   wiki-nas-1:
     type: wiki
     remote: nas-1
     name: "NAS-1 Wiki"
+    doc: true
+
+  wiki-nas-2:
+    type: wiki
+    remote: nas-2
+    name: "NAS-2 Wiki"
     doc: true
 
   metrics-combined:
@@ -51,3 +66,43 @@ widgets:
     type: metrics
     remote: nas-2
     name: "NAS-2 Metrics"
+
+  services-nas-1:
+    type: services
+    remote: nas-1
+    name: "NAS-1 Services"
+
+  services-nas-2:
+    type: services
+    remote: nas-2
+    name: "NAS-2 Services"
+
+  reminders-nas-1:
+    type: reminders
+    remote: nas-1
+    name: "NAS-1 Reminders"
+
+  reminders-nas-2:
+    type: reminders
+    remote: nas-2
+    name: "NAS-2 Reminders"
+
+  speedtest-nas-1:
+    type: speedtest
+    remote: nas-1
+    name: "NAS-1 Speedtest"
+
+  speedtest-nas-2:
+    type: speedtest
+    remote: nas-2
+    name: "NAS-2 Speedtest"
+
+  network-nas-1:
+    type: network
+    remote: nas-1
+    name: "NAS-1 Network"
+
+  network-nas-2:
+    type: network
+    remote: nas-2
+    name: "NAS-2 Network"

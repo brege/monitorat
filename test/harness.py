@@ -6,9 +6,13 @@ Manages server lifecycle with subprocess.Popen - spawns servers,
 waits for ready, runs tests, terminates cleanly.
 
 Usage:
-    uv run python test/harness.py
+    uv run python test/harness.py              # Run all tests
+    uv run python test/harness.py --widget metrics   # Run only metrics tests
+    uv run python test/harness.py --widget services  # Run only services tests
+    uv run python test/harness.py --list             # List available widget filters
 """
 
+import argparse
 import subprocess
 import sys
 import time
@@ -119,21 +123,48 @@ def stop_servers(processes: list):
             print(f"  {server['name']}: already stopped")
 
 
-def run_smoke_tests() -> int:
+WIDGET_FILTERS = ["metrics", "wiki", "services", "reminders", "speedtest", "network"]
+
+
+def run_smoke_tests(widget_filter: str = None) -> int:
     """Run the smoke test suite, return exit code."""
     print("\n" + "=" * 60)
-    print("Running smoke tests...")
+    if widget_filter:
+        print(f"Running smoke tests (filter: {widget_filter})...")
+    else:
+        print("Running smoke tests...")
     print("=" * 60 + "\n")
 
-    result = subprocess.run(
-        ["uv", "run", "python", "test/smoke/federation.py"],
-        cwd=PROJECT_ROOT,
-    )
+    cmd = ["uv", "run", "python", "test/smoke/federation.py"]
+    if widget_filter:
+        cmd.extend(["--widget", widget_filter])
+
+    result = subprocess.run(cmd, cwd=PROJECT_ROOT)
 
     return result.returncode
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Federation test harness")
+    parser.add_argument(
+        "--widget",
+        choices=WIDGET_FILTERS,
+        help="Run only tests for specified widget type",
+    )
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        dest="list_widgets",
+        help="List available widget filters",
+    )
+    args = parser.parse_args()
+
+    if args.list_widgets:
+        print("Available widget filters:")
+        for widget in WIDGET_FILTERS:
+            print(f"  {widget}")
+        return 0
+
     print("=" * 60)
     print("Federation Test Harness")
     print("=" * 60)
@@ -151,7 +182,7 @@ def main():
 
         print("\nAll servers ready\n")
 
-        exit_code = run_smoke_tests()
+        exit_code = run_smoke_tests(widget_filter=args.widget)
 
     except KeyboardInterrupt:
         print("\nInterrupted")

@@ -17,7 +17,54 @@ widgets:
   enabled:
     - wiki
     - metrics
+    - services
+    - reminders
+    - speedtest
+    - network
 
   wiki:
     name: "NAS-1 Test Wiki"
     doc: docs/test-doc.md
+
+  services:
+    name: "NAS-1 Services"
+    items:
+      plex:
+        name: Plex
+        services: [plexmediaserver.service]
+        url: https://plex.tv
+      syncthing:
+        name: Syncthing
+        services: [syncthing@nas1.service]
+        url: https://syncthing.net
+
+  reminders:
+    name: "NAS-1 Reminders"
+    items:
+      backup:
+        name: Backup Check
+        url: https://nas-1.local/backup
+        icon: favicon.svg
+        expiry_days: 7
+        reason: Verify NAS-1 backups
+
+  speedtest:
+    name: "NAS-1 Speedtest"
+    default: chart
+    chart:
+      default_period: 1 month
+
+  network:
+    name: "NAS-1 Network"
+    log_file: network.log
+    collapsible: false
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    gaps:
+      show: true
+      max: 3
