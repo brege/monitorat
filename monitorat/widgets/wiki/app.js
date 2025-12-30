@@ -22,6 +22,16 @@ class WikiWidget {
       })
     }
 
+    const mode = this.config.mode || 'featured'
+    const allowedModes = new Set(['featured', 'seamless', 'rail'])
+    if (!allowedModes.has(mode)) {
+      throw new Error(`Unknown wiki mode: ${mode}`)
+    }
+    const notesContainer = this.container.querySelector('.notes')
+    if (notesContainer) {
+      notesContainer.dataset.mode = mode
+    }
+
     await this.loadContent()
   }
 
