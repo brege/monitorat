@@ -164,22 +164,32 @@ class ServicesWidget {
 
   renderStacked (container) {
     const sources = this.config.federation?.merge || []
+    const wrapper = document.createElement('div')
+    wrapper.className = 'federation-stacked'
+
     sources.forEach(source => {
       const sourceServices = this.servicesData.filter(s => s._source === source)
       if (sourceServices.length === 0) return
 
+      const section = document.createElement('div')
+      section.className = 'federation-stack-section'
+
       const header = document.createElement('h4')
       header.className = 'federation-source-header'
       header.textContent = source
-      container.appendChild(header)
+      section.appendChild(header)
 
       const grid = document.createElement('div')
       grid.className = 'service-grid-inner'
       sourceServices.forEach(service => {
         grid.appendChild(this.createServiceCard(service))
       })
-      container.appendChild(grid)
+      section.appendChild(grid)
+
+      wrapper.appendChild(section)
     })
+
+    container.appendChild(wrapper)
   }
 
   renderColumnate (container) {
@@ -305,7 +315,7 @@ class ServicesWidget {
         })
       }
 
-      card.className = card.className.replace(/status-\w+/g, '').trim() + ` status-${overallStatus}`
+      card.className = `service-card card status-card${card.classList.contains('has-badge') ? ' has-badge' : ''} status-${overallStatus}`
 
       const statusTextElement = card.querySelector('.service-status')
       if (statusTextElement) {
