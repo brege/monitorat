@@ -1,0 +1,19 @@
+{
+  "widget": "network",
+  "version": 1,
+  "metadata": {
+    "label": "Network",
+    "emptyMessage": "No network log available."
+  },
+  "fields": [
+    { "field": "timestamp", "label": "Timestamp", "format": "datetime" },
+    { "field": "status", "label": "Status", "values": ["good", "changed", "failure"] },
+    { "field": "ip", "label": "IP Address" },
+    { "field": "message", "label": "Message" }
+  ],
+  "endpoints": {
+    "log": "/api/network/log",
+    "schema": "/api/network/schema"
+  },
+  "log_format": "plain_text"
+}

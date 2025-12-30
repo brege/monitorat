@@ -1,0 +1,19 @@
+{
+  "widget": "services",
+  "version": 1,
+  "metadata": {
+    "label": "Services",
+    "emptyMessage": "No services configured."
+  },
+  "fields": [
+    { "field": "name", "label": "Service Name" },
+    { "field": "status", "label": "Status", "values": ["online", "offline", "partial", "unknown"] },
+    { "field": "url", "label": "URL" },
+    { "field": "local_url", "label": "Local URL" }
+  ],
+  "endpoints": {
+    "list": "/api/services",
+    "status": "/api/services/status",
+    "schema": "/api/services/schema"
+  }
+}

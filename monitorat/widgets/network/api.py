@@ -141,6 +141,15 @@ def register_routes(app):
         except Exception as exc:
             return jsonify({"error": str(exc)}), 500
 
+    @app.route("/api/network/schema", methods=["GET"])
+    def api_network_schema():
+        import json
+
+        schema_path = Path(__file__).parent / "schema.json"
+        with open(schema_path) as f:
+            schema = json.load(f)
+        return jsonify(schema)
+
 
 _chirper_thread = None
 

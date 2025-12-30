@@ -1,0 +1,20 @@
+{
+  "widget": "reminders",
+  "version": 1,
+  "metadata": {
+    "label": "Reminders",
+    "emptyMessage": "No reminders configured."
+  },
+  "fields": [
+    { "field": "id", "label": "ID" },
+    { "field": "name", "label": "Name" },
+    { "field": "status", "label": "Status", "values": ["ok", "warning", "expired", "never"] },
+    { "field": "days_remaining", "label": "Days Remaining", "format": "number" },
+    { "field": "last_touch", "label": "Last Touch", "format": "datetime" }
+  ],
+  "endpoints": {
+    "list": "/api/reminders",
+    "touch": "/api/reminders/{id}/touch",
+    "schema": "/api/reminders/schema"
+  }
+}

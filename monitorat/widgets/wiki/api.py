@@ -66,3 +66,12 @@ def register_routes(app, instance="wiki"):
         markdown_text = doc_file.read_text(encoding="utf-8")
         rendered_text = render_markdown_with_includes(markdown_text, documentation_root)
         return Response(rendered_text, mimetype="text/markdown")
+
+    @app.route("/api/wiki/schema", endpoint=f"wiki_schema_{instance}")
+    def wiki_schema():
+        import json
+
+        schema_path = Path(__file__).parent / "schema.json"
+        with open(schema_path) as f:
+            schema = json.load(f)
+        return jsonify(schema)

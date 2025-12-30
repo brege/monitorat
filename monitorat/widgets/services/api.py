@@ -155,3 +155,12 @@ def register_routes(app):
         return app.response_class(
             response=json.dumps(status), status=200, mimetype="application/json"
         )
+
+    @app.route("/api/services/schema", methods=["GET"])
+    def api_services_schema():
+        schema_path = Path(__file__).parent / "schema.json"
+        with open(schema_path) as f:
+            schema = json.load(f)
+        return app.response_class(
+            response=json.dumps(schema), status=200, mimetype="application/json"
+        )

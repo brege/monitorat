@@ -1,4 +1,12 @@
 {
+  "widget": "metrics",
+  "version": 1,
+  "endpoints": {
+    "current": "/api/metrics",
+    "history": "/api/metrics/history",
+    "csv": "/api/metrics/csv",
+    "schema": "/api/metrics/schema"
+  },
   "metadata": {
     "field": "source",
     "label": "Source",

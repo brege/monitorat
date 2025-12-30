@@ -1,4 +1,13 @@
 {
+  "widget": "speedtest",
+  "version": 1,
+  "endpoints": {
+    "history": "/api/speedtest/history",
+    "chart": "/api/speedtest/chart",
+    "csv": "/api/speedtest/csv",
+    "run": "/api/speedtest/run",
+    "schema": "/api/speedtest/schema"
+  },
   "metadata": {
     "field": "server",
     "label": "Server",
