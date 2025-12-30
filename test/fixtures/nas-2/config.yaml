@@ -40,10 +40,6 @@ widgets:
 
   reminders:
     name: "NAS-2 Reminders"
-    state_file: reminders.json
-    nudges: [14, 7]
-    urgents: [3, 1, 0]
-    time: "23:55"
     items:
       ssl_cert:
         name: SSL Certificate
