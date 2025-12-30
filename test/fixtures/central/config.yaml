@@ -36,6 +36,7 @@ widgets:
     - reminders-nas-2
     - reminders-combined
     - reminders-stacked
+    - reminders-columns
     - speedtest-nas-1
     - speedtest-nas-2
     - speedtest-combined
@@ -137,6 +138,14 @@ widgets:
       merge: [nas-1, nas-2]
       display:
         cards: stack
+
+  reminders-columns:
+    type: reminders
+    name: "All Reminders (columns)"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        cards: columnate
 
   speedtest-nas-1:
     type: speedtest

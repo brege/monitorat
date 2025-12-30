@@ -2,6 +2,23 @@
 
 This document specifies how widgets merge data from multiple federated sources.
 
+## Architecture Decision: Frontend Merge
+
+**Decision**: Merge logic runs in the frontend, not backend.
+
+**Rationale**:
+- Server resources are limited (1GB RAM droplet)
+- Client devices have ample resources (6-8GB RAM average in 2025)
+- Proxy routes already handle auth/security - no additional data exposure
+- Simpler implementation - no new backend code per widget
+- Server stays dumb - just proxies bytes
+
+**Implementation**:
+1. Widget detects `config.federation.merge` array
+2. Fetches all sources in parallel via existing proxy routes
+3. Combines data based on `config.federation.display` strategy
+4. Renders with source identification (badges)
+
 ## Component Types
 
 Widgets are composed of these UI component types, each with distinct merge behaviors:
@@ -54,12 +71,17 @@ Each widget's components and their allowed merge strategies:
 
 | Component      | Desktop 2       | Desktop 3+      | Mobile          | Default |
 |----------------|-----------------|-----------------|-----------------|---------|
-| cards          | merge/stack     | merge/stack     | merge/stack     | merge   |
+| cards          | columnate/stack/merge | merge/stack | merge/stack   | merge   |
 
 **Merge behavior:**
-- Cards: Merge and sort by date (configurable: `sort_by: date.desc` - new behavior)
+- Cards: Merge and sort (configurable)
 - Badge with source favicon on each card
 - When stacked: one list per source with source header
+
+**Sort options** (`sort_by`):
+- `name.asc` / `name.desc` - alphabetical by reminder name
+- `due.asc` / `due.desc` - by days remaining (due.asc = most urgent first)
+- `touched.asc` / `touched.desc` - by last touched date
 
 ### speedtest
 
@@ -101,14 +123,14 @@ Each widget's components and their allowed merge strategies:
 
 ```yaml
 widgets:
-  metrics-all:
-    type: metrics
+  reminders-combined:
+    type: reminders
+    name: "All Reminders"
     federation:
       merge: [nas-1, nas-2]
       display:
-        tiles: columnate    # columnate | stack
-        chart: merge        # merge | stack
-    name: "All Systems"
+        cards: merge        # merge | stack | columnate
+      sort_by: due.asc      # most urgent first
 ```
 
 Per-component display options override defaults. Mobile ignores `columnate` and falls back to `stack`.
@@ -145,51 +167,6 @@ For multi-metric charts (speedtest: download/upload/ping), use line styles:
 - Source 1: dashed lines
 - Source 2: dotted lines
 
-## Implementation Checklist
-
-### Phase 5a: Widget Block Federation (stacking)
-
-All widgets support remote proxying with simple stacking.
-
-| Widget     | Proxy Routes | Frontend Loads | Status |
-|------------|--------------|----------------|--------|
-| metrics    | [x]          | [x]            | done   |
-| wiki       | [x]          | [x]            | done   |
-| services   | [x]          | [x]            | done   |
-| reminders  | [x]          | [x]            | done   |
-| speedtest  | [x]          | [x]            | done   |
-| network    | [x]          | [x]            | done   |
-
-Test coverage: 20 smoke tests (7 core + 13 widget-specific) via `uv run python test/harness.py`
-
-### Phase 5b: Merge Infrastructure
-
-| Task                                      | Status |
-|-------------------------------------------|--------|
-| Favicon fetching/caching from remotes     | [ ]    |
-| Source badge CSS component                | [ ]    |
-| Chart color palette per source            | [ ]    |
-| Table source column helper                | [ ]    |
-
-### Phase 5c: Per-Widget Merge Support
-
-| Widget     | Chart Merge | Table Merge | Tile Columnate | Card Merge |
-|------------|-------------|-------------|----------------|------------|
-| metrics    | [x]         | n/a         | [ ]            | n/a        |
-| services   | n/a         | n/a         | n/a            | [ ]        |
-| reminders  | n/a         | n/a         | n/a            | [ ]        |
-| speedtest  | [ ]         | [ ]         | n/a            | n/a        |
-| network    | n/a         | [ ]         | [ ]            | n/a        |
-| wiki       | n/a         | n/a         | n/a            | n/a        |
-
-## Open Questions
-
-1. **Favicon caching**: Fetch once per session, or store locally?
-2. **3+ sources**: Always stack tiles, or allow wrapping columnation?
-3. **Sort options**: Reminders need configurable sort. Apply to other widgets?
-4. **Mobile breakpoint**: At what width does columnate become stack?
-5. **Empty sources**: Show placeholder when a source returns no data?
-
 ---
 
 ## Frontend Patterns for Federation
@@ -217,6 +194,26 @@ class MyWidget {
 
 The main app.js sets `_apiPrefix` automatically when `config.remote` or `config.federation.merge` is present.
 
+### Image Proxy
+
+Federated widgets must proxy images through the central server. Use `getImgBase()`:
+
+```javascript
+class MyWidget {
+  getImgBase () {
+    return this.config.remote
+      ? `api/proxy/${this.config.remote}/img`
+      : 'img'
+  }
+
+  render () {
+    icon.src = `${this.getImgBase()}/${item.icon}`
+  }
+}
+```
+
+The route `/api/proxy/<remote>/img/<path>` forwards to the remote's `/img/<path>`.
+
 ### DOM Scoping
 
 Multiple instances of the same widget can appear on a federated dashboard. **Never use global selectors**:
@@ -230,8 +227,6 @@ const element = document.querySelector('[data-key="foo"]')
 const container = this.container.querySelector('.my-widget-data')
 const element = this.container.querySelector('[data-key="foo"]')
 ```
-
-All widgets must use `this.container.querySelector()` instead of `document.getElementById()` or `document.querySelector()`.
 
 ### Schema Endpoints
 
@@ -294,42 +289,36 @@ Widget filtering generates temp configs with filtered `widgets.enabled` lists.
 
 ### Image Paths
 
-Test fixtures should reference `demo/img/` for service icons rather than using stubs:
+Test fixtures reference `demo/img/` for icons via relative path:
 
 ```yaml
 # test/fixtures/nas-1/config.yaml
+paths:
+  img: ../../../demo/img/
+
 services:
   items:
     plex:
       name: Plex
-      icon: services/systemd/plex.png  # from demo/img/
-      services: [plexmediaserver.service]
+      icon: services/systemd/plex.png
 ```
 
-For missing icons, use fallbacks:
+Fallback icons for missing images:
 - Container services: `services/docker/docker.svg`
 - Systemd services/timers: `services/systemd/systemd.svg`
 
-Fixture configs need `paths.img` pointing to demo:
-```yaml
-paths:
-  img: ../../../demo/img/
-```
+### Central Config Merge Stubs
 
-### Widget Parity in Fixtures
+The central fixture includes stubs for all merge strategies:
 
-Each test node should have complete widget configurations to enable focused testing:
-
-| Fixture | Wiki | Metrics | Services | Reminders | Speedtest | Network |
-|---------|------|---------|----------|-----------|-----------|---------|
-| nas-1   | [x]  | [x]     | [x]      | [x]       | [x]       | [x]     |
-| nas-2   | [x]  | [x]     | [x]      | [x]       | [x]       | [x]     |
-| nas-3   | [ ]  | [x]     | [ ]      | [x]       | [x]       | [x]     |
-| central | proxy routes for all |
+| Widget | Stubs |
+|--------|-------|
+| services | `services-combined`, `services-stacked`, `services-columns` |
+| reminders | `reminders-combined`, `reminders-stacked`, `reminders-columns` |
+| speedtest | `speedtest-combined`, `speedtest-stacked` |
+| network | `network-combined`, `network-stacked`, `network-columns` |
 
 ### Test Matrix Per Widget
-
-For each widget, test infrastructure should support:
 
 | Test Type | Description |
 |-----------|-------------|
@@ -342,38 +331,44 @@ Use `--widget` filter with dev.py to isolate widget-specific testing.
 
 ---
 
-## Remaining Work
+## Implementation Status
 
-### Immediate Tasks
+### Phase 5a: Widget Block Federation (stacking)
 
-1. **Update fixture image paths** - Change `icon: favicon.svg` to proper demo/img paths
-2. **Add `paths.img` to fixtures** - Point to `../../../demo/img/`
-3. **Document patterns in contributing.md** - Add section on federation-compatible widget development
-4. **Add wiki stubs to all fixtures** - Ensure parity for stacking/merge tests
+All widgets support remote proxying with simple stacking. **COMPLETE**
 
-### Phase 5b Tasks (Merge Infrastructure)
+| Widget     | Proxy Routes | Frontend Loads | Image Proxy | Status |
+|------------|--------------|----------------|-------------|--------|
+| metrics    | [x]          | [x]            | n/a         | done   |
+| wiki       | [x]          | [x]            | n/a         | done   |
+| services   | [x]          | [x]            | [x]         | done   |
+| reminders  | [x]          | [x]            | [x]         | done   |
+| speedtest  | [x]          | [x]            | n/a         | done   |
+| network    | [x]          | [x]            | n/a         | done   |
+
+### Phase 5b: Merge Infrastructure
 
 | Task | Status |
 |------|--------|
-| Favicon fetching/caching from remotes | [ ] |
-| Source badge CSS component | [ ] |
-| Chart color palette per source | [ ] |
-| Table source column helper | [ ] |
-| services-combined example | [ ] |
+| Image proxy route `/api/proxy/<remote>/img/<path>` | [x] |
+| Frontend `getImgBase()` pattern | [x] |
+| Source badge CSS component | [x] |
+| Chart color palette per source | [x] (metrics) |
 
-### Phase 5c Tasks (Per-Widget Merge)
+### Phase 5c: Per-Widget Merge Support
 
-| Widget | Chart Merge | Table Merge | Tile Columnate | Card Merge |
-|--------|-------------|-------------|----------------|------------|
-| metrics | [x] | n/a | [ ] | n/a |
-| services | n/a | n/a | n/a | [ ] |
-| reminders | n/a | n/a | n/a | [ ] |
-| speedtest | [ ] | [ ] | n/a | n/a |
-| network | n/a | [ ] | [ ] | n/a |
-| wiki | n/a | n/a | n/a | n/a |
+| Widget | Sort | Badges | Columnate | Stack | Merge |
+|--------|------|--------|-----------|-------|-------|
+| reminders | [x] | [x] | [x] | [x] | [x] |
+| services | n/a | [ ] | [ ] | [ ] | [ ] |
+| speedtest | n/a | [ ] | n/a | [ ] | [ ] |
+| network | n/a | [ ] | [ ] | [ ] | [ ] |
+| metrics | n/a | [ ] | [ ] | [x] | [x] |
 
-### Documentation Tasks
+---
 
-- [ ] Add "Federation Compatibility" section to docs/contributing.md
-- [ ] Update test/README.md with fixture image path conventions
-- [ ] Add widget developer checklist for federation support
+## Open Questions
+
+1. **Mobile breakpoint**: At what width does columnate become stack?
+2. **Empty sources**: Show placeholder when a source returns no data?
+3. **Favicon caching**: Fetch once per session, or store locally?

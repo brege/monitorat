@@ -15,6 +15,37 @@ class RemindersWidget {
     return this.config.remote ? `api/proxy/${this.config.remote}/img` : 'img'
   }
 
+  sortReminders (reminders) {
+    const sortBy = this.config.sort_by || 'due.asc'
+    const [field, direction] = sortBy.split('.')
+    const ascending = direction !== 'desc'
+
+    return [...reminders].sort((a, b) => {
+      let valueA, valueB
+
+      switch (field) {
+        case 'name':
+          valueA = (a.name || '').toLowerCase()
+          valueB = (b.name || '').toLowerCase()
+          break
+        case 'due':
+          valueA = a.days_remaining ?? Infinity
+          valueB = b.days_remaining ?? Infinity
+          break
+        case 'touched':
+          valueA = a.days_since ?? Infinity
+          valueB = b.days_since ?? Infinity
+          break
+        default:
+          return 0
+      }
+
+      if (valueA < valueB) return ascending ? -1 : 1
+      if (valueA > valueB) return ascending ? 1 : -1
+      return 0
+    })
+  }
+
   async init (container, config = {}) {
     this.container = container
     this.config = { ...this.config, ...config }
@@ -40,16 +71,46 @@ class RemindersWidget {
 
   async loadData () {
     try {
-      const response = await fetch(this.getApiBase())
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
+      const mergeSources = this.config.federation?.merge
+      if (mergeSources && Array.isArray(mergeSources)) {
+        await this.loadMergedData(mergeSources)
+      } else {
+        const response = await fetch(this.getApiBase())
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`)
+        }
+        const reminders = await response.json()
+        this.remindersConfig = reminders
       }
-      const reminders = await response.json()
-      this.remindersConfig = reminders
       this.render()
     } catch (error) {
       console.error('Unable to load reminders:', error.message)
     }
+  }
+
+  async loadMergedData (sources) {
+    const results = await Promise.all(
+      sources.map(async (source) => {
+        try {
+          const response = await fetch(`api/reminders-${source}`)
+          if (!response.ok) {
+            console.warn(`Failed to fetch reminders from ${source}: HTTP ${response.status}`)
+            return []
+          }
+          const reminders = await response.json()
+          return reminders.map(r => ({ ...r, _source: source }))
+        } catch (error) {
+          console.warn(`Failed to fetch reminders from ${source}:`, error.message)
+          return []
+        }
+      })
+    )
+
+    this.remindersConfig = results.flat()
+  }
+
+  getDisplayStrategy () {
+    return this.config.federation?.display?.cards || 'merge'
   }
 
   render () {
@@ -58,93 +119,165 @@ class RemindersWidget {
 
     alertsContainer.innerHTML = ''
 
-    this.remindersConfig.forEach(reminder => {
-      const alertElement = document.createElement('div')
-      alertElement.className = `reminder-alert alert-card status-card status-${reminder.status}`
+    const strategy = this.getDisplayStrategy()
+    const hasMergedSources = this.config.federation?.merge
 
-      const icon = document.createElement('img')
-      icon.className = 'reminder-alert-icon'
-      icon.src = `${this.getImgBase()}/${reminder.icon}`
-      icon.alt = reminder.name
+    if (hasMergedSources && strategy === 'stack') {
+      this.renderStacked(alertsContainer)
+    } else if (hasMergedSources && strategy === 'columnate') {
+      this.renderColumnate(alertsContainer)
+    } else {
+      this.renderMerged(alertsContainer)
+    }
+  }
 
-      const content = document.createElement('div')
-      content.className = 'reminder-alert-content'
+  renderMerged (container) {
+    const sortedReminders = this.sortReminders(this.remindersConfig)
+    sortedReminders.forEach(reminder => {
+      container.appendChild(this.createReminderCard(reminder))
+    })
+  }
 
-      // Left side: name + reason
-      const leftDiv = document.createElement('div')
+  renderStacked (container) {
+    const sources = this.config.federation?.merge || []
+    sources.forEach(source => {
+      const sourceReminders = this.remindersConfig.filter(r => r._source === source)
+      if (sourceReminders.length === 0) return
 
-      const nameDiv = document.createElement('div')
-      nameDiv.className = 'reminder-alert-name'
-      nameDiv.textContent = reminder.name
+      const header = document.createElement('h4')
+      header.className = 'federation-source-header'
+      header.textContent = source
+      container.appendChild(header)
 
-      const descDiv = document.createElement('div')
-      descDiv.className = 'reminder-alert-description'
-      descDiv.textContent = reminder.reason || ''
+      const sorted = this.sortReminders(sourceReminders)
+      sorted.forEach(reminder => {
+        container.appendChild(this.createReminderCard(reminder))
+      })
+    })
+  }
 
-      leftDiv.appendChild(nameDiv)
-      if (reminder.reason) {
-        leftDiv.appendChild(descDiv)
-      }
+  renderColumnate (container) {
+    const sources = this.config.federation?.merge || []
+    const columns = document.createElement('div')
+    columns.className = 'federation-columns'
+    columns.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;'
 
-      // Right side: stats
-      const statsDiv = document.createElement('div')
-      statsDiv.className = 'reminder-alert-stats'
+    sources.forEach(source => {
+      const sourceReminders = this.remindersConfig.filter(r => r._source === source)
+      const column = document.createElement('div')
+      column.className = 'federation-column'
 
-      const daysSpan = document.createElement('span')
-      if (reminder.status === 'never') {
-        daysSpan.textContent = 'Never'
-      } else if (reminder.status === 'expired') {
-        daysSpan.textContent = `${Math.abs(reminder.days_remaining)}d overdue`
-      } else {
-        daysSpan.textContent = `${reminder.days_remaining}d left`
-      }
+      const header = document.createElement('h4')
+      header.className = 'federation-source-header'
+      header.textContent = source
+      column.appendChild(header)
 
-      const lastTouchSpan = document.createElement('span')
-      if (reminder.days_since !== null) {
-        lastTouchSpan.textContent = `${reminder.days_since}d ago`
-      } else {
-        lastTouchSpan.textContent = 'Never'
-      }
-
-      statsDiv.appendChild(daysSpan)
-      statsDiv.appendChild(lastTouchSpan)
-
-      content.appendChild(leftDiv)
-      content.appendChild(statsDiv)
-
-      alertElement.appendChild(icon)
-      alertElement.appendChild(content)
-
-      // Add click handler to open URL directly
-      alertElement.addEventListener('click', async () => {
-        if (reminder.url) {
-          // Immediately update visual status to green (ok)
-          alertElement.className = alertElement.className.replace(/status-\w+/, 'status-ok')
-
-          // Update the stats to show "0d ago"
-          const statsDiv = alertElement.querySelector('.reminder-alert-stats')
-          if (statsDiv) {
-            const spans = statsDiv.querySelectorAll('span')
-            if (spans.length >= 2) {
-              spans[1].textContent = '0d ago' // Last touch span
-            }
-          }
-
-          // Touch the reminder and refresh data
-          try {
-            await fetch(`${this.getApiBase()}/${reminder.id}/touch`, { method: 'POST' })
-            setTimeout(() => this.loadData(), 500) // Refresh after delay to get accurate data
-          } catch (error) {
-            console.error('Failed to touch reminder:', error)
-          }
-
-          // Open URL
-          window.open(reminder.url, '_blank')
-        }
+      const sorted = this.sortReminders(sourceReminders)
+      sorted.forEach(reminder => {
+        column.appendChild(this.createReminderCard(reminder))
       })
 
-      alertsContainer.appendChild(alertElement)
+      columns.appendChild(column)
     })
+
+    container.appendChild(columns)
+  }
+
+  createReminderCard (reminder) {
+    const alertElement = document.createElement('div')
+    const hasBadge = this.config.remote || reminder._source
+    alertElement.className = `reminder-alert alert-card status-card status-${reminder.status}${hasBadge ? ' has-badge' : ''}`
+
+    if (hasBadge) {
+      const sourceName = reminder._source || this.config.remote
+      const badge = document.createElement('span')
+      badge.className = `federation-source-badge federation-source-${sourceName}`
+      badge.textContent = sourceName
+      badge.title = `Source: ${sourceName}`
+      alertElement.appendChild(badge)
+    }
+
+    const icon = document.createElement('img')
+    icon.className = 'reminder-alert-icon'
+    const imgBase = reminder._source
+      ? `api/proxy/${reminder._source}/img`
+      : this.getImgBase()
+    icon.src = `${imgBase}/${reminder.icon}`
+    icon.alt = reminder.name
+
+    const content = document.createElement('div')
+    content.className = 'reminder-alert-content'
+
+    const leftDiv = document.createElement('div')
+
+    const nameDiv = document.createElement('div')
+    nameDiv.className = 'reminder-alert-name'
+    nameDiv.textContent = reminder.name
+
+    const descDiv = document.createElement('div')
+    descDiv.className = 'reminder-alert-description'
+    descDiv.textContent = reminder.reason || ''
+
+    leftDiv.appendChild(nameDiv)
+    if (reminder.reason) {
+      leftDiv.appendChild(descDiv)
+    }
+
+    const statsDiv = document.createElement('div')
+    statsDiv.className = 'reminder-alert-stats'
+
+    const daysSpan = document.createElement('span')
+    if (reminder.status === 'never') {
+      daysSpan.textContent = 'Never'
+    } else if (reminder.status === 'expired') {
+      daysSpan.textContent = `${Math.abs(reminder.days_remaining)}d overdue`
+    } else {
+      daysSpan.textContent = `${reminder.days_remaining}d left`
+    }
+
+    const lastTouchSpan = document.createElement('span')
+    if (reminder.days_since !== null) {
+      lastTouchSpan.textContent = `${reminder.days_since}d ago`
+    } else {
+      lastTouchSpan.textContent = 'Never'
+    }
+
+    statsDiv.appendChild(daysSpan)
+    statsDiv.appendChild(lastTouchSpan)
+
+    content.appendChild(leftDiv)
+    content.appendChild(statsDiv)
+
+    alertElement.appendChild(icon)
+    alertElement.appendChild(content)
+
+    alertElement.addEventListener('click', async () => {
+      if (reminder.url) {
+        alertElement.className = alertElement.className.replace(/status-\w+/, 'status-ok')
+
+        const stats = alertElement.querySelector('.reminder-alert-stats')
+        if (stats) {
+          const spans = stats.querySelectorAll('span')
+          if (spans.length >= 2) {
+            spans[1].textContent = '0d ago'
+          }
+        }
+
+        try {
+          const touchBase = reminder._source
+            ? `api/reminders-${reminder._source}`
+            : this.getApiBase()
+          await fetch(`${touchBase}/${reminder.id}/touch`, { method: 'POST' })
+          setTimeout(() => this.loadData(), 500)
+        } catch (error) {
+          console.error('Failed to touch reminder:', error)
+        }
+
+        window.open(reminder.url, '_blank')
+      }
+    })
+
+    return alertElement
   }
 }
 

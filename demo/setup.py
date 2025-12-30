@@ -43,6 +43,8 @@ TEST_NODE_WAVEFORMS = {
 TEST_NODE_REMINDERS = {
     "nas-1": [
         {"id": "backup", "name": "Backup Check", "days_ago": 5},
+        {"id": "zfs_scrub", "name": "ZFS Scrub", "days_ago": 20},
+        {"id": "apt_update", "name": "APT Updates", "days_ago": 10},
     ],
     "nas-2": [
         {"id": "ssl_cert", "name": "SSL Certificate", "days_ago": 25},
