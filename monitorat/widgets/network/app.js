@@ -62,7 +62,7 @@ class NetworkWidget {
     this.state = {
       entries: [],
       analysis: null,
-      gapsExpanded: false,
+      alertsExpanded: false,
       logFingerprint: null
     }
     this.elements = {}
@@ -97,12 +97,12 @@ class NetworkWidget {
     this.elements = {
       logStatus: this.container.querySelector('[data-network="log-status"]'),
       uptimeRows: this.container.querySelector('[data-network="uptime-rows"]'),
-      gapList: this.container.querySelector('[data-network="gap-list"]'),
-      gapToggle: this.container.querySelector('[data-network="gaps-toggle"]'),
+      alertList: this.container.querySelector('[data-network="alerts-list"]'),
+      alertToggle: this.container.querySelector('[data-network="alerts-toggle"]'),
       sections: {
         metrics: this.container.querySelector('[data-network-section="metrics"]'),
         uptime: this.container.querySelector('[data-network-section="uptime"]'),
-        gaps: this.container.querySelector('[data-network-section="gaps"]')
+        alerts: this.container.querySelector('[data-network-section="alerts"]')
       },
       summary: {
         uptime: this.container.querySelector('[data-network="summary-uptime"]'),
@@ -122,16 +122,16 @@ class NetworkWidget {
     if (this.elements.sections.uptime && !this.config.uptime.show) {
       this.elements.sections.uptime.classList.add('hidden')
     }
-    if (this.elements.sections.gaps && !this.config.gaps.show) {
-      this.elements.sections.gaps.classList.add('hidden')
+    if (this.elements.sections.alerts && !this.config.alerts.show) {
+      this.elements.sections.alerts.classList.add('hidden')
     }
   }
 
   attachEvents () {
-    if (this.elements.gapToggle) {
-      this.elements.gapToggle.addEventListener('click', () => {
-        this.state.gapsExpanded = !this.state.gapsExpanded
-        this.renderGaps()
+    if (this.elements.alertToggle) {
+      this.elements.alertToggle.addEventListener('click', () => {
+        this.state.alertsExpanded = !this.state.alertsExpanded
+        this.renderAlerts()
       })
     }
 
@@ -147,14 +147,14 @@ class NetworkWidget {
     setText(this.elements.logStatus, 'Loading log…')
 
     if (!this.config.log_file) {
-      this.state.gapsExpanded = false
+      this.state.alertsExpanded = false
       setText(this.elements.logStatus, 'No log file configured.')
       this.state.entries = []
       this.state.analysis = analyzeEntries([], this.periodsConfig, this.expectedIntervalMs, this.resolveNowOverride())
       this.state.logFingerprint = null
       this.updateSummary()
       this.renderUptime()
-      this.renderGaps()
+      this.renderAlerts()
       return
     }
 
@@ -184,10 +184,10 @@ class NetworkWidget {
         this.expectedIntervalMs,
         this.resolveNowOverride()
       )
-      this.state.gapsExpanded = false
+      this.state.alertsExpanded = false
       this.updateSummary()
       this.renderUptime()
-      this.renderGaps()
+      this.renderAlerts()
 
       if (this.state.entries.length) {
         setText(this.elements.logStatus, `Loaded ${this.state.entries.length.toLocaleString()} log entries.`)
@@ -197,13 +197,13 @@ class NetworkWidget {
     } catch (error) {
       console.error('Network log API call failed:', error)
       setText(this.elements.logStatus, `Unable to load log: ${error.message}`)
-      this.state.gapsExpanded = false
+      this.state.alertsExpanded = false
       this.state.entries = []
       this.state.analysis = analyzeEntries([], this.periodsConfig, this.expectedIntervalMs, this.resolveNowOverride())
       this.state.logFingerprint = null
       this.updateSummary()
       this.renderUptime()
-      this.renderGaps()
+      this.renderAlerts()
     }
   }
 
@@ -402,14 +402,14 @@ class NetworkWidget {
     }
   }
 
-  renderGaps () {
-    if (!this.config.gaps.show || !this.elements.gapList) {
+  renderAlerts () {
+    if (!this.config.alerts.show || !this.elements.alertList) {
       return
     }
 
-    const list = this.elements.gapList
+    const list = this.elements.alertList
     list.innerHTML = ''
-    const toggle = this.elements.gapToggle
+    const toggle = this.elements.alertToggle
 
     const analysis = this.state.analysis
     if (!analysis || !analysis.entries.length) {
@@ -421,12 +421,12 @@ class NetworkWidget {
       return
     }
 
-    const filtered = analysis.gaps.filter((gap) => {
-      if (gap.type !== 'outage') {
+    const filtered = analysis.alerts.filter((alert) => {
+      if (alert.type !== 'outage') {
         return true
       }
-      const threshold = this.config.gaps.cadenceChecks || 0
-      return gap.missedChecks >= threshold
+      const threshold = this.config.alerts.cadenceChecks || 0
+      return alert.missedChecks >= threshold
     })
 
     if (!filtered.length) {
@@ -439,36 +439,36 @@ class NetworkWidget {
     }
 
     const reversed = [...filtered].reverse()
-    const maxVisible = this.state.gapsExpanded ? reversed.length : Math.min(this.config.gaps.max, reversed.length)
-    reversed.slice(0, maxVisible).forEach((gap) => {
+    const maxVisible = this.state.alertsExpanded ? reversed.length : Math.min(this.config.alerts.max, reversed.length)
+    reversed.slice(0, maxVisible).forEach((alert) => {
       const item = document.createElement('div')
-      if (gap.type === 'ipchange') {
-        item.className = 'gap ipchange'
-        item.innerHTML = `<strong>IP address changed</strong> from ${gap.oldIp} to ${gap.newIp} at ${formatDateTime(gap.timestamp)}`
-      } else if (gap.type === 'failure') {
-        item.className = 'gap failure'
-        item.innerHTML = `<strong>Connection failure</strong> at ${formatDateTime(gap.timestamp)} (${gap.message})`
+      if (alert.type === 'ipchange') {
+        item.className = 'alert alert-card ipchange'
+        item.innerHTML = `<strong>IP address changed</strong> from ${alert.oldIp} to ${alert.newIp} at ${formatDateTime(alert.timestamp)}`
+      } else if (alert.type === 'failure') {
+        item.className = 'alert alert-card failure'
+        item.innerHTML = `<strong>Connection failure</strong> at ${formatDateTime(alert.timestamp)} (${alert.message})`
       } else {
-        item.className = 'gap'
-        if (gap.open) {
+        item.className = 'alert alert-card'
+        if (alert.open) {
           item.classList.add('open')
         }
-        const endLabel = gap.open ? 'now' : formatDateTime(gap.end)
-        const duration = formatDuration(gap.end.getTime() - gap.start.getTime())
-        const countLabel = gap.missedChecks === 1 ? 'check' : 'checks'
-        item.innerHTML = `<strong>${gap.missedChecks} ${countLabel} missed</strong> from ${formatDateTime(gap.start)} to ${endLabel} (${duration})`
+        const endLabel = alert.open ? 'now' : formatDateTime(alert.end)
+        const duration = formatDuration(alert.end.getTime() - alert.start.getTime())
+        const countLabel = alert.missedChecks === 1 ? 'check' : 'checks'
+        item.innerHTML = `<strong>${alert.missedChecks} ${countLabel} missed</strong> from ${formatDateTime(alert.start)} to ${endLabel} (${duration})`
       }
       list.appendChild(item)
     })
 
     if (toggle) {
-      const maxVisible = this.config.gaps.max
+      const maxVisible = this.config.alerts.max
       if (filtered.length <= maxVisible) {
         toggle.style.display = 'none'
       } else {
         toggle.style.display = ''
         const remaining = filtered.length - maxVisible
-        toggle.textContent = this.state.gapsExpanded ? 'Show less' : `Show ${remaining} more`
+        toggle.textContent = this.state.alertsExpanded ? 'Show less' : `Show ${remaining} more`
       }
     }
   }
@@ -489,7 +489,7 @@ function mergeNetworkConfig (config) {
   const cfg = config || {}
   const intervalSeconds = cfg.chirper?.interval_seconds ?? 300
   const minutesPerCheck = (intervalSeconds * 1000) / 60000
-  const cadenceRaw = Number(cfg.gaps?.cadence)
+  const cadenceRaw = Number(cfg.alerts?.cadence)
   const cadenceMinutes = Number.isFinite(cadenceRaw) ? Math.max(0, cadenceRaw) : 0
   const cadenceChecks = Math.max(0, Math.ceil(cadenceMinutes / minutesPerCheck))
 
@@ -499,8 +499,8 @@ function mergeNetworkConfig (config) {
       ...cfg.chirper,
       interval_seconds: intervalSeconds
     },
-    gaps: {
-      ...cfg.gaps,
+    alerts: {
+      ...cfg.alerts,
       cadenceChecks
     }
   }
@@ -586,7 +586,7 @@ function analyzeEntries (entries, periodsConfig, expectedIntervalMs, nowOverride
     const now = nowOverride || new Date()
     return {
       entries: [],
-      gaps: [],
+      alerts: [],
       missedChecks: 0,
       expectedChecks: 0,
       uptimeValue: null,
@@ -597,7 +597,7 @@ function analyzeEntries (entries, periodsConfig, expectedIntervalMs, nowOverride
     }
   }
 
-  const gaps = []
+  const alerts = []
   let missed = 0
   const slotNumbers = buildSlotNumbers(entries, expectedIntervalMs)
 
@@ -612,7 +612,7 @@ function analyzeEntries (entries, periodsConfig, expectedIntervalMs, nowOverride
 
     if (missing > 0) {
       missed += missing
-      gaps.push({
+      alerts.push({
         type: 'outage',
         start: new Date(current.timestamp.getTime() + expectedIntervalMs),
         end: new Date(next.timestamp.getTime()),
@@ -621,7 +621,7 @@ function analyzeEntries (entries, periodsConfig, expectedIntervalMs, nowOverride
       })
     }
     if (current.ip && next.ip && current.ip !== next.ip) {
-      gaps.push({
+      alerts.push({
         type: 'ipchange',
         timestamp: next.timestamp,
         oldIp: current.ip,
@@ -629,7 +629,7 @@ function analyzeEntries (entries, periodsConfig, expectedIntervalMs, nowOverride
       })
     }
     if (current.failure) {
-      gaps.push({
+      alerts.push({
         type: 'failure',
         timestamp: current.timestamp,
         message: current.message || 'Failed to resolve current IP'
@@ -639,7 +639,7 @@ function analyzeEntries (entries, periodsConfig, expectedIntervalMs, nowOverride
 
   if (entries.length && entries[entries.length - 1].failure) {
     const lastEntry = entries[entries.length - 1]
-    gaps.push({
+    alerts.push({
       type: 'failure',
       timestamp: lastEntry.timestamp,
       message: lastEntry.message || 'Failed to resolve current IP'
@@ -651,7 +651,7 @@ function analyzeEntries (entries, periodsConfig, expectedIntervalMs, nowOverride
   const tailMissing = Math.floor((now.getTime() - lastEntry.timestamp.getTime() - NET_TOLERANCE_MS) / expectedIntervalMs)
   if (tailMissing > 0) {
     missed += tailMissing
-    gaps.push({
+    alerts.push({
       type: 'outage',
       start: new Date(lastEntry.timestamp.getTime() + expectedIntervalMs),
       end: now,
@@ -660,7 +660,7 @@ function analyzeEntries (entries, periodsConfig, expectedIntervalMs, nowOverride
     })
   }
 
-  gaps.sort((a, b) => {
+  alerts.sort((a, b) => {
     const aTime = a.type === 'ipchange' ? a.timestamp : a.start
     const bTime = b.type === 'ipchange' ? b.timestamp : b.start
     return aTime - bTime
@@ -669,11 +669,11 @@ function analyzeEntries (entries, periodsConfig, expectedIntervalMs, nowOverride
   const expectedChecks = entries.length + missed
   const uptimeValue = expectedChecks ? (entries.length / expectedChecks) * 100 : 100
   const uptimeText = expectedChecks ? `${uptimeValue.toFixed(2)}%` : '100%'
-  const windowStats = computeWindowStats(entries, slotNumbers, now, periodsConfig, expectedIntervalMs, gaps)
+  const windowStats = computeWindowStats(entries, slotNumbers, now, periodsConfig, expectedIntervalMs, alerts)
 
   return {
     entries,
-    gaps,
+    alerts,
     missedChecks: missed,
     expectedChecks,
     uptimeValue,
@@ -697,7 +697,7 @@ function buildSlotNumbers (entries, expectedIntervalMs) {
   return slots
 }
 
-function computeWindowStats (entries, slotNumbers, now, periodsConfig, expectedIntervalMs, gaps) {
+function computeWindowStats (entries, slotNumbers, now, periodsConfig, expectedIntervalMs, alerts) {
   const definitions = buildPeriodsDefinitions(now, periodsConfig, expectedIntervalMs)
   if (!entries.length) {
     return definitions.map((definition) => ({
@@ -727,7 +727,7 @@ function computeWindowStats (entries, slotNumbers, now, periodsConfig, expectedI
   const firstSlot = Math.floor(entries[0].timestamp.getTime() / expectedIntervalMs)
 
   return definitions.map((definition) => {
-    const segments = definition.segments.map((segment) => analyzeSegment(segment, slotNumbers, firstSlot, nowSlot, expectedIntervalMs, gaps))
+    const segments = definition.segments.map((segment) => analyzeSegment(segment, slotNumbers, firstSlot, nowSlot, expectedIntervalMs, alerts))
     const observed = segments.reduce((sum, item) => sum + item.observed, 0)
     const expected = segments.reduce((sum, item) => sum + item.expected, 0)
     const available = segments.reduce((sum, item) => sum + item.available, 0)
@@ -796,7 +796,7 @@ function buildCustomPeriodSegments (periodLabel, periodMs, segmentMs, segmentCou
   return segments
 }
 
-function analyzeSegment (segment, slotNumbers, firstSlot, nowSlot, expectedIntervalMs, gaps) {
+function analyzeSegment (segment, slotNumbers, firstSlot, nowSlot, expectedIntervalMs, alerts) {
   const startSlot = segment.startSlot
   const endSlot = segment.endSlot
   const startMs = segment.startMs
@@ -823,7 +823,7 @@ function analyzeSegment (segment, slotNumbers, firstSlot, nowSlot, expectedInter
     coverage,
     start: new Date(Math.max(startMs, 0)),
     end: new Date(Math.max(endMsClamped, Math.max(startMs, 0))),
-    status: resolveSegmentStatus(startMs, endMsClamped, gaps)
+    status: resolveSegmentStatus(startMs, endMsClamped, alerts)
   }
 }
 
@@ -910,20 +910,20 @@ function applySegmentClasses (pill, segment) {
   }
 }
 
-function resolveSegmentStatus (startMs, endMs, gaps) {
-  if (!gaps || !gaps.length) {
+function resolveSegmentStatus (startMs, endMs, alerts) {
+  if (!alerts || !alerts.length) {
     return 'normal'
   }
   let hasFailure = false
-  for (const gap of gaps) {
-    if (gap.type === 'outage') {
-      const gapStart = gap.start.getTime()
-      const gapEnd = gap.end.getTime()
-      if (startMs <= gapEnd && endMs >= gapStart) {
+  for (const alert of alerts) {
+    if (alert.type === 'outage') {
+      const alertStart = alert.start.getTime()
+      const alertEnd = alert.end.getTime()
+      if (startMs <= alertEnd && endMs >= alertStart) {
         return 'systemDown'
       }
-    } else if (gap.type === 'failure') {
-      const failureTime = gap.timestamp.getTime()
+    } else if (alert.type === 'failure') {
+      const failureTime = alert.timestamp.getTime()
       if (failureTime >= startMs && failureTime <= endMs) {
         hasFailure = true
       }

@@ -65,6 +65,6 @@ widgets:
       periods:
         - period: 1 hour
           segment_size: 5 minutes
-    gaps:
+    alerts:
       show: true
       max: 3

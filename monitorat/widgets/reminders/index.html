@@ -1,20 +1,14 @@
 <style>
-.reminder-gaps { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
-.reminder-gap { padding: 12px 14px; border-radius: 8px; font-size: 0.95rem; line-height: 1.4; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: background-color 0.3s ease, border-left-color 0.3s ease; }
-.reminder-gap.status-ok { background: rgba(var(--status-ok-rgb), 0.08); border-left: 4px solid rgb(var(--status-ok-rgb)); }
-.reminder-gap.status-warning { background: rgba(var(--status-warn-rgb), 0.12); border-left: 4px solid rgb(var(--status-warn-rgb)); }
-.reminder-gap.status-expired { background: rgba(var(--status-critical-rgb), 0.12); border-left: 4px solid rgb(var(--status-critical-rgb)); }
-.reminder-gap.status-never { background: rgba(var(--status-unknown-rgb), 0.15); border-left: 4px solid rgb(var(--status-unknown-rgb)); }
-.reminder-gap-icon { width: 24px; height: 24px; object-fit: contain; }
-.reminder-gap-content { flex: 1; display: flex; justify-content: space-between; align-items: center; }
-.reminder-gap-name { font-weight: 600; }
-.reminder-gap-stats { display: flex; gap: 16px; font-size: 0.85rem; color: var(--text-muted); }
-.reminder-gap-description { color: var(--text-muted) !important; }
-.gaps-toggle { font-size: 0.85rem; color: var(--accent); background: none; border: none; padding: 0 0 0 8px; cursor: pointer; font-weight: 400; }
-.gaps-toggle:hover { text-decoration: underline; }
+.reminder-alerts { margin-top: 18px; }
+.reminder-alert { cursor: pointer; display: flex; align-items: center; gap: 12px; transition: background-color 0.3s ease, border-left-color 0.3s ease; }
+.reminder-alert-icon { width: 24px; height: 24px; object-fit: contain; }
+.reminder-alert-content { flex: 1; display: flex; justify-content: space-between; align-items: center; }
+.reminder-alert-name { font-weight: 600; }
+.reminder-alert-stats { display: flex; gap: 16px; font-size: 0.85rem; color: var(--text-muted); }
+.reminder-alert-description { color: var(--text-muted) !important; }
 </style>
 
 <section class="reminders">
-  <h2>Login Reminders <button type="button" class="gaps-toggle" onclick="testNotification()">Test Notification</button></h2>
-  <div id="reminder-gaps" class="reminder-gaps"></div>
+  <h2>Login Reminders <button type="button" class="alerts-toggle" onclick="testNotification()">Test Notification</button></h2>
+  <div id="reminder-alerts" class="reminder-alerts alert-list"></div>
 </section>

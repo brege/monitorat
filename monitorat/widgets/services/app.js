@@ -78,7 +78,7 @@ class ServicesWidget {
 
     Object.entries(this.servicesConfig.services).forEach(([key, service]) => {
       const card = document.createElement('div')
-      card.className = 'service-card'
+      card.className = 'service-card card status-card'
       card.setAttribute('data-service-key', key)
 
       const icon = document.createElement('img')
@@ -157,7 +157,7 @@ class ServicesWidget {
 
       // Update card status
       const card = statusElement.closest('.service-card')
-      card.className = `service-card status-${overallStatus}`
+      card.className = `service-card card status-card status-${overallStatus}`
 
       // Update status text and tooltip (matching original logic)
       const statusTextElement = statusElement.querySelector('.service-status')

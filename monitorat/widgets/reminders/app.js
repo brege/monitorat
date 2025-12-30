@@ -45,32 +45,32 @@ class RemindersWidget {
   }
 
   render () {
-    const container = document.getElementById('reminder-gaps')
+    const container = document.getElementById('reminder-alerts')
     if (!container || !this.remindersConfig) return
 
     container.innerHTML = ''
 
     this.remindersConfig.forEach(reminder => {
-      const gap = document.createElement('div')
-      gap.className = `reminder-gap status-${reminder.status}`
+      const alertElement = document.createElement('div')
+      alertElement.className = `reminder-alert alert-card status-card status-${reminder.status}`
 
       const icon = document.createElement('img')
-      icon.className = 'reminder-gap-icon'
+      icon.className = 'reminder-alert-icon'
       icon.src = `img/${reminder.icon}`
       icon.alt = reminder.name
 
       const content = document.createElement('div')
-      content.className = 'reminder-gap-content'
+      content.className = 'reminder-alert-content'
 
       // Left side: name + reason
       const leftDiv = document.createElement('div')
 
       const nameDiv = document.createElement('div')
-      nameDiv.className = 'reminder-gap-name'
+      nameDiv.className = 'reminder-alert-name'
       nameDiv.textContent = reminder.name
 
       const descDiv = document.createElement('div')
-      descDiv.className = 'reminder-gap-description'
+      descDiv.className = 'reminder-alert-description'
       descDiv.textContent = reminder.reason || ''
 
       leftDiv.appendChild(nameDiv)
@@ -80,7 +80,7 @@ class RemindersWidget {
 
       // Right side: stats
       const statsDiv = document.createElement('div')
-      statsDiv.className = 'reminder-gap-stats'
+      statsDiv.className = 'reminder-alert-stats'
 
       const daysSpan = document.createElement('span')
       if (reminder.status === 'never') {
@@ -104,17 +104,17 @@ class RemindersWidget {
       content.appendChild(leftDiv)
       content.appendChild(statsDiv)
 
-      gap.appendChild(icon)
-      gap.appendChild(content)
+      alertElement.appendChild(icon)
+      alertElement.appendChild(content)
 
       // Add click handler to open URL directly
-      gap.addEventListener('click', async () => {
+      alertElement.addEventListener('click', async () => {
         if (reminder.url) {
           // Immediately update visual status to green (ok)
-          gap.className = gap.className.replace(/status-\w+/, 'status-ok')
+          alertElement.className = alertElement.className.replace(/status-\w+/, 'status-ok')
 
           // Update the stats to show "0d ago"
-          const statsDiv = gap.querySelector('.reminder-gap-stats')
+          const statsDiv = alertElement.querySelector('.reminder-alert-stats')
           if (statsDiv) {
             const spans = statsDiv.querySelectorAll('span')
             if (spans.length >= 2) {
@@ -135,7 +135,7 @@ class RemindersWidget {
         }
       })
 
-      container.appendChild(gap)
+      container.appendChild(alertElement)
     })
   }
 }

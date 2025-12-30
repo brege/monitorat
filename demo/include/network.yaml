@@ -24,7 +24,7 @@ widgets:
           segment_size: 1 week
         - period: 1 year
           segment_size: 1 month
-    gaps:
+    alerts:
       show: true
       max: 3
       cadence: 0

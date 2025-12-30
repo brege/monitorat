@@ -121,7 +121,7 @@ widgets:
           segment_size: 1 day
         - period: 1 year
           segment_size: 1 month
-    gaps:
+    alerts:
       show: true
       max: 3  # maximum outage alerts to show initially
       cadence: 0  # minimum outage duration in minutes to show
