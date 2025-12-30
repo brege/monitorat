@@ -403,8 +403,9 @@
 
     .stat {
       padding: 14px 16px;
-      background: var(--bg-card);
+      background: var(--status-bg, var(--bg-card));
       border-radius: 8px;
+      border-left: 4px solid var(--status-border, transparent);
     }
 
     .stat .label {

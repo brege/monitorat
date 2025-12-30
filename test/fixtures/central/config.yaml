@@ -29,12 +29,22 @@ widgets:
     - metrics-nas-2
     - services-nas-1
     - services-nas-2
+    - services-combined
+    - services-stacked
+    - services-columns
     - reminders-nas-1
     - reminders-nas-2
+    - reminders-combined
+    - reminders-stacked
     - speedtest-nas-1
     - speedtest-nas-2
+    - speedtest-combined
+    - speedtest-stacked
     - network-nas-1
     - network-nas-2
+    - network-combined
+    - network-stacked
+    - network-columns
 
   wiki-nas-1:
     type: wiki
@@ -77,6 +87,30 @@ widgets:
     remote: nas-2
     name: "NAS-2 Services"
 
+  services-combined:
+    type: services
+    name: "All Services (merged)"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        cards: merge
+
+  services-stacked:
+    type: services
+    name: "All Services (stacked)"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        cards: stack
+
+  services-columns:
+    type: services
+    name: "All Services (columns)"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        cards: columnate
+
   reminders-nas-1:
     type: reminders
     remote: nas-1
@@ -86,6 +120,23 @@ widgets:
     type: reminders
     remote: nas-2
     name: "NAS-2 Reminders"
+
+  reminders-combined:
+    type: reminders
+    name: "All Reminders (merged)"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        cards: merge
+      sort_by: date.desc
+
+  reminders-stacked:
+    type: reminders
+    name: "All Reminders (stacked)"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        cards: stack
 
   speedtest-nas-1:
     type: speedtest
@@ -100,6 +151,32 @@ widgets:
     remote: nas-2
     name: "NAS-2 Speedtest"
     default: chart
+    chart:
+      default_period: 1 month
+
+  speedtest-combined:
+    type: speedtest
+    name: "All Speedtests (merged)"
+    default: chart
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        chart: merge
+        table: merge
+        button: stack
+    chart:
+      default_period: 1 month
+
+  speedtest-stacked:
+    type: speedtest
+    name: "All Speedtests (stacked)"
+    default: chart
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        chart: stack
+        table: stack
+        button: stack
     chart:
       default_period: 1 month
 
@@ -128,6 +205,69 @@ widgets:
     log_file: network.log
     chirper:
       interval_seconds: 300
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    alerts:
+      show: true
+      max: 3
+
+  network-combined:
+    type: network
+    name: "All Networks (merged)"
+    log_file: network.log
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        tiles: stack
+        uptime: stack
+        outages: merge
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    alerts:
+      show: true
+      max: 5
+
+  network-stacked:
+    type: network
+    name: "All Networks (stacked)"
+    log_file: network.log
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        tiles: stack
+        uptime: stack
+        outages: stack
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    alerts:
+      show: true
+      max: 3
+
+  network-columns:
+    type: network
+    name: "All Networks (columns)"
+    log_file: network.log
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        tiles: columnate
+        uptime: columnate
+        outages: stack
     metrics:
       show: true
     uptime:
