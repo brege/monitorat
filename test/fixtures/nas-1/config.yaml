@@ -7,6 +7,7 @@ site:
 
 paths:
   data: data/
+  img: ../../../demo/img/
 
 auth:
   api_key: "nas-1-secret"
@@ -31,12 +32,12 @@ widgets:
     items:
       plex:
         name: Plex
-        icon: favicon.svg
+        icon: services/systemd/plex.png
         services: [plexmediaserver.service]
         url: https://plex.tv
       syncthing:
         name: Syncthing
-        icon: favicon.svg
+        icon: services/systemd/syncthing.png
         services: [syncthing@nas1.service]
         url: https://syncthing.net
 
@@ -46,7 +47,7 @@ widgets:
       backup:
         name: Backup Check
         url: https://nas-1.local/backup
-        icon: favicon.svg
+        icon: reminders/github.png
         expiry_days: 7
         reason: Verify NAS-1 backups
 

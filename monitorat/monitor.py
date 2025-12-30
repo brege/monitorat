@@ -361,6 +361,41 @@ def api_federation_status():
     )
 
 
+@app.route("/api/proxy/<remote_name>/img/<path:subpath>")
+def api_proxy_img(remote_name, subpath):
+    """Proxy image requests to a federated remote."""
+    if not federation_client.enabled:
+        return jsonify({"error": "Federation not enabled"}), 404
+
+    remote = federation_client.get_remote(remote_name)
+    if not remote:
+        return jsonify({"error": f"Remote '{remote_name}' not found"}), 404
+
+    try:
+        response = federation_client.fetch(remote_name, f"/img/{subpath}")
+
+        excluded_headers = {
+            "content-encoding",
+            "content-length",
+            "transfer-encoding",
+            "connection",
+        }
+        headers = [
+            (name, value)
+            for name, value in response.headers.items()
+            if name.lower() not in excluded_headers
+        ]
+
+        return Response(
+            response.content,
+            status=response.status_code,
+            headers=headers,
+        )
+    except Exception as exc:
+        logging.getLogger(__name__).error(f"Image proxy error for {remote_name}: {exc}")
+        return jsonify({"error": str(exc)}), 502
+
+
 @app.route("/favicon.ico")
 def favicon():
     try:

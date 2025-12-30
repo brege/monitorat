@@ -10,6 +10,10 @@ class ServicesWidget {
     return this.config._apiPrefix ? `api/${this.config._apiPrefix}` : 'api/services'
   }
 
+  getImgBase () {
+    return this.config.remote ? `api/proxy/${this.config.remote}/img` : 'img'
+  }
+
   async init (container, config = {}) {
     this.container = container
     this.config = { ...this.config, ...config }
@@ -87,7 +91,7 @@ class ServicesWidget {
 
       const icon = document.createElement('img')
       icon.className = 'service-icon'
-      icon.src = `img/${service.icon}`
+      icon.src = `${this.getImgBase()}/${service.icon}`
       icon.alt = service.name
 
       const info = document.createElement('div')

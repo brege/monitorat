@@ -11,6 +11,10 @@ class RemindersWidget {
     return this.config._apiPrefix ? `api/${this.config._apiPrefix}` : 'api/reminders'
   }
 
+  getImgBase () {
+    return this.config.remote ? `api/proxy/${this.config.remote}/img` : 'img'
+  }
+
   async init (container, config = {}) {
     this.container = container
     this.config = { ...this.config, ...config }
@@ -60,7 +64,7 @@ class RemindersWidget {
 
       const icon = document.createElement('img')
       icon.className = 'reminder-alert-icon'
-      icon.src = `img/${reminder.icon}`
+      icon.src = `${this.getImgBase()}/${reminder.icon}`
       icon.alt = reminder.name
 
       const content = document.createElement('div')

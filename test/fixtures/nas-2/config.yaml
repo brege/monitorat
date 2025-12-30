@@ -7,6 +7,7 @@ site:
 
 paths:
   data: data/
+  img: ../../../demo/img/
 
 auth:
   api_key: "nas-2-secret"
@@ -31,12 +32,12 @@ widgets:
     items:
       jellyfin:
         name: Jellyfin
-        icon: favicon.svg
+        icon: services/docker/jellyfin.png
         containers: [jellyfin]
         url: https://jellyfin.org
       immich:
         name: Immich
-        icon: favicon.svg
+        icon: services/docker/immich.webp
         containers: [immich_server, immich_ml]
         url: https://immich.app
 
@@ -46,7 +47,7 @@ widgets:
       ssl_cert:
         name: SSL Certificate
         url: https://nas-2.local/ssl
-        icon: favicon.svg
+        icon: reminders/protonmail.png
         expiry_days: 30
         reason: Renew NAS-2 SSL certificate
 
