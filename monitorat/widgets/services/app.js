@@ -2,7 +2,8 @@
 class ServicesWidget {
   constructor (config = {}) {
     this.container = null
-    this.servicesConfig = null
+    this.servicesData = []
+    this.statusBySource = {}
     this.config = config
   }
 
@@ -14,16 +15,18 @@ class ServicesWidget {
     return this.config.remote ? `api/proxy/${this.config.remote}/img` : 'img'
   }
 
+  getDisplayStrategy () {
+    return this.config.federation?.display?.cards || 'merge'
+  }
+
   async init (container, config = {}) {
     this.container = container
     this.config = { ...this.config, ...config }
 
-    // Load HTML template
     const response = await fetch('widgets/services/index.html')
     const html = await response.text()
     container.innerHTML = html
 
-    // Update section title from config (unless suppressed by collapsible wrapper)
     const applyWidgetHeader = window.monitor?.applyWidgetHeader
     if (applyWidgetHeader) {
       applyWidgetHeader(container, {
@@ -32,20 +35,25 @@ class ServicesWidget {
       })
     }
 
-    // Load initial data
     await this.loadData()
   }
 
   async loadData () {
     try {
-      // Load services configuration first
-      await this.loadServices()
+      const mergeSources = this.config.federation?.merge
+      if (mergeSources && Array.isArray(mergeSources)) {
+        await this.loadMergedServices(mergeSources)
+      } else {
+        await this.loadServices()
+      }
 
-      // Render the cards
       this.render()
 
-      // Then load status data
-      await this.loadStatus()
+      if (this.config.federation?.merge) {
+        await this.loadMergedStatus()
+      } else {
+        await this.loadStatus()
+      }
     } catch (error) {
       console.error('Unable to load services:', error.message)
     }
@@ -58,11 +66,40 @@ class ServicesWidget {
         throw new Error(`HTTP ${configResponse.status}`)
       }
       const servicesConfig = await configResponse.json()
-      this.servicesConfig = servicesConfig
+      this.servicesData = Object.entries(servicesConfig.services || {}).map(([key, service]) => ({
+        ...service,
+        _key: key,
+        _source: this.config.remote || null
+      }))
     } catch (error) {
       console.error('Unable to load services config:', error.message)
       throw error
     }
+  }
+
+  async loadMergedServices (sources) {
+    const results = await Promise.all(
+      sources.map(async (source) => {
+        try {
+          const response = await fetch(`api/services-${source}`)
+          if (!response.ok) {
+            console.warn(`Failed to fetch services from ${source}: HTTP ${response.status}`)
+            return []
+          }
+          const config = await response.json()
+          return Object.entries(config.services || {}).map(([key, service]) => ({
+            ...service,
+            _key: key,
+            _source: source
+          }))
+        } catch (error) {
+          console.warn(`Failed to fetch services from ${source}:`, error.message)
+          return []
+        }
+      })
+    )
+
+    this.servicesData = results.flat()
   }
 
   async loadStatus () {
@@ -72,68 +109,175 @@ class ServicesWidget {
         throw new Error(`HTTP ${response.status}`)
       }
       const statusData = await response.json()
-      this.update(statusData)
+      this.statusBySource = { _local: statusData }
+      this.updateStatus()
     } catch (error) {
       console.error('Unable to load service status:', error.message)
     }
   }
 
+  async loadMergedStatus () {
+    const sources = this.config.federation?.merge || []
+    const results = await Promise.all(
+      sources.map(async (source) => {
+        try {
+          const response = await fetch(`api/services-${source}/status`)
+          if (!response.ok) return { source, status: {} }
+          const status = await response.json()
+          return { source, status }
+        } catch (error) {
+          return { source, status: {} }
+        }
+      })
+    )
+
+    this.statusBySource = {}
+    results.forEach(({ source, status }) => {
+      this.statusBySource[source] = status
+    })
+    this.updateStatus()
+  }
+
   render () {
     const cardsContainer = this.container.querySelector('.service-grid')
-    if (!cardsContainer || !this.servicesConfig) return
+    if (!cardsContainer || !this.servicesData) return
 
     cardsContainer.innerHTML = ''
 
-    Object.entries(this.servicesConfig.services).forEach(([key, service]) => {
-      const card = document.createElement('div')
-      card.className = 'service-card card status-card'
-      card.setAttribute('data-service-key', key)
+    const strategy = this.getDisplayStrategy()
+    const hasMergedSources = this.config.federation?.merge
 
-      const icon = document.createElement('img')
-      icon.className = 'service-icon'
-      icon.src = `${this.getImgBase()}/${service.icon}`
-      icon.alt = service.name
+    if (hasMergedSources && strategy === 'stack') {
+      this.renderStacked(cardsContainer)
+    } else if (hasMergedSources && strategy === 'columnate') {
+      this.renderColumnate(cardsContainer)
+    } else {
+      this.renderMerged(cardsContainer)
+    }
+  }
 
-      const info = document.createElement('div')
-      info.className = 'service-info'
-
-      const name = document.createElement('div')
-      name.className = 'service-name'
-      name.textContent = service.name
-
-      const status = document.createElement('div')
-      status.className = 'service-status'
-      status.textContent = 'Loading...'
-
-      info.appendChild(name)
-      info.appendChild(status)
-
-      card.appendChild(icon)
-      card.appendChild(info)
-
-      card.addEventListener('click', (event) => {
-        const useLocal = event.shiftKey && (event.ctrlKey || event.metaKey)
-        const url = useLocal ? (service.local || service.url) : service.url
-        if (url) {
-          window.open(url, '_blank')
-        }
-      })
-
-      cardsContainer.appendChild(card)
+  renderMerged (container) {
+    this.servicesData.forEach(service => {
+      container.appendChild(this.createServiceCard(service))
     })
   }
 
-  update (statusData) {
-    if (!this.servicesConfig) return
+  renderStacked (container) {
+    const sources = this.config.federation?.merge || []
+    sources.forEach(source => {
+      const sourceServices = this.servicesData.filter(s => s._source === source)
+      if (sourceServices.length === 0) return
 
-    Object.entries(this.servicesConfig.services).forEach(([key, service]) => {
-      const statusElement = this.container.querySelector(`[data-service-key="${key}"]`)
-      if (!statusElement) return
+      const header = document.createElement('h4')
+      header.className = 'federation-source-header'
+      header.textContent = source
+      container.appendChild(header)
+
+      const grid = document.createElement('div')
+      grid.className = 'service-grid-inner'
+      sourceServices.forEach(service => {
+        grid.appendChild(this.createServiceCard(service))
+      })
+      container.appendChild(grid)
+    })
+  }
+
+  renderColumnate (container) {
+    const sources = this.config.federation?.merge || []
+    const columns = document.createElement('div')
+    columns.className = 'federation-columns'
+    columns.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;'
+
+    sources.forEach(source => {
+      const sourceServices = this.servicesData.filter(s => s._source === source)
+      const column = document.createElement('div')
+      column.className = 'federation-column'
+
+      const header = document.createElement('h4')
+      header.className = 'federation-source-header'
+      header.textContent = source
+      column.appendChild(header)
+
+      const grid = document.createElement('div')
+      grid.className = 'service-grid-inner'
+      sourceServices.forEach(service => {
+        grid.appendChild(this.createServiceCard(service))
+      })
+      column.appendChild(grid)
+
+      columns.appendChild(column)
+    })
+
+    container.appendChild(columns)
+  }
+
+  createServiceCard (service) {
+    const card = document.createElement('div')
+    const hasBadge = this.config.remote || service._source
+    card.className = `service-card card status-card${hasBadge ? ' has-badge' : ''}`
+    card.setAttribute('data-service-key', service._key)
+    card.setAttribute('data-service-source', service._source || '')
+
+    if (hasBadge) {
+      const sourceName = service._source || this.config.remote
+      const badge = document.createElement('span')
+      badge.className = `federation-source-badge federation-source-${sourceName}`
+      badge.textContent = sourceName
+      badge.title = `Source: ${sourceName}`
+      card.appendChild(badge)
+    }
+
+    const icon = document.createElement('img')
+    icon.className = 'service-icon'
+    const imgBase = service._source
+      ? `api/proxy/${service._source}/img`
+      : this.getImgBase()
+    icon.src = `${imgBase}/${service.icon}`
+    icon.alt = service.name
+
+    const info = document.createElement('div')
+    info.className = 'service-info'
+
+    const name = document.createElement('div')
+    name.className = 'service-name'
+    name.textContent = service.name
+
+    const status = document.createElement('div')
+    status.className = 'service-status'
+    status.textContent = 'Loading...'
+
+    info.appendChild(name)
+    info.appendChild(status)
+
+    card.appendChild(icon)
+    card.appendChild(info)
+
+    card.addEventListener('click', (event) => {
+      const useLocal = event.shiftKey && (event.ctrlKey || event.metaKey)
+      const url = useLocal ? (service.local || service.url) : service.url
+      if (url) {
+        window.open(url, '_blank')
+      }
+    })
+
+    return card
+  }
+
+  updateStatus () {
+    if (!this.servicesData) return
+
+    this.servicesData.forEach(service => {
+      const selector = `[data-service-key="${service._key}"][data-service-source="${service._source || ''}"]`
+      const card = this.container.querySelector(selector)
+      if (!card) return
+
+      const statusData = service._source
+        ? (this.statusBySource[service._source] || {})
+        : (this.statusBySource._local || {})
 
       let overallStatus = 'ok'
       const statusParts = []
 
-      // Check containers
       if (service.containers) {
         service.containers.forEach(container => {
           const status = statusData[container]
@@ -143,7 +287,6 @@ class ServicesWidget {
         })
       }
 
-      // Check services
       if (service.services) {
         service.services.forEach(svc => {
           const status = statusData[svc]
@@ -153,7 +296,6 @@ class ServicesWidget {
         })
       }
 
-      // Check timers
       if (service.timers) {
         service.timers.forEach(timer => {
           const status = statusData[timer]
@@ -163,19 +305,13 @@ class ServicesWidget {
         })
       }
 
-      // Update card status
-      const card = statusElement.closest('.service-card')
-      card.className = `service-card card status-card status-${overallStatus}`
+      card.className = card.className.replace(/status-\w+/g, '').trim() + ` status-${overallStatus}`
 
-      // Update status text and tooltip (matching original logic)
-      const statusTextElement = statusElement.querySelector('.service-status')
+      const statusTextElement = card.querySelector('.service-status')
       if (statusTextElement) {
-        statusTextElement.className = 'service-status'
         statusTextElement.textContent = overallStatus === 'ok'
           ? 'Running'
           : overallStatus === 'down' ? 'Stopped' : 'Unknown'
-        // Combine status details with click behavior
-        const service = this.servicesConfig.services[key]
         const clickTip = `Click: ${service.url}\nCtrl+Shift+Click: ${service.local || service.url}`
         statusTextElement.title = statusParts.join('\n') + '\n\n' + clickTip
       }

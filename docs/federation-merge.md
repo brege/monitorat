@@ -23,15 +23,15 @@ This document specifies how widgets merge data from multiple federated sources.
 
 Widgets are composed of these UI component types, each with distinct merge behaviors:
 
-| Type      | Description                              | Examples                          |
-|-----------|------------------------------------------|-----------------------------------|
-| tile      | Single-value stat card                   | uptime, load, cpu temp, disk %    |
-| chart     | Time-series line graph                   | metrics chart, speedtest history  |
-| table     | Tabular data with rows                   | speedtest results, outage log     |
-| button    | User-triggered action                    | run speedtest                     |
-| pill      | Small status indicator                   | uptime pills, service status      |
-| card      | Rich content block                       | service tiles, reminder items     |
-| document  | Rendered markdown                        | wiki content                      |
+| Type      | Description              | Examples                          |
+|-----------|--------------------------|-----------------------------------|
+| tile      | Single-value stat card   | uptime, load, cpu temp, disk %    |
+| chart     | Time-series line graph   | metrics chart, speedtest history  |
+| table     | Tabular data with rows   | speedtest results, outage log     |
+| button    | User-triggered action    | run speedtest                     |
+| pill      | Small status indicator   | uptime pills, service status      |
+| card      | Rich content block       | service tiles, reminder items     |
+| document  | Rendered markdown        | wiki content                      |
 
 ## Merge Strategies
 
@@ -58,9 +58,9 @@ Each widget's components and their allowed merge strategies:
 
 ### services
 
-| Component      | Desktop 2       | Desktop 3+      | Mobile          | Default |
-|----------------|-----------------|-----------------|-----------------|---------|
-| cards          | columnate/stack/merge | stack/merge | stack         | stack   |
+| Component      | Desktop 2         | Desktop 3+      | Mobile  | Default |
+|----------------|-------------------|-----------------|---------|---------|
+| cards          | columnate/stack/merge | stack/merge | stack   | stack   |
 
 **Merge behavior:**
 - Cards: Can interleave or group by source
@@ -98,11 +98,11 @@ Each widget's components and their allowed merge strategies:
 
 ### network
 
-| Component      | Desktop 2       | Desktop 3+      | Mobile          | Default |
-|----------------|-----------------|-----------------|-----------------|---------|
-| tiles          | columnate/stack | stack           | stack           | stack   |
-| uptime pills   | columnate/stack | stack           | stack           | stack   |
-| outages table  | merge/stack     | merge/stack     | stack           | stack   |
+| Component      | Desktop 2       | Desktop 3+      | Mobile   | Default |
+|----------------|-----------------|-----------------|----------|---------|
+| tiles          | columnate/stack | stack           | stack    | stack   |
+| uptime pills   | columnate/stack | stack           | stack    | stack   |
+| outages table  | merge/stack     | merge/stack     | stack    | stack   |
 
 **Merge behavior:**
 - Tiles: Badge with source favicon
@@ -360,7 +360,7 @@ All widgets support remote proxying with simple stacking. **COMPLETE**
 | Widget | Sort | Badges | Columnate | Stack | Merge |
 |--------|------|--------|-----------|-------|-------|
 | reminders | [x] | [x] | [x] | [x] | [x] |
-| services | n/a | [ ] | [ ] | [ ] | [ ] |
+| services | n/a | [x] | [x] | [x] | [x] |
 | speedtest | n/a | [ ] | n/a | [ ] | [ ] |
 | network | n/a | [ ] | [ ] | [ ] | [ ] |
 | metrics | n/a | [ ] | [ ] | [x] | [x] |
