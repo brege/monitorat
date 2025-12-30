@@ -49,10 +49,10 @@ class RemindersWidget {
   }
 
   render () {
-    const container = document.getElementById('reminder-alerts')
-    if (!container || !this.remindersConfig) return
+    const alertsContainer = this.container.querySelector('.reminder-alerts')
+    if (!alertsContainer || !this.remindersConfig) return
 
-    container.innerHTML = ''
+    alertsContainer.innerHTML = ''
 
     this.remindersConfig.forEach(reminder => {
       const alertElement = document.createElement('div')
@@ -139,7 +139,7 @@ class RemindersWidget {
         }
       })
 
-      container.appendChild(alertElement)
+      alertsContainer.appendChild(alertElement)
     })
   }
 }

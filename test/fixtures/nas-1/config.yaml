@@ -31,10 +31,12 @@ widgets:
     items:
       plex:
         name: Plex
+        icon: favicon.svg
         services: [plexmediaserver.service]
         url: https://plex.tv
       syncthing:
         name: Syncthing
+        icon: favicon.svg
         services: [syncthing@nas1.service]
         url: https://syncthing.net
 

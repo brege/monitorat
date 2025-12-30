@@ -75,10 +75,10 @@ class ServicesWidget {
   }
 
   render () {
-    const container = document.getElementById('service-cards')
-    if (!container || !this.servicesConfig) return
+    const cardsContainer = this.container.querySelector('.service-grid')
+    if (!cardsContainer || !this.servicesConfig) return
 
-    container.innerHTML = ''
+    cardsContainer.innerHTML = ''
 
     Object.entries(this.servicesConfig.services).forEach(([key, service]) => {
       const card = document.createElement('div')
@@ -115,7 +115,7 @@ class ServicesWidget {
         }
       })
 
-      container.appendChild(card)
+      cardsContainer.appendChild(card)
     })
   }
 
@@ -123,7 +123,7 @@ class ServicesWidget {
     if (!this.servicesConfig) return
 
     Object.entries(this.servicesConfig.services).forEach(([key, service]) => {
-      const statusElement = document.querySelector(`[data-service-key="${key}"]`)
+      const statusElement = this.container.querySelector(`[data-service-key="${key}"]`)
       if (!statusElement) return
 
       let overallStatus = 'ok'

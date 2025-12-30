@@ -31,10 +31,12 @@ widgets:
     items:
       jellyfin:
         name: Jellyfin
+        icon: favicon.svg
         containers: [jellyfin]
         url: https://jellyfin.org
       immich:
         name: Immich
+        icon: favicon.svg
         containers: [immich_server, immich_ml]
         url: https://immich.app
 

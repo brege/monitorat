@@ -18,7 +18,6 @@ import atexit
 import signal
 import subprocess
 import sys
-import tempfile
 import time
 from pathlib import Path
 
@@ -105,8 +104,8 @@ def filter_widgets_in_config(
 
     config.setdefault("widgets", {})["enabled"] = filtered
 
-    temp_fd, temp_path = tempfile.mkstemp(suffix=".yaml", prefix=f"dev-{node_name}-")
-    temp_path = Path(temp_path)
+    config_dir = config_path.parent
+    temp_path = config_dir / f".dev-{node_name}-filtered.yaml"
     temp_files.append(temp_path)
 
     with open(temp_path, "w") as f:
