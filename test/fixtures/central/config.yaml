@@ -23,6 +23,7 @@ demo: true
 widgets:
   enabled:
     - wiki-nas-1
+    - metrics-combined
     - metrics-nas-1
     - metrics-nas-2
 
@@ -31,6 +32,15 @@ widgets:
     remote: nas-1
     name: "NAS-1 Wiki"
     doc: true
+
+  metrics-combined:
+    type: metrics
+    name: "All Systems"
+    federation:
+      merge: [nas-1, nas-2]
+    chart:
+      periods: [24 hours, 6 hours, 1 hour]
+      default_period: 6 hours
 
   metrics-nas-1:
     type: metrics

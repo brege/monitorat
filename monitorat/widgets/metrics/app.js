@@ -169,10 +169,15 @@ class MetricsWidget {
 
   calculateTableDeltas (data) {
     const result = []
-    let prevRow = null
+    const prevBySource = {}
 
     for (const row of data) {
-      const entry = { timestamp: row.timestamp, source: row.source || '' }
+      const sourceKey = row._source || ''
+      const entry = {
+        timestamp: row.timestamp,
+        source: row.source || '',
+        _source: row._source || ''
+      }
 
       for (const metric of this.metricFields) {
         if (metric.source) {
@@ -182,6 +187,7 @@ class MetricsWidget {
         }
       }
 
+      const prevRow = prevBySource[sourceKey]
       if (prevRow) {
         const timeDelta = (new Date(row.timestamp) - new Date(prevRow.timestamp)) / 60000
         if (timeDelta > 0) {
@@ -196,22 +202,26 @@ class MetricsWidget {
       }
 
       result.push(entry)
-      prevRow = row
+      prevBySource[sourceKey] = row
     }
 
     return result
   }
 
   createChartData (entries, selectedItem, DataFormatter) {
+    const group = this.schema.computed.find(g => g.group === selectedItem)
+    const metricsToChart = group ? group.fields : this.schema.metrics.find(m => m.field === selectedItem) ? [this.schema.metrics.find(m => m.field === selectedItem)] : []
+    const ChartManager = window.monitorShared.ChartManager
+
+    if (this.sources && this.sources.length > 1) {
+      return this.createMergedChartData(entries, metricsToChart, DataFormatter, ChartManager)
+    }
+
     const chronological = entries.slice()
     const labels = chronological.map(row => DataFormatter.formatTime(row.timestamp))
     const datasets = []
     const allValues = []
 
-    const group = this.schema.computed.find(g => g.group === selectedItem)
-    const metricsToChart = group ? group.fields : this.schema.metrics.find(m => m.field === selectedItem) ? [this.schema.metrics.find(m => m.field === selectedItem)] : []
-
-    const ChartManager = window.monitorShared.ChartManager
     for (const metric of metricsToChart) {
       const values = chronological.map(row => parseFloat(row[metric.field]) || 0)
       datasets.push(...ChartManager.buildGhostedDatasets({
@@ -220,6 +230,68 @@ class MetricsWidget {
         rawValues: values
       }))
       allValues.push(...values)
+    }
+
+    return { labels, datasets, allValues }
+  }
+
+  createMergedChartData (entries, metricsToChart, DataFormatter, ChartManager) {
+    const sourceColors = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
+    const entriesBySource = {}
+
+    for (const row of entries) {
+      const source = row._source || 'unknown'
+      if (!entriesBySource[source]) {
+        entriesBySource[source] = []
+      }
+      entriesBySource[source].push(row)
+    }
+
+    const allTimestamps = new Set()
+    for (const rows of Object.values(entriesBySource)) {
+      for (const row of rows) {
+        allTimestamps.add(row.timestamp)
+      }
+    }
+    const sortedTimestamps = Array.from(allTimestamps).sort()
+    const labels = sortedTimestamps.map(ts => DataFormatter.formatTime(ts))
+
+    const datasets = []
+    const allValues = []
+    let colorIndex = 0
+
+    for (const source of this.sources) {
+      const sourceRows = entriesBySource[source] || []
+      const timestampMap = {}
+      for (const row of sourceRows) {
+        timestampMap[row.timestamp] = row
+      }
+
+      const color = sourceColors[colorIndex % sourceColors.length]
+      colorIndex++
+
+      for (const metric of metricsToChart) {
+        const values = sortedTimestamps.map(ts => {
+          const row = timestampMap[ts]
+          return row ? (parseFloat(row[metric.field]) || 0) : null
+        })
+
+        const label = metricsToChart.length > 1
+          ? `${source}: ${metric.label}`
+          : source
+
+        datasets.push({
+          label,
+          data: values,
+          borderColor: color,
+          backgroundColor: color + '33',
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: 0.3,
+          spanGaps: true
+        })
+        allValues.push(...values.filter(v => v !== null))
+      }
     }
 
     return { labels, datasets, allValues }
@@ -263,6 +335,7 @@ class MetricsWidget {
       }
       const payload = await response.json()
       const data = payload.data || []
+      this.sources = payload.sources || null
       this.entries = data
       this.transformedEntries = this.calculateTableDeltas(this.entries)
 

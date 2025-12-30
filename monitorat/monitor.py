@@ -521,6 +521,132 @@ def register_remote_widget_proxy(widget_name: str, widget_type: str, remote_name
     logger.info(f"Registered proxy for {widget_name} -> {remote_name}:{widget_type}")
 
 
+def register_merged_widget_proxy(
+    widget_name: str, widget_type: str, merge_sources: list
+):
+    """
+    Register proxy routes for a merged widget that combines data from multiple remotes.
+    """
+    logger = logging.getLogger(__name__)
+    import concurrent.futures
+
+    valid_sources = []
+    for source_name in merge_sources:
+        remote = federation_client.get_remote(source_name)
+        if remote:
+            valid_sources.append(source_name)
+        else:
+            logger.warning(f"Merge source '{source_name}' not found; skipping")
+
+    if not valid_sources:
+        logger.error(f"No valid sources for merged widget '{widget_name}'")
+        return
+
+    def fetch_with_source(source_name: str, path: str) -> tuple:
+        """Fetch from remote and return (source_name, response_data)."""
+        try:
+            response = federation_client.fetch(source_name, path)
+            if response.status_code == 200:
+                return (source_name, response.json())
+        except Exception as exc:
+            logger.warning(f"Merge fetch from {source_name} failed: {exc}")
+        return (source_name, None)
+
+    def merged_schema_handler():
+        """Return first available schema (all sources should have same schema)."""
+        for source_name in valid_sources:
+            try:
+                response = federation_client.fetch(
+                    source_name, f"/api/{widget_type}/schema"
+                )
+                if response.status_code == 200:
+                    return Response(
+                        response.content,
+                        status=200,
+                        mimetype="application/json",
+                    )
+            except Exception:
+                continue
+        return jsonify({"error": "No sources available"}), 502
+
+    def merged_current_handler():
+        """Return current metrics from first available source."""
+        for source_name in valid_sources:
+            try:
+                response = federation_client.fetch(source_name, f"/api/{widget_type}")
+                if response.status_code == 200:
+                    return Response(
+                        response.content,
+                        status=200,
+                        mimetype="application/json",
+                    )
+            except Exception:
+                continue
+        return jsonify({"error": "No sources available"}), 502
+
+    def merged_history_handler():
+        """Fetch history from all sources, tag with source, merge by timestamp."""
+        query_string = request.query_string.decode("utf-8")
+        path = f"/api/{widget_type}/history"
+        if query_string:
+            path = f"{path}?{query_string}"
+
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=len(valid_sources)
+        ) as executor:
+            futures = {
+                executor.submit(fetch_with_source, src, path): src
+                for src in valid_sources
+            }
+            results = {}
+            for future in concurrent.futures.as_completed(futures):
+                source_name, data = future.result()
+                if data:
+                    results[source_name] = data
+
+        if not results:
+            return jsonify({"error": "No sources available"}), 502
+
+        merged_data = []
+        for source_name, payload in results.items():
+            rows = payload.get("data", [])
+            for row in rows:
+                row["_source"] = source_name
+                merged_data.append(row)
+
+        merged_data.sort(key=lambda r: r.get("timestamp", ""))
+
+        return jsonify({"data": merged_data, "sources": list(results.keys())})
+
+    def merged_proxy_handler(subpath=""):
+        """Route to appropriate merged handler based on subpath."""
+        if subpath == "schema":
+            return merged_schema_handler()
+        elif subpath == "history":
+            return merged_history_handler()
+        elif subpath == "" or subpath is None:
+            return merged_current_handler()
+        else:
+            return jsonify({"error": f"Unknown subpath: {subpath}"}), 404
+
+    app.add_url_rule(
+        f"/api/{widget_name}",
+        endpoint=f"merge_{widget_name}",
+        view_func=merged_proxy_handler,
+        methods=["GET"],
+    )
+    app.add_url_rule(
+        f"/api/{widget_name}/<path:subpath>",
+        endpoint=f"merge_{widget_name}_subpath",
+        view_func=merged_proxy_handler,
+        methods=["GET"],
+    )
+
+    logger.info(
+        f"Registered merge proxy for {widget_name} -> [{', '.join(valid_sources)}]"
+    )
+
+
 def register_widgets():
     """Register widgets based on configured order."""
     extend_widget_package_path()
@@ -545,6 +671,12 @@ def register_widgets():
 
         widget_type = widget_cfg.get("type", widget_name)
         remote_name = widget_cfg.get("remote")
+        federation_cfg = widget_cfg.get("federation", {})
+        merge_sources = federation_cfg.get("merge") if federation_cfg else None
+
+        if merge_sources and isinstance(merge_sources, list):
+            register_merged_widget_proxy(widget_name, widget_type, merge_sources)
+            continue
 
         if remote_name:
             register_remote_widget_proxy(widget_name, widget_type, remote_name)

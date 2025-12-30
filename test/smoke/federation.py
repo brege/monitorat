@@ -291,6 +291,42 @@ def test_proxy_route_wiki_nas_1():
         return None
 
 
+def test_merged_widget_history():
+    """Central /api/metrics-combined/history should return merged data from both sources."""
+    print("Test: Merged widget /api/metrics-combined/history...")
+    try:
+        response = httpx.get(
+            "http://localhost:6100/api/metrics-combined/history",
+            timeout=10,
+        )
+        if response.status_code == 200:
+            data = response.json()
+            sources = data.get("sources", [])
+            rows = data.get("data", [])
+            if len(sources) < 2:
+                print(f"  FAIL: Expected 2+ sources, got {len(sources)}")
+                return False
+            if len(rows) == 0:
+                print(f"  FAIL: Got sources={sources} but no rows")
+                return False
+            has_source_tags = any(r.get("_source") for r in rows[:10])
+            if has_source_tags:
+                print(f"  PASS: Got merged data, sources={sources}, rows={len(rows)}")
+                return True
+            else:
+                print("  FAIL: Rows missing _source tags")
+                return False
+        elif response.status_code == 502:
+            print("  SKIP: Merge returned 502 (remotes unavailable)")
+            return None
+        else:
+            print(f"  FAIL: Expected 200, got {response.status_code}")
+            return False
+    except httpx.ConnectError:
+        print("  SKIP: Central server not running on port 6100")
+        return None
+
+
 def test_federation_status_endpoint():
     """Central /api/federation/status should return remote health."""
     print("Test: Federation status endpoint...")
@@ -335,6 +371,7 @@ def main():
         test_proxy_route_metrics_nas_2,
         test_proxy_route_with_subpath,
         test_proxy_route_wiki_nas_1,
+        test_merged_widget_history,
         test_federation_status_endpoint,
     ]
 

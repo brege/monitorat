@@ -273,7 +273,7 @@ async function initializeWidget (widgetName, widgetType, config, containerOverri
       ? { ...config, _suppressHeader: true }
       : { ...config }
 
-    if (config?.remote) {
+    if (config?.remote || config?.federation?.merge) {
       widgetConfig._apiPrefix = widgetName
     }
 
