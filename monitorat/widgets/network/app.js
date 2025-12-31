@@ -66,8 +66,21 @@ class NetworkWidget {
       logFingerprint: null
     }
     this.elements = {}
+    this.features = {
+      snapshot: null,
+      uptime: null,
+      outages: null
+    }
     this.uptimeCache = {
       rows: new Map()
+    }
+    this.helpers = {
+      formatDateTime,
+      formatDuration,
+      formatNumber,
+      formatPercent,
+      applySegmentClasses,
+      buildSegmentTooltip
     }
   }
 
@@ -91,7 +104,9 @@ class NetworkWidget {
       })
     }
 
+    await this.loadFeatureScripts()
     this.cacheElements()
+    this.initializeFeatures()
     this.applySectionVisibility()
     this.attachEvents()
     await this.loadLog()
@@ -135,7 +150,7 @@ class NetworkWidget {
     if (this.elements.alertToggle) {
       this.elements.alertToggle.addEventListener('click', () => {
         this.state.alertsExpanded = !this.state.alertsExpanded
-        this.renderAlerts()
+        this.features.outages.render()
       })
     }
 
@@ -156,9 +171,7 @@ class NetworkWidget {
       this.state.entries = []
       this.state.analysis = analyzeEntries([], this.periodsConfig, this.expectedIntervalMs, this.resolveNowOverride())
       this.state.logFingerprint = null
-      this.updateSummary()
-      this.renderUptime()
-      this.renderAlerts()
+      this.renderAll()
       return
     }
 
@@ -189,9 +202,7 @@ class NetworkWidget {
         this.resolveNowOverride()
       )
       this.state.alertsExpanded = false
-      this.updateSummary()
-      this.renderUptime()
-      this.renderAlerts()
+      this.renderAll()
 
       if (this.state.entries.length) {
         setText(this.elements.logStatus, `Loaded ${this.state.entries.length.toLocaleString()} log entries.`)
@@ -205,9 +216,7 @@ class NetworkWidget {
       this.state.entries = []
       this.state.analysis = analyzeEntries([], this.periodsConfig, this.expectedIntervalMs, this.resolveNowOverride())
       this.state.logFingerprint = null
-      this.updateSummary()
-      this.renderUptime()
-      this.renderAlerts()
+      this.renderAll()
     }
   }
 
@@ -224,257 +233,63 @@ class NetworkWidget {
     document.body.removeChild(link)
   }
 
-  updateSummary () {
-    if (!this.config.metrics.show || !this.elements.summary) {
-      return
-    }
-    const summary = this.elements.summary
-    const analysis = this.state.analysis
-    if (!analysis || !analysis.entries.length) {
-      summary.uptime.textContent = '–'
-      summary.total.textContent = '–'
-      summary.expected.textContent = '–'
-      summary.missed.textContent = '–'
-      summary.first.textContent = '–'
-      summary.last.textContent = '–'
-      return
-    }
+  async loadFeatureScripts () {
+    const featureScripts = [
+      { globalName: 'NetworkSnapshot', source: 'widgets/network/features/snapshot.js' },
+      { globalName: 'NetworkUptime', source: 'widgets/network/features/uptime.js' },
+      { globalName: 'NetworkOutages', source: 'widgets/network/features/outages.js' }
+    ]
 
-    summary.uptime.textContent = analysis.uptimeText
-    summary.total.textContent = formatNumber(analysis.entries.length)
-    summary.expected.textContent = formatNumber(analysis.expectedChecks)
-    summary.missed.textContent = formatNumber(analysis.missedChecks)
-    summary.first.textContent = formatDateTime(analysis.firstEntry)
-    summary.last.textContent = formatDateTime(analysis.lastEntry)
-  }
-
-  renderUptime () {
-    if (!this.config.uptime.show || !this.elements.uptimeRows) {
-      return
-    }
-
-    const container = this.elements.uptimeRows
-    const analysis = this.state.analysis
-    const stats = analysis?.windowStats || []
-    if (!stats.length) {
-      const info = document.createElement('p')
-      info.className = 'muted'
-      info.textContent = 'No log data available yet.'
-      container.replaceChildren(info)
-      this.uptimeCache.rows.clear()
-      return
-    }
-
-    const fragment = document.createDocumentFragment()
-    const seenKeys = new Set()
-
-    stats.forEach((stat) => {
-      const entry = this.ensureUptimeRow(stat.key)
-      this.updateUptimeRow(entry, stat)
-      fragment.appendChild(entry.root)
-      seenKeys.add(stat.key)
-    })
-
-    container.replaceChildren(fragment)
-
-    for (const key of Array.from(this.uptimeCache.rows.keys())) {
-      if (!seenKeys.has(key)) {
-        this.uptimeCache.rows.delete(key)
+    for (const feature of featureScripts) {
+      if (!window[feature.globalName]) {
+        await this.loadScript(feature)
       }
     }
-  }
 
-  ensureUptimeRow (key) {
-    if (!this.uptimeCache.rows.has(key)) {
-      const item = document.createElement('div')
-      item.className = 'uptime-item'
-
-      const row = document.createElement('div')
-      row.className = 'uptime-row'
-
-      const label = document.createElement('div')
-      label.className = 'uptime-label'
-
-      const pills = document.createElement('div')
-      pills.className = 'uptime-pills'
-
-      const value = document.createElement('div')
-      value.className = 'uptime-value'
-
-      row.append(label, pills, value)
-
-      const meta = document.createElement('div')
-      meta.className = 'uptime-meta'
-
-      item.append(row, meta)
-
-      this.uptimeCache.rows.set(key, {
-        root: item,
-        label,
-        pills,
-        value,
-        meta,
-        segments: new Map(),
-        emptyNode: null
-      })
-    }
-    return this.uptimeCache.rows.get(key)
-  }
-
-  updateUptimeRow (entry, stat) {
-    entry.label.textContent = stat.label
-    entry.value.textContent = formatPercent(stat.uptime)
-    this.updateUptimePills(entry, stat)
-    this.updateUptimeMeta(entry, stat)
-  }
-
-  updateUptimePills (entry, stat) {
-    const pills = entry.pills
-    const segmentMap = entry.segments
-    const seenSegments = new Set()
-
-    if (!stat.segments.length) {
-      if (!entry.emptyNode) {
-        const blank = document.createElement('div')
-        blank.className = 'muted'
-        blank.textContent = 'No data'
-        entry.emptyNode = blank
-      }
-      segmentMap.clear()
-      pills.replaceChildren(entry.emptyNode)
-      pills.style.gridTemplateColumns = ''
-      return
-    }
-
-    if (entry.emptyNode && entry.emptyNode.parentNode === pills) {
-      pills.removeChild(entry.emptyNode)
-    }
-    entry.emptyNode = null
-
-    const fragment = document.createDocumentFragment()
-    pills.style.gridTemplateColumns = `repeat(${Math.max(1, stat.segments.length)}, minmax(0, 1fr))`
-
-    stat.segments.forEach((segment) => {
-      let pill = segmentMap.get(segment.key)
-      if (!pill) {
-        pill = document.createElement('div')
-        segmentMap.set(segment.key, pill)
-      }
-      pill.className = 'uptime-pill'
-      applySegmentClasses(pill, segment)
-      pill.title = buildSegmentTooltip(stat.label, segment, this.expectedIntervalMs)
-      fragment.appendChild(pill)
-      seenSegments.add(segment.key)
-    })
-
-    pills.replaceChildren(fragment)
-
-    for (const key of Array.from(segmentMap.keys())) {
-      if (!seenSegments.has(key)) {
-        segmentMap.delete(key)
-      }
+    const missing = featureScripts.filter((feature) => !window[feature.globalName])
+    if (missing.length) {
+      const names = missing.map((feature) => feature.globalName).join(', ')
+      throw new Error(`Network feature scripts missing: ${names}`)
     }
   }
 
-  updateUptimeMeta (entry, stat) {
-    const meta = entry.meta
-    meta.replaceChildren()
-
-    if (!stat.expected) {
-      const span = document.createElement('span')
-      span.textContent = 'No data collected for this window yet.'
-      meta.appendChild(span)
-      return
-    }
-
-    const counts = document.createElement('span')
-    counts.textContent = `${formatNumber(stat.observed)} of ${formatNumber(stat.expected)} checks`
-    meta.appendChild(counts)
-
-    const misses = document.createElement('span')
-    if (stat.missed) {
-      misses.textContent = `${formatNumber(stat.missed)} missed (${formatDuration(stat.missed * this.expectedIntervalMs)})`
-    } else {
-      misses.textContent = 'No missed checks'
-    }
-    meta.appendChild(misses)
-
-    if (stat.coverage < 0.98) {
-      const coverage = document.createElement('span')
-      coverage.textContent = `${Math.round(stat.coverage * 100)}% coverage`
-      meta.appendChild(coverage)
-    }
-  }
-
-  renderAlerts () {
-    if (!this.config.alerts.show || !this.elements.alertList) {
-      return
-    }
-
-    const list = this.elements.alertList
-    list.innerHTML = ''
-    const toggle = this.elements.alertToggle
-
-    const analysis = this.state.analysis
-    if (!analysis || !analysis.entries.length) {
-      const info = document.createElement('p')
-      info.className = 'muted'
-      info.textContent = 'No log entries to inspect yet.'
-      list.appendChild(info)
-      if (toggle) toggle.style.display = 'none'
-      return
-    }
-
-    const filtered = analysis.alerts.filter((alert) => {
-      if (alert.type !== 'outage') {
-        return true
-      }
-      const threshold = this.config.alerts.cadenceChecks || 0
-      return alert.missedChecks >= threshold
-    })
-
-    if (!filtered.length) {
-      const info = document.createElement('p')
-      info.className = 'muted'
-      info.textContent = 'No missed 5-minute intervals detected.'
-      list.appendChild(info)
-      if (toggle) toggle.style.display = 'none'
-      return
-    }
-
-    const reversed = [...filtered].reverse()
-    const maxVisible = this.state.alertsExpanded ? reversed.length : Math.min(this.config.alerts.max, reversed.length)
-    reversed.slice(0, maxVisible).forEach((alert) => {
-      const item = document.createElement('div')
-      if (alert.type === 'ipchange') {
-        item.className = 'alert alert-card ipchange'
-        item.innerHTML = `<strong>IP address changed</strong> from ${alert.oldIp} to ${alert.newIp} at ${formatDateTime(alert.timestamp)}`
-      } else if (alert.type === 'failure') {
-        item.className = 'alert alert-card failure'
-        item.innerHTML = `<strong>Connection failure</strong> at ${formatDateTime(alert.timestamp)} (${alert.message})`
-      } else {
-        item.className = 'alert alert-card'
-        if (alert.open) {
-          item.classList.add('open')
+  loadScript (feature) {
+    return new Promise((resolve, reject) => {
+      const scriptElement = document.createElement('script')
+      scriptElement.src = feature.source
+      scriptElement.async = true
+      scriptElement.onload = () => {
+        if (!window[feature.globalName]) {
+          reject(new Error(`Network feature failed to register: ${feature.globalName}`))
+          return
         }
-        const endLabel = alert.open ? 'now' : formatDateTime(alert.end)
-        const duration = formatDuration(alert.end.getTime() - alert.start.getTime())
-        const countLabel = alert.missedChecks === 1 ? 'check' : 'checks'
-        item.innerHTML = `<strong>${alert.missedChecks} ${countLabel} missed</strong> from ${formatDateTime(alert.start)} to ${endLabel} (${duration})`
+        resolve()
       }
-      list.appendChild(item)
+      scriptElement.onerror = () => {
+        reject(new Error(`Failed to load network feature: ${feature.source}`))
+      }
+      document.head.appendChild(scriptElement)
     })
+  }
 
-    if (toggle) {
-      const maxVisible = this.config.alerts.max
-      if (filtered.length <= maxVisible) {
-        toggle.style.display = 'none'
-      } else {
-        toggle.style.display = ''
-        const remaining = filtered.length - maxVisible
-        toggle.textContent = this.state.alertsExpanded ? 'Show less' : `Show ${remaining} more`
-      }
+  initializeFeatures () {
+    const SnapshotFeature = window.NetworkSnapshot
+    const UptimeFeature = window.NetworkUptime
+    const OutagesFeature = window.NetworkOutages
+
+    if (!SnapshotFeature || !UptimeFeature || !OutagesFeature) {
+      throw new Error('Network feature scripts not loaded')
     }
+
+    this.features.snapshot = new SnapshotFeature(this)
+    this.features.uptime = new UptimeFeature(this)
+    this.features.outages = new OutagesFeature(this)
+  }
+
+  renderAll () {
+    this.features.snapshot.render()
+    this.features.uptime.render()
+    this.features.outages.render()
   }
 
   resolveNowOverride () {
