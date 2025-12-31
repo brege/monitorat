@@ -97,7 +97,7 @@ class MetricsChart {
   }
 
   createMergedChartData (entries, metricsToChart, dataFormatter, sources) {
-    const lineStyles = [[], [5, 5], [2, 2], [10, 5, 2, 5]]
+    const sourceColors = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
     const entriesBySource = {}
 
     for (const row of entries) {
@@ -127,6 +127,8 @@ class MetricsChart {
         timestampMap[row.timestamp] = row
       }
 
+      const color = sourceColors[sourceIndex % sourceColors.length]
+
       for (const metric of metricsToChart) {
         const values = sortedTimestamps.map(timestamp => {
           const row = timestampMap[timestamp]
@@ -134,14 +136,12 @@ class MetricsChart {
         })
 
         const label = `${source}: ${metric.label}`
-        const color = metric.color
 
         datasets.push({
           label,
           data: values,
           borderColor: color,
           backgroundColor: color + '33',
-          borderDash: lineStyles[sourceIndex % lineStyles.length],
           borderWidth: 2,
           pointRadius: 0,
           tension: 0.3,

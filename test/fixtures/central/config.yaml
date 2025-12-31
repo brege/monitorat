@@ -29,6 +29,8 @@ widgets:
     - wiki-stacked-no-badges
     - wiki-columns-no-badges
     - metrics-combined
+    - metrics-tiles-only
+    - metrics-history-only
     - metrics-nas-1
     - metrics-nas-2
     - services-nas-1
@@ -105,6 +107,31 @@ widgets:
     name: "All Systems"
     federation:
       merge: [nas-1, nas-2]
+      display:
+        tiles: columnate
+    chart:
+      periods: [24 hours, 6 hours, 1 hour]
+      default_period: 6 hours
+
+  metrics-tiles-only:
+    type: metrics
+    name: "All Systems (tiles only)"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        tiles: columnate
+    show:
+      tiles: true
+      history: false
+
+  metrics-history-only:
+    type: metrics
+    name: "All Systems (history only)"
+    federation:
+      merge: [nas-1, nas-2]
+    show:
+      tiles: false
+      history: true
     chart:
       periods: [24 hours, 6 hours, 1 hour]
       default_period: 6 hours

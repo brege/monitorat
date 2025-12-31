@@ -69,6 +69,7 @@ class MetricsWidget {
     const html = await response.text()
     container.innerHTML = html
 
+    this.applyVisibilityConfig()
     await this.loadFeatureScripts()
     this.initializeFeatures()
     this.features.table.rebuildHeaders()
@@ -85,8 +86,12 @@ class MetricsWidget {
     this.setupEventListeners()
     this.initManagers()
     await this.loadData()
-    this.setView(this.config.default || this.defaults.default)
-    await this.features.table.loadHistory()
+
+    const showHistory = this.config.show?.history !== false
+    if (showHistory) {
+      this.setView(this.config.default || this.defaults.default)
+      await this.features.table.loadHistory()
+    }
   }
 
   setupEventListeners () {
@@ -223,20 +228,41 @@ class MetricsWidget {
   }
 
   async loadData () {
-    const response = await fetch(`api/${this.apiPrefix}`)
-    const data = await response.json()
-    this.update(data)
-    if (window.monitor?.demoEnabled !== true) {
-      try {
-        await fetch(`api/${this.apiPrefix}`, { method: 'GET' })
-      } catch (error) {
-        console.error('Unable to log metrics:', error)
-      }
+    const showTiles = this.config.show?.tiles !== false
+    if (!showTiles) return
+
+    const mergeSources = this.widgetConfig.federation?.merge
+    if (mergeSources && Array.isArray(mergeSources)) {
+      await this.loadMergedData(mergeSources)
+    } else {
+      await this.loadSingleData()
     }
   }
 
-  update (data) {
+  async loadSingleData () {
+    const response = await fetch(`api/${this.apiPrefix}`)
+    const data = await response.json()
     this.features.snapshot.render(data)
+  }
+
+  async loadMergedData (sources) {
+    const results = await Promise.all(
+      sources.map(async (source) => {
+        try {
+          const response = await fetch(`api/metrics-${source}`)
+          if (!response.ok) {
+            return { source, data: null, error: `HTTP ${response.status}` }
+          }
+          const data = await response.json()
+          return { source, data, error: null }
+        } catch (error) {
+          return { source, data: null, error: error.message }
+        }
+      })
+    )
+
+    const displayStrategy = this.widgetConfig.federation?.display?.tiles || 'columnate'
+    this.features.snapshot.renderMerged(results, displayStrategy)
   }
 
   getViewControls () {
@@ -244,6 +270,22 @@ class MetricsWidget {
       this.getElement('metric-select'),
       this.getElement('period-select')
     ]
+  }
+
+  applyVisibilityConfig () {
+    const showConfig = this.config.show || {}
+    const showTiles = showConfig.tiles !== false
+    const showHistory = showConfig.history !== false
+
+    const statsContainer = this.container.querySelector('.stats')
+    const historyContainer = this.container.querySelector('.metrics-history')
+
+    if (statsContainer && !showTiles) {
+      statsContainer.style.display = 'none'
+    }
+    if (historyContainer && !showHistory) {
+      historyContainer.style.display = 'none'
+    }
   }
 
   initManagers () {
