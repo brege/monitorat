@@ -240,36 +240,7 @@ class NetworkWidget {
       { globalName: 'NetworkOutages', source: 'widgets/network/features/outages.js' }
     ]
 
-    for (const feature of featureScripts) {
-      if (!window[feature.globalName]) {
-        await this.loadScript(feature)
-      }
-    }
-
-    const missing = featureScripts.filter((feature) => !window[feature.globalName])
-    if (missing.length) {
-      const names = missing.map((feature) => feature.globalName).join(', ')
-      throw new Error(`Network feature scripts missing: ${names}`)
-    }
-  }
-
-  loadScript (feature) {
-    return new Promise((resolve, reject) => {
-      const scriptElement = document.createElement('script')
-      scriptElement.src = feature.source
-      scriptElement.async = true
-      scriptElement.onload = () => {
-        if (!window[feature.globalName]) {
-          reject(new Error(`Network feature failed to register: ${feature.globalName}`))
-          return
-        }
-        resolve()
-      }
-      scriptElement.onerror = () => {
-        reject(new Error(`Failed to load network feature: ${feature.source}`))
-      }
-      document.head.appendChild(scriptElement)
-    })
+    await window.monitorShared.loadFeatureScripts(featureScripts)
   }
 
   initializeFeatures () {

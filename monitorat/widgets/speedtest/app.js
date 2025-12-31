@@ -131,36 +131,7 @@ class SpeedtestWidget {
       { globalName: 'SpeedtestTable', source: 'widgets/speedtest/features/table.js' }
     ]
 
-    for (const feature of featureScripts) {
-      if (!window[feature.globalName]) {
-        await this.loadScript(feature)
-      }
-    }
-
-    const missing = featureScripts.filter((feature) => !window[feature.globalName])
-    if (missing.length) {
-      const names = missing.map((feature) => feature.globalName).join(', ')
-      throw new Error(`Speedtest feature scripts missing: ${names}`)
-    }
-  }
-
-  loadScript (feature) {
-    return new Promise((resolve, reject) => {
-      const scriptElement = document.createElement('script')
-      scriptElement.src = feature.source
-      scriptElement.async = true
-      scriptElement.onload = () => {
-        if (!window[feature.globalName]) {
-          reject(new Error(`Speedtest feature failed to register: ${feature.globalName}`))
-          return
-        }
-        resolve()
-      }
-      scriptElement.onerror = () => {
-        reject(new Error(`Failed to load speedtest feature: ${feature.source}`))
-      }
-      document.head.appendChild(scriptElement)
-    })
+    await window.monitorShared.loadFeatureScripts(featureScripts)
   }
 
   initializeFeatures () {
