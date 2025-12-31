@@ -36,15 +36,13 @@ class ConfigManager:
         else:
             config_obj.read(user=True, defaults=True)
 
-        try:
-            includes = config_obj["includes"].get(list)
-            config_dir = Path(config_obj.config_dir())
-            for include in includes:
-                filepath = config_dir / include
-                if filepath.exists():
-                    config_obj.set_file(filepath)
-        except Exception:
-            pass
+        includes = config_obj["includes"].get(list)
+        default_config_dir = Path(__file__).resolve().parent
+        for include in includes:
+            filepath = default_config_dir / include
+            if not filepath.exists():
+                raise FileNotFoundError(f"Include file not found: {filepath}")
+            config_obj.set_file(filepath)
 
         if self._project_config:
             candidate = self._project_config.expanduser()

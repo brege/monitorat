@@ -1,19 +1,28 @@
 <style>
 .service-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
-.service-card { background: var(--bg-card); border-radius: 8px; padding: 16px; display: flex; align-items: center; gap: 12px; min-height: 80px; cursor: pointer; }
-.service-card.status-ok { background-color: rgba(var(--status-ok-rgb), 0.12); border-left: 4px solid rgb(var(--status-ok-rgb)); }
-.service-card.status-down { background-color: rgba(var(--status-critical-rgb), 0.15); border-left: 4px solid rgb(var(--status-critical-rgb)); }
-.service-card.status-unknown { background-color: rgba(var(--status-unknown-rgb), 0.15); border-left: 4px solid rgb(var(--status-unknown-rgb)); }
-.service-card.status-never { background-color: rgba(var(--status-unknown-rgb), 0.15); border-left: 4px solid rgb(var(--status-unknown-rgb)); }
-.service-card.status-warning { background-color: rgba(var(--status-warn-rgb), 0.12); border-left: 4px solid rgb(var(--status-warn-rgb)); }
-.service-card.status-expired { background-color: rgba(var(--status-critical-rgb), 0.15); border-left: 4px solid rgb(var(--status-critical-rgb)); }
+.service-grid-inner { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.service-grid > .federation-stacked,
+.service-grid > .federation-columns { grid-column: 1 / -1; }
+.service-card { padding: 16px; display: flex; align-items: center; gap: 12px; min-height: 80px; cursor: pointer; }
 .service-icon { width: 32px; height: 32px; object-fit: contain; }
 .service-info { flex: 1; }
 .service-name { font-weight: 600; margin-bottom: 4px; }
 .service-status { font-size: 0.9rem; color: var(--text-muted); }
+.widget-controls { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.sort-direction-select { min-width: 5.5rem; }
 </style>
 
 <section class="services">
   <h2>Services</h2>
-  <div id="service-cards" class="service-grid"></div>
+  <div class="widget-controls">
+    <select class="alerts-toggle services-sort-field">
+      <option value="name">Name</option>
+      <option value="status">Status</option>
+    </select>
+    <select class="alerts-toggle sort-direction-select services-sort-dir" aria-label="Sort direction">
+      <option value="asc">asc</option>
+      <option value="desc">desc</option>
+    </select>
+  </div>
+  <div class="service-grid"></div>
 </section>

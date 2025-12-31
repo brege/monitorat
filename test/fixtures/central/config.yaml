@@ -1,0 +1,317 @@
+includes: []
+
+site:
+  name: "@central"
+  title: "Central Command"
+
+paths:
+  data: data/
+
+federation:
+  enabled: true
+  timeout_seconds: 10
+  remotes:
+    - name: nas-1
+      url: http://localhost:6601
+      api_key: "nas-1-secret"
+    - name: nas-2
+      url: http://localhost:6602
+      api_key: "nas-2-secret"
+
+demo: true
+
+widgets:
+  enabled:
+    - wiki-nas-1
+    - wiki-nas-2
+    - wiki-stacked
+    - wiki-columns
+    - wiki-stacked-no-badges
+    - wiki-columns-no-badges
+    - metrics-combined
+    - metrics-nas-1
+    - metrics-nas-2
+    - services-nas-1
+    - services-nas-2
+    - services-combined
+    - services-stacked
+    - services-columns
+    - reminders-nas-1
+    - reminders-nas-2
+    - reminders-combined
+    - reminders-stacked
+    - reminders-columns
+    - speedtest-nas-1
+    - speedtest-nas-2
+    - speedtest-combined
+    - network-nas-1
+    - network-nas-2
+    - network-combined
+    - network-stacked
+    - network-columns
+
+  wiki-nas-1:
+    type: wiki
+    remote: nas-1
+    name: "NAS-1 Wiki"
+    doc: true
+
+  wiki-nas-2:
+    type: wiki
+    remote: nas-2
+    name: "NAS-2 Wiki"
+    doc: true
+
+  wiki-stacked:
+    type: wiki
+    name: "All Wikis (stacked)"
+    doc: true
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        document: stack
+
+  wiki-columns:
+    type: wiki
+    name: "All Wikis (columns)"
+    doc: true
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        document: columnate
+
+  wiki-stacked-no-badges:
+    type: wiki
+    name: "All Wikis (stacked, no badges)"
+    doc: true
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        document: stack
+      show_badges: false
+
+  wiki-columns-no-badges:
+    type: wiki
+    name: "All Wikis (columns, no badges)"
+    doc: true
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        document: columnate
+      show_badges: false
+
+  metrics-combined:
+    type: metrics
+    name: "All Systems"
+    federation:
+      merge: [nas-1, nas-2]
+    chart:
+      periods: [24 hours, 6 hours, 1 hour]
+      default_period: 6 hours
+
+  metrics-nas-1:
+    type: metrics
+    remote: nas-1
+    name: "NAS-1 Metrics"
+
+  metrics-nas-2:
+    type: metrics
+    remote: nas-2
+    name: "NAS-2 Metrics"
+
+  services-nas-1:
+    type: services
+    remote: nas-1
+    name: "NAS-1 Services"
+
+  services-nas-2:
+    type: services
+    remote: nas-2
+    name: "NAS-2 Services"
+
+  services-combined:
+    type: services
+    name: "All Services (merged)"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        cards: merge
+
+  services-stacked:
+    type: services
+    name: "All Services (stacked)"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        cards: stack
+
+  services-columns:
+    type: services
+    name: "All Services (columns)"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        cards: columnate
+
+  reminders-nas-1:
+    type: reminders
+    remote: nas-1
+    name: "NAS-1 Reminders"
+
+  reminders-nas-2:
+    type: reminders
+    remote: nas-2
+    name: "NAS-2 Reminders"
+
+  reminders-combined:
+    type: reminders
+    name: "All Reminders (merged)"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        cards: merge
+      sort_by: date.desc
+
+  reminders-stacked:
+    type: reminders
+    name: "All Reminders (stacked)"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        cards: stack
+
+  reminders-columns:
+    type: reminders
+    name: "All Reminders (columns)"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        cards: columnate
+
+  speedtest-nas-1:
+    type: speedtest
+    remote: nas-1
+    name: "NAS-1 Speedtest"
+    default: chart
+    chart:
+      default_period: 1 month
+
+  speedtest-nas-2:
+    type: speedtest
+    remote: nas-2
+    name: "NAS-2 Speedtest"
+    default: chart
+    chart:
+      default_period: 1 month
+
+  speedtest-combined:
+    type: speedtest
+    name: "All Speedtests (merged)"
+    default: chart
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        chart: merge
+        table: merge
+        button: stack
+    chart:
+      default_period: 1 month
+
+  network-nas-1:
+    type: network
+    remote: nas-1
+    name: "NAS-1 Network"
+    log_file: network.log
+    chirper:
+      interval_seconds: 300
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    alerts:
+      show: true
+      max: 3
+
+  network-nas-2:
+    type: network
+    remote: nas-2
+    name: "NAS-2 Network"
+    log_file: network.log
+    chirper:
+      interval_seconds: 300
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    alerts:
+      show: true
+      max: 3
+
+  network-combined:
+    type: network
+    name: "All Networks (merged)"
+    log_file: network.log
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        tiles: stack
+        uptime: stack
+        outages: merge
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    alerts:
+      show: true
+      max: 5
+
+  network-stacked:
+    type: network
+    name: "All Networks (stacked)"
+    log_file: network.log
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        tiles: stack
+        uptime: stack
+        outages: stack
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    alerts:
+      show: true
+      max: 3
+
+  network-columns:
+    type: network
+    name: "All Networks (columns)"
+    log_file: network.log
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        tiles: columnate
+        uptime: columnate
+        outages: stack
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    alerts:
+      show: true
+      max: 3

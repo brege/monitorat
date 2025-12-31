@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-from flask import Flask, send_from_directory, jsonify
+from flask import Flask, send_from_directory, jsonify, request, Response
 from pathlib import Path
 from urllib.request import urlretrieve
 from datetime import datetime, timedelta, timezone
 import importlib
+import importlib.metadata
 import logging
 import csv
 import json
@@ -18,6 +19,8 @@ try:
         get_project_config_dir,
     )
     from .alerts import NotificationHandler, setup_alert_handler
+    from .auth import require_auth_for_api
+    from .federation import federation_client
 except ImportError:
     from config import (
         config,
@@ -26,6 +29,8 @@ except ImportError:
         get_project_config_dir,
     )
     from alerts import NotificationHandler, setup_alert_handler
+    from auth import require_auth_for_api
+    from federation import federation_client
 
 __all__ = [
     "config",
@@ -47,6 +52,7 @@ if not WWW.exists():
     WWW = BASE
 
 app = Flask(__name__)
+require_auth_for_api(app)
 
 if __name__ != "monitor":
     import sys
@@ -63,6 +69,14 @@ def get_data_path() -> Path:
 
 def is_demo_enabled() -> bool:
     return config["demo"].get(bool)
+
+
+def get_package_version() -> str:
+    """Get monitorat version from package metadata."""
+    try:
+        return importlib.metadata.version("monitorat")
+    except importlib.metadata.PackageNotFoundError:
+        return "dev"
 
 
 _snapshot_providers = {}
@@ -270,6 +284,7 @@ def api_config():
             widgets_merged[key] = config["widgets"][key].flatten()
 
         payload = {
+            "version": get_package_version(),
             "site": config["site"].flatten(),
             "privacy": config["privacy"].flatten(),
             "demo": is_demo_enabled(),
@@ -318,6 +333,67 @@ def api_snapshot():
         }
     )
     return jsonify({"status": "ok"})
+
+
+@app.route("/api/federation/status", methods=["GET"])
+def api_federation_status():
+    """Return health status for all configured remotes."""
+    local_version = get_package_version()
+
+    if not federation_client.enabled:
+        return jsonify({"enabled": False, "version": local_version, "remotes": {}})
+
+    remotes_status = {}
+    for remote_name in federation_client.list_remotes():
+        health = federation_client.health_check(remote_name)
+        if health.get("ok"):
+            try:
+                config_response = federation_client.fetch(remote_name, "/api/config")
+                if config_response.status_code == 200:
+                    remote_config = config_response.json()
+                    health["version"] = remote_config.get("version", "unknown")
+            except Exception:
+                health["version"] = "unknown"
+        remotes_status[remote_name] = health
+
+    return jsonify(
+        {"enabled": True, "version": local_version, "remotes": remotes_status}
+    )
+
+
+@app.route("/api/proxy/<remote_name>/img/<path:subpath>")
+def api_proxy_img(remote_name, subpath):
+    """Proxy image requests to a federated remote."""
+    if not federation_client.enabled:
+        return jsonify({"error": "Federation not enabled"}), 404
+
+    remote = federation_client.get_remote(remote_name)
+    if not remote:
+        return jsonify({"error": f"Remote '{remote_name}' not found"}), 404
+
+    try:
+        response = federation_client.fetch(remote_name, f"/img/{subpath}")
+
+        excluded_headers = {
+            "content-encoding",
+            "content-length",
+            "transfer-encoding",
+            "connection",
+        }
+        headers = [
+            (name, value)
+            for name, value in response.headers.items()
+            if name.lower() not in excluded_headers
+        ]
+
+        return Response(
+            response.content,
+            status=response.status_code,
+            headers=headers,
+        )
+    except Exception as exc:
+        logging.getLogger(__name__).error(f"Image proxy error for {remote_name}: {exc}")
+        return jsonify({"error": str(exc)}), 502
 
 
 @app.route("/favicon.ico")
@@ -413,6 +489,199 @@ def extend_widget_package_path():
         logging.getLogger(__name__).debug(f"Added custom widget path: {custom_path}")
 
 
+def register_remote_widget_proxy(widget_name: str, widget_type: str, remote_name: str):
+    """
+    Register proxy routes for a remote widget.
+
+    Routes like /api/{widget_name}/* proxy to the remote's /api/{widget_type}/*
+    """
+    logger = logging.getLogger(__name__)
+
+    remote = federation_client.get_remote(remote_name)
+    if not remote:
+        logger.error(f"Remote '{remote_name}' not found for widget '{widget_name}'")
+        return
+
+    def make_proxy_handler(widget_name: str, widget_type: str, remote_name: str):
+        def proxy_handler(subpath=""):
+            try:
+                remote_path = f"/api/{widget_type}"
+                if subpath:
+                    remote_path = f"{remote_path}/{subpath}"
+
+                query_string = request.query_string.decode("utf-8")
+                if query_string:
+                    remote_path = f"{remote_path}?{query_string}"
+
+                response = federation_client.fetch(remote_name, remote_path)
+
+                excluded_headers = {
+                    "content-encoding",
+                    "content-length",
+                    "transfer-encoding",
+                    "connection",
+                }
+                headers = [
+                    (name, value)
+                    for name, value in response.headers.items()
+                    if name.lower() not in excluded_headers
+                ]
+
+                return Response(
+                    response.content,
+                    status=response.status_code,
+                    headers=headers,
+                )
+            except Exception as exc:
+                logger.error(f"Proxy error for {widget_name}: {exc}")
+                return jsonify({"error": str(exc)}), 502
+
+        return proxy_handler
+
+    handler = make_proxy_handler(widget_name, widget_type, remote_name)
+
+    app.add_url_rule(
+        f"/api/{widget_name}",
+        endpoint=f"proxy_{widget_name}",
+        view_func=handler,
+        methods=["GET"],
+    )
+    app.add_url_rule(
+        f"/api/{widget_name}/<path:subpath>",
+        endpoint=f"proxy_{widget_name}_subpath",
+        view_func=handler,
+        methods=["GET"],
+    )
+
+    logger.info(f"Registered proxy for {widget_name} -> {remote_name}:{widget_type}")
+
+
+def register_merged_widget_proxy(
+    widget_name: str, widget_type: str, merge_sources: list
+):
+    """
+    Register proxy routes for a merged widget that combines data from multiple remotes.
+    """
+    logger = logging.getLogger(__name__)
+    import concurrent.futures
+
+    valid_sources = []
+    for source_name in merge_sources:
+        remote = federation_client.get_remote(source_name)
+        if remote:
+            valid_sources.append(source_name)
+        else:
+            logger.warning(f"Merge source '{source_name}' not found; skipping")
+
+    if not valid_sources:
+        logger.error(f"No valid sources for merged widget '{widget_name}'")
+        return
+
+    def fetch_with_source(source_name: str, path: str) -> tuple:
+        """Fetch from remote and return (source_name, response_data)."""
+        try:
+            response = federation_client.fetch(source_name, path)
+            if response.status_code == 200:
+                return (source_name, response.json())
+        except Exception as exc:
+            logger.warning(f"Merge fetch from {source_name} failed: {exc}")
+        return (source_name, None)
+
+    def merged_schema_handler():
+        """Return first available schema (all sources should have same schema)."""
+        for source_name in valid_sources:
+            try:
+                response = federation_client.fetch(
+                    source_name, f"/api/{widget_type}/schema"
+                )
+                if response.status_code == 200:
+                    return Response(
+                        response.content,
+                        status=200,
+                        mimetype="application/json",
+                    )
+            except Exception:
+                continue
+        return jsonify({"error": "No sources available"}), 502
+
+    def merged_current_handler():
+        """Return current metrics from first available source."""
+        for source_name in valid_sources:
+            try:
+                response = federation_client.fetch(source_name, f"/api/{widget_type}")
+                if response.status_code == 200:
+                    return Response(
+                        response.content,
+                        status=200,
+                        mimetype="application/json",
+                    )
+            except Exception:
+                continue
+        return jsonify({"error": "No sources available"}), 502
+
+    def merged_history_handler():
+        """Fetch history from all sources, tag with source, merge by timestamp."""
+        query_string = request.query_string.decode("utf-8")
+        path = f"/api/{widget_type}/history"
+        if query_string:
+            path = f"{path}?{query_string}"
+
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=len(valid_sources)
+        ) as executor:
+            futures = {
+                executor.submit(fetch_with_source, src, path): src
+                for src in valid_sources
+            }
+            results = {}
+            for future in concurrent.futures.as_completed(futures):
+                source_name, data = future.result()
+                if data:
+                    results[source_name] = data
+
+        if not results:
+            return jsonify({"error": "No sources available"}), 502
+
+        merged_data = []
+        for source_name, payload in results.items():
+            rows = payload.get("data", [])
+            for row in rows:
+                row["_source"] = source_name
+                merged_data.append(row)
+
+        merged_data.sort(key=lambda r: r.get("timestamp", ""))
+
+        return jsonify({"data": merged_data, "sources": list(results.keys())})
+
+    def merged_proxy_handler(subpath=""):
+        """Route to appropriate merged handler based on subpath."""
+        if subpath == "schema":
+            return merged_schema_handler()
+        elif subpath == "history":
+            return merged_history_handler()
+        elif subpath == "" or subpath is None:
+            return merged_current_handler()
+        else:
+            return jsonify({"error": f"Unknown subpath: {subpath}"}), 404
+
+    app.add_url_rule(
+        f"/api/{widget_name}",
+        endpoint=f"merge_{widget_name}",
+        view_func=merged_proxy_handler,
+        methods=["GET"],
+    )
+    app.add_url_rule(
+        f"/api/{widget_name}/<path:subpath>",
+        endpoint=f"merge_{widget_name}_subpath",
+        view_func=merged_proxy_handler,
+        methods=["GET"],
+    )
+
+    logger.info(
+        f"Registered merge proxy for {widget_name} -> [{', '.join(valid_sources)}]"
+    )
+
+
 def register_widgets():
     """Register widgets based on configured order."""
     extend_widget_package_path()
@@ -436,6 +705,18 @@ def register_widgets():
             continue
 
         widget_type = widget_cfg.get("type", widget_name)
+        remote_name = widget_cfg.get("remote")
+        federation_cfg = widget_cfg.get("federation", {})
+        merge_sources = federation_cfg.get("merge") if federation_cfg else None
+
+        if merge_sources and isinstance(merge_sources, list):
+            register_merged_widget_proxy(widget_name, widget_type, merge_sources)
+            continue
+
+        if remote_name:
+            register_remote_widget_proxy(widget_name, widget_type, remote_name)
+            continue
+
         module_name = f"widgets.{widget_type}.api"
 
         try:
@@ -446,7 +727,6 @@ def register_widgets():
             continue
 
         if hasattr(module, "register_routes"):
-            # special case: wiki widget supports multiple instances
             if widget_type == "wiki":
                 module.register_routes(app, widget_name)
             else:

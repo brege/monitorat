@@ -1,28 +1,6 @@
 <section class="metrics">
 <h2>System Metrics</h2>
 <style>
-.stats { display: flex; flex-direction: column; gap: 14px; margin: 18px 0 24px; }
-.stats-row { display: grid; gap: 14px; }
-.stats-row.primary { grid-template-columns: repeat(4, 1fr); }
-.stats-row.dates { grid-template-columns: repeat(2, 1fr); }
-.stat { background: var(--bg-card); padding: 14px 16px; border-radius: 8px; }
-.stat.status-ok { background-color: rgba(var(--status-ok-rgb), 0.08); border-left: 4px solid rgb(var(--status-ok-rgb)); }
-.stat.status-caution { background-color: rgba(var(--status-warn-rgb), 0.12); border-left: 4px solid rgb(var(--status-warn-rgb)); }
-.stat.status-critical { background-color: rgba(var(--status-critical-rgb), 0.12); border-left: 4px solid rgb(var(--status-critical-rgb)); }
-.stat .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-label); margin-bottom: 6px; display: block; }
-.stat .value { font-size: 1.35rem; font-weight: 600; }
-.metrics .gaps-toggle {
-  font-size: 0.85rem;
-  color: var(--accent);
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  font-weight: 400;
-}
-.metrics .gaps-toggle:hover {
-  text-decoration: underline;
-}
 .metrics-chart {
   margin: 1rem 0;
   overflow: hidden;
@@ -37,51 +15,50 @@
   margin-bottom: 1rem;
   align-items: center;
 }
-.metrics-view-toggle .gaps-toggle.active {
+.metrics-view-toggle .alerts-toggle.active {
   font-weight: 600;
 }
-@media (max-width: 640px) {
-  .stats-row.primary { grid-template-columns: repeat(2, 1fr); }
-  .stats-row.dates { grid-template-columns: 1fr; }
+.metrics-view-toggle .view-toggle-spacer {
+  flex: 1;
 }
 </style>
 
 <div class="stats">
   <div class="stats-row primary">
-    <div class="stat">
+    <div class="stat status-card">
       <span class="label">Uptime</span>
       <span class="value" id="uptime-value">–</span>
     </div>
-    <div class="stat">
+    <div class="stat status-card">
       <span class="label">Load Average</span>
       <span class="value" id="load-value">–</span>
     </div>
-    <div class="stat">
+    <div class="stat status-card">
       <span class="label">Memory Usage</span>
       <span class="value" id="memory-value">–</span>
     </div>
-    <div class="stat">
+    <div class="stat status-card">
       <span class="label">Temperature</span>
       <span class="value" id="temp-value">–</span>
     </div>
   </div>
   <div class="stats-row dates">
-    <div class="stat">
+    <div class="stat status-card">
       <span class="label">Disk Usage</span>
       <span class="value" id="disk-value">–</span>
     </div>
-    <div class="stat">
+    <div class="stat status-card">
       <span class="label">NFS Storage</span>
       <span class="value" id="storage-value">–</span>
     </div>
   </div>
 </div>
 
-<div class="metrics-history">
-  <div class="metrics-view-toggle" data-metrics="view-toggle" style="display: none;">
-    <button type="button" class="gaps-toggle" data-metrics="view-table">Table</button>
-    <button type="button" class="gaps-toggle" data-metrics="view-chart">Chart</button>
-    <select class="gaps-toggle" data-metrics="metric-select" style="display: none;">
+  <div class="metrics-history">
+    <div class="metrics-view-toggle" data-metrics="view-toggle" style="display: none;">
+      <button type="button" class="alerts-toggle" data-metrics="view-table">Table</button>
+      <button type="button" class="alerts-toggle" data-metrics="view-chart">Chart</button>
+      <select class="alerts-toggle" data-metrics="metric-select" style="display: none;">
       <option value="cpu_memory">CPU + Memory</option>
       <option value="cpu_percent">CPU %</option>
       <option value="memory_percent">Memory %</option>
@@ -90,10 +67,14 @@
       <option value="temp_c">Temperature</option>
       <option value="load_1min">Load Average</option>
       <option value="battery_percent">Battery %</option>
-    </select>
-    <select class="gaps-toggle" data-metrics="period-select" style="display: none;">
-    </select>
-  </div>
+      </select>
+      <select class="alerts-toggle" data-metrics="period-select" style="display: none;">
+      </select>
+      <select class="alerts-toggle" data-metrics="node-select" style="display: none;">
+      </select>
+      <span class="view-toggle-spacer"></span>
+      <button type="button" class="alerts-toggle" data-metrics="download-csv">Download CSV</button>
+    </div>
   
   <div class="metrics-chart" data-metrics="chart-container" style="display: none;">
     <canvas data-metrics="chart"></canvas>
@@ -119,7 +100,7 @@
       </thead>
       <tbody data-metrics="rows"></tbody>
     </table>
-    <button type="button" class="gaps-toggle" data-metrics="toggle">Show more</button>
+    <button type="button" class="alerts-toggle" data-metrics="toggle">Show more</button>
   </div>
 </div>
 </section>

@@ -356,4 +356,15 @@ def register_routes(app):
         result = send_test_notification()
         return jsonify({"success": result})
 
+    @app.route("/api/reminders/schema", methods=["GET"])
+    def api_reminders_schema():
+        import json
+
+        schema_path = Path(__file__).parent / "schema.json"
+        with open(schema_path) as f:
+            schema = json.load(f)
+        from flask import jsonify
+
+        return jsonify(schema)
+
     _ensure_scheduler_initialized()

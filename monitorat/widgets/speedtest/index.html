@@ -1,16 +1,4 @@
 <style>
-.speedtests .gaps-toggle {
-  font-size: 0.85rem;
-  color: var(--accent);
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  font-weight: 400;
-}
-.speedtests .gaps-toggle:hover {
-  text-decoration: underline;
-}
 .speedtest-chart {
   margin: 1rem 0;
   overflow: hidden;
@@ -25,8 +13,11 @@
   margin-bottom: 1rem;
   align-items: center;
 }
-.speedtest-view-toggle .gaps-toggle.active {
+.speedtest-view-toggle .alerts-toggle.active {
   font-weight: 600;
+}
+.speedtest-view-toggle .view-toggle-spacer {
+  flex: 1;
 }
 </style>
 
@@ -44,11 +35,15 @@
     </div>
     
     <div class="speedtest-view-toggle" data-speedtest="view-toggle" style="display: none;">
-      <button type="button" class="gaps-toggle" data-speedtest="view-table">Table</button>
-      <button type="button" class="gaps-toggle" data-speedtest="view-chart">Chart</button>
-      <select class="gaps-toggle" data-speedtest="metric-select" style="display: none;"></select>
-      <select class="gaps-toggle" data-speedtest="period-select" style="display: none;">
+      <button type="button" class="alerts-toggle" data-speedtest="view-table">Table</button>
+      <button type="button" class="alerts-toggle" data-speedtest="view-chart">Chart</button>
+      <select class="alerts-toggle" data-speedtest="metric-select" style="display: none;"></select>
+      <select class="alerts-toggle" data-speedtest="period-select" style="display: none;">
       </select>
+      <select class="alerts-toggle" data-speedtest="node-select" style="display: none;">
+      </select>
+      <span class="view-toggle-spacer"></span>
+      <button type="button" class="alerts-toggle" data-speedtest="download-csv">Download CSV</button>
     </div>
     
     <div class="speedtest-chart" data-speedtest="chart-container" style="display: none;">
@@ -69,7 +64,7 @@
         </thead>
         <tbody data-speedtest="rows"></tbody>
       </table>
-      <button type="button" class="gaps-toggle" data-speedtest="toggle">Show more</button>
+      <button type="button" class="alerts-toggle" data-speedtest="toggle">Show more</button>
     </div>
   </div>
 </section>

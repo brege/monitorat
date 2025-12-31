@@ -69,6 +69,69 @@ def get_threshold_settings():
     return metrics_config()["thresholds"].get(dict)
 
 
+def downsample_lttb(
+    data: List[dict], target_points: int, value_key: str = "cpu_percent"
+) -> List[dict]:
+    """
+    Downsample time series data using Largest Triangle Three Buckets (LTTB).
+    Preserves visual shape while reducing point count.
+    """
+    n = len(data)
+    if n <= target_points:
+        return data
+
+    sampled = [data[0]]
+    bucket_size = (n - 2) / (target_points - 2)
+
+    for i in range(target_points - 2):
+        bucket_start = int((i + 1) * bucket_size) + 1
+        bucket_end = int((i + 2) * bucket_size) + 1
+        if bucket_end > n - 1:
+            bucket_end = n - 1
+
+        avg_x = 0
+        avg_y = 0
+        next_start = int((i + 2) * bucket_size) + 1
+        next_end = int((i + 3) * bucket_size) + 1
+        if next_end > n - 1:
+            next_end = n - 1
+        count = next_end - next_start
+        if count > 0:
+            for j in range(next_start, next_end):
+                avg_x += j
+                try:
+                    avg_y += float(data[j].get(value_key, 0) or 0)
+                except (ValueError, TypeError):
+                    pass
+            avg_x /= count
+            avg_y /= count
+
+        max_area = -1
+        max_idx = bucket_start
+        prev_x = len(sampled) - 1
+        try:
+            prev_y = float(sampled[-1].get(value_key, 0) or 0)
+        except (ValueError, TypeError):
+            prev_y = 0
+
+        for j in range(bucket_start, bucket_end):
+            try:
+                curr_y = float(data[j].get(value_key, 0) or 0)
+            except (ValueError, TypeError):
+                curr_y = 0
+            area = abs(
+                (prev_x - avg_x) * (curr_y - prev_y) - (prev_x - j) * (avg_y - prev_y)
+            )
+            if area > max_area:
+                max_area = area
+                max_idx = j
+
+        sampled.append(data[max_idx])
+
+    sampled.append(data[-1])
+    return sampled
+
+
 def get_uptime():
     """Get system uptime as formatted string"""
     try:
@@ -552,10 +615,9 @@ def register_routes(app):
 
     @app.route("/api/metrics/history", methods=["GET"])
     def api_metrics_history():
-        """Get historical metrics data from CSV with optional period filtering"""
+        """Get historical metrics data with optional period filtering and downsampling."""
         try:
             data = csv_handler.read_all()
-            # Apply period filtering if specified
             period = request.args.get("period")
             if period and period.lower() != "all":
                 now_override = None
@@ -564,7 +626,12 @@ def register_routes(app):
                     if last_timestamp:
                         now_override = last_timestamp + timedelta(minutes=1)
                 data = filter_data_by_period(data, period, now_override)
-            # Return all filtered data
+
+            max_points_param = request.args.get("max_points")
+            max_points = int(max_points_param) if max_points_param else 1500
+            if len(data) > max_points:
+                data = downsample_lttb(data, max_points)
+
             return app.response_class(
                 response=json.dumps({"data": data}),
                 status=200,

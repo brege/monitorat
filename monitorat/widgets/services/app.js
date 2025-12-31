@@ -2,20 +2,84 @@
 class ServicesWidget {
   constructor (config = {}) {
     this.container = null
-    this.servicesConfig = null
+    this.servicesData = []
+    this.statusBySource = {}
     this.config = config
+    this.features = {
+      controls: null,
+      snapshot: null
+    }
+  }
+
+  getApiBase () {
+    return this.config._apiPrefix ? `api/${this.config._apiPrefix}` : 'api/services'
+  }
+
+  getImgBase () {
+    return this.config.remote ? `api/proxy/${this.config.remote}/img` : 'img'
+  }
+
+  getDisplayStrategy () {
+    return this.config.federation?.display?.cards || 'merge'
+  }
+
+  sortServices (services) {
+    const sortBy = this.config.sort_by || 'name.asc'
+    const [field, direction] = sortBy.split('.')
+    const ascending = direction !== 'desc'
+
+    const statusOrder = { ok: 0, unknown: 1, down: 2 }
+
+    return [...services].sort((a, b) => {
+      let valueA, valueB
+
+      switch (field) {
+        case 'name':
+          valueA = (a.name || '').toLowerCase()
+          valueB = (b.name || '').toLowerCase()
+          break
+        case 'status':
+          valueA = statusOrder[this.getServiceStatus(a)] ?? 1
+          valueB = statusOrder[this.getServiceStatus(b)] ?? 1
+          break
+        default:
+          return 0
+      }
+
+      if (valueA < valueB) return ascending ? -1 : 1
+      if (valueA > valueB) return ascending ? 1 : -1
+      return 0
+    })
+  }
+
+  getServiceStatus (service) {
+    const statusData = service._source
+      ? (this.statusBySource[service._source] || {})
+      : (this.statusBySource._local || {})
+
+    const checks = [
+      ...(service.containers || []),
+      ...(service.services || []),
+      ...(service.timers || [])
+    ]
+
+    for (const check of checks) {
+      if (statusData[check] === 'down') return 'down'
+    }
+    for (const check of checks) {
+      if (statusData[check] === 'unknown') return 'unknown'
+    }
+    return 'ok'
   }
 
   async init (container, config = {}) {
     this.container = container
     this.config = { ...this.config, ...config }
 
-    // Load HTML template
     const response = await fetch('widgets/services/index.html')
     const html = await response.text()
     container.innerHTML = html
 
-    // Update section title from config (unless suppressed by collapsible wrapper)
     const applyWidgetHeader = window.monitor?.applyWidgetHeader
     if (applyWidgetHeader) {
       applyWidgetHeader(container, {
@@ -24,20 +88,28 @@ class ServicesWidget {
       })
     }
 
-    // Load initial data
+    await this.loadFeatureScripts()
+    this.initializeFeatures()
+    this.features.controls.initialize()
     await this.loadData()
   }
 
   async loadData () {
     try {
-      // Load services configuration first
-      await this.loadServices()
+      const mergeSources = this.config.federation?.merge
+      if (mergeSources && Array.isArray(mergeSources)) {
+        await this.loadMergedServices(mergeSources)
+      } else {
+        await this.loadServices()
+      }
 
-      // Render the cards
       this.render()
 
-      // Then load status data
-      await this.loadStatus()
+      if (this.config.federation?.merge) {
+        await this.loadMergedStatus()
+      } else {
+        await this.loadStatus()
+      }
     } catch (error) {
       console.error('Unable to load services:', error.message)
     }
@@ -45,133 +117,110 @@ class ServicesWidget {
 
   async loadServices () {
     try {
-      const configResponse = await fetch('api/services')
+      const configResponse = await fetch(this.getApiBase())
       if (!configResponse.ok) {
         throw new Error(`HTTP ${configResponse.status}`)
       }
       const servicesConfig = await configResponse.json()
-      this.servicesConfig = servicesConfig
+      this.servicesData = Object.entries(servicesConfig.services || {}).map(([key, service]) => ({
+        ...service,
+        _key: key,
+        _source: this.config.remote || null
+      }))
     } catch (error) {
       console.error('Unable to load services config:', error.message)
       throw error
     }
   }
 
+  async loadMergedServices (sources) {
+    const results = await Promise.all(
+      sources.map(async (source) => {
+        try {
+          const response = await fetch(`api/services-${source}`)
+          if (!response.ok) {
+            console.warn(`Failed to fetch services from ${source}: HTTP ${response.status}`)
+            return []
+          }
+          const config = await response.json()
+          return Object.entries(config.services || {}).map(([key, service]) => ({
+            ...service,
+            _key: key,
+            _source: source
+          }))
+        } catch (error) {
+          console.warn(`Failed to fetch services from ${source}:`, error.message)
+          return []
+        }
+      })
+    )
+
+    this.servicesData = results.flat()
+  }
+
   async loadStatus () {
     try {
-      const response = await fetch('api/services/status')
+      const response = await fetch(`${this.getApiBase()}/status`)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
       }
       const statusData = await response.json()
-      this.update(statusData)
+      this.statusBySource = { _local: statusData }
+      this.updateStatus()
     } catch (error) {
       console.error('Unable to load service status:', error.message)
     }
   }
 
-  render () {
-    const container = document.getElementById('service-cards')
-    if (!container || !this.servicesConfig) return
-
-    container.innerHTML = ''
-
-    Object.entries(this.servicesConfig.services).forEach(([key, service]) => {
-      const card = document.createElement('div')
-      card.className = 'service-card'
-      card.setAttribute('data-service-key', key)
-
-      const icon = document.createElement('img')
-      icon.className = 'service-icon'
-      icon.src = `img/${service.icon}`
-      icon.alt = service.name
-
-      const info = document.createElement('div')
-      info.className = 'service-info'
-
-      const name = document.createElement('div')
-      name.className = 'service-name'
-      name.textContent = service.name
-
-      const status = document.createElement('div')
-      status.className = 'service-status'
-      status.textContent = 'Loading...'
-
-      info.appendChild(name)
-      info.appendChild(status)
-
-      card.appendChild(icon)
-      card.appendChild(info)
-
-      card.addEventListener('click', (event) => {
-        const useLocal = event.shiftKey && (event.ctrlKey || event.metaKey)
-        const url = useLocal ? (service.local || service.url) : service.url
-        if (url) {
-          window.open(url, '_blank')
+  async loadMergedStatus () {
+    const sources = this.config.federation?.merge || []
+    const results = await Promise.all(
+      sources.map(async (source) => {
+        try {
+          const response = await fetch(`api/services-${source}/status`)
+          if (!response.ok) return { source, status: {} }
+          const status = await response.json()
+          return { source, status }
+        } catch (error) {
+          return { source, status: {} }
         }
       })
+    )
 
-      container.appendChild(card)
+    this.statusBySource = {}
+    results.forEach(({ source, status }) => {
+      this.statusBySource[source] = status
     })
+    this.updateStatus()
   }
 
-  update (statusData) {
-    if (!this.servicesConfig) return
+  render () {
+    this.features.snapshot.render()
+  }
 
-    Object.entries(this.servicesConfig.services).forEach(([key, service]) => {
-      const statusElement = document.querySelector(`[data-service-key="${key}"]`)
-      if (!statusElement) return
+  updateStatus () {
+    this.features.snapshot.updateStatus()
+  }
 
-      let overallStatus = 'ok'
-      const statusParts = []
+  async loadFeatureScripts () {
+    const featureScripts = [
+      { globalName: 'ServicesControls', source: 'widgets/services/features/controls.js' },
+      { globalName: 'ServicesSnapshot', source: 'widgets/services/features/snapshot.js' }
+    ]
 
-      // Check containers
-      if (service.containers) {
-        service.containers.forEach(container => {
-          const status = statusData[container]
-          if (status === 'down') overallStatus = 'down'
-          else if (status === 'unknown' && overallStatus === 'ok') overallStatus = 'unknown'
-          statusParts.push(`${container}: ${status || 'unknown'}`)
-        })
-      }
+    await window.monitorShared.loadFeatureScripts(featureScripts)
+  }
 
-      // Check services
-      if (service.services) {
-        service.services.forEach(svc => {
-          const status = statusData[svc]
-          if (status === 'down') overallStatus = 'down'
-          else if (status === 'unknown' && overallStatus === 'ok') overallStatus = 'unknown'
-          statusParts.push(`${svc}: ${status || 'unknown'}`)
-        })
-      }
+  initializeFeatures () {
+    const ControlsFeature = window.ServicesControls
+    const SnapshotFeature = window.ServicesSnapshot
 
-      // Check timers
-      if (service.timers) {
-        service.timers.forEach(timer => {
-          const status = statusData[timer]
-          if (status === 'down') overallStatus = 'down'
-          else if (status === 'unknown' && overallStatus === 'ok') overallStatus = 'unknown'
-          statusParts.push(`${timer}: ${status || 'unknown'}`)
-        })
-      }
+    if (!ControlsFeature || !SnapshotFeature) {
+      throw new Error('Services feature scripts not loaded')
+    }
 
-      // Update card status
-      const card = statusElement.closest('.service-card')
-      card.className = `service-card status-${overallStatus}`
-
-      // Update status text and tooltip (matching original logic)
-      const statusTextElement = statusElement.querySelector('.service-status')
-      if (statusTextElement) {
-        statusTextElement.className = 'service-status'
-        statusTextElement.textContent = overallStatus === 'ok'
-          ? 'Running'
-          : overallStatus === 'down' ? 'Stopped' : 'Unknown'
-        // Combine status details with click behavior
-        const service = this.servicesConfig.services[key]
-        const clickTip = `Click: ${service.url}\nCtrl+Shift+Click: ${service.local || service.url}`
-        statusTextElement.title = statusParts.join('\n') + '\n\n' + clickTip
-      }
-    })
+    this.features.controls = new ControlsFeature(this)
+    this.features.snapshot = new SnapshotFeature(this)
   }
 }
 

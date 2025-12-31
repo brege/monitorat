@@ -1,0 +1,10 @@
+widgets:
+  reminders:  # uses top-level notification settings
+    name: Reminders
+    collapsible: true
+    hidden: false
+    state_file: reminders.json  # relative to data path, or absolute 
+    nudges: [14, 7]  # days, lower priority (apprise param 0)
+    urgents: [3, 1, 0]  # days, higher priority (apprise param 1 or 2)
+    time: "23:55"  # what time to check
+    items: {}  # { protonmail: {} ; GitHub SSH Keys: {} ; ... }

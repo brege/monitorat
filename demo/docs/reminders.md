@@ -2,7 +2,6 @@
 
 The Reminders widget tracks expiring items and sends nudges or urgent notifications based on your schedule.
 
-#### Config
 <details>
 <summary><b>Show config</b></summary>
 

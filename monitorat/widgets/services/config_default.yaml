@@ -1,0 +1,6 @@
+widgets:
+  services:  # service monitoring
+    name: Services
+    collapsible: true
+    hidden: false
+    items: {}  # { plex: {} ; jellyfin: {} ; ... }

@@ -46,8 +46,11 @@ def register_routes(app, instance="wiki"):
             return send_from_directory(BASE, "README.md")
 
         doc_path = doc_view.get(str)
+        if not doc_path:
+            return send_from_directory(BASE, "README.md")
+
         doc_file = Path(doc_view.as_filename())
-        if not doc_file.exists():
+        if not doc_file.exists() or doc_file.is_dir():
             logging.getLogger(__name__).error(
                 "Wiki doc path missing (widget=%s, doc=%s, resolved=%s)",
                 widget_name,
@@ -63,3 +66,12 @@ def register_routes(app, instance="wiki"):
         markdown_text = doc_file.read_text(encoding="utf-8")
         rendered_text = render_markdown_with_includes(markdown_text, documentation_root)
         return Response(rendered_text, mimetype="text/markdown")
+
+    @app.route("/api/wiki/schema", endpoint=f"wiki_schema_{instance}")
+    def wiki_schema():
+        import json
+
+        schema_path = Path(__file__).parent / "schema.json"
+        with open(schema_path) as f:
+            schema = json.load(f)
+        return jsonify(schema)

@@ -2,11 +2,13 @@ class WikiWidget {
   constructor (config = {}) {
     this.container = null
     this.config = config
+    this.apiPrefix = config._apiPrefix || 'wiki'
   }
 
   async init (container, config = {}) {
     this.container = container
     this.config = { ...this.config, ...config }
+    this.apiPrefix = config._apiPrefix || this.apiPrefix
 
     const response = await fetch('widgets/wiki/index.html')
     const html = await response.text()
@@ -20,30 +22,62 @@ class WikiWidget {
       })
     }
 
+    const mode = this.config.mode || 'featured'
+    const allowedModes = new Set(['featured', 'seamless', 'rail'])
+    if (!allowedModes.has(mode)) {
+      throw new Error(`Unknown wiki mode: ${mode}`)
+    }
+    const notesContainer = this.container.querySelector('.notes')
+    if (notesContainer) {
+      notesContainer.dataset.mode = mode
+    }
+
     await this.loadContent()
   }
 
+  getDisplayStrategy () {
+    return this.config.federation?.display?.document || 'stack'
+  }
+
+  getMarkdownRenderer () {
+    return window.markdownit({ html: true })
+      .use(window.markdownItAnchor, {
+        permalink: window.markdownItAnchor.permalink.linkInsideHeader({
+          symbol: '#',
+          placement: 'after'
+        })
+      })
+      .use(window.markdownItTocDoneRight)
+  }
+
   async loadContent () {
+    const mergeSources = this.config.federation?.merge
+    if (mergeSources && Array.isArray(mergeSources)) {
+      await this.loadMergedContent(mergeSources)
+    } else {
+      await this.loadSingleContent()
+    }
+  }
+
+  async loadSingleContent () {
     try {
       const widgetName = this.config._widgetName || 'wiki'
-      const docPath = this.config.doc
-        ? `api/wiki/doc?widget=${widgetName}`
-        : 'README.md'
+      const isRemote = this.config._apiPrefix !== undefined
+      let docPath
+      if (this.config.doc) {
+        docPath = isRemote
+          ? `api/${this.apiPrefix}/doc`
+          : `api/${this.apiPrefix}/doc?widget=${widgetName}`
+      } else {
+        docPath = 'README.md'
+      }
       const response = await fetch(docPath)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
       }
       const text = await response.text()
 
-      const md = window.markdownit({ html: true })
-        .use(window.markdownItAnchor, {
-          permalink: window.markdownItAnchor.permalink.linkInsideHeader({
-            symbol: '#',
-            placement: 'after'
-          })
-        })
-        .use(window.markdownItTocDoneRight)
-
+      const md = this.getMarkdownRenderer()
       const notesElement = this.container.querySelector('#about-notes')
       if (notesElement) {
         notesElement.innerHTML = md.render(text)
@@ -54,6 +88,100 @@ class WikiWidget {
         notesElement.innerHTML = `<p class="muted">Unable to load documentation: ${error.message}</p>`
       }
     }
+  }
+
+  async loadMergedContent (sources) {
+    const results = await Promise.all(
+      sources.map(async (source) => {
+        try {
+          const response = await fetch(`api/wiki-${source}/doc`)
+          if (!response.ok) {
+            return { source, content: null, error: `HTTP ${response.status}` }
+          }
+          const text = await response.text()
+          return { source, content: text, error: null }
+        } catch (error) {
+          return { source, content: null, error: error.message }
+        }
+      })
+    )
+
+    const notesElement = this.container.querySelector('#about-notes')
+    if (!notesElement) return
+
+    const strategy = this.getDisplayStrategy()
+    const md = this.getMarkdownRenderer()
+
+    if (strategy === 'columnate') {
+      this.renderColumnated(notesElement, results, md)
+    } else {
+      this.renderStacked(notesElement, results, md)
+    }
+  }
+
+  shouldShowBadges () {
+    return this.config.federation?.show_badges !== false
+  }
+
+  renderStacked (container, results, md) {
+    container.innerHTML = ''
+    const showBadges = this.shouldShowBadges()
+
+    for (const result of results) {
+      const section = document.createElement('div')
+      section.className = 'federation-stack-section'
+
+      if (showBadges) {
+        const header = document.createElement('div')
+        header.className = 'federation-source-header'
+        header.textContent = result.source
+        section.appendChild(header)
+      }
+
+      const content = document.createElement('div')
+      content.className = 'wiki-source-content'
+      if (result.content) {
+        content.innerHTML = md.render(result.content)
+      } else {
+        content.innerHTML = `<p class="muted">Unable to load: ${result.error}</p>`
+      }
+      section.appendChild(content)
+
+      container.appendChild(section)
+    }
+  }
+
+  renderColumnated (container, results, md) {
+    container.innerHTML = ''
+    const showBadges = this.shouldShowBadges()
+
+    const columns = document.createElement('div')
+    columns.className = 'federation-columns wiki-columns'
+
+    for (const result of results) {
+      const column = document.createElement('div')
+      column.className = 'federation-column'
+
+      if (showBadges) {
+        const header = document.createElement('div')
+        header.className = 'federation-source-header'
+        header.textContent = result.source
+        column.appendChild(header)
+      }
+
+      const content = document.createElement('div')
+      content.className = 'wiki-source-content'
+      if (result.content) {
+        content.innerHTML = md.render(result.content)
+      } else {
+        content.innerHTML = `<p class="muted">Unable to load: ${result.error}</p>`
+      }
+      column.appendChild(content)
+
+      columns.appendChild(column)
+    }
+
+    container.appendChild(columns)
   }
 }
 
