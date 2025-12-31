@@ -1,5 +1,25 @@
 ## Changelog
 
+### 2025-12-30
+
+- Complete test apparatus implemented:
+  - test/harness.py introduced 26 smoke tests to check basic asserts/API response
+  - test/dev.py allows for launching multipl, local instances of monitorat
+  - --widget [metrics|network|...] allows for launching only a simplified, one-widget page
+  - Launces a head node and two "remote" nodes in one harness
+- Fixed discovered DOM collisions from federation
+- Added API-prefixes so clients, nodes can distinguish data on same widgets
+- Bumped version to v0.8.1
+- Renamed "gaps" CSS naming to "alerts"
+- Added style switches to Wiki widget: seamless|featured|rail
+- Serve services, reminders icons through API
+- All widgets now have Schema
+- All widget-specific configuration atomized into an includes' config snippets
+- All widget client app.js chunked into features: {chart|table|snapshot|...}.js
+- All widgets have decided-upon merging behaviors in federation; network widget still WIP
+- Centralize data-downloaders (CSV, etc), table/chart/node filters in one standard container
+- All widget federation tested with test/dev.py: merging, stacking, side-by-side, interleaving
+
 ### 2025-12-29
 
 - Created new branch: federation
@@ -7,6 +27,10 @@
 - Created test fixtures and a test harness to launch multiple instances at once
 - Extended demo/inti.py to demo/setup.py that bootstraps -t test's and -d demo's
 - Packages added: httpx, Flask-HTTPAuth
+- Began backfilling this changelog
+- Bumped version to v0.8
+- Removed documentation scripts--these are not appropriate for this project
+- Added LTTB sampling to clamp data points at 1500 for faster rendering, data transfer
 
 ### 2025-12-28
 
