@@ -163,6 +163,15 @@ class NetworkWidget {
   }
 
   async loadLog () {
+    const mergeSources = this.config.federation?.merge
+    if (mergeSources && Array.isArray(mergeSources)) {
+      await this.loadMergedLogs(mergeSources)
+    } else {
+      await this.loadSingleLog()
+    }
+  }
+
+  async loadSingleLog () {
     setText(this.elements.logStatus, 'Loading log…')
 
     if (!this.config.log_file) {
@@ -220,6 +229,51 @@ class NetworkWidget {
     }
   }
 
+  async loadMergedLogs (sources) {
+    setText(this.elements.logStatus, 'Loading logs…')
+
+    this.state.sources = sources
+    this.state.sourceStates = {}
+
+    const results = await Promise.all(
+      sources.map(async (source) => {
+        try {
+          const response = await fetch(`api/network-${source}/log?${Date.now()}`, { cache: 'no-store' })
+          if (!response.ok) {
+            console.warn(`Failed to fetch network log from ${source}: HTTP ${response.status}`)
+            return { source, entries: [], analysis: null, error: `HTTP ${response.status}` }
+          }
+          const text = await response.text()
+          const entries = parseLog(text)
+          const analysis = analyzeEntries(entries, this.periodsConfig, this.expectedIntervalMs, this.resolveNowOverride())
+          return { source, entries, analysis, error: null }
+        } catch (error) {
+          console.warn(`Failed to fetch network log from ${source}:`, error.message)
+          return { source, entries: [], analysis: null, error: error.message }
+        }
+      })
+    )
+
+    let totalEntries = 0
+    for (const result of results) {
+      this.state.sourceStates[result.source] = {
+        entries: result.entries,
+        analysis: result.analysis,
+        error: result.error
+      }
+      totalEntries += result.entries.length
+    }
+
+    this.state.alertsExpanded = false
+    this.renderAllMerged()
+
+    if (totalEntries) {
+      setText(this.elements.logStatus, `Loaded ${totalEntries.toLocaleString()} log entries from ${sources.length} sources.`)
+    } else {
+      setText(this.elements.logStatus, 'No log entries found.')
+    }
+  }
+
   downloadLog () {
     if (!this.config.log_file) {
       return
@@ -261,6 +315,269 @@ class NetworkWidget {
     this.features.snapshot.render()
     this.features.uptime.render()
     this.features.outages.render()
+  }
+
+  renderAllMerged () {
+    const sources = this.state.sources || []
+    const sourceStates = this.state.sourceStates || {}
+
+    this.renderMergedSnapshot(sources, sourceStates)
+    this.renderMergedUptime(sources, sourceStates)
+    this.renderMergedOutages(sources, sourceStates)
+  }
+
+  renderMergedSnapshot (sources, sourceStates) {
+    if (!this.config.metrics.show) return
+
+    const container = this.elements.sections.metrics
+    if (!container) return
+
+    const existingStats = container.querySelector('.stats-row')
+    if (existingStats) {
+      existingStats.style.display = 'none'
+    }
+
+    let mergedContainer = container.querySelector('.federation-merged-snapshots')
+    if (!mergedContainer) {
+      mergedContainer = document.createElement('div')
+      mergedContainer.className = 'federation-merged-snapshots'
+      container.appendChild(mergedContainer)
+    }
+    mergedContainer.innerHTML = ''
+
+    for (const source of sources) {
+      const sourceState = sourceStates[source]
+      const analysis = sourceState?.analysis
+
+      const section = document.createElement('div')
+      section.className = 'federation-stack-section'
+
+      const header = document.createElement('div')
+      header.className = 'federation-source-header'
+      header.textContent = source
+      section.appendChild(header)
+
+      const stats = document.createElement('div')
+      stats.className = 'network-merged-stats'
+      stats.innerHTML = `
+        <div class="stat-row">
+          <span class="stat-label">Uptime:</span>
+          <span class="stat-value">${analysis?.uptimeText || '–'}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Checks:</span>
+          <span class="stat-value">${analysis?.entries?.length ? this.helpers.formatNumber(analysis.entries.length) : '–'}</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Missed:</span>
+          <span class="stat-value">${analysis?.missedChecks !== undefined ? this.helpers.formatNumber(analysis.missedChecks) : '–'}</span>
+        </div>
+      `
+      section.appendChild(stats)
+      mergedContainer.appendChild(section)
+    }
+  }
+
+  renderMergedUptime (sources, sourceStates) {
+    if (!this.config.uptime.show || !this.elements.uptimeRows) return
+
+    const container = this.elements.uptimeRows
+    container.innerHTML = ''
+
+    for (const source of sources) {
+      const sourceState = sourceStates[source]
+      const analysis = sourceState?.analysis
+      const stats = analysis?.windowStats || []
+
+      const section = document.createElement('div')
+      section.className = 'federation-stack-section'
+
+      const header = document.createElement('div')
+      header.className = 'federation-source-header'
+      header.textContent = source
+      section.appendChild(header)
+
+      if (!stats.length) {
+        const info = document.createElement('p')
+        info.className = 'muted'
+        info.textContent = sourceState?.error || 'No log data available.'
+        section.appendChild(info)
+      } else {
+        for (const stat of stats) {
+          const row = document.createElement('div')
+          row.className = 'uptime-item'
+          row.innerHTML = `
+            <div class="uptime-row">
+              <div class="uptime-label">${stat.label}</div>
+              <div class="uptime-pills" style="grid-template-columns: repeat(${Math.max(1, stat.segments.length)}, minmax(0, 1fr));">
+                ${stat.segments.map(segment => {
+                  const statusClass = this.getSegmentClass(segment)
+                  return `<div class="uptime-pill ${statusClass}" title="${this.helpers.buildSegmentTooltip(stat.label, segment, this.expectedIntervalMs)}"></div>`
+                }).join('')}
+              </div>
+              <div class="uptime-value">${this.helpers.formatPercent(stat.uptime)}</div>
+            </div>
+          `
+          section.appendChild(row)
+        }
+      }
+
+      container.appendChild(section)
+    }
+  }
+
+  getSegmentClass (segment) {
+    if (segment.available === 0) return 'future'
+    if (!segment.expected) return 'idle'
+    if (segment.status === 'systemDown') return 'bad'
+    if (segment.status === 'connectionFailure') return 'warn'
+    return 'ok'
+  }
+
+  renderMergedOutages (sources, sourceStates) {
+    if (!this.config.alerts.show || !this.elements.alertList) return
+
+    const displayStrategy = this.config.federation?.display?.outages || 'stack'
+
+    if (displayStrategy === 'merge') {
+      this.renderMergedOutagesCombined(sources, sourceStates)
+    } else {
+      this.renderMergedOutagesStacked(sources, sourceStates)
+    }
+  }
+
+  renderMergedOutagesCombined (sources, sourceStates) {
+    const list = this.elements.alertList
+    list.innerHTML = ''
+
+    const allAlerts = []
+    for (const source of sources) {
+      const sourceState = sourceStates[source]
+      const analysis = sourceState?.analysis
+      if (!analysis?.alerts) continue
+
+      for (const alert of analysis.alerts) {
+        if (alert.type === 'outage') {
+          const threshold = this.config.alerts.cadenceChecks || 0
+          if (alert.missedChecks < threshold) continue
+        }
+        allAlerts.push({ ...alert, _source: source })
+      }
+    }
+
+    allAlerts.sort((a, b) => {
+      const aTime = a.type === 'ipchange' ? a.timestamp : a.start
+      const bTime = b.type === 'ipchange' ? b.timestamp : b.start
+      return bTime - aTime
+    })
+
+    if (!allAlerts.length) {
+      const info = document.createElement('p')
+      info.className = 'muted'
+      info.textContent = 'No missed intervals detected.'
+      list.appendChild(info)
+      if (this.elements.alertToggle) this.elements.alertToggle.style.display = 'none'
+      return
+    }
+
+    const maxVisible = this.state.alertsExpanded ? allAlerts.length : Math.min(this.config.alerts.max, allAlerts.length)
+    allAlerts.slice(0, maxVisible).forEach((alert) => {
+      const item = document.createElement('div')
+      const sourceLabel = `<span class="federation-source-badge">${alert._source}</span>`
+
+      if (alert.type === 'ipchange') {
+        item.className = 'alert alert-card ipchange has-badge'
+        item.innerHTML = `${sourceLabel} <strong>IP changed</strong> from ${alert.oldIp} to ${alert.newIp} at ${this.helpers.formatDateTime(alert.timestamp)}`
+      } else if (alert.type === 'failure') {
+        item.className = 'alert alert-card failure has-badge'
+        item.innerHTML = `${sourceLabel} <strong>Connection failure</strong> at ${this.helpers.formatDateTime(alert.timestamp)} (${alert.message})`
+      } else {
+        item.className = 'alert alert-card has-badge'
+        if (alert.open) item.classList.add('open')
+        const endLabel = alert.open ? 'now' : this.helpers.formatDateTime(alert.end)
+        const duration = this.helpers.formatDuration(alert.end.getTime() - alert.start.getTime())
+        const countLabel = alert.missedChecks === 1 ? 'check' : 'checks'
+        item.innerHTML = `${sourceLabel} <strong>${alert.missedChecks} ${countLabel} missed</strong> from ${this.helpers.formatDateTime(alert.start)} to ${endLabel} (${duration})`
+      }
+      list.appendChild(item)
+    })
+
+    if (this.elements.alertToggle) {
+      if (allAlerts.length <= this.config.alerts.max) {
+        this.elements.alertToggle.style.display = 'none'
+      } else {
+        this.elements.alertToggle.style.display = ''
+        const remaining = allAlerts.length - this.config.alerts.max
+        this.elements.alertToggle.textContent = this.state.alertsExpanded ? 'Show less' : `Show ${remaining} more`
+      }
+    }
+  }
+
+  renderMergedOutagesStacked (sources, sourceStates) {
+    const list = this.elements.alertList
+    list.innerHTML = ''
+
+    for (const source of sources) {
+      const sourceState = sourceStates[source]
+      const analysis = sourceState?.analysis
+
+      const section = document.createElement('div')
+      section.className = 'federation-stack-section'
+
+      const header = document.createElement('div')
+      header.className = 'federation-source-header'
+      header.textContent = source
+      section.appendChild(header)
+
+      if (!analysis?.entries?.length) {
+        const info = document.createElement('p')
+        info.className = 'muted'
+        info.textContent = sourceState?.error || 'No log entries.'
+        section.appendChild(info)
+        list.appendChild(section)
+        continue
+      }
+
+      const filtered = (analysis.alerts || []).filter((alert) => {
+        if (alert.type !== 'outage') return true
+        const threshold = this.config.alerts.cadenceChecks || 0
+        return alert.missedChecks >= threshold
+      })
+
+      if (!filtered.length) {
+        const info = document.createElement('p')
+        info.className = 'muted'
+        info.textContent = 'No missed intervals detected.'
+        section.appendChild(info)
+      } else {
+        const reversed = [...filtered].reverse()
+        const maxVisible = Math.min(3, reversed.length)
+        reversed.slice(0, maxVisible).forEach((alert) => {
+          const item = document.createElement('div')
+          if (alert.type === 'ipchange') {
+            item.className = 'alert alert-card ipchange'
+            item.innerHTML = `<strong>IP changed</strong> from ${alert.oldIp} to ${alert.newIp} at ${this.helpers.formatDateTime(alert.timestamp)}`
+          } else if (alert.type === 'failure') {
+            item.className = 'alert alert-card failure'
+            item.innerHTML = `<strong>Connection failure</strong> at ${this.helpers.formatDateTime(alert.timestamp)} (${alert.message})`
+          } else {
+            item.className = 'alert alert-card'
+            if (alert.open) item.classList.add('open')
+            const endLabel = alert.open ? 'now' : this.helpers.formatDateTime(alert.end)
+            const duration = this.helpers.formatDuration(alert.end.getTime() - alert.start.getTime())
+            const countLabel = alert.missedChecks === 1 ? 'check' : 'checks'
+            item.innerHTML = `<strong>${alert.missedChecks} ${countLabel} missed</strong> from ${this.helpers.formatDateTime(alert.start)} to ${endLabel} (${duration})`
+          }
+          section.appendChild(item)
+        })
+      }
+
+      list.appendChild(section)
+    }
+
+    if (this.elements.alertToggle) {
+      this.elements.alertToggle.style.display = 'none'
+    }
   }
 
   resolveNowOverride () {
