@@ -76,8 +76,8 @@ class MetricsWidget {
       applyWidgetHeader(container, {
         suppressHeader: this.config._suppressHeader,
         name: this.config.name,
-        downloadCsv: this.config.download_csv !== false,
-        downloadUrl: `api/${this.apiPrefix}/csv`
+        downloadCsv: false,
+        downloadUrl: null
       })
     }
 
@@ -91,6 +91,7 @@ class MetricsWidget {
   setupEventListeners () {
     const metricSelect = this.getElement('metric-select')
     const periodSelect = this.getElement('period-select')
+    const downloadButton = this.getElement('download-csv')
 
     this.wireViewToggles()
 
@@ -126,6 +127,15 @@ class MetricsWidget {
       this.selectedPeriod = period
       this.features.table.loadHistory()
     })
+
+    if (downloadButton && this.config.download_csv !== false) {
+      downloadButton.addEventListener('click', (event) => {
+        event.preventDefault()
+        this.downloadCsv()
+      })
+    } else if (downloadButton) {
+      downloadButton.style.display = 'none'
+    }
   }
 
   async loadData () {
@@ -173,6 +183,16 @@ class MetricsWidget {
       currentView: this.currentView,
       defaultViewSetter: () => this.setView(this.config.default || this.defaults.default)
     })
+  }
+
+  downloadCsv () {
+    const url = `api/${this.apiPrefix}/csv?${Date.now()}`
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${this.apiPrefix}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   async loadFeatureScripts () {

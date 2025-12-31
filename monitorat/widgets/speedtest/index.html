@@ -16,6 +16,9 @@
 .speedtest-view-toggle .alerts-toggle.active {
   font-weight: 600;
 }
+.speedtest-view-toggle .view-toggle-spacer {
+  flex: 1;
+}
 </style>
 
 <section class="speedtests">
@@ -37,6 +40,8 @@
       <select class="alerts-toggle" data-speedtest="metric-select" style="display: none;"></select>
       <select class="alerts-toggle" data-speedtest="period-select" style="display: none;">
       </select>
+      <span class="view-toggle-spacer"></span>
+      <button type="button" class="alerts-toggle" data-speedtest="download-csv">Download CSV</button>
     </div>
     
     <div class="speedtest-chart" data-speedtest="chart-container" style="display: none;">

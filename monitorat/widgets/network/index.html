@@ -1,7 +1,6 @@
 <section class="network">
 <div class="network-header">
   <h2>Network Monitoring</h2>
-  <a href="#" class="log-download" data-network="log-status">Loading log…</a>
 </div>
 
 <style>
@@ -49,6 +48,21 @@
 .network-container .uptime-meta span { white-space: nowrap; }
 .network-container .alerts { display: flex; flex-direction: column; gap: 12px; }
 .network-container .alerts-header { display: flex; align-items: center; gap: 12px; }
+.network-container .alerts-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.network-container .alerts-actions .log-download {
+  font-size: 0.85rem;
+  color: var(--accent);
+  text-decoration: none;
+  cursor: pointer;
+}
+.network-container .alerts-actions .log-download:hover {
+  text-decoration: underline;
+}
 .network-container .alert { --alert-bg: var(--alert-bg-default); --alert-border: var(--alert-border-default); --alert-color: var(--alert-color-default); }
 .network-container .alert.open { --alert-bg: var(--alert-bg-open); --alert-border: var(--alert-border-open); --alert-color: var(--alert-color-open); }
 .network-container .alert.failure { --alert-bg: var(--alert-bg-failure); --alert-border: var(--alert-border-failure); --alert-color: var(--alert-color-failure); }
@@ -138,7 +152,10 @@
   <div class="alerts" data-network-section="alerts">
     <div class="alerts-header">
       <h2>Network Outages</h2>
+    </div>
+    <div class="alerts-actions">
       <button type="button" class="alerts-toggle" data-network="alerts-toggle">Show more</button>
+      <a href="#" class="log-download" data-network="log-status">Loading log…</a>
     </div>
     <div class="alerts-list alert-list" data-network="alerts-list"></div>
   </div>

@@ -18,6 +18,9 @@
 .metrics-view-toggle .alerts-toggle.active {
   font-weight: 600;
 }
+.metrics-view-toggle .view-toggle-spacer {
+  flex: 1;
+}
 </style>
 
 <div class="stats">
@@ -51,11 +54,11 @@
   </div>
 </div>
 
-<div class="metrics-history">
-  <div class="metrics-view-toggle" data-metrics="view-toggle" style="display: none;">
-    <button type="button" class="alerts-toggle" data-metrics="view-table">Table</button>
-    <button type="button" class="alerts-toggle" data-metrics="view-chart">Chart</button>
-    <select class="alerts-toggle" data-metrics="metric-select" style="display: none;">
+  <div class="metrics-history">
+    <div class="metrics-view-toggle" data-metrics="view-toggle" style="display: none;">
+      <button type="button" class="alerts-toggle" data-metrics="view-table">Table</button>
+      <button type="button" class="alerts-toggle" data-metrics="view-chart">Chart</button>
+      <select class="alerts-toggle" data-metrics="metric-select" style="display: none;">
       <option value="cpu_memory">CPU + Memory</option>
       <option value="cpu_percent">CPU %</option>
       <option value="memory_percent">Memory %</option>
@@ -64,10 +67,12 @@
       <option value="temp_c">Temperature</option>
       <option value="load_1min">Load Average</option>
       <option value="battery_percent">Battery %</option>
-    </select>
-    <select class="alerts-toggle" data-metrics="period-select" style="display: none;">
-    </select>
-  </div>
+      </select>
+      <select class="alerts-toggle" data-metrics="period-select" style="display: none;">
+      </select>
+      <span class="view-toggle-spacer"></span>
+      <button type="button" class="alerts-toggle" data-metrics="download-csv">Download CSV</button>
+    </div>
   
   <div class="metrics-chart" data-metrics="chart-container" style="display: none;">
     <canvas data-metrics="chart"></canvas>

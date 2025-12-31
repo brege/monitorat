@@ -5,17 +5,22 @@ class RemindersControls {
 
   initialize () {
     const fieldSelect = this.widget.container.querySelector('.reminders-sort-field')
-    const directionButton = this.widget.container.querySelector('.reminders-sort-dir')
-    if (!fieldSelect || !directionButton) return
+    const directionSelect = this.widget.container.querySelector('.reminders-sort-dir')
+    if (!fieldSelect || !directionSelect) return
 
     const SortByController = window.monitorShared.SortByController
     const initialSortBy = this.widget.config.sort_by
 
     this.sortController = new SortByController({
       fieldSelect,
-      directionButton,
+      directionSelect,
       initialSortBy,
       defaultSortBy: 'due.asc',
+      directionLabelsByField: {
+        due: { asc: 'Soonest', desc: 'Latest' },
+        name: { asc: 'A - Z', desc: 'Z - A' },
+        touched: { asc: 'Recent', desc: 'Oldest' }
+      },
       onApply: (sortBy) => {
         this.widget.config.sort_by = sortBy
         this.widget.render()

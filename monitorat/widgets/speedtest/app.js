@@ -99,12 +99,13 @@ class SpeedtestWidget {
       applyWidgetHeader(container, {
         suppressHeader: this.config._suppressHeader,
         name: this.config.name,
-        downloadCsv: this.config.download_csv !== false,
-        downloadUrl: `${this.getApiBase()}/csv`
+        downloadCsv: false,
+        downloadUrl: null
       })
     }
 
     this.features.controls.setupEventListeners()
+    this.setupDownloadControl()
     this.initManagers()
     this.setView(this.config.default)
     await this.features.table.loadHistory()
@@ -178,6 +179,31 @@ class SpeedtestWidget {
 
   updateViewToggle (hasEntries) {
     return ChartTableWidgetMethods.updateViewToggle.call(this, hasEntries)
+  }
+
+  setupDownloadControl () {
+    const downloadButton = this.getElement('download-csv')
+    if (!downloadButton) {
+      return
+    }
+    if (this.config.download_csv === false) {
+      downloadButton.style.display = 'none'
+      return
+    }
+    downloadButton.addEventListener('click', (event) => {
+      event.preventDefault()
+      this.downloadCsv()
+    })
+  }
+
+  downloadCsv () {
+    const url = `${this.getApiBase()}/csv?${Date.now()}`
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'speedtest.csv'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 }
 

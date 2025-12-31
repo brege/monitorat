@@ -1,14 +1,15 @@
 class SortByController {
-  constructor ({ fieldSelect, directionButton, initialSortBy, defaultSortBy, onApply }) {
-    if (!fieldSelect || !directionButton) {
-      throw new Error('SortByController requires field and direction controls')
+  constructor ({ fieldSelect, directionSelect, initialSortBy, defaultSortBy, directionLabelsByField, onApply }) {
+    if (!fieldSelect || !directionSelect) {
+      throw new Error('SortByController requires field and direction selects')
     }
     if (typeof onApply !== 'function') {
       throw new Error('SortByController requires an apply callback')
     }
 
     this.fieldSelect = fieldSelect
-    this.directionButton = directionButton
+    this.directionSelect = directionSelect
+    this.directionLabelsByField = directionLabelsByField || {}
     this.onApply = onApply
 
     const sortBy = initialSortBy || defaultSortBy
@@ -19,34 +20,35 @@ class SortByController {
 
   initialize () {
     this.fieldSelect.value = this.sortField
-    this.updateDirectionIcon()
+    this.updateDirectionLabels(this.sortField)
+    this.directionSelect.value = this.sortDirection
 
     this.fieldSelect.addEventListener('change', () => {
       this.sortField = this.fieldSelect.value
+      this.updateDirectionLabels(this.sortField)
       this.apply()
     })
 
-    this.directionButton.addEventListener('click', () => {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc'
-      this.updateDirectionIcon()
+    this.directionSelect.addEventListener('change', () => {
+      this.sortDirection = this.directionSelect.value
       this.apply()
     })
-  }
-
-  updateDirectionIcon () {
-    const ascendingIcon = this.directionButton.querySelector('.sort-asc')
-    const descendingIcon = this.directionButton.querySelector('.sort-desc')
-    if (this.sortDirection === 'asc') {
-      ascendingIcon.style.display = ''
-      descendingIcon.style.display = 'none'
-    } else {
-      ascendingIcon.style.display = 'none'
-      descendingIcon.style.display = ''
-    }
   }
 
   apply () {
     this.onApply(`${this.sortField}.${this.sortDirection}`)
+  }
+
+  updateDirectionLabels (field) {
+    const optionLabels = this.directionLabelsByField[field] || { asc: 'Asc', desc: 'Desc' }
+    const options = Array.from(this.directionSelect.options)
+    options.forEach((option) => {
+      if (option.value === 'asc') {
+        option.textContent = optionLabels.asc
+      } else if (option.value === 'desc') {
+        option.textContent = optionLabels.desc
+      }
+    })
   }
 }
 
