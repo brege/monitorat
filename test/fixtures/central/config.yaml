@@ -24,6 +24,10 @@ widgets:
   enabled:
     - wiki-nas-1
     - wiki-nas-2
+    - wiki-stacked
+    - wiki-columns
+    - wiki-stacked-no-badges
+    - wiki-columns-no-badges
     - metrics-combined
     - metrics-nas-1
     - metrics-nas-2
@@ -40,7 +44,6 @@ widgets:
     - speedtest-nas-1
     - speedtest-nas-2
     - speedtest-combined
-    - speedtest-stacked
     - network-nas-1
     - network-nas-2
     - network-combined
@@ -58,6 +61,44 @@ widgets:
     remote: nas-2
     name: "NAS-2 Wiki"
     doc: true
+
+  wiki-stacked:
+    type: wiki
+    name: "All Wikis (stacked)"
+    doc: true
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        document: stack
+
+  wiki-columns:
+    type: wiki
+    name: "All Wikis (columns)"
+    doc: true
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        document: columnate
+
+  wiki-stacked-no-badges:
+    type: wiki
+    name: "All Wikis (stacked, no badges)"
+    doc: true
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        document: stack
+      show_badges: false
+
+  wiki-columns-no-badges:
+    type: wiki
+    name: "All Wikis (columns, no badges)"
+    doc: true
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        document: columnate
+      show_badges: false
 
   metrics-combined:
     type: metrics
@@ -172,19 +213,6 @@ widgets:
       display:
         chart: merge
         table: merge
-        button: stack
-    chart:
-      default_period: 1 month
-
-  speedtest-stacked:
-    type: speedtest
-    name: "All Speedtests (stacked)"
-    default: chart
-    federation:
-      merge: [nas-1, nas-2]
-      display:
-        chart: stack
-        table: stack
         button: stack
     chart:
       default_period: 1 month

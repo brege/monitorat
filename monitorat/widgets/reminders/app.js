@@ -5,6 +5,10 @@ class RemindersWidget {
     this.container = null
     this.remindersConfig = null
     this.config = config
+    this.features = {
+      controls: null,
+      alerts: null
+    }
   }
 
   getApiBase () {
@@ -63,50 +67,10 @@ class RemindersWidget {
       })
     }
 
-    this.initSortDropdown()
+    await this.loadFeatureScripts()
+    this.initializeFeatures()
+    this.features.controls.initialize()
     await this.loadData()
-  }
-
-  initSortDropdown () {
-    const fieldSelect = this.container.querySelector('.reminders-sort-field')
-    const dirBtn = this.container.querySelector('.reminders-sort-dir')
-    if (!fieldSelect || !dirBtn) return
-
-    const currentSort = this.config.sort_by || 'due.asc'
-    const [field, direction] = currentSort.split('.')
-    this.sortField = field
-    this.sortDirection = direction || 'asc'
-
-    fieldSelect.value = this.sortField
-    this.updateDirectionIcon(dirBtn)
-
-    fieldSelect.addEventListener('change', () => {
-      this.sortField = fieldSelect.value
-      this.applySortAndRender()
-    })
-
-    dirBtn.addEventListener('click', () => {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc'
-      this.updateDirectionIcon(dirBtn)
-      this.applySortAndRender()
-    })
-  }
-
-  updateDirectionIcon (btn) {
-    const ascIcon = btn.querySelector('.sort-asc')
-    const descIcon = btn.querySelector('.sort-desc')
-    if (this.sortDirection === 'asc') {
-      ascIcon.style.display = ''
-      descIcon.style.display = 'none'
-    } else {
-      ascIcon.style.display = 'none'
-      descIcon.style.display = ''
-    }
-  }
-
-  applySortAndRender () {
-    this.config.sort_by = `${this.sortField}.${this.sortDirection}`
-    this.render()
   }
 
   async loadData () {
@@ -154,170 +118,28 @@ class RemindersWidget {
   }
 
   render () {
-    const alertsContainer = this.container.querySelector('.reminder-alerts')
-    if (!alertsContainer || !this.remindersConfig) return
-
-    alertsContainer.innerHTML = ''
-
-    const strategy = this.getDisplayStrategy()
-    const hasMergedSources = this.config.federation?.merge
-
-    if (hasMergedSources && strategy === 'stack') {
-      this.renderStacked(alertsContainer)
-    } else if (hasMergedSources && strategy === 'columnate') {
-      this.renderColumnate(alertsContainer)
-    } else {
-      this.renderMerged(alertsContainer)
-    }
+    this.features.alerts.render()
   }
 
-  renderMerged (container) {
-    const sortedReminders = this.sortReminders(this.remindersConfig)
-    sortedReminders.forEach(reminder => {
-      container.appendChild(this.createReminderCard(reminder))
-    })
+  async loadFeatureScripts () {
+    const featureScripts = [
+      { globalName: 'RemindersControls', source: 'widgets/reminders/features/controls.js' },
+      { globalName: 'RemindersAlerts', source: 'widgets/reminders/features/alerts.js' }
+    ]
+
+    await window.monitorShared.loadFeatureScripts(featureScripts)
   }
 
-  renderStacked (container) {
-    const sources = this.config.federation?.merge || []
-    sources.forEach(source => {
-      const sourceReminders = this.remindersConfig.filter(r => r._source === source)
-      if (sourceReminders.length === 0) return
+  initializeFeatures () {
+    const ControlsFeature = window.RemindersControls
+    const AlertsFeature = window.RemindersAlerts
 
-      const header = document.createElement('h4')
-      header.className = 'federation-source-header'
-      header.textContent = source
-      container.appendChild(header)
-
-      const sorted = this.sortReminders(sourceReminders)
-      sorted.forEach(reminder => {
-        container.appendChild(this.createReminderCard(reminder))
-      })
-    })
-  }
-
-  renderColumnate (container) {
-    const sources = this.config.federation?.merge || []
-    const columns = document.createElement('div')
-    columns.className = 'federation-columns'
-    columns.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;'
-
-    sources.forEach(source => {
-      const sourceReminders = this.remindersConfig.filter(r => r._source === source)
-      const column = document.createElement('div')
-      column.className = 'federation-column'
-
-      const header = document.createElement('h4')
-      header.className = 'federation-source-header'
-      header.textContent = source
-      column.appendChild(header)
-
-      const sorted = this.sortReminders(sourceReminders)
-      sorted.forEach(reminder => {
-        column.appendChild(this.createReminderCard(reminder))
-      })
-
-      columns.appendChild(column)
-    })
-
-    container.appendChild(columns)
-  }
-
-  createReminderCard (reminder) {
-    const alertElement = document.createElement('div')
-    const hasBadge = this.config.remote || reminder._source
-    alertElement.className = `reminder-alert alert-card status-card status-${reminder.status}${hasBadge ? ' has-badge' : ''}`
-
-    if (hasBadge) {
-      const sourceName = reminder._source || this.config.remote
-      const badge = document.createElement('span')
-      badge.className = `federation-source-badge federation-source-${sourceName}`
-      badge.textContent = sourceName
-      badge.title = `Source: ${sourceName}`
-      alertElement.appendChild(badge)
+    if (!ControlsFeature || !AlertsFeature) {
+      throw new Error('Reminders feature scripts not loaded')
     }
 
-    const icon = document.createElement('img')
-    icon.className = 'reminder-alert-icon'
-    const imgBase = reminder._source
-      ? `api/proxy/${reminder._source}/img`
-      : this.getImgBase()
-    icon.src = `${imgBase}/${reminder.icon}`
-    icon.alt = reminder.name
-
-    const content = document.createElement('div')
-    content.className = 'reminder-alert-content'
-
-    const leftDiv = document.createElement('div')
-
-    const nameDiv = document.createElement('div')
-    nameDiv.className = 'reminder-alert-name'
-    nameDiv.textContent = reminder.name
-
-    const descDiv = document.createElement('div')
-    descDiv.className = 'reminder-alert-description'
-    descDiv.textContent = reminder.reason || ''
-
-    leftDiv.appendChild(nameDiv)
-    if (reminder.reason) {
-      leftDiv.appendChild(descDiv)
-    }
-
-    const statsDiv = document.createElement('div')
-    statsDiv.className = 'reminder-alert-stats'
-
-    const daysSpan = document.createElement('span')
-    if (reminder.status === 'never') {
-      daysSpan.textContent = 'Never'
-    } else if (reminder.status === 'expired') {
-      daysSpan.textContent = `${Math.abs(reminder.days_remaining)}d overdue`
-    } else {
-      daysSpan.textContent = `${reminder.days_remaining}d left`
-    }
-
-    const lastTouchSpan = document.createElement('span')
-    if (reminder.days_since !== null) {
-      lastTouchSpan.textContent = `${reminder.days_since}d ago`
-    } else {
-      lastTouchSpan.textContent = 'Never'
-    }
-
-    statsDiv.appendChild(daysSpan)
-    statsDiv.appendChild(lastTouchSpan)
-
-    content.appendChild(leftDiv)
-    content.appendChild(statsDiv)
-
-    alertElement.appendChild(icon)
-    alertElement.appendChild(content)
-
-    alertElement.addEventListener('click', async () => {
-      if (reminder.url) {
-        alertElement.className = alertElement.className.replace(/status-\w+/, 'status-ok')
-
-        const stats = alertElement.querySelector('.reminder-alert-stats')
-        if (stats) {
-          const spans = stats.querySelectorAll('span')
-          if (spans.length >= 2) {
-            spans[1].textContent = '0d ago'
-          }
-        }
-
-        try {
-          const touchBase = reminder._source
-            ? `api/reminders-${reminder._source}`
-            : this.getApiBase()
-          await fetch(`${touchBase}/${reminder.id}/touch`, { method: 'POST' })
-          setTimeout(() => this.loadData(), 500)
-        } catch (error) {
-          console.error('Failed to touch reminder:', error)
-        }
-
-        window.open(reminder.url, '_blank')
-      }
-    })
-
-    return alertElement
+    this.features.controls = new ControlsFeature(this)
+    this.features.alerts = new AlertsFeature(this)
   }
 }
 

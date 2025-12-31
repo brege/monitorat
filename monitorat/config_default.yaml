@@ -1,5 +1,13 @@
 ---
 # minimal monitor@ configuration that renders a simple dashboard.
+includes:
+  # TODO: eventually load snippets dynamically
+  - widgets/metrics/config_default.yaml
+  - widgets/services/config_default.yaml
+  - widgets/reminders/config_default.yaml
+  - widgets/speedtest/config_default.yaml
+  - widgets/network/config_default.yaml
+  - widgets/wiki/config_default.yaml
 site:
   name: monitor@
   title: System Monitor
@@ -26,135 +34,6 @@ widgets:
     - metrics  # monitorat/widgets/* for available widgets
     - speedtest
     - wiki
-  metrics:  # temperature, cpu, memory, disk
-    name: System Metrics
-    collapsible: false  # show hide/show toggle (default: false)
-    hidden: false  # start collapsed (default: false)
-    default: chart  # default view: "chart" or "table"
-    table:
-      min: 5  # minimum rows to show
-      max: 200  # maximum rows to load
-    chart:
-      default_metric: cpu_memory  # options: cpu_memory, cpu_percent, memory_percent, disk_io, net_io, temp_c, load_1min, battery_percent
-      default_period: 1 hour  # natural language
-      height: 400px  # fixed chart height
-      periods: [1 year, 30 days, 7 days, 24 hours, 6 hours, 1 hour]
-    enabled:
-      - cpu_percent
-      - memory_percent
-      - disk_read_mb
-      - disk_write_mb
-      - net_rx_mb
-      - net_tx_mb
-      - load_1min
-      - temp_c
-      # - battery_percent
-    daemon:
-      enabled: true
-      interval_seconds: 60  # sampling cadence for the collector (seconds)
-    history:
-      file: metrics.csv  # relative to data path
-      max_rows: 1000  # cap for history API responses
-    storage:
-      mounts: []  # optional: paths to monitor
-    thresholds:  # caution/critical cutoffs for status badges
-      # will use top-level notification settings to alert
-      load:
-        caution: 1.0
-        critical: 2.0
-        normalize_per_cpu: true
-      memory:
-        caution: 75
-        critical: 90
-      temp:
-        caution: 60
-        critical: 80
-      disk:
-        caution: 80
-        critical: 95
-      storage:
-        caution: 85
-        critical: 95
-  speedtest:  # uses speedtest.net
-    name: Speedtests
-    collapsible: true
-    hidden: false
-    default: table  # chart, table, none
-    enabled: 
-      - download
-      - upload
-      - ping
-      - server
-      #- ip_address
-    metadata:
-      field: server
-      label: Server
-    table:
-      min: 5  # minimum rows to show
-      max: 20  # maximum rows to load
-    chart:
-      height: 400px  # fixed chart height
-      default_period: all
-      periods: [all, 1 year, 1 month, 1 week]
-  network:  # network monitoring and outage tracking
-    name: Network Outages
-    collapsible: true
-    hidden: false
-    log_file: network.log  # relative to data path, or absolute if external
-    external: false  # overrides chirper.enabled
-    chirper:
-      enabled: true
-      interval_seconds: 300  # check IP every 5 minutes
-      mode: ipv4  # or ipv6
-    metrics:
-      show: true
-    uptime:
-      show: true
-      periods:
-        - period: 1 hour
-          segment_size: 5 minutes
-        - period: 1 day
-          segment_size: 1 hour
-        - period: 1 week
-          segment_size: 1 day
-        - period: 1 month
-          segment_size: 1 day
-        - period: 1 year
-          segment_size: 1 month
-    alerts:
-      show: true
-      max: 3  # maximum outage alerts to show initially
-      cadence: 0  # minimum outage duration in minutes to show
-      cadenceChecks: 0  # computed from cadence for confuse
-  services:  # service monitoring
-    name: Services
-    collapsible: true
-    hidden: false
-    items: {}  # { plex: {} ; jellyfin: {} ; ... }
-  reminders:  # uses top-level notification settings
-    name: Reminders
-    collapsible: true
-    hidden: false
-    state_file: reminders.json  # relative to data path, or absolute 
-    nudges: [14, 7]  # days, lower priority (apprise param 0)
-    urgents: [3, 1, 0]  # days, higher priority (apprise param 1 or 2)
-    time: "23:55"  # what time to check
-    items: {}  # { protonmail: {} ; GitHub SSH Keys: {} ; ... }
-  wiki:  # markdown documentation widget
-    name: Documentation
-    collapsible: true  # enable collapse/expand
-    hidden: false  # start expanded
-    doc: ''  # path to markdown file. use '' for monitor@'s README.md
-    mode: rail  # featured | seamless | rail
-  # OR set multiple wikis:
-  # README: 
-  #   type: wiki
-  #   doc: README.md
-  #   ...
-  # migration:
-  #   type: wiki
-  #   doc: migration.md
-  #   ...
 privacy:  # toggle, for screenshots
   mask_ips: true
   replacements: {}  # { my-site.com: example.com ; ... }

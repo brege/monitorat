@@ -67,6 +67,10 @@ Each widget's components and their allowed merge strategies:
 - Badge with source favicon on each card
 - Section headers optional when grouped
 
+**Sort options** (`sort_by`):
+- `name.asc` / `name.desc` - alphabetical by service name
+- `status.asc` / `status.desc` - by status (ok, unknown, down)
+
 ### reminders
 
 | Component      | Desktop 2       | Desktop 3+      | Mobile          | Default |
@@ -242,6 +246,41 @@ Every widget should expose `/api/{widget}/schema` returning:
   },
   "metadata": { "label": "My Widget" },
   "fields": [...]
+}
+```
+
+### Sort Dropdown Pattern
+
+Widgets with sortable items use a field selector + direction toggle:
+
+```html
+<div class="widget-controls">
+  <select class="widget-sort-select {widget}-sort-field">
+    <option value="name">Name</option>
+    <option value="status">Status</option>
+  </select>
+  <button class="sort-direction-btn {widget}-sort-dir">
+    <svg class="sort-asc" viewBox="0 0 24 24"><path d="M7 14l5-5 5 5H7z"/></svg>
+    <svg class="sort-desc" viewBox="0 0 24 24" style="display:none"><path d="M7 10l5 5 5-5H7z"/></svg>
+  </button>
+</div>
+```
+
+```javascript
+initSortDropdown () {
+  const fieldSelect = this.container.querySelector('.{widget}-sort-field')
+  const dirBtn = this.container.querySelector('.{widget}-sort-dir')
+
+  fieldSelect.addEventListener('change', () => {
+    this.sortField = fieldSelect.value
+    this.applySortAndRender()
+  })
+
+  dirBtn.addEventListener('click', () => {
+    this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc'
+    this.updateDirectionIcon(dirBtn)
+    this.applySortAndRender()
+  })
 }
 ```
 

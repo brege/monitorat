@@ -1,0 +1,50 @@
+widgets:
+  metrics:  # temperature, cpu, memory, disk
+    name: System Metrics
+    collapsible: false  # show hide/show toggle (default: false)
+    hidden: false  # start collapsed (default: false)
+    default: chart  # default view: "chart" or "table"
+    table:
+      min: 5  # minimum rows to show
+      max: 200  # maximum rows to load
+    chart:
+      default_metric: cpu_memory  # options: cpu_memory, cpu_percent, memory_percent, disk_io, net_io, temp_c, load_1min, battery_percent
+      default_period: 1 hour  # natural language
+      height: 400px  # fixed chart height
+      periods: [1 year, 30 days, 7 days, 24 hours, 6 hours, 1 hour]
+    enabled:
+      - cpu_percent
+      - memory_percent
+      - disk_read_mb
+      - disk_write_mb
+      - net_rx_mb
+      - net_tx_mb
+      - load_1min
+      - temp_c
+      # - battery_percent
+    daemon:
+      enabled: true
+      interval_seconds: 60  # sampling cadence for the collector (seconds)
+    history:
+      file: metrics.csv  # relative to data path
+      max_rows: 1000  # cap for history API responses
+    storage:
+      mounts: []  # optional: paths to monitor
+    thresholds:  # caution/critical cutoffs for status badges
+      # will use top-level notification settings to alert
+      load:
+        caution: 1.0
+        critical: 2.0
+        normalize_per_cpu: true
+      memory:
+        caution: 75
+        critical: 90
+      temp:
+        caution: 60
+        critical: 80
+      disk:
+        caution: 80
+        critical: 95
+      storage:
+        caution: 85
+        critical: 95

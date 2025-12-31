@@ -1,5 +1,5 @@
 // Metrics Widget
-/* global ChartManager, TimeSeriesHandler, ChartTableWidgetMethods */
+/* global TimeSeriesHandler, ChartTableWidgetMethods */
 class MetricsWidget {
   constructor (widgetConfig = {}) {
     this.container = null
@@ -21,8 +21,14 @@ class MetricsWidget {
     this.transformedEntries = []
     this.selectedMetric = 'cpu_percent'
     this.selectedPeriod = 'all'
+    this.selectedNode = 'all'
     this.schema = null
     this.metricFields = null
+    this.features = {
+      snapshot: null,
+      chart: null,
+      table: null
+    }
   }
 
   async loadSchema () {
@@ -63,14 +69,16 @@ class MetricsWidget {
     const html = await response.text()
     container.innerHTML = html
 
-    this.rebuildTableHeaders()
+    await this.loadFeatureScripts()
+    this.initializeFeatures()
+    this.features.table.rebuildHeaders()
     const applyWidgetHeader = window.monitor?.applyWidgetHeader
     if (applyWidgetHeader) {
       applyWidgetHeader(container, {
         suppressHeader: this.config._suppressHeader,
         name: this.config.name,
-        downloadCsv: this.config.download_csv !== false,
-        downloadUrl: `api/${this.apiPrefix}/csv`
+        downloadCsv: false,
+        downloadUrl: null
       })
     }
 
@@ -78,12 +86,13 @@ class MetricsWidget {
     this.initManagers()
     await this.loadData()
     this.setView(this.config.default || this.defaults.default)
-    await this.loadHistory()
+    await this.features.table.loadHistory()
   }
 
   setupEventListeners () {
     const metricSelect = this.getElement('metric-select')
     const periodSelect = this.getElement('period-select')
+    const downloadButton = this.getElement('download-csv')
 
     this.wireViewToggles()
 
@@ -117,8 +126,100 @@ class MetricsWidget {
 
     TimeSeriesHandler.setupPeriodSelect(periodSelect, this.config.chart.periods, this.selectedPeriod, (period) => {
       this.selectedPeriod = period
-      this.loadHistory()
+      this.features.table.loadHistory()
     })
+
+    this.setupNodeSelect()
+    this.setupDownloadControl(downloadButton)
+  }
+
+  setupNodeSelect () {
+    const nodeSelect = this.getElement('node-select')
+    if (!nodeSelect) return
+
+    const mergeSources = this.widgetConfig.federation?.merge
+    if (!mergeSources || !Array.isArray(mergeSources) || mergeSources.length < 2) {
+      nodeSelect.style.display = 'none'
+      return
+    }
+
+    nodeSelect.innerHTML = ''
+    nodeSelect.style.display = ''
+
+    const allOption = document.createElement('option')
+    allOption.value = 'all'
+    allOption.textContent = 'All Nodes'
+    nodeSelect.appendChild(allOption)
+
+    for (const source of mergeSources) {
+      const option = document.createElement('option')
+      option.value = source
+      option.textContent = source
+      nodeSelect.appendChild(option)
+    }
+
+    nodeSelect.value = this.selectedNode
+    nodeSelect.addEventListener('change', (event) => {
+      this.selectedNode = event.target.value
+      this.applyNodeFilter()
+    })
+  }
+
+  applyNodeFilter () {
+    const tableLimit = Number.isFinite(this.config.table?.max) ? this.config.table.max : this.defaults.table.max
+    const filtered = this.selectedNode === 'all'
+      ? this.transformedEntries
+      : this.transformedEntries.filter(entry => entry._source === this.selectedNode)
+
+    const tableEntries = filtered.slice(-tableLimit).reverse()
+    this.tableManager.setEntries(tableEntries)
+
+    if (this.chartManager?.hasChart()) {
+      this.updateChart()
+    }
+  }
+
+  setupDownloadControl (downloadButton) {
+    if (!downloadButton) return
+
+    if (this.config.download_csv === false) {
+      downloadButton.style.display = 'none'
+      return
+    }
+
+    const mergeSources = this.config.federation?.merge
+    if (mergeSources && Array.isArray(mergeSources) && mergeSources.length > 1) {
+      const dropdown = document.createElement('select')
+      dropdown.className = 'alerts-toggle'
+
+      const placeholder = document.createElement('option')
+      placeholder.value = ''
+      placeholder.textContent = 'Download CSV'
+      placeholder.disabled = true
+      placeholder.selected = true
+      dropdown.appendChild(placeholder)
+
+      for (const source of mergeSources) {
+        const option = document.createElement('option')
+        option.value = source
+        option.textContent = source
+        dropdown.appendChild(option)
+      }
+
+      dropdown.addEventListener('change', () => {
+        if (dropdown.value) {
+          this.downloadCsvForSource(dropdown.value)
+          dropdown.value = ''
+        }
+      })
+
+      downloadButton.replaceWith(dropdown)
+    } else {
+      downloadButton.addEventListener('click', (event) => {
+        event.preventDefault()
+        this.downloadCsv()
+      })
+    }
   }
 
   async loadData () {
@@ -135,166 +236,7 @@ class MetricsWidget {
   }
 
   update (data) {
-    if (!data.metrics || !data.metric_statuses) return
-
-    const keys = data.keys || Object.keys(data.metrics).filter(k => k !== 'status' && k !== 'lastUpdated')
-    const valueElements = {}
-    const statElements = {}
-
-    for (const key of keys) {
-      const element = this.container.querySelector(`#${key}-value`)
-      if (element) {
-        valueElements[key] = element
-        statElements[key] = element.closest('.stat')
-      }
-    }
-
-    for (const key of keys) {
-      if (valueElements[key] && data.metrics[key]) {
-        valueElements[key].textContent = data.metrics[key]
-      }
-      if (statElements[key] && data.metric_statuses[key]) {
-        const status = data.metric_statuses[key]
-        statElements[key].className = statElements[key].className.replace(/status-\w+/g, '')
-        statElements[key].classList.add(`status-${status}`)
-      }
-    }
-  }
-
-  rebuildTableHeaders () {
-    const metadataLabel = this.schema?.metadata?.label || 'Source'
-    const TableManager = window.monitorShared.TableManager
-    TableManager.buildTableHeaders(this.container, this.metricFields, metadataLabel)
-  }
-
-  calculateTableDeltas (data) {
-    const result = []
-    const prevBySource = {}
-
-    for (const row of data) {
-      const sourceKey = row._source || ''
-      const entry = {
-        timestamp: row.timestamp,
-        source: row.source || '',
-        _source: row._source || ''
-      }
-
-      for (const metric of this.metricFields) {
-        if (metric.source) {
-          entry[metric.field] = 0
-        } else {
-          entry[metric.field] = parseFloat(row[metric.field]) || 0
-        }
-      }
-
-      const prevRow = prevBySource[sourceKey]
-      if (prevRow) {
-        const timeDelta = (new Date(row.timestamp) - new Date(prevRow.timestamp)) / 60000
-        if (timeDelta > 0) {
-          for (const metric of this.metricFields) {
-            if (metric.source) {
-              const current = parseFloat(row[metric.source]) || 0
-              const prev = parseFloat(prevRow[metric.source]) || 0
-              entry[metric.field] = Math.max(0, (current - prev) / timeDelta)
-            }
-          }
-        }
-      }
-
-      result.push(entry)
-      prevBySource[sourceKey] = row
-    }
-
-    return result
-  }
-
-  createChartData (entries, selectedItem, DataFormatter) {
-    const group = this.schema.computed.find(g => g.group === selectedItem)
-    const metricsToChart = group ? group.fields : this.schema.metrics.find(m => m.field === selectedItem) ? [this.schema.metrics.find(m => m.field === selectedItem)] : []
-    const ChartManager = window.monitorShared.ChartManager
-
-    if (this.sources && this.sources.length > 1) {
-      return this.createMergedChartData(entries, metricsToChart, DataFormatter, ChartManager)
-    }
-
-    const chronological = entries.slice()
-    const labels = chronological.map(row => DataFormatter.formatTime(row.timestamp))
-    const datasets = []
-    const allValues = []
-
-    for (const metric of metricsToChart) {
-      const values = chronological.map(row => parseFloat(row[metric.field]) || 0)
-      datasets.push(...ChartManager.buildGhostedDatasets({
-        label: metric.label,
-        color: metric.color,
-        rawValues: values
-      }))
-      allValues.push(...values)
-    }
-
-    return { labels, datasets, allValues }
-  }
-
-  createMergedChartData (entries, metricsToChart, DataFormatter, ChartManager) {
-    const sourceColors = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
-    const entriesBySource = {}
-
-    for (const row of entries) {
-      const source = row._source || 'unknown'
-      if (!entriesBySource[source]) {
-        entriesBySource[source] = []
-      }
-      entriesBySource[source].push(row)
-    }
-
-    const allTimestamps = new Set()
-    for (const rows of Object.values(entriesBySource)) {
-      for (const row of rows) {
-        allTimestamps.add(row.timestamp)
-      }
-    }
-    const sortedTimestamps = Array.from(allTimestamps).sort()
-    const labels = sortedTimestamps.map(ts => DataFormatter.formatTime(ts))
-
-    const datasets = []
-    const allValues = []
-    let colorIndex = 0
-
-    for (const source of this.sources) {
-      const sourceRows = entriesBySource[source] || []
-      const timestampMap = {}
-      for (const row of sourceRows) {
-        timestampMap[row.timestamp] = row
-      }
-
-      const color = sourceColors[colorIndex % sourceColors.length]
-      colorIndex++
-
-      for (const metric of metricsToChart) {
-        const values = sortedTimestamps.map(ts => {
-          const row = timestampMap[ts]
-          return row ? (parseFloat(row[metric.field]) || 0) : null
-        })
-
-        const label = metricsToChart.length > 1
-          ? `${source}: ${metric.label}`
-          : source
-
-        datasets.push({
-          label,
-          data: values,
-          borderColor: color,
-          backgroundColor: color + '33',
-          borderWidth: 2,
-          pointRadius: 0,
-          tension: 0.3,
-          spanGaps: true
-        })
-        allValues.push(...values.filter(v => v !== null))
-      }
-    }
-
-    return { labels, datasets, allValues }
+    this.features.snapshot.render(data)
   }
 
   getViewControls () {
@@ -305,85 +247,16 @@ class MetricsWidget {
   }
 
   initManagers () {
-    const ChartManager = window.monitorShared?.ChartManager
-
-    this.chartManager = new ChartManager({
-      canvasElement: this.getElement('chart'),
-      containerElement: this.getElement('chart-container'),
-      height: this.config.chart.height,
-      dataUrl: null,
-      chartOptions: {}
-    })
-
-    this.tableManager = this.createTableManager()
-  }
-
-  async loadHistory () {
-    this.tableManager.setEntries([])
-    this.tableManager.setStatus('Loading metrics history…')
-
-    try {
-      const url = new URL(`api/${this.apiPrefix}/history`, window.location)
-      if (this.selectedPeriod && this.selectedPeriod !== 'all') {
-        url.searchParams.set('period', this.selectedPeriod)
-      }
-      url.searchParams.set('ts', Date.now())
-
-      const response = await fetch(url, { cache: 'no-store' })
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
-      const payload = await response.json()
-      const data = payload.data || []
-      this.sources = payload.sources || null
-      this.entries = data
-      this.transformedEntries = this.calculateTableDeltas(this.entries)
-
-      const tableLimit = Number.isFinite(this.config.table?.max) ? this.config.table.max : this.defaults.table.max
-      const tableEntries = this.transformedEntries.slice(-tableLimit).reverse()
-      this.tableManager.setEntries(tableEntries)
-      this.updateViewToggle(tableEntries.length > 0)
-
-      if (this.chartManager?.hasChart()) this.updateChart()
-    } catch (error) {
-      console.error('Metrics history API call failed:', error)
-      this.tableManager.setStatus(`Unable to load metrics history: ${error.message}`)
-    }
+    this.features.chart.initializeManager()
+    this.features.table.initializeManager()
   }
 
   updateChart () {
-    if (!this.chartManager?.chart || !this.transformedEntries.length) return
-
-    const DataFormatter = window.monitorShared.DataFormatter
-    const chartData = this.createChartData(this.transformedEntries, this.selectedMetric, DataFormatter)
-
-    const filteredValues = chartData.allValues.filter((value) => Number.isFinite(value))
-    if (!filteredValues.length) return
-
-    const min = Math.min(...filteredValues)
-    const max = Math.max(...filteredValues)
-    const padding = (max - min) * 0.1
-
-    const yAxisLabel = this.schema.computed.find(g => g.group === this.selectedMetric)?.yAxisLabel ||
-                       this.schema.metrics.find(m => m.field === this.selectedMetric)?.yAxisLabel ||
-                       'Value'
-
-    const axes = this.schema?.axes && Object.keys(this.schema.axes).length > 0 ? this.schema.axes : { x: { display: true }, y: { display: true } }
-    const scales = ChartManager.buildScalesFromSchema(axes, {
-      y: {
-        title: { text: yAxisLabel },
-        min: Math.max(0, min - padding),
-        max: max + padding
-      }
-    })
-
-    this.chartManager.updateChart({ labels: chartData.labels, datasets: chartData.datasets }, scales)
+    this.features.chart.update()
   }
 
   updateChartView () {
-    if (this.chartManager?.hasChart()) {
-      this.updateChart()
-    }
+    this.features.chart.updateView()
   }
 
   updateViewToggle (hasEntries) {
@@ -394,6 +267,50 @@ class MetricsWidget {
       currentView: this.currentView,
       defaultViewSetter: () => this.setView(this.config.default || this.defaults.default)
     })
+  }
+
+  downloadCsv () {
+    const url = `api/${this.apiPrefix}/csv?${Date.now()}`
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${this.apiPrefix}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  downloadCsvForSource (source) {
+    const url = `api/metrics-${source}/csv?${Date.now()}`
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `metrics-${source}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  async loadFeatureScripts () {
+    const featureScripts = [
+      { globalName: 'MetricsSnapshot', source: 'widgets/metrics/features/snapshot.js' },
+      { globalName: 'MetricsChart', source: 'widgets/metrics/features/chart.js' },
+      { globalName: 'MetricsTable', source: 'widgets/metrics/features/table.js' }
+    ]
+
+    await window.monitorShared.loadFeatureScripts(featureScripts)
+  }
+
+  initializeFeatures () {
+    const SnapshotFeature = window.MetricsSnapshot
+    const ChartFeature = window.MetricsChart
+    const TableFeature = window.MetricsTable
+
+    if (!SnapshotFeature || !ChartFeature || !TableFeature) {
+      throw new Error('Metrics feature scripts not loaded')
+    }
+
+    this.features.snapshot = new SnapshotFeature(this)
+    this.features.chart = new ChartFeature(this)
+    this.features.table = new TableFeature(this)
   }
 }
 

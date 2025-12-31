@@ -6,25 +6,25 @@
 .reminder-alert-name { font-weight: 600; }
 .reminder-alert-stats { display: flex; gap: 16px; font-size: 0.85rem; color: var(--text-muted); }
 .reminder-alert-description { color: var(--text-muted) !important; }
-.widget-controls { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-.widget-sort-select { padding: 4px 8px; font-size: 0.85rem; border-radius: 4px; border: 1px solid var(--border-color, #444); background: var(--bg-secondary, #2a2a2a); color: var(--text-primary, #fff); cursor: pointer; }
-.sort-direction-btn { background: none; border: 1px solid var(--border-color, #444); border-radius: 4px; padding: 4px 6px; cursor: pointer; display: flex; align-items: center; }
-.sort-direction-btn svg { width: 14px; height: 14px; fill: var(--text-secondary, #aaa); }
-.sort-direction-btn:hover svg { fill: var(--text-primary, #fff); }
+.widget-controls { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.widget-controls .spacer { flex: 1; }
+.sort-direction-select { min-width: 5.5rem; }
 </style>
 
 <section class="reminders">
-  <h2>Login Reminders <button type="button" class="alerts-toggle" onclick="testNotification()">Test Notification</button></h2>
+  <h2>Login Reminders</h2>
   <div class="widget-controls">
-    <select class="widget-sort-select reminders-sort-field">
+    <select class="alerts-toggle reminders-sort-field">
       <option value="due">Due</option>
       <option value="name">Name</option>
       <option value="touched">Touched</option>
     </select>
-    <button class="sort-direction-btn reminders-sort-dir" title="Toggle sort direction">
-      <svg class="sort-asc" viewBox="0 0 24 24"><path d="M7 14l5-5 5 5H7z"/></svg>
-      <svg class="sort-desc" viewBox="0 0 24 24" style="display:none"><path d="M7 10l5 5 5-5H7z"/></svg>
-    </button>
+    <select class="alerts-toggle sort-direction-select reminders-sort-dir" aria-label="Sort direction">
+      <option value="asc">asc</option>
+      <option value="desc">desc</option>
+    </select>
+    <span class="spacer"></span>
+    <button type="button" class="alerts-toggle" onclick="testNotification()">Test Notification</button>
   </div>
   <div class="reminder-alerts alert-list"></div>
 </section>

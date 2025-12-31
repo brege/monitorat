@@ -5,6 +5,10 @@ class ServicesWidget {
     this.servicesData = []
     this.statusBySource = {}
     this.config = config
+    this.features = {
+      controls: null,
+      snapshot: null
+    }
   }
 
   getApiBase () {
@@ -84,51 +88,10 @@ class ServicesWidget {
       })
     }
 
-    this.initSortDropdown()
+    await this.loadFeatureScripts()
+    this.initializeFeatures()
+    this.features.controls.initialize()
     await this.loadData()
-  }
-
-  initSortDropdown () {
-    const fieldSelect = this.container.querySelector('.services-sort-field')
-    const dirBtn = this.container.querySelector('.services-sort-dir')
-    if (!fieldSelect || !dirBtn) return
-
-    const currentSort = this.config.sort_by || 'name.asc'
-    const [field, direction] = currentSort.split('.')
-    this.sortField = field
-    this.sortDirection = direction || 'asc'
-
-    fieldSelect.value = this.sortField
-    this.updateDirectionIcon(dirBtn)
-
-    fieldSelect.addEventListener('change', () => {
-      this.sortField = fieldSelect.value
-      this.applySortAndRender()
-    })
-
-    dirBtn.addEventListener('click', () => {
-      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc'
-      this.updateDirectionIcon(dirBtn)
-      this.applySortAndRender()
-    })
-  }
-
-  updateDirectionIcon (btn) {
-    const ascIcon = btn.querySelector('.sort-asc')
-    const descIcon = btn.querySelector('.sort-desc')
-    if (this.sortDirection === 'asc') {
-      ascIcon.style.display = ''
-      descIcon.style.display = 'none'
-    } else {
-      ascIcon.style.display = 'none'
-      descIcon.style.display = ''
-    }
-  }
-
-  applySortAndRender () {
-    this.config.sort_by = `${this.sortField}.${this.sortDirection}`
-    this.render()
-    this.updateStatus()
   }
 
   async loadData () {
@@ -232,196 +195,32 @@ class ServicesWidget {
   }
 
   render () {
-    const cardsContainer = this.container.querySelector('.service-grid')
-    if (!cardsContainer || !this.servicesData) return
-
-    cardsContainer.innerHTML = ''
-
-    const strategy = this.getDisplayStrategy()
-    const hasMergedSources = this.config.federation?.merge
-
-    if (hasMergedSources && strategy === 'stack') {
-      this.renderStacked(cardsContainer)
-    } else if (hasMergedSources && strategy === 'columnate') {
-      this.renderColumnate(cardsContainer)
-    } else {
-      this.renderMerged(cardsContainer)
-    }
-  }
-
-  renderMerged (container) {
-    const sorted = this.sortServices(this.servicesData)
-    sorted.forEach(service => {
-      container.appendChild(this.createServiceCard(service))
-    })
-  }
-
-  renderStacked (container) {
-    const sources = this.config.federation?.merge || []
-    const wrapper = document.createElement('div')
-    wrapper.className = 'federation-stacked'
-
-    sources.forEach(source => {
-      const sourceServices = this.servicesData.filter(s => s._source === source)
-      if (sourceServices.length === 0) return
-
-      const section = document.createElement('div')
-      section.className = 'federation-stack-section'
-
-      const header = document.createElement('h4')
-      header.className = 'federation-source-header'
-      header.textContent = source
-      section.appendChild(header)
-
-      const grid = document.createElement('div')
-      grid.className = 'service-grid-inner'
-      const sorted = this.sortServices(sourceServices)
-      sorted.forEach(service => {
-        grid.appendChild(this.createServiceCard(service))
-      })
-      section.appendChild(grid)
-
-      wrapper.appendChild(section)
-    })
-
-    container.appendChild(wrapper)
-  }
-
-  renderColumnate (container) {
-    const sources = this.config.federation?.merge || []
-    const columns = document.createElement('div')
-    columns.className = 'federation-columns'
-    columns.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;'
-
-    sources.forEach(source => {
-      const sourceServices = this.servicesData.filter(s => s._source === source)
-      const column = document.createElement('div')
-      column.className = 'federation-column'
-
-      const header = document.createElement('h4')
-      header.className = 'federation-source-header'
-      header.textContent = source
-      column.appendChild(header)
-
-      const grid = document.createElement('div')
-      grid.className = 'service-grid-inner'
-      const sorted = this.sortServices(sourceServices)
-      sorted.forEach(service => {
-        grid.appendChild(this.createServiceCard(service))
-      })
-      column.appendChild(grid)
-
-      columns.appendChild(column)
-    })
-
-    container.appendChild(columns)
-  }
-
-  createServiceCard (service) {
-    const card = document.createElement('div')
-    const hasBadge = this.config.remote || service._source
-    card.className = `service-card card status-card${hasBadge ? ' has-badge' : ''}`
-    card.setAttribute('data-service-key', service._key)
-    card.setAttribute('data-service-source', service._source || '')
-
-    if (hasBadge) {
-      const sourceName = service._source || this.config.remote
-      const badge = document.createElement('span')
-      badge.className = `federation-source-badge federation-source-${sourceName}`
-      badge.textContent = sourceName
-      badge.title = `Source: ${sourceName}`
-      card.appendChild(badge)
-    }
-
-    const icon = document.createElement('img')
-    icon.className = 'service-icon'
-    const imgBase = service._source
-      ? `api/proxy/${service._source}/img`
-      : this.getImgBase()
-    icon.src = `${imgBase}/${service.icon}`
-    icon.alt = service.name
-
-    const info = document.createElement('div')
-    info.className = 'service-info'
-
-    const name = document.createElement('div')
-    name.className = 'service-name'
-    name.textContent = service.name
-
-    const status = document.createElement('div')
-    status.className = 'service-status'
-    status.textContent = 'Loading...'
-
-    info.appendChild(name)
-    info.appendChild(status)
-
-    card.appendChild(icon)
-    card.appendChild(info)
-
-    card.addEventListener('click', (event) => {
-      const useLocal = event.shiftKey && (event.ctrlKey || event.metaKey)
-      const url = useLocal ? (service.local || service.url) : service.url
-      if (url) {
-        window.open(url, '_blank')
-      }
-    })
-
-    return card
+    this.features.snapshot.render()
   }
 
   updateStatus () {
-    if (!this.servicesData) return
+    this.features.snapshot.updateStatus()
+  }
 
-    this.servicesData.forEach(service => {
-      const selector = `[data-service-key="${service._key}"][data-service-source="${service._source || ''}"]`
-      const card = this.container.querySelector(selector)
-      if (!card) return
+  async loadFeatureScripts () {
+    const featureScripts = [
+      { globalName: 'ServicesControls', source: 'widgets/services/features/controls.js' },
+      { globalName: 'ServicesSnapshot', source: 'widgets/services/features/snapshot.js' }
+    ]
 
-      const statusData = service._source
-        ? (this.statusBySource[service._source] || {})
-        : (this.statusBySource._local || {})
+    await window.monitorShared.loadFeatureScripts(featureScripts)
+  }
 
-      let overallStatus = 'ok'
-      const statusParts = []
+  initializeFeatures () {
+    const ControlsFeature = window.ServicesControls
+    const SnapshotFeature = window.ServicesSnapshot
 
-      if (service.containers) {
-        service.containers.forEach(container => {
-          const status = statusData[container]
-          if (status === 'down') overallStatus = 'down'
-          else if (status === 'unknown' && overallStatus === 'ok') overallStatus = 'unknown'
-          statusParts.push(`${container}: ${status || 'unknown'}`)
-        })
-      }
+    if (!ControlsFeature || !SnapshotFeature) {
+      throw new Error('Services feature scripts not loaded')
+    }
 
-      if (service.services) {
-        service.services.forEach(svc => {
-          const status = statusData[svc]
-          if (status === 'down') overallStatus = 'down'
-          else if (status === 'unknown' && overallStatus === 'ok') overallStatus = 'unknown'
-          statusParts.push(`${svc}: ${status || 'unknown'}`)
-        })
-      }
-
-      if (service.timers) {
-        service.timers.forEach(timer => {
-          const status = statusData[timer]
-          if (status === 'down') overallStatus = 'down'
-          else if (status === 'unknown' && overallStatus === 'ok') overallStatus = 'unknown'
-          statusParts.push(`${timer}: ${status || 'unknown'}`)
-        })
-      }
-
-      card.className = `service-card card status-card${card.classList.contains('has-badge') ? ' has-badge' : ''} status-${overallStatus}`
-
-      const statusTextElement = card.querySelector('.service-status')
-      if (statusTextElement) {
-        statusTextElement.textContent = overallStatus === 'ok'
-          ? 'Running'
-          : overallStatus === 'down' ? 'Stopped' : 'Unknown'
-        const clickTip = `Click: ${service.url}\nCtrl+Shift+Click: ${service.local || service.url}`
-        statusTextElement.title = statusParts.join('\n') + '\n\n' + clickTip
-      }
-    })
+    this.features.controls = new ControlsFeature(this)
+    this.features.snapshot = new SnapshotFeature(this)
   }
 }
 

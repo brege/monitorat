@@ -35,7 +35,31 @@ class WikiWidget {
     await this.loadContent()
   }
 
+  getDisplayStrategy () {
+    return this.config.federation?.display?.document || 'stack'
+  }
+
+  getMarkdownRenderer () {
+    return window.markdownit({ html: true })
+      .use(window.markdownItAnchor, {
+        permalink: window.markdownItAnchor.permalink.linkInsideHeader({
+          symbol: '#',
+          placement: 'after'
+        })
+      })
+      .use(window.markdownItTocDoneRight)
+  }
+
   async loadContent () {
+    const mergeSources = this.config.federation?.merge
+    if (mergeSources && Array.isArray(mergeSources)) {
+      await this.loadMergedContent(mergeSources)
+    } else {
+      await this.loadSingleContent()
+    }
+  }
+
+  async loadSingleContent () {
     try {
       const widgetName = this.config._widgetName || 'wiki'
       const isRemote = this.config._apiPrefix !== undefined
@@ -53,15 +77,7 @@ class WikiWidget {
       }
       const text = await response.text()
 
-      const md = window.markdownit({ html: true })
-        .use(window.markdownItAnchor, {
-          permalink: window.markdownItAnchor.permalink.linkInsideHeader({
-            symbol: '#',
-            placement: 'after'
-          })
-        })
-        .use(window.markdownItTocDoneRight)
-
+      const md = this.getMarkdownRenderer()
       const notesElement = this.container.querySelector('#about-notes')
       if (notesElement) {
         notesElement.innerHTML = md.render(text)
@@ -72,6 +88,100 @@ class WikiWidget {
         notesElement.innerHTML = `<p class="muted">Unable to load documentation: ${error.message}</p>`
       }
     }
+  }
+
+  async loadMergedContent (sources) {
+    const results = await Promise.all(
+      sources.map(async (source) => {
+        try {
+          const response = await fetch(`api/wiki-${source}/doc`)
+          if (!response.ok) {
+            return { source, content: null, error: `HTTP ${response.status}` }
+          }
+          const text = await response.text()
+          return { source, content: text, error: null }
+        } catch (error) {
+          return { source, content: null, error: error.message }
+        }
+      })
+    )
+
+    const notesElement = this.container.querySelector('#about-notes')
+    if (!notesElement) return
+
+    const strategy = this.getDisplayStrategy()
+    const md = this.getMarkdownRenderer()
+
+    if (strategy === 'columnate') {
+      this.renderColumnated(notesElement, results, md)
+    } else {
+      this.renderStacked(notesElement, results, md)
+    }
+  }
+
+  shouldShowBadges () {
+    return this.config.federation?.show_badges !== false
+  }
+
+  renderStacked (container, results, md) {
+    container.innerHTML = ''
+    const showBadges = this.shouldShowBadges()
+
+    for (const result of results) {
+      const section = document.createElement('div')
+      section.className = 'federation-stack-section'
+
+      if (showBadges) {
+        const header = document.createElement('div')
+        header.className = 'federation-source-header'
+        header.textContent = result.source
+        section.appendChild(header)
+      }
+
+      const content = document.createElement('div')
+      content.className = 'wiki-source-content'
+      if (result.content) {
+        content.innerHTML = md.render(result.content)
+      } else {
+        content.innerHTML = `<p class="muted">Unable to load: ${result.error}</p>`
+      }
+      section.appendChild(content)
+
+      container.appendChild(section)
+    }
+  }
+
+  renderColumnated (container, results, md) {
+    container.innerHTML = ''
+    const showBadges = this.shouldShowBadges()
+
+    const columns = document.createElement('div')
+    columns.className = 'federation-columns wiki-columns'
+
+    for (const result of results) {
+      const column = document.createElement('div')
+      column.className = 'federation-column'
+
+      if (showBadges) {
+        const header = document.createElement('div')
+        header.className = 'federation-source-header'
+        header.textContent = result.source
+        column.appendChild(header)
+      }
+
+      const content = document.createElement('div')
+      content.className = 'wiki-source-content'
+      if (result.content) {
+        content.innerHTML = md.render(result.content)
+      } else {
+        content.innerHTML = `<p class="muted">Unable to load: ${result.error}</p>`
+      }
+      column.appendChild(content)
+
+      columns.appendChild(column)
+    }
+
+    container.appendChild(columns)
   }
 }
 

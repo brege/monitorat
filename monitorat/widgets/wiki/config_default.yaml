@@ -1,0 +1,16 @@
+widgets:
+  wiki:  # markdown documentation widget
+    name: Documentation
+    collapsible: true  # enable collapse/expand
+    hidden: false  # start expanded
+    doc: ''  # path to markdown file. use '' for monitor@'s README.md
+    mode: rail  # featured | seamless | rail
+  # OR set multiple wikis:
+  # README: 
+  #   type: wiki
+  #   doc: README.md
+  #   ...
+  # migration:
+  #   type: wiki
+  #   doc: migration.md
+  #   ...
