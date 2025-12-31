@@ -604,10 +604,30 @@
       margin-top: 0;
     }
 
+    .federation-columns {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
     .federation-column {
       display: flex;
       flex-direction: column;
       gap: 8px;
+    }
+
+    .wiki-columns .federation-column {
+      min-width: 0;
+    }
+
+    .wiki-columns .wiki-source-content {
+      overflow-x: auto;
+    }
+
+    @media (max-width: 700px) {
+      .federation-columns {
+        grid-template-columns: 1fr;
+      }
     }
 
     .federation-stacked {
@@ -621,6 +641,25 @@
 
     .federation-stack-section:last-child {
       margin-bottom: 0;
+    }
+
+    .network-merged-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .network-merged-stats .stat-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .network-merged-stats .stat-label {
+      color: var(--text-muted);
+    }
+
+    .network-merged-stats .stat-value {
+      font-weight: 500;
     }
   </style>
 </head>
