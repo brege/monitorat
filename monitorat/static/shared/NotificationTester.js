@@ -1,5 +1,5 @@
+/* global alert */
 window.monitorShared = window.monitorShared || {}
-
 class NotificationTester {
   constructor (options = {}) {
     this.container = options.container

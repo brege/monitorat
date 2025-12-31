@@ -97,7 +97,6 @@ class MetricsChart {
   }
 
   createMergedChartData (entries, metricsToChart, dataFormatter, sources) {
-    const sourceColors = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
     const lineStyles = [[], [5, 5], [2, 2], [10, 5, 2, 5]]
     const entriesBySource = {}
 
