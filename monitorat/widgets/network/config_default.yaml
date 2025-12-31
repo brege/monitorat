@@ -1,0 +1,31 @@
+widgets:
+  network:  # network monitoring and outage tracking
+    name: Network Outages
+    collapsible: true
+    hidden: false
+    log_file: network.log  # relative to data path, or absolute if external
+    external: false  # overrides chirper.enabled
+    chirper:
+      enabled: true
+      interval_seconds: 300  # check IP every 5 minutes
+      mode: ipv4  # or ipv6
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+        - period: 1 day
+          segment_size: 1 hour
+        - period: 1 week
+          segment_size: 1 day
+        - period: 1 month
+          segment_size: 1 day
+        - period: 1 year
+          segment_size: 1 month
+    alerts:
+      show: true
+      max: 3  # maximum outage alerts to show initially
+      cadence: 0  # minimum outage duration in minutes to show
+      cadenceChecks: 0  # computed from cadence for confuse

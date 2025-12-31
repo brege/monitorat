@@ -1,0 +1,22 @@
+widgets:
+  speedtest:  # uses speedtest.net
+    name: Speedtests
+    collapsible: true
+    hidden: false
+    default: table  # chart, table, none
+    enabled: 
+      - download
+      - upload
+      - ping
+      - server
+      #- ip_address
+    metadata:
+      field: server
+      label: Server
+    table:
+      min: 5  # minimum rows to show
+      max: 20  # maximum rows to load
+    chart:
+      height: 400px  # fixed chart height
+      default_period: all
+      periods: [all, 1 year, 1 month, 1 week]
