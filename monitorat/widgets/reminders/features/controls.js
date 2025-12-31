@@ -4,6 +4,11 @@ class RemindersControls {
   }
 
   initialize () {
+    this.initializeSortController()
+    this.initializeTestNotification()
+  }
+
+  initializeSortController () {
     const fieldSelect = this.widget.container.querySelector('.reminders-sort-field')
     const directionSelect = this.widget.container.querySelector('.reminders-sort-dir')
     if (!fieldSelect || !directionSelect) return
@@ -27,6 +32,21 @@ class RemindersControls {
       }
     })
     this.sortController.initialize()
+  }
+
+  initializeTestNotification () {
+    const NotificationTester = window.monitorShared.NotificationTester
+    if (!NotificationTester) return
+
+    const mergeSources = this.widget.config.federation?.merge
+
+    this.notificationTester = new NotificationTester({
+      container: this.widget.container,
+      buttonSelector: 'button[onclick="testNotification()"]',
+      apiBase: 'reminders',
+      sources: mergeSources
+    })
+    this.notificationTester.initialize()
   }
 }
 
