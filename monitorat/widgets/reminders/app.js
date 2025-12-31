@@ -50,12 +50,10 @@ class RemindersWidget {
     this.container = container
     this.config = { ...this.config, ...config }
 
-    // Load HTML template
     const response = await fetch('widgets/reminders/index.html')
     const html = await response.text()
     container.innerHTML = html
 
-    // Update section title from config (unless suppressed by collapsible wrapper)
     const applyWidgetHeader = window.monitor?.applyWidgetHeader
     if (applyWidgetHeader) {
       applyWidgetHeader(container, {
@@ -65,8 +63,50 @@ class RemindersWidget {
       })
     }
 
-    // Load initial data
+    this.initSortDropdown()
     await this.loadData()
+  }
+
+  initSortDropdown () {
+    const fieldSelect = this.container.querySelector('.reminders-sort-field')
+    const dirBtn = this.container.querySelector('.reminders-sort-dir')
+    if (!fieldSelect || !dirBtn) return
+
+    const currentSort = this.config.sort_by || 'due.asc'
+    const [field, direction] = currentSort.split('.')
+    this.sortField = field
+    this.sortDirection = direction || 'asc'
+
+    fieldSelect.value = this.sortField
+    this.updateDirectionIcon(dirBtn)
+
+    fieldSelect.addEventListener('change', () => {
+      this.sortField = fieldSelect.value
+      this.applySortAndRender()
+    })
+
+    dirBtn.addEventListener('click', () => {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc'
+      this.updateDirectionIcon(dirBtn)
+      this.applySortAndRender()
+    })
+  }
+
+  updateDirectionIcon (btn) {
+    const ascIcon = btn.querySelector('.sort-asc')
+    const descIcon = btn.querySelector('.sort-desc')
+    if (this.sortDirection === 'asc') {
+      ascIcon.style.display = ''
+      descIcon.style.display = 'none'
+    } else {
+      ascIcon.style.display = 'none'
+      descIcon.style.display = ''
+    }
+  }
+
+  applySortAndRender () {
+    this.config.sort_by = `${this.sortField}.${this.sortDirection}`
+    this.render()
   }
 
   async loadData () {

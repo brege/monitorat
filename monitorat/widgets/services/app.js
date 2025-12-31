@@ -19,6 +19,55 @@ class ServicesWidget {
     return this.config.federation?.display?.cards || 'merge'
   }
 
+  sortServices (services) {
+    const sortBy = this.config.sort_by || 'name.asc'
+    const [field, direction] = sortBy.split('.')
+    const ascending = direction !== 'desc'
+
+    const statusOrder = { ok: 0, unknown: 1, down: 2 }
+
+    return [...services].sort((a, b) => {
+      let valueA, valueB
+
+      switch (field) {
+        case 'name':
+          valueA = (a.name || '').toLowerCase()
+          valueB = (b.name || '').toLowerCase()
+          break
+        case 'status':
+          valueA = statusOrder[this.getServiceStatus(a)] ?? 1
+          valueB = statusOrder[this.getServiceStatus(b)] ?? 1
+          break
+        default:
+          return 0
+      }
+
+      if (valueA < valueB) return ascending ? -1 : 1
+      if (valueA > valueB) return ascending ? 1 : -1
+      return 0
+    })
+  }
+
+  getServiceStatus (service) {
+    const statusData = service._source
+      ? (this.statusBySource[service._source] || {})
+      : (this.statusBySource._local || {})
+
+    const checks = [
+      ...(service.containers || []),
+      ...(service.services || []),
+      ...(service.timers || [])
+    ]
+
+    for (const check of checks) {
+      if (statusData[check] === 'down') return 'down'
+    }
+    for (const check of checks) {
+      if (statusData[check] === 'unknown') return 'unknown'
+    }
+    return 'ok'
+  }
+
   async init (container, config = {}) {
     this.container = container
     this.config = { ...this.config, ...config }
@@ -35,7 +84,51 @@ class ServicesWidget {
       })
     }
 
+    this.initSortDropdown()
     await this.loadData()
+  }
+
+  initSortDropdown () {
+    const fieldSelect = this.container.querySelector('.services-sort-field')
+    const dirBtn = this.container.querySelector('.services-sort-dir')
+    if (!fieldSelect || !dirBtn) return
+
+    const currentSort = this.config.sort_by || 'name.asc'
+    const [field, direction] = currentSort.split('.')
+    this.sortField = field
+    this.sortDirection = direction || 'asc'
+
+    fieldSelect.value = this.sortField
+    this.updateDirectionIcon(dirBtn)
+
+    fieldSelect.addEventListener('change', () => {
+      this.sortField = fieldSelect.value
+      this.applySortAndRender()
+    })
+
+    dirBtn.addEventListener('click', () => {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc'
+      this.updateDirectionIcon(dirBtn)
+      this.applySortAndRender()
+    })
+  }
+
+  updateDirectionIcon (btn) {
+    const ascIcon = btn.querySelector('.sort-asc')
+    const descIcon = btn.querySelector('.sort-desc')
+    if (this.sortDirection === 'asc') {
+      ascIcon.style.display = ''
+      descIcon.style.display = 'none'
+    } else {
+      ascIcon.style.display = 'none'
+      descIcon.style.display = ''
+    }
+  }
+
+  applySortAndRender () {
+    this.config.sort_by = `${this.sortField}.${this.sortDirection}`
+    this.render()
+    this.updateStatus()
   }
 
   async loadData () {
@@ -157,7 +250,8 @@ class ServicesWidget {
   }
 
   renderMerged (container) {
-    this.servicesData.forEach(service => {
+    const sorted = this.sortServices(this.servicesData)
+    sorted.forEach(service => {
       container.appendChild(this.createServiceCard(service))
     })
   }
@@ -181,7 +275,8 @@ class ServicesWidget {
 
       const grid = document.createElement('div')
       grid.className = 'service-grid-inner'
-      sourceServices.forEach(service => {
+      const sorted = this.sortServices(sourceServices)
+      sorted.forEach(service => {
         grid.appendChild(this.createServiceCard(service))
       })
       section.appendChild(grid)
@@ -210,7 +305,8 @@ class ServicesWidget {
 
       const grid = document.createElement('div')
       grid.className = 'service-grid-inner'
-      sourceServices.forEach(service => {
+      const sorted = this.sortServices(sourceServices)
+      sorted.forEach(service => {
         grid.appendChild(this.createServiceCard(service))
       })
       column.appendChild(grid)
