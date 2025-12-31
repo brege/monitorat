@@ -19,6 +19,7 @@ class SpeedtestWidget {
     this.currentView = null
     this.selectedPeriod = 'all'
     this.selectedMetric = 'all'
+    this.selectedNode = 'all'
     this.schema = null
     this.chartEntries = []
     this.features = {
@@ -105,6 +106,7 @@ class SpeedtestWidget {
     }
 
     this.features.controls.setupEventListeners()
+    this.setupNodeSelect()
     this.setupDownloadControl()
     this.initManagers()
     this.setView(this.config.default)
@@ -152,6 +154,47 @@ class SpeedtestWidget {
     return ChartTableWidgetMethods.updateViewToggle.call(this, hasEntries)
   }
 
+  setupNodeSelect () {
+    const nodeSelect = this.getElement('node-select')
+    if (!nodeSelect) return
+
+    const mergeSources = this.config.federation?.merge
+    if (!mergeSources || !Array.isArray(mergeSources) || mergeSources.length < 2) {
+      nodeSelect.style.display = 'none'
+      return
+    }
+
+    nodeSelect.innerHTML = ''
+    nodeSelect.style.display = ''
+
+    const allOption = document.createElement('option')
+    allOption.value = 'all'
+    allOption.textContent = 'All Nodes'
+    nodeSelect.appendChild(allOption)
+
+    for (const source of mergeSources) {
+      const option = document.createElement('option')
+      option.value = source
+      option.textContent = source
+      nodeSelect.appendChild(option)
+    }
+
+    nodeSelect.value = this.selectedNode
+    nodeSelect.addEventListener('change', (event) => {
+      this.selectedNode = event.target.value
+      this.applyNodeFilter()
+    })
+  }
+
+  applyNodeFilter () {
+    const filtered = this.selectedNode === 'all'
+      ? this.entries
+      : this.entries.filter(entry => entry._source === this.selectedNode)
+
+    this.tableManager.setEntries(filtered)
+    this.features.chart.update()
+  }
+
   setupDownloadControl () {
     const downloadButton = this.getElement('download-csv')
     if (!downloadButton) {
@@ -161,10 +204,40 @@ class SpeedtestWidget {
       downloadButton.style.display = 'none'
       return
     }
-    downloadButton.addEventListener('click', (event) => {
-      event.preventDefault()
-      this.downloadCsv()
-    })
+
+    const mergeSources = this.config.federation?.merge
+    if (mergeSources && Array.isArray(mergeSources) && mergeSources.length > 1) {
+      const dropdown = document.createElement('select')
+      dropdown.className = 'alerts-toggle'
+
+      const placeholder = document.createElement('option')
+      placeholder.value = ''
+      placeholder.textContent = 'Download CSV'
+      placeholder.disabled = true
+      placeholder.selected = true
+      dropdown.appendChild(placeholder)
+
+      for (const source of mergeSources) {
+        const option = document.createElement('option')
+        option.value = source
+        option.textContent = source
+        dropdown.appendChild(option)
+      }
+
+      dropdown.addEventListener('change', () => {
+        if (dropdown.value) {
+          this.downloadCsvForSource(dropdown.value)
+          dropdown.value = ''
+        }
+      })
+
+      downloadButton.replaceWith(dropdown)
+    } else {
+      downloadButton.addEventListener('click', (event) => {
+        event.preventDefault()
+        this.downloadCsv()
+      })
+    }
   }
 
   downloadCsv () {
@@ -172,6 +245,16 @@ class SpeedtestWidget {
     const link = document.createElement('a')
     link.href = url
     link.download = 'speedtest.csv'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  downloadCsvForSource (source) {
+    const url = `api/speedtest-${source}/csv?${Date.now()}`
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `speedtest-${source}.csv`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

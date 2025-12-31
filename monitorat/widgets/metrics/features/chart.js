@@ -19,7 +19,8 @@ class MetricsChart {
     if (!this.widget.chartManager?.chart || !this.widget.transformedEntries.length) return
 
     const DataFormatter = window.monitorShared.DataFormatter
-    const chartData = this.createChartData(this.widget.transformedEntries, this.widget.selectedMetric, DataFormatter)
+    const filteredEntries = this.getFilteredEntries()
+    const chartData = this.createChartData(filteredEntries, this.widget.selectedMetric, DataFormatter)
 
     const filteredValues = chartData.allValues.filter((value) => Number.isFinite(value))
     if (!filteredValues.length) return
@@ -51,13 +52,30 @@ class MetricsChart {
     }
   }
 
+  getFilteredEntries () {
+    const selectedNode = this.widget.selectedNode
+    if (!selectedNode || selectedNode === 'all') {
+      return this.widget.transformedEntries
+    }
+    return this.widget.transformedEntries.filter(entry => entry._source === selectedNode)
+  }
+
+  getFilteredSources () {
+    const selectedNode = this.widget.selectedNode
+    if (!selectedNode || selectedNode === 'all') {
+      return this.widget.sources
+    }
+    return [selectedNode]
+  }
+
   createChartData (entries, selectedItem, dataFormatter) {
     const group = this.widget.schema.computed.find(group => group.group === selectedItem)
     const metricMatch = this.widget.schema.metrics.find(metric => metric.field === selectedItem)
     const metricsToChart = group ? group.fields : metricMatch ? [metricMatch] : []
     const ChartManager = window.monitorShared.ChartManager
-    if (this.widget.sources && this.widget.sources.length > 1) {
-      return this.createMergedChartData(entries, metricsToChart, dataFormatter)
+    const filteredSources = this.getFilteredSources()
+    if (filteredSources && filteredSources.length > 1) {
+      return this.createMergedChartData(entries, metricsToChart, dataFormatter, filteredSources)
     }
 
     const chronological = entries.slice()
@@ -78,8 +96,9 @@ class MetricsChart {
     return { labels, datasets, allValues }
   }
 
-  createMergedChartData (entries, metricsToChart, dataFormatter) {
+  createMergedChartData (entries, metricsToChart, dataFormatter, sources) {
     const sourceColors = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
+    const lineStyles = [[], [5, 5], [2, 2], [10, 5, 2, 5]]
     const entriesBySource = {}
 
     for (const row of entries) {
@@ -101,17 +120,13 @@ class MetricsChart {
 
     const datasets = []
     const allValues = []
-    let colorIndex = 0
 
-    for (const source of this.widget.sources) {
+    sources.forEach((source, sourceIndex) => {
       const sourceRows = entriesBySource[source] || []
       const timestampMap = {}
       for (const row of sourceRows) {
         timestampMap[row.timestamp] = row
       }
-
-      const color = sourceColors[colorIndex % sourceColors.length]
-      colorIndex += 1
 
       for (const metric of metricsToChart) {
         const values = sortedTimestamps.map(timestamp => {
@@ -119,15 +134,15 @@ class MetricsChart {
           return row ? (parseFloat(row[metric.field]) || 0) : null
         })
 
-        const label = metricsToChart.length > 1
-          ? `${source}: ${metric.label}`
-          : source
+        const label = `${source}: ${metric.label}`
+        const color = metric.color
 
         datasets.push({
           label,
           data: values,
           borderColor: color,
           backgroundColor: color + '33',
+          borderDash: lineStyles[sourceIndex % lineStyles.length],
           borderWidth: 2,
           pointRadius: 0,
           tension: 0.3,
@@ -135,7 +150,7 @@ class MetricsChart {
         })
         allValues.push(...values.filter(value => value !== null))
       }
-    }
+    })
 
     return { labels, datasets, allValues }
   }

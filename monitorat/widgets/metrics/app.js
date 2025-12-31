@@ -21,6 +21,7 @@ class MetricsWidget {
     this.transformedEntries = []
     this.selectedMetric = 'cpu_percent'
     this.selectedPeriod = 'all'
+    this.selectedNode = 'all'
     this.schema = null
     this.metricFields = null
     this.features = {
@@ -128,13 +129,96 @@ class MetricsWidget {
       this.features.table.loadHistory()
     })
 
-    if (downloadButton && this.config.download_csv !== false) {
+    this.setupNodeSelect()
+    this.setupDownloadControl(downloadButton)
+  }
+
+  setupNodeSelect () {
+    const nodeSelect = this.getElement('node-select')
+    if (!nodeSelect) return
+
+    const mergeSources = this.widgetConfig.federation?.merge
+    if (!mergeSources || !Array.isArray(mergeSources) || mergeSources.length < 2) {
+      nodeSelect.style.display = 'none'
+      return
+    }
+
+    nodeSelect.innerHTML = ''
+    nodeSelect.style.display = ''
+
+    const allOption = document.createElement('option')
+    allOption.value = 'all'
+    allOption.textContent = 'All Nodes'
+    nodeSelect.appendChild(allOption)
+
+    for (const source of mergeSources) {
+      const option = document.createElement('option')
+      option.value = source
+      option.textContent = source
+      nodeSelect.appendChild(option)
+    }
+
+    nodeSelect.value = this.selectedNode
+    nodeSelect.addEventListener('change', (event) => {
+      this.selectedNode = event.target.value
+      this.applyNodeFilter()
+    })
+  }
+
+  applyNodeFilter () {
+    const tableLimit = Number.isFinite(this.config.table?.max) ? this.config.table.max : this.defaults.table.max
+    const filtered = this.selectedNode === 'all'
+      ? this.transformedEntries
+      : this.transformedEntries.filter(entry => entry._source === this.selectedNode)
+
+    const tableEntries = filtered.slice(-tableLimit).reverse()
+    this.tableManager.setEntries(tableEntries)
+
+    if (this.chartManager?.hasChart()) {
+      this.updateChart()
+    }
+  }
+
+  setupDownloadControl (downloadButton) {
+    if (!downloadButton) return
+
+    if (this.config.download_csv === false) {
+      downloadButton.style.display = 'none'
+      return
+    }
+
+    const mergeSources = this.config.federation?.merge
+    if (mergeSources && Array.isArray(mergeSources) && mergeSources.length > 1) {
+      const dropdown = document.createElement('select')
+      dropdown.className = 'alerts-toggle'
+
+      const placeholder = document.createElement('option')
+      placeholder.value = ''
+      placeholder.textContent = 'Download CSV'
+      placeholder.disabled = true
+      placeholder.selected = true
+      dropdown.appendChild(placeholder)
+
+      for (const source of mergeSources) {
+        const option = document.createElement('option')
+        option.value = source
+        option.textContent = source
+        dropdown.appendChild(option)
+      }
+
+      dropdown.addEventListener('change', () => {
+        if (dropdown.value) {
+          this.downloadCsvForSource(dropdown.value)
+          dropdown.value = ''
+        }
+      })
+
+      downloadButton.replaceWith(dropdown)
+    } else {
       downloadButton.addEventListener('click', (event) => {
         event.preventDefault()
         this.downloadCsv()
       })
-    } else if (downloadButton) {
-      downloadButton.style.display = 'none'
     }
   }
 
@@ -190,6 +274,16 @@ class MetricsWidget {
     const link = document.createElement('a')
     link.href = url
     link.download = `${this.apiPrefix}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  downloadCsvForSource (source) {
+    const url = `api/metrics-${source}/csv?${Date.now()}`
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `metrics-${source}.csv`
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)

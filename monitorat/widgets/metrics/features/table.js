@@ -14,6 +14,15 @@ class MetricsTable {
   }
 
   async loadHistory () {
+    const mergeSources = this.widget.widgetConfig.federation?.merge
+    if (mergeSources && Array.isArray(mergeSources)) {
+      await this.loadMergedHistory(mergeSources)
+    } else {
+      await this.loadSingleHistory()
+    }
+  }
+
+  async loadSingleHistory () {
     this.widget.tableManager.setEntries([])
     this.widget.tableManager.setStatus('Loading metrics history…')
 
@@ -42,6 +51,53 @@ class MetricsTable {
       if (this.widget.chartManager?.hasChart()) this.widget.updateChart()
     } catch (error) {
       console.error('Metrics history API call failed:', error)
+      this.widget.tableManager.setStatus(`Unable to load metrics history: ${error.message}`)
+    }
+  }
+
+  async loadMergedHistory (sources) {
+    this.widget.tableManager.setEntries([])
+    this.widget.tableManager.setStatus('Loading metrics history…')
+
+    try {
+      const results = await Promise.all(
+        sources.map(async (source) => {
+          try {
+            const requestAddress = new URL(`api/metrics-${source}/history`, window.location)
+            if (this.widget.selectedPeriod && this.widget.selectedPeriod !== 'all') {
+              requestAddress.searchParams.set('period', this.widget.selectedPeriod)
+            }
+            requestAddress.searchParams.set('ts', Date.now())
+
+            const response = await fetch(requestAddress, { cache: 'no-store' })
+            if (!response.ok) {
+              console.warn(`Failed to fetch metrics from ${source}: HTTP ${response.status}`)
+              return []
+            }
+            const payload = await response.json()
+            return (payload.data || []).map(row => ({ ...row, _source: source }))
+          } catch (error) {
+            console.warn(`Failed to fetch metrics from ${source}:`, error.message)
+            return []
+          }
+        })
+      )
+
+      const allData = results.flat()
+      allData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+
+      this.widget.sources = sources
+      this.widget.entries = allData
+      this.widget.transformedEntries = this.calculateTableDeltas(this.widget.entries)
+
+      const tableLimit = Number.isFinite(this.widget.config.table?.max) ? this.widget.config.table.max : this.widget.defaults.table.max
+      const tableEntries = this.widget.transformedEntries.slice(-tableLimit).reverse()
+      this.widget.tableManager.setEntries(tableEntries)
+      this.widget.updateViewToggle(tableEntries.length > 0)
+
+      if (this.widget.chartManager?.hasChart()) this.widget.updateChart()
+    } catch (error) {
+      console.error('Metrics merged history API call failed:', error)
       this.widget.tableManager.setStatus(`Unable to load metrics history: ${error.message}`)
     }
   }
