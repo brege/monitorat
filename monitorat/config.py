@@ -29,19 +29,37 @@ class ConfigManager:
 
     def _build_config(self) -> confuse.Configuration:
         config_obj = confuse.Configuration("monitor@", __name__)
+        default_config = confuse.Configuration("monitor@", __name__)
 
         config_obj.clear()
+        default_config.clear()
         if self._project_config:
             config_obj.read(user=False, defaults=True)
         else:
             config_obj.read(user=True, defaults=True)
+        default_config.read(user=False, defaults=True)
 
-        includes = config_obj["includes"].get(list)
+        default_includes = default_config["includes"].get(list)
         default_config_dir = Path(__file__).resolve().parent
-        for include in includes:
+        for include in default_includes:
             filepath = default_config_dir / include
             if not filepath.exists():
-                raise FileNotFoundError(f"Include file not found: {filepath}")
+                raise FileNotFoundError(f"Include file not found: {include}")
+            config_obj.set_file(filepath)
+
+        includes = config_obj["includes"].get(list)
+        config_dir = Path(config_obj.config_dir())
+        for include in includes:
+            include_path = Path(include)
+            if include_path.is_absolute():
+                filepath = include_path
+            else:
+                candidates = [config_dir / include, default_config_dir / include]
+                filepath = next(
+                    (candidate for candidate in candidates if candidate.exists()), None
+                )
+            if not filepath or not filepath.exists():
+                raise FileNotFoundError(f"Include file not found: {include}")
             config_obj.set_file(filepath)
 
         if self._project_config:
