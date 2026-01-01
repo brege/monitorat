@@ -273,19 +273,12 @@ class MetricsWidget {
   }
 
   applyVisibilityConfig () {
-    const showConfig = this.config.show || {}
-    const showTiles = showConfig.tiles !== false
-    const showHistory = showConfig.history !== false
+    const FeatureVisibility = window.monitorShared.FeatureVisibility
 
-    const statsContainer = this.container.querySelector('.stats')
-    const historyContainer = this.container.querySelector('.metrics-history')
-
-    if (statsContainer && !showTiles) {
-      statsContainer.style.display = 'none'
-    }
-    if (historyContainer && !showHistory) {
-      historyContainer.style.display = 'none'
-    }
+    FeatureVisibility.apply(this.container, this.config.show, {
+      tiles: '.stats',
+      history: '.metrics-history'
+    })
   }
 
   initManagers () {

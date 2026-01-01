@@ -1,5 +1,27 @@
 ## Changelog
 
+### 2026-01-01
+
+- Extracted three shared utilities to reduce federation bloat in widget code:
+  - `FeatureVisibility.js` - centralizes show/hide logic for widget features
+  - `FederationRenderer.js` - provides columnate/stack rendering patterns
+  - `TileRenderer.js` - creates stats tiles with consistent structure
+- Refactored network, metrics, and speedtest widgets to use new shared utilities
+- Fixed config resolution for includes snippets
+- Added bootstrap command so install -> demo is two commands
+
+### 2025-12-31
+
+- Completed federation support for all widgets with per-feature merge strategies
+- Network widget now supports columnate, stack, and merge for tiles, uptime, and outages separately
+- Fixed network tiles in columnation showing all 6 metrics in 2-wide layout
+- Fixed uptime column headers showing both source badge and period label
+- Fixed badge positioning issue (badges were floating to page corners)
+- Added `show.controls` and `show.history` visibility toggles to speedtest widget
+- Reorganized metrics and speedtest directory structure: chart.js + table.js grouped into history/ folder
+- Metrics widget fully federalized with per-feature display strategies
+- Added new test configurations for speedtest: controls-only and history-only variants
+
 ### 2025-12-30
 
 - Complete test apparatus implemented:

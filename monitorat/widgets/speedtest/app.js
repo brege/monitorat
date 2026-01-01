@@ -123,19 +123,12 @@ class SpeedtestWidget {
   }
 
   applyVisibilityConfig () {
-    const showConfig = this.config.show || {}
-    const showControls = showConfig.controls !== false
-    const showHistory = showConfig.history !== false
+    const FeatureVisibility = window.monitorShared.FeatureVisibility
 
-    const controlsContainer = this.container.querySelector('.speedtest-controls')
-    const historyContainer = this.container.querySelector('.speedtest-history')
-
-    if (controlsContainer && !showControls) {
-      controlsContainer.style.display = 'none'
-    }
-    if (historyContainer && !showHistory) {
-      historyContainer.style.display = 'none'
-    }
+    FeatureVisibility.apply(this.container, this.config.show, {
+      controls: '.speedtest-controls',
+      history: '.speedtest-history'
+    })
   }
 
   initManagers () {

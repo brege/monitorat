@@ -135,20 +135,19 @@ class NetworkWidget {
   }
 
   applySectionVisibility () {
-    const showConfig = this.config.show || {}
-    const showTiles = showConfig.tiles !== false && this.config.metrics.show
-    const showUptime = showConfig.uptime !== false && this.config.uptime.show
-    const showOutages = showConfig.outages !== false && this.config.alerts.show
+    const FeatureVisibility = window.monitorShared.FeatureVisibility
 
-    if (this.elements.sections.metrics && !showTiles) {
-      this.elements.sections.metrics.classList.add('hidden')
+    const showConfig = {
+      tiles: this.config.show?.tiles !== false && this.config.metrics.show,
+      uptime: this.config.show?.uptime !== false && this.config.uptime.show,
+      outages: this.config.show?.outages !== false && this.config.alerts.show
     }
-    if (this.elements.sections.uptime && !showUptime) {
-      this.elements.sections.uptime.classList.add('hidden')
-    }
-    if (this.elements.sections.alerts && !showOutages) {
-      this.elements.sections.alerts.classList.add('hidden')
-    }
+
+    FeatureVisibility.apply(this.container, showConfig, {
+      tiles: this.elements.sections.metrics,
+      uptime: this.elements.sections.uptime,
+      outages: this.elements.sections.alerts
+    })
   }
 
   attachEvents () {
@@ -410,55 +409,29 @@ class NetworkWidget {
   }
 
   createSnapshotTiles (analysis) {
-    const container = document.createElement('div')
-    container.className = 'stats'
+    const TileRenderer = window.monitorShared.TileRenderer
 
-    const primaryRow = document.createElement('div')
-    primaryRow.className = 'stats-row primary'
-
-    const primaryTiles = [
-      { label: 'Uptime', value: analysis?.uptimeText || '–' },
-      { label: 'Checks Logged', value: analysis?.entries?.length ? this.helpers.formatNumber(analysis.entries.length) : '–' },
-      { label: 'Checks Expected', value: analysis?.expectedChecks ? this.helpers.formatNumber(analysis.expectedChecks) : '–' },
-      { label: 'Missed Checks', value: analysis?.missedChecks !== undefined ? this.helpers.formatNumber(analysis.missedChecks) : '–' }
-    ]
-
-    for (const tileData of primaryTiles) {
-      primaryRow.appendChild(this.createTile(tileData))
-    }
-
-    const datesRow = document.createElement('div')
-    datesRow.className = 'stats-row dates'
-
-    const datesTiles = [
-      { label: 'First Entry', value: analysis?.firstEntry ? this.helpers.formatDateTime(analysis.firstEntry) : '–' },
-      { label: 'Most Recent', value: analysis?.lastEntry ? this.helpers.formatDateTime(analysis.lastEntry) : '–' }
-    ]
-
-    for (const tileData of datesTiles) {
-      datesRow.appendChild(this.createTile(tileData))
-    }
-
-    container.appendChild(primaryRow)
-    container.appendChild(datesRow)
-    return container
-  }
-
-  createTile (tileData) {
-    const tile = document.createElement('div')
-    tile.className = 'stat'
-
-    const label = document.createElement('span')
-    label.className = 'label'
-    label.textContent = tileData.label
-
-    const value = document.createElement('span')
-    value.className = 'value'
-    value.textContent = tileData.value
-
-    tile.appendChild(label)
-    tile.appendChild(value)
-    return tile
+    return TileRenderer.createTilesFromSpec({
+      containerClass: 'stats',
+      rows: [
+        {
+          className: 'stats-row primary',
+          tiles: [
+            { label: 'Uptime', value: analysis?.uptimeText || '–' },
+            { label: 'Checks Logged', value: analysis?.entries?.length ? this.helpers.formatNumber(analysis.entries.length) : '–' },
+            { label: 'Checks Expected', value: analysis?.expectedChecks ? this.helpers.formatNumber(analysis.expectedChecks) : '–' },
+            { label: 'Missed Checks', value: analysis?.missedChecks !== undefined ? this.helpers.formatNumber(analysis.missedChecks) : '–' }
+          ]
+        },
+        {
+          className: 'stats-row dates',
+          tiles: [
+            { label: 'First Entry', value: analysis?.firstEntry ? this.helpers.formatDateTime(analysis.firstEntry) : '–' },
+            { label: 'Most Recent', value: analysis?.lastEntry ? this.helpers.formatDateTime(analysis.lastEntry) : '–' }
+          ]
+        }
+      ]
+    })
   }
 
   renderMergedUptime (sources, sourceStates) {
