@@ -2,6 +2,7 @@
 import argparse
 import importlib.metadata
 from pathlib import Path
+import subprocess
 import sys
 
 try:
@@ -118,6 +119,35 @@ def command_server(args):
     flask_app.run(host=args.host, port=args.port, debug=args.debug)
 
 
+def get_demo_config_path() -> Path:
+    package_root = Path(__file__).resolve().parent
+    package_demo = package_root / "demo" / "config.yaml"
+    repo_demo = package_root.parent / "demo" / "config.yaml"
+
+    if package_demo.exists():
+        return package_demo
+    if repo_demo.exists():
+        return repo_demo
+
+    raise FileNotFoundError(
+        "Demo config not found; reinstall with demo assets included."
+    )
+
+
+def command_demo(args):
+    """Run the demo server with bundled demo configuration."""
+    demo_config = get_demo_config_path()
+    if args.bootstrap:
+        demo_dir = demo_config.parent
+        subprocess.run(
+            ["uv", "run", "python", str(demo_dir / "setup.py"), "--demo"],
+            cwd=demo_dir,
+            check=True,
+        )
+    set_project_config_path(demo_config)
+    command_server(args)
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="monitorat", description="monitor@ system dashboard and monitoring tool"
@@ -159,8 +189,35 @@ def main():
         action="store_true",
         help="Enable debug mode.",
     )
+    demo_parser = subparsers.add_parser("demo", help="Run the demo server")
+    demo_parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Host interface to bind.",
+    )
+    demo_parser.add_argument(
+        "--port",
+        type=int,
+        default=6161,
+        help="Port to bind.",
+    )
+    demo_parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable debug mode.",
+    )
+    demo_parser.add_argument(
+        "--bootstrap",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Generate demo assets before starting the server.",
+    )
 
     args = parser.parse_args()
+
+    if args.command == "demo" and args.config:
+        print("The demo command does not accept --config.", file=sys.stderr)
+        sys.exit(2)
 
     if args.config:
         set_project_config_path(args.config)
@@ -171,6 +228,8 @@ def main():
         command_ls_widgets(args)
     elif args.command == "server":
         command_server(args)
+    elif args.command == "demo":
+        command_demo(args)
     else:
         parser.print_help()
 

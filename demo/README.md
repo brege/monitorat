@@ -2,11 +2,10 @@
 
 Run the demo:
 ```bash
-git clone https://github.com/brege/monitorat && cd monitorat
-uv run python demo/setup.py --demo
-uv tool install -e .
-monitorat -c demo/config.yaml server --port 6161
+uv tool install monitorat
+monitorat demo --port 6161
 ```
+Open your browser at [http://localhost:6161](http://localhost:6161).
 
 This dashboard is a read-only instance of monitor@, similar to the one you could be using on your machine. monitor@ is a continuous, scroll-focused dashboard with a widget system that aims to not be a knowledge sink.
 
