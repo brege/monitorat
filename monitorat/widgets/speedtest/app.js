@@ -91,9 +91,9 @@ class SpeedtestWidget {
     const html = await response.text()
     container.innerHTML = html
 
+    this.applyVisibilityConfig()
     await this.loadFeatureScripts()
     this.initializeFeatures()
-    this.features.table.rebuildHeaders()
 
     const applyWidgetHeader = window.monitor?.applyWidgetHeader
     if (applyWidgetHeader) {
@@ -105,12 +105,37 @@ class SpeedtestWidget {
       })
     }
 
-    this.features.controls.setupEventListeners()
-    this.setupNodeSelect()
-    this.setupDownloadControl()
-    this.initManagers()
-    this.setView(this.config.default)
-    await this.features.table.loadHistory()
+    const showControls = this.config.show?.controls !== false
+    const showHistory = this.config.show?.history !== false
+
+    if (showControls) {
+      this.features.controls.setupEventListeners()
+    }
+
+    if (showHistory) {
+      this.features.table.rebuildHeaders()
+      this.setupNodeSelect()
+      this.setupDownloadControl()
+      this.initManagers()
+      this.setView(this.config.default)
+      await this.features.table.loadHistory()
+    }
+  }
+
+  applyVisibilityConfig () {
+    const showConfig = this.config.show || {}
+    const showControls = showConfig.controls !== false
+    const showHistory = showConfig.history !== false
+
+    const controlsContainer = this.container.querySelector('.speedtest-controls')
+    const historyContainer = this.container.querySelector('.speedtest-history')
+
+    if (controlsContainer && !showControls) {
+      controlsContainer.style.display = 'none'
+    }
+    if (historyContainer && !showHistory) {
+      historyContainer.style.display = 'none'
+    }
   }
 
   initManagers () {
@@ -129,8 +154,8 @@ class SpeedtestWidget {
   async loadFeatureScripts () {
     const featureScripts = [
       { globalName: 'SpeedtestControls', source: 'widgets/speedtest/features/controls.js' },
-      { globalName: 'SpeedtestChart', source: 'widgets/speedtest/features/chart.js' },
-      { globalName: 'SpeedtestTable', source: 'widgets/speedtest/features/table.js' }
+      { globalName: 'SpeedtestChart', source: 'widgets/speedtest/features/history/chart.js' },
+      { globalName: 'SpeedtestTable', source: 'widgets/speedtest/features/history/table.js' }
     ]
 
     await window.monitorShared.loadFeatureScripts(featureScripts)

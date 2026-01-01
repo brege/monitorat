@@ -334,8 +334,8 @@ class MetricsWidget {
   async loadFeatureScripts () {
     const featureScripts = [
       { globalName: 'MetricsSnapshot', source: 'widgets/metrics/features/snapshot.js' },
-      { globalName: 'MetricsChart', source: 'widgets/metrics/features/chart.js' },
-      { globalName: 'MetricsTable', source: 'widgets/metrics/features/table.js' }
+      { globalName: 'MetricsChart', source: 'widgets/metrics/features/history/chart.js' },
+      { globalName: 'MetricsTable', source: 'widgets/metrics/features/history/table.js' }
     ]
 
     await window.monitorShared.loadFeatureScripts(featureScripts)

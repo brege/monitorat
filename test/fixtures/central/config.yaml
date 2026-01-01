@@ -46,6 +46,8 @@ widgets:
     - speedtest-nas-1
     - speedtest-nas-2
     - speedtest-combined
+    - speedtest-controls-only
+    - speedtest-history-only
     - network-nas-1
     - network-nas-2
     - network-combined
@@ -244,6 +246,29 @@ widgets:
         chart: merge
         table: merge
         button: stack
+    chart:
+      default_period: 1 month
+
+  speedtest-controls-only:
+    type: speedtest
+    name: "Run Speedtest (controls only)"
+    remote: nas-1
+    show:
+      controls: true
+      history: false
+
+  speedtest-history-only:
+    type: speedtest
+    name: "All Speedtests (history only)"
+    default: chart
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        chart: merge
+        table: merge
+    show:
+      controls: false
+      history: true
     chart:
       default_period: 1 month
 
