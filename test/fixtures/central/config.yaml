@@ -49,6 +49,9 @@ widgets:
     - network-nas-1
     - network-nas-2
     - network-combined
+    - network-tiles-only
+    - network-uptime-only
+    - network-outages-only
     - network-stacked
     - network-columns
 
@@ -282,14 +285,10 @@ widgets:
 
   network-combined:
     type: network
-    name: "All Networks (merged)"
+    name: "All Networks"
     log_file: network.log
     federation:
       merge: [nas-1, nas-2]
-      display:
-        tiles: stack
-        uptime: stack
-        outages: merge
     metrics:
       show: true
     uptime:
@@ -300,6 +299,67 @@ widgets:
     alerts:
       show: true
       max: 5
+
+  network-tiles-only:
+    type: network
+    name: "All Networks (tiles only)"
+    log_file: network.log
+    federation:
+      merge: [nas-1, nas-2]
+    show:
+      tiles: true
+      uptime: false
+      outages: false
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    alerts:
+      show: true
+
+  network-uptime-only:
+    type: network
+    name: "All Networks (uptime only)"
+    log_file: network.log
+    federation:
+      merge: [nas-1, nas-2]
+    show:
+      tiles: false
+      uptime: true
+      outages: false
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    alerts:
+      show: true
+
+  network-outages-only:
+    type: network
+    name: "All Networks (outages only)"
+    log_file: network.log
+    federation:
+      merge: [nas-1, nas-2]
+    show:
+      tiles: false
+      uptime: false
+      outages: true
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    alerts:
+      show: true
+      max: 10
 
   network-stacked:
     type: network
@@ -331,7 +391,7 @@ widgets:
       display:
         tiles: columnate
         uptime: columnate
-        outages: stack
+        outages: columnate
     metrics:
       show: true
     uptime:

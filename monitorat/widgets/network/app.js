@@ -135,13 +135,18 @@ class NetworkWidget {
   }
 
   applySectionVisibility () {
-    if (this.elements.sections.metrics && !this.config.metrics.show) {
+    const showConfig = this.config.show || {}
+    const showTiles = showConfig.tiles !== false && this.config.metrics.show
+    const showUptime = showConfig.uptime !== false && this.config.uptime.show
+    const showOutages = showConfig.outages !== false && this.config.alerts.show
+
+    if (this.elements.sections.metrics && !showTiles) {
       this.elements.sections.metrics.classList.add('hidden')
     }
-    if (this.elements.sections.uptime && !this.config.uptime.show) {
+    if (this.elements.sections.uptime && !showUptime) {
       this.elements.sections.uptime.classList.add('hidden')
     }
-    if (this.elements.sections.alerts && !this.config.alerts.show) {
+    if (this.elements.sections.alerts && !showOutages) {
       this.elements.sections.alerts.classList.add('hidden')
     }
   }
@@ -245,7 +250,13 @@ class NetworkWidget {
           }
           const text = await response.text()
           const entries = parseLog(text)
-          const analysis = analyzeEntries(entries, this.periodsConfig, this.expectedIntervalMs, this.resolveNowOverride())
+          const isDemoEnabled = window.monitor?.demoEnabled === true
+          let nowOverride = null
+          if (isDemoEnabled && entries.length > 0) {
+            const lastEntry = entries[entries.length - 1]
+            nowOverride = new Date(lastEntry.timestamp.getTime() + NET_MINUTE_MS)
+          }
+          const analysis = analyzeEntries(entries, this.periodsConfig, this.expectedIntervalMs, nowOverride)
           return { source, entries, analysis, error: null }
         } catch (error) {
           console.warn(`Failed to fetch network log from ${source}:`, error.message)
@@ -327,15 +338,14 @@ class NetworkWidget {
   }
 
   renderMergedSnapshot (sources, sourceStates) {
-    if (!this.config.metrics.show) return
+    const showTiles = this.config.show?.tiles !== false && this.config.metrics.show
+    if (!showTiles) return
 
     const container = this.elements.sections.metrics
     if (!container) return
 
-    const existingStats = container.querySelector('.stats-row')
-    if (existingStats) {
-      existingStats.style.display = 'none'
-    }
+    const existingStats = container.querySelectorAll('.stats-row')
+    existingStats.forEach(row => { row.style.display = 'none' })
 
     let mergedContainer = container.querySelector('.federation-merged-snapshots')
     if (!mergedContainer) {
@@ -345,6 +355,41 @@ class NetworkWidget {
     }
     mergedContainer.innerHTML = ''
 
+    const displayStrategy = this.config.federation?.display?.tiles || 'columnate'
+
+    if (displayStrategy === 'columnate') {
+      this.renderSnapshotColumnated(mergedContainer, sources, sourceStates)
+    } else {
+      this.renderSnapshotStacked(mergedContainer, sources, sourceStates)
+    }
+  }
+
+  renderSnapshotColumnated (container, sources, sourceStates) {
+    const columns = document.createElement('div')
+    columns.className = 'federation-columns network-tile-columns'
+
+    for (const source of sources) {
+      const sourceState = sourceStates[source]
+      const analysis = sourceState?.analysis
+
+      const column = document.createElement('div')
+      column.className = 'federation-column'
+
+      const header = document.createElement('div')
+      header.className = 'federation-source-header'
+      header.textContent = source
+      column.appendChild(header)
+
+      const tiles = this.createSnapshotTiles(analysis)
+      column.appendChild(tiles)
+
+      columns.appendChild(column)
+    }
+
+    container.appendChild(columns)
+  }
+
+  renderSnapshotStacked (container, sources, sourceStates) {
     for (const source of sources) {
       const sourceState = sourceStates[source]
       const analysis = sourceState?.analysis
@@ -357,33 +402,139 @@ class NetworkWidget {
       header.textContent = source
       section.appendChild(header)
 
-      const stats = document.createElement('div')
-      stats.className = 'network-merged-stats'
-      stats.innerHTML = `
-        <div class="stat-row">
-          <span class="stat-label">Uptime:</span>
-          <span class="stat-value">${analysis?.uptimeText || '–'}</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Checks:</span>
-          <span class="stat-value">${analysis?.entries?.length ? this.helpers.formatNumber(analysis.entries.length) : '–'}</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Missed:</span>
-          <span class="stat-value">${analysis?.missedChecks !== undefined ? this.helpers.formatNumber(analysis.missedChecks) : '–'}</span>
-        </div>
-      `
-      section.appendChild(stats)
-      mergedContainer.appendChild(section)
+      const tiles = this.createSnapshotTiles(analysis)
+      section.appendChild(tiles)
+
+      container.appendChild(section)
     }
   }
 
+  createSnapshotTiles (analysis) {
+    const container = document.createElement('div')
+    container.className = 'stats'
+
+    const primaryRow = document.createElement('div')
+    primaryRow.className = 'stats-row primary'
+
+    const primaryTiles = [
+      { label: 'Uptime', value: analysis?.uptimeText || '–' },
+      { label: 'Checks Logged', value: analysis?.entries?.length ? this.helpers.formatNumber(analysis.entries.length) : '–' },
+      { label: 'Checks Expected', value: analysis?.expectedChecks ? this.helpers.formatNumber(analysis.expectedChecks) : '–' },
+      { label: 'Missed Checks', value: analysis?.missedChecks !== undefined ? this.helpers.formatNumber(analysis.missedChecks) : '–' }
+    ]
+
+    for (const tileData of primaryTiles) {
+      primaryRow.appendChild(this.createTile(tileData))
+    }
+
+    const datesRow = document.createElement('div')
+    datesRow.className = 'stats-row dates'
+
+    const datesTiles = [
+      { label: 'First Entry', value: analysis?.firstEntry ? this.helpers.formatDateTime(analysis.firstEntry) : '–' },
+      { label: 'Most Recent', value: analysis?.lastEntry ? this.helpers.formatDateTime(analysis.lastEntry) : '–' }
+    ]
+
+    for (const tileData of datesTiles) {
+      datesRow.appendChild(this.createTile(tileData))
+    }
+
+    container.appendChild(primaryRow)
+    container.appendChild(datesRow)
+    return container
+  }
+
+  createTile (tileData) {
+    const tile = document.createElement('div')
+    tile.className = 'stat'
+
+    const label = document.createElement('span')
+    label.className = 'label'
+    label.textContent = tileData.label
+
+    const value = document.createElement('span')
+    value.className = 'value'
+    value.textContent = tileData.value
+
+    tile.appendChild(label)
+    tile.appendChild(value)
+    return tile
+  }
+
   renderMergedUptime (sources, sourceStates) {
-    if (!this.config.uptime.show || !this.elements.uptimeRows) return
+    const showUptime = this.config.show?.uptime !== false && this.config.uptime.show
+    if (!showUptime || !this.elements.uptimeRows) return
 
     const container = this.elements.uptimeRows
     container.innerHTML = ''
 
+    const displayStrategy = this.config.federation?.display?.uptime || 'columnate'
+
+    if (displayStrategy === 'columnate') {
+      this.renderUptimeColumnated(container, sources, sourceStates)
+    } else {
+      this.renderUptimeStacked(container, sources, sourceStates)
+    }
+  }
+
+  renderUptimeColumnated (container, sources, sourceStates) {
+    const allPeriodLabels = new Set()
+    for (const source of sources) {
+      const stats = sourceStates[source]?.analysis?.windowStats || []
+      for (const stat of stats) {
+        allPeriodLabels.add(stat.label)
+      }
+    }
+
+    for (const periodLabel of allPeriodLabels) {
+      const periodRow = document.createElement('div')
+      periodRow.className = 'uptime-item federation-uptime-period'
+
+      const columns = document.createElement('div')
+      columns.className = 'federation-columns network-uptime-columns'
+
+      for (const source of sources) {
+        const sourceState = sourceStates[source]
+        const stats = sourceState?.analysis?.windowStats || []
+        const stat = stats.find(s => s.label === periodLabel)
+
+        const column = document.createElement('div')
+        column.className = 'federation-column'
+
+        const headerRow = document.createElement('div')
+        headerRow.className = 'uptime-column-header'
+
+        const sourceLabel = document.createElement('span')
+        sourceLabel.className = 'federation-source-label'
+        sourceLabel.textContent = source
+
+        const periodLabelElement = document.createElement('span')
+        periodLabelElement.className = 'uptime-period-label'
+        periodLabelElement.textContent = periodLabel
+
+        headerRow.appendChild(sourceLabel)
+        headerRow.appendChild(periodLabelElement)
+        column.appendChild(headerRow)
+
+        if (!stat) {
+          const info = document.createElement('p')
+          info.className = 'muted'
+          info.textContent = sourceState?.error || 'No data'
+          column.appendChild(info)
+        } else {
+          const pillRow = this.createUptimePillRow(stat)
+          column.appendChild(pillRow)
+        }
+
+        columns.appendChild(column)
+      }
+
+      periodRow.appendChild(columns)
+      container.appendChild(periodRow)
+    }
+  }
+
+  renderUptimeStacked (container, sources, sourceStates) {
     for (const source of sources) {
       const sourceState = sourceStates[source]
       const analysis = sourceState?.analysis
@@ -404,26 +555,55 @@ class NetworkWidget {
         section.appendChild(info)
       } else {
         for (const stat of stats) {
-          const row = document.createElement('div')
-          row.className = 'uptime-item'
-          row.innerHTML = `
-            <div class="uptime-row">
-              <div class="uptime-label">${stat.label}</div>
-              <div class="uptime-pills" style="grid-template-columns: repeat(${Math.max(1, stat.segments.length)}, minmax(0, 1fr));">
-                ${stat.segments.map(segment => {
-                  const statusClass = this.getSegmentClass(segment)
-                  return `<div class="uptime-pill ${statusClass}" title="${this.helpers.buildSegmentTooltip(stat.label, segment, this.expectedIntervalMs)}"></div>`
-                }).join('')}
-              </div>
-              <div class="uptime-value">${this.helpers.formatPercent(stat.uptime)}</div>
-            </div>
-          `
+          const row = this.createUptimeRow(stat)
           section.appendChild(row)
         }
       }
 
       container.appendChild(section)
     }
+  }
+
+  createUptimeRow (stat) {
+    const row = document.createElement('div')
+    row.className = 'uptime-item'
+    row.innerHTML = `
+      <div class="uptime-row">
+        <div class="uptime-label">${stat.label}</div>
+        <div class="uptime-pills" style="grid-template-columns: repeat(${Math.max(1, stat.segments.length)}, minmax(0, 1fr));">
+          ${stat.segments.map(segment => {
+            const statusClass = this.getSegmentClass(segment)
+            return `<div class="uptime-pill ${statusClass}" title="${this.helpers.buildSegmentTooltip(stat.label, segment, this.expectedIntervalMs)}"></div>`
+          }).join('')}
+        </div>
+        <div class="uptime-value">${this.helpers.formatPercent(stat.uptime)}</div>
+      </div>
+    `
+    return row
+  }
+
+  createUptimePillRow (stat) {
+    const wrapper = document.createElement('div')
+    wrapper.className = 'uptime-pill-wrapper'
+
+    const pills = document.createElement('div')
+    pills.className = 'uptime-pills'
+    pills.style.gridTemplateColumns = `repeat(${Math.max(1, stat.segments.length)}, minmax(0, 1fr))`
+
+    for (const segment of stat.segments) {
+      const pill = document.createElement('div')
+      pill.className = `uptime-pill ${this.getSegmentClass(segment)}`
+      pill.title = this.helpers.buildSegmentTooltip(stat.label, segment, this.expectedIntervalMs)
+      pills.appendChild(pill)
+    }
+
+    const value = document.createElement('div')
+    value.className = 'uptime-value'
+    value.textContent = this.helpers.formatPercent(stat.uptime)
+
+    wrapper.appendChild(pills)
+    wrapper.appendChild(value)
+    return wrapper
   }
 
   getSegmentClass (segment) {
@@ -435,14 +615,17 @@ class NetworkWidget {
   }
 
   renderMergedOutages (sources, sourceStates) {
-    if (!this.config.alerts.show || !this.elements.alertList) return
+    const showOutages = this.config.show?.outages !== false && this.config.alerts.show
+    if (!showOutages || !this.elements.alertList) return
 
-    const displayStrategy = this.config.federation?.display?.outages || 'stack'
+    const displayStrategy = this.config.federation?.display?.outages || 'merge'
 
-    if (displayStrategy === 'merge') {
-      this.renderMergedOutagesCombined(sources, sourceStates)
-    } else {
+    if (displayStrategy === 'stack') {
       this.renderMergedOutagesStacked(sources, sourceStates)
+    } else if (displayStrategy === 'columnate') {
+      this.renderMergedOutagesColumnated(sources, sourceStates)
+    } else {
+      this.renderMergedOutagesCombined(sources, sourceStates)
     }
   }
 
@@ -580,12 +763,89 @@ class NetworkWidget {
     }
   }
 
-  resolveNowOverride () {
+  renderMergedOutagesColumnated (sources, sourceStates) {
+    const list = this.elements.alertList
+    list.innerHTML = ''
+
+    const columns = document.createElement('div')
+    columns.className = 'federation-columns network-outages-columns'
+
+    for (const source of sources) {
+      const sourceState = sourceStates[source]
+      const analysis = sourceState?.analysis
+
+      const column = document.createElement('div')
+      column.className = 'federation-column'
+
+      const header = document.createElement('div')
+      header.className = 'federation-source-header'
+      header.textContent = source
+      column.appendChild(header)
+
+      if (!analysis?.entries?.length) {
+        const info = document.createElement('p')
+        info.className = 'muted'
+        info.textContent = sourceState?.error || 'No log entries.'
+        column.appendChild(info)
+        columns.appendChild(column)
+        continue
+      }
+
+      const filtered = (analysis.alerts || []).filter((alert) => {
+        if (alert.type !== 'outage') return true
+        const threshold = this.config.alerts.cadenceChecks || 0
+        return alert.missedChecks >= threshold
+      })
+
+      if (!filtered.length) {
+        const info = document.createElement('p')
+        info.className = 'muted'
+        info.textContent = 'No missed intervals detected.'
+        column.appendChild(info)
+      } else {
+        const reversed = [...filtered].reverse()
+        const maxVisible = Math.min(this.config.alerts.max || 3, reversed.length)
+        reversed.slice(0, maxVisible).forEach((alert) => {
+          column.appendChild(this.createAlertCard(alert))
+        })
+      }
+
+      columns.appendChild(column)
+    }
+
+    list.appendChild(columns)
+
+    if (this.elements.alertToggle) {
+      this.elements.alertToggle.style.display = 'none'
+    }
+  }
+
+  createAlertCard (alert) {
+    const item = document.createElement('div')
+    if (alert.type === 'ipchange') {
+      item.className = 'alert alert-card ipchange'
+      item.innerHTML = `<strong>IP changed</strong> from ${alert.oldIp} to ${alert.newIp} at ${this.helpers.formatDateTime(alert.timestamp)}`
+    } else if (alert.type === 'failure') {
+      item.className = 'alert alert-card failure'
+      item.innerHTML = `<strong>Connection failure</strong> at ${this.helpers.formatDateTime(alert.timestamp)} (${alert.message})`
+    } else {
+      item.className = 'alert alert-card'
+      if (alert.open) item.classList.add('open')
+      const endLabel = alert.open ? 'now' : this.helpers.formatDateTime(alert.end)
+      const duration = this.helpers.formatDuration(alert.end.getTime() - alert.start.getTime())
+      const countLabel = alert.missedChecks === 1 ? 'check' : 'checks'
+      item.innerHTML = `<strong>${alert.missedChecks} ${countLabel} missed</strong> from ${this.helpers.formatDateTime(alert.start)} to ${endLabel} (${duration})`
+    }
+    return item
+  }
+
+  resolveNowOverride (entries = null) {
     const isDemoEnabled = window.monitor?.demoEnabled === true
-    if (!isDemoEnabled || !this.state.entries.length) {
+    const sourceEntries = entries || this.state.entries
+    if (!isDemoEnabled || !sourceEntries?.length) {
       return null
     }
-    const lastEntry = this.state.entries[this.state.entries.length - 1]
+    const lastEntry = sourceEntries[sourceEntries.length - 1]
     return new Date(lastEntry.timestamp.getTime() + NET_MINUTE_MS)
   }
 }
