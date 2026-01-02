@@ -1,5 +1,7 @@
-# Central Head Node - Demo Configuration
-# This config includes snippets in pedagogical order for living documentation.
+# Central Head Node - Living Documentation Demo
+#
+# Snippets organized by: single/ (one node) and multi/ (federation)
+# Docs mirror the snippet structure for {{file:...}} shortcodes
 
 includes:
   # Widget defaults
@@ -9,18 +11,70 @@ includes:
   - ../include/reminders.yaml
   - ../include/speedtest.yaml
   - ../include/wiki.yaml
+
   # Site and federation
-  - snippets/00-site.yaml
-  - snippets/01-federation.yaml
-  # Chapter 1: Single-Node
-  - snippets/10-wiki-welcome.yaml
-  - snippets/11-wiki-single-intro.yaml
-  - snippets/12-metrics-nas-1.yaml
-  - snippets/13-wiki-metrics-basic.yaml
-  # Chapter 2: Federation
-  - snippets/50-wiki-federation-intro.yaml
-  - snippets/61-metrics-combined.yaml
-  - snippets/62-wiki-metrics-combined.yaml
+  - snippets/site.yaml
+  - snippets/federation.yaml
+
+  # Single-node widgets
+  - snippets/single/widgets/wiki.yaml
+  - snippets/single/widgets/metrics.yaml
+  - snippets/single/widgets/services.yaml
+  - snippets/single/widgets/reminders.yaml
+  - snippets/single/widgets/speedtest.yaml
+  - snippets/single/widgets/network.yaml
+
+  # Single-node wiki modes
+  - snippets/single/wiki/rail.yaml
+  - snippets/single/wiki/featured.yaml
+  - snippets/single/wiki/seamless.yaml
+
+  # Single-node feature toggles
+  - snippets/single/metrics/tiles-only.yaml
+  - snippets/single/metrics/history-only.yaml
+  - snippets/single/speedtest/controls-only.yaml
+  - snippets/single/speedtest/history-only.yaml
+  - snippets/single/network/tiles-only.yaml
+  - snippets/single/network/uptime-only.yaml
+  - snippets/single/network/outages-only.yaml
+
+  # Multi-node intro
+  - snippets/multi/intro.yaml
+
+  # Multi-node wiki
+  - snippets/multi/wiki/each.yaml
+  - snippets/multi/wiki/column.yaml
+  - snippets/multi/wiki/stack.yaml
+
+  # Multi-node metrics
+  - snippets/multi/metrics/each.yaml
+  - snippets/multi/metrics/tiles/merge.yaml
+  - snippets/multi/metrics/tiles/stack.yaml
+  - snippets/multi/metrics/tiles/column.yaml
+  - snippets/multi/metrics/history/merge.yaml
+  - snippets/multi/metrics/history/stack.yaml
+
+  # Multi-node services
+  - snippets/multi/services/merge.yaml
+  - snippets/multi/services/stack.yaml
+  - snippets/multi/services/column.yaml
+
+  # Multi-node reminders
+  - snippets/multi/reminders/merge.yaml
+  - snippets/multi/reminders/stack.yaml
+  - snippets/multi/reminders/column.yaml
+
+  # Multi-node speedtest
+  - snippets/multi/speedtest/merge.yaml
+
+  # Multi-node network
+  - snippets/multi/network/combined.yaml
+  - snippets/multi/network/tiles/column.yaml
+  - snippets/multi/network/tiles/stack.yaml
+  - snippets/multi/network/uptime/column.yaml
+  - snippets/multi/network/uptime/stack.yaml
+  - snippets/multi/network/outages/column.yaml
+  - snippets/multi/network/outages/merge.yaml
 
 demo: true
 
@@ -29,20 +83,112 @@ paths:
   img: ../img/
   favicon: ../img/favicon.svg
 
-# Widget definitions are in snippets/
-# Widget order is defined in widgets.enabled below
-
 widgets:
   enabled:
     # Welcome
     - wiki-welcome
 
-    # Chapter 1: Single-Node Basics (uses nas-1 as the example)
+    # Chapter 1: Single-Node
     - wiki-single-intro
-    - metrics-nas-1
-    - wiki-metrics-basic
+
+    ## Metrics
+    - metrics-single
+    - wiki-metrics-single
+    - metrics-tiles-only
+    - wiki-metrics-tiles-only
+    - metrics-history-only
+    - wiki-metrics-history-only
+
+    ## Services
+    - services-single
+    - wiki-services-single
+
+    ## Reminders
+    - reminders-single
+    - wiki-reminders-single
+
+    ## Speedtest
+    - speedtest-single
+    - wiki-speedtest-single
+    - speedtest-controls-only
+    - wiki-speedtest-controls-only
+    - speedtest-history-only
+    - wiki-speedtest-history-only
+
+    ## Network
+    - network-single
+    - wiki-network-single
+    - network-tiles-only
+    - wiki-network-tiles-only
+    - network-uptime-only
+    - wiki-network-uptime-only
+    - network-outages-only
+    - wiki-network-outages-only
+
+    ## Wiki modes
+    - wiki-mode-rail
+    - wiki-mode-featured
+    - wiki-mode-seamless
 
     # Chapter 2: Federation
-    - wiki-federation-intro
-    - metrics-combined
-    - wiki-metrics-combined
+    - wiki-multi-intro
+
+    ## Wiki federation
+    - wiki-nas-1
+    - wiki-nas-2
+    - wiki-each-doc
+    - wiki-column
+    - wiki-column-doc
+    - wiki-stack
+    - wiki-stack-doc
+
+    ## Metrics federation
+    - metrics-nas-1
+    - metrics-nas-2
+    - wiki-metrics-each
+    - metrics-tiles-merge
+    - wiki-metrics-tiles-merge
+    - metrics-tiles-stack
+    - wiki-metrics-tiles-stack
+    - metrics-tiles-column
+    - wiki-metrics-tiles-column
+    - metrics-history-merge
+    - wiki-metrics-history-merge
+    - metrics-history-stack
+    - wiki-metrics-history-stack
+
+    ## Services federation
+    - services-merge
+    - wiki-services-merge
+    - services-stack
+    - wiki-services-stack
+    - services-column
+    - wiki-services-column
+
+    ## Reminders federation
+    - reminders-merge
+    - wiki-reminders-merge
+    - reminders-stack
+    - wiki-reminders-stack
+    - reminders-column
+    - wiki-reminders-column
+
+    ## Speedtest federation
+    - speedtest-merge
+    - wiki-speedtest-merge
+
+    ## Network federation
+    - network-combined
+    - wiki-network-combined
+    - network-tiles-column
+    - wiki-network-tiles-column
+    - network-tiles-stack
+    - wiki-network-tiles-stack
+    - network-uptime-column
+    - wiki-network-uptime-column
+    - network-uptime-stack
+    - wiki-network-uptime-stack
+    - network-outages-column
+    - wiki-network-outages-column
+    - network-outages-merge
+    - wiki-network-outages-merge

@@ -1,7 +1,0 @@
-# Single-node introduction wiki
-widgets:
-  wiki-single-intro:
-    type: wiki
-    name: "Single-Node Setup"
-    style: seamless
-    doc: docs/single-node/intro.md

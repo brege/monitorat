@@ -1,6 +1,0 @@
-# Federation introduction wiki
-widgets:
-  wiki-federation-intro:
-    type: wiki
-    name: "Federation: Aggregating Multiple Nodes"
-    doc: docs/federation/intro.md

@@ -1,0 +1,15 @@
+widgets:
+  reminders-merge:
+    type: reminders
+    name: "Reminders: Merged"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        cards: merge
+      sort_by: date.desc
+
+  wiki-reminders-merge:
+    type: wiki
+    name: "Config: Reminders Merged"
+    style: seamless
+    doc: docs/multi/reminders/merge.md

@@ -1,0 +1,22 @@
+widgets:
+  metrics-nas-1:
+    type: metrics
+    name: "NAS-1 Metrics"
+    remote: nas-1
+    chart:
+      periods: [24 hours, 6 hours, 1 hour]
+      default_period: 6 hours
+
+  metrics-nas-2:
+    type: metrics
+    name: "NAS-2 Metrics"
+    remote: nas-2
+    chart:
+      periods: [24 hours, 6 hours, 1 hour]
+      default_period: 6 hours
+
+  wiki-metrics-each:
+    type: wiki
+    name: "Config: Per-Remote Metrics"
+    style: seamless
+    doc: docs/multi/metrics/each.md

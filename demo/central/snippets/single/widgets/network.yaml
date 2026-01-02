@@ -1,0 +1,24 @@
+widgets:
+  network-single:
+    type: network
+    name: "Network"
+    remote: nas-1
+    log_file: network.log
+    chirper:
+      interval_seconds: 300
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    alerts:
+      show: true
+      max: 3
+
+  wiki-network-single:
+    type: wiki
+    name: "Config: Network"
+    style: seamless
+    doc: docs/single/widgets/network.md

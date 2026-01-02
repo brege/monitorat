@@ -1,0 +1,14 @@
+widgets:
+  speedtest-single:
+    type: speedtest
+    name: "Speedtest"
+    remote: nas-1
+    default: chart
+    chart:
+      default_period: 1 month
+
+  wiki-speedtest-single:
+    type: wiki
+    name: "Config: Speedtest"
+    style: seamless
+    doc: docs/single/widgets/speedtest.md

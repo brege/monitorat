@@ -1,0 +1,21 @@
+widgets:
+  network-uptime-only:
+    type: network
+    name: "Network: Uptime Only"
+    remote: nas-1
+    log_file: network.log
+    show:
+      tiles: false
+      uptime: true
+      outages: false
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+
+  wiki-network-uptime-only:
+    type: wiki
+    name: "Config: Uptime Only"
+    style: seamless
+    doc: docs/single/features/network-uptime.md

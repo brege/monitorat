@@ -1,0 +1,20 @@
+widgets:
+  metrics-history-stack:
+    type: metrics
+    name: "Metrics: History Stacked"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        history: stack
+    show:
+      tiles: false
+      history: true
+    chart:
+      periods: [24 hours, 6 hours, 1 hour]
+      default_period: 6 hours
+
+  wiki-metrics-history-stack:
+    type: wiki
+    name: "Config: History Stacked"
+    style: seamless
+    doc: docs/multi/metrics/history/stack.md

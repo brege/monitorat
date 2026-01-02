@@ -1,0 +1,6 @@
+widgets:
+  wiki-mode-seamless:
+    type: wiki
+    name: "Wiki: Seamless Mode"
+    style: seamless
+    doc: docs/single/modes/wiki/seamless.md

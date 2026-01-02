@@ -1,0 +1,14 @@
+widgets:
+  reminders-column:
+    type: reminders
+    name: "Reminders: Columnated"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        cards: columnate
+
+  wiki-reminders-column:
+    type: wiki
+    name: "Config: Reminders Columnated"
+    style: seamless
+    doc: docs/multi/reminders/column.md

@@ -1,7 +1,0 @@
-# Wiki showing the combined metrics config
-widgets:
-  wiki-metrics-combined:
-    type: wiki
-    name: "Config: Federation Merge"
-    style: seamless
-    doc: docs/federation/metrics-combined.md

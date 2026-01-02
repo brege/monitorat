@@ -1,23 +1,17 @@
 # monitor@ Living Documentation
 
-Welcome to the **monitor@** interactive demo. This dashboard serves as both a working example and comprehensive documentation.
+Welcome to **monitor@** - a modular dashboard for system monitoring across one or many nodes.
 
-## What You'll Learn
+This demo serves as both working example and comprehensive documentation. Every widget shown here includes its configuration inline.
 
-**Chapter 1: Single-Node Basics**
-- Basic widget configuration
-- Feature toggling (`show.tiles`, `show.history`)
-- Per-widget customization
+## Chapters
 
-**Chapter 2: Federation**
-- Aggregating data from multiple nodes
-- Display strategies: columnate, stack, merge
-- Per-feature federation control
+**Single-Node Setup**
+Basic widget configuration, feature toggling, and display modes for a single system.
 
-## Navigation
-
-Scroll down to explore each widget type with its configuration shown inline. Every example is live data from actual monitor@ instances.
+**Multi-Node Federation**
+Aggregating data from multiple nodes with columnate, stack, and merge display strategies.
 
 ---
 
-*This demo runs three monitor@ servers: a central head node (what you're viewing) plus two remote nodes (nas-1, nas-2) that provide data via federation.*
+*This demo runs three monitor@ servers: a central head node (what you're viewing) plus two remote nodes (nas-1, nas-2) providing data via federation.*

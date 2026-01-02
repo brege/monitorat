@@ -1,0 +1,17 @@
+widgets:
+  metrics-tiles-column:
+    type: metrics
+    name: "Metrics: Tiles Columnated"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        tiles: columnate
+    show:
+      tiles: true
+      history: false
+
+  wiki-metrics-tiles-column:
+    type: wiki
+    name: "Config: Tiles Columnated"
+    style: seamless
+    doc: docs/multi/metrics/tiles/column.md

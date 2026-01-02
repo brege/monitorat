@@ -1,0 +1,18 @@
+widgets:
+  wiki-nas-1:
+    type: wiki
+    name: "NAS-1 Wiki"
+    remote: nas-1
+    doc: true
+
+  wiki-nas-2:
+    type: wiki
+    name: "NAS-2 Wiki"
+    remote: nas-2
+    doc: true
+
+  wiki-each-doc:
+    type: wiki
+    name: "Config: Single Remote"
+    style: seamless
+    doc: docs/multi/wiki/each.md

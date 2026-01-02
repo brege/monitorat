@@ -1,0 +1,17 @@
+widgets:
+  metrics-tiles-merge:
+    type: metrics
+    name: "Metrics: Tiles Merged"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        tiles: merge
+    show:
+      tiles: true
+      history: false
+
+  wiki-metrics-tiles-merge:
+    type: wiki
+    name: "Config: Tiles Merged"
+    style: seamless
+    doc: docs/multi/metrics/tiles/merge.md

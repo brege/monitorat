@@ -1,0 +1,14 @@
+widgets:
+  services-merge:
+    type: services
+    name: "Services: Merged"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        cards: merge
+
+  wiki-services-merge:
+    type: wiki
+    name: "Config: Services Merged"
+    style: seamless
+    doc: docs/multi/services/merge.md

@@ -1,7 +1,0 @@
-# Wiki showing the metrics config
-widgets:
-  wiki-metrics-basic:
-    type: wiki
-    name: "Config: Single Remote"
-    style: seamless
-    doc: docs/single-node/metrics.md

@@ -1,0 +1,24 @@
+widgets:
+  network-uptime-column:
+    type: network
+    name: "Network: Uptime Columnated"
+    log_file: network.log
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        uptime: columnate
+    show:
+      tiles: false
+      uptime: true
+      outages: false
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+
+  wiki-network-uptime-column:
+    type: wiki
+    name: "Config: Uptime Columnated"
+    style: seamless
+    doc: docs/multi/network/uptime/column.md
