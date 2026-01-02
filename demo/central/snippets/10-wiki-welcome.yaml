@@ -1,0 +1,6 @@
+# Welcome wiki widget
+widgets:
+  wiki-welcome:
+    type: wiki
+    name: "Welcome"
+    doc: docs/README.md

@@ -1,0 +1,48 @@
+# Central Head Node - Demo Configuration
+# This config includes snippets in pedagogical order for living documentation.
+
+includes:
+  # Widget defaults
+  - ../include/metrics.yaml
+  - ../include/network.yaml
+  - ../include/services.yaml
+  - ../include/reminders.yaml
+  - ../include/speedtest.yaml
+  - ../include/wiki.yaml
+  # Site and federation
+  - snippets/00-site.yaml
+  - snippets/01-federation.yaml
+  # Chapter 1: Single-Node
+  - snippets/10-wiki-welcome.yaml
+  - snippets/11-wiki-single-intro.yaml
+  - snippets/12-metrics-nas-1.yaml
+  - snippets/13-wiki-metrics-basic.yaml
+  # Chapter 2: Federation
+  - snippets/50-wiki-federation-intro.yaml
+  - snippets/61-metrics-combined.yaml
+  - snippets/62-wiki-metrics-combined.yaml
+
+demo: true
+
+paths:
+  data: ../data/
+  img: ../img/
+  favicon: ../img/favicon.svg
+
+# Widget definitions are in snippets/
+# Widget order is defined in widgets.enabled below
+
+widgets:
+  enabled:
+    # Welcome
+    - wiki-welcome
+
+    # Chapter 1: Single-Node Basics (uses nas-1 as the example)
+    - wiki-single-intro
+    - metrics-nas-1
+    - wiki-metrics-basic
+
+    # Chapter 2: Federation
+    - wiki-federation-intro
+    - metrics-combined
+    - wiki-metrics-combined

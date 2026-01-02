@@ -1,0 +1,12 @@
+# Metrics from multiple remotes, combined
+widgets:
+  metrics-combined:
+    type: metrics
+    name: "All Systems (Combined)"
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        tiles: columnate
+    chart:
+      periods: [24 hours, 6 hours, 1 hour]
+      default_period: 6 hours

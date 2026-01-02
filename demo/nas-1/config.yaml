@@ -1,0 +1,92 @@
+includes:
+  - ../include/metrics.yaml
+  - ../include/network.yaml
+  - ../include/services.yaml
+  - ../include/reminders.yaml
+  - ../include/speedtest.yaml
+  - ../include/wiki.yaml
+
+site:
+  name: "@nas-1"
+  title: "NAS-1 Node"
+
+paths:
+  data: ../data/
+  img: ../img/
+
+auth:
+  api_key: "nas-1-demo-key"
+
+demo: true
+
+widgets:
+  enabled:
+    - wiki
+    - metrics
+    - services
+    - reminders
+    - speedtest
+    - network
+
+  wiki:
+    name: "NAS-1 Documentation"
+    doc: ../docs/README.md
+
+  metrics:
+    name: "NAS-1 Metrics"
+    chart:
+      periods: [24 hours, 6 hours, 1 hour]
+      default_period: 6 hours
+
+  services:
+    name: "NAS-1 Services"
+    items:
+      plex:
+        name: Plex
+        icon: services/systemd/plex.png
+        services: [plexmediaserver.service]
+        url: https://plex.tv
+      syncthing:
+        name: Syncthing
+        icon: services/systemd/syncthing.png
+        services: [syncthing@user.service]
+        url: https://syncthing.net
+
+  reminders:
+    name: "NAS-1 Reminders"
+    sort_by: due.asc
+    items:
+      backup:
+        name: Backup Check
+        url: https://nas-1.local/backup
+        icon: reminders/github.png
+        expiry_days: 7
+        reason: Verify NAS-1 backups
+      zfs_scrub:
+        name: ZFS Scrub
+        url: https://nas-1.local/zfs
+        icon: reminders/beets.png
+        expiry_days: 30
+        reason: Monthly ZFS pool scrub
+
+  speedtest:
+    name: "NAS-1 Speedtest"
+    default: chart
+    chart:
+      default_period: 1 month
+
+  network:
+    name: "NAS-1 Network"
+    log_file: network.log
+    chirper:
+      interval_seconds: 300
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    alerts:
+      show: true
+      max: 3

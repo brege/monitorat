@@ -1,0 +1,9 @@
+# Basic metrics from a single remote
+widgets:
+  metrics-nas-1:
+    type: metrics
+    name: "System Metrics (NAS-1)"
+    remote: nas-1
+    chart:
+      periods: [24 hours, 6 hours, 1 hour]
+      default_period: 6 hours
