@@ -9,6 +9,11 @@
 - Refactored network, metrics, and speedtest widgets to use new shared utilities
 - Fixed config resolution for includes snippets
 - Added bootstrap command so install -> demo is two commands
+- Extended demo infrastructure for living documentation:
+  - Created `demo/launcher.py` - multi-server launcher for central + remotes
+  - Created partitioned config structure: `demo/central/`, `demo/nas-1/`, `demo/nas-2/`
+  - Introduced snippet-based config assembly for pedagogical widget ordering
+  - Created `docs/demo-architecture.md` with implementation checklist
 
 ### 2025-12-31
 
