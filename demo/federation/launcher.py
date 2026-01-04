@@ -148,12 +148,7 @@ def start_server(node: dict, background: bool = False) -> subprocess.Popen | int
         write_pid(node["name"], proc.pid)
         return proc.pid
     else:
-        proc = subprocess.Popen(
-            cmd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-        )
+        proc = subprocess.Popen(cmd)
         running_processes.append(proc)
         return proc
 

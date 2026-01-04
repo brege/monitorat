@@ -57,7 +57,7 @@ includes:
 demo: true
 
 paths:
-  data: ../../simple/data/
+  data: ../../../test/fixtures/central/data/
   img: ../../simple/img/
   favicon: ../../simple/img/favicon.svg
 

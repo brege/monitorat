@@ -1,17 +1,15 @@
 includes:
   - ../../simple/include/metrics.yaml
   - ../../simple/include/network.yaml
-  - ../../simple/include/services.yaml
   - ../../simple/include/reminders.yaml
   - ../../simple/include/speedtest.yaml
-  - ../../simple/include/wiki.yaml
 
 site:
   name: "@nas-2"
   title: "NAS-2 Node"
 
 paths:
-  data: ../../simple/data/
+  data: ../../../test/fixtures/nas-2/data/
   img: ../../simple/img/
 
 auth:
@@ -30,7 +28,7 @@ widgets:
 
   wiki:
     name: "NAS-2 Documentation"
-    doc: ../../README.md
+    doc: ../../../test/fixtures/nas-2/docs/nas-2.md
 
   metrics:
     name: "NAS-2 Metrics"
@@ -48,20 +46,20 @@ widgets:
         url: https://jellyfin.org
       immich:
         name: Immich
-        icon: services/docker/immich.png
-        containers: [immich_server]
+        icon: services/docker/immich.webp
+        containers: [immich_server, immich_ml]
         url: https://immich.app
 
   reminders:
     name: "NAS-2 Reminders"
     sort_by: due.asc
     items:
-      disk_check:
-        name: Disk Health
-        url: https://nas-2.local/disks
+      ssl_cert:
+        name: SSL Certificate
+        url: https://nas-2.local/ssl
         icon: reminders/protonmail.png
-        expiry_days: 14
-        reason: Check SMART status
+        expiry_days: 30
+        reason: Renew NAS-2 SSL certificate
 
   speedtest:
     name: "NAS-2 Speedtest"

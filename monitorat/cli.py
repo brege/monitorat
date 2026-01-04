@@ -116,7 +116,7 @@ def command_server(args):
 
     mode_label = "on" if is_demo_enabled() else "off"
     print(f" * Demo mode: {mode_label}")
-    flask_app.run(host=args.host, port=args.port, debug=args.debug)
+    flask_app.run(host=args.host, port=args.port, debug=args.debug, threaded=True)
 
 
 def get_demo_config_path() -> Path:

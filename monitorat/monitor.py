@@ -777,4 +777,4 @@ register_widgets()
 
 if __name__ == "__main__":
     setup_logging()
-    app.run()
+    app.run(threaded=True)
