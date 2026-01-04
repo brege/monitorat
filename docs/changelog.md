@@ -10,8 +10,8 @@
 - Fixed config resolution for includes snippets
 - Added bootstrap command so install -> demo is two commands
 - Extended demo infrastructure for living documentation:
-  - Created `demo/launcher.py` - multi-server launcher for central + remotes
-  - Created partitioned config structure: `demo/central/`, `demo/nas-1/`, `demo/nas-2/`
+  - Created `demo/launcher.py` to start simple/advanced/federation demos
+  - Created partitioned config structure: `demo/federation/central/`, `demo/federation/nas-1/`, `demo/federation/nas-2/`
   - Introduced snippet-based config assembly for pedagogical widget ordering
   - Created `docs/demo-architecture.md` with implementation checklist
 
@@ -31,7 +31,7 @@
 
 - Complete test apparatus implemented:
   - test/harness.py introduced 26 smoke tests to check basic asserts/API response
-  - test/dev.py allows for launching multipl, local instances of monitorat
+  - test/dev.py allowed launching multiple local instances of monitorat (since removed)
   - --widget [metrics|network|...] allows for launching only a simplified, one-widget page
   - Launces a head node and two "remote" nodes in one harness
 - Fixed discovered DOM collisions from federation
@@ -45,7 +45,7 @@
 - All widget client app.js chunked into features: {chart|table|snapshot|...}.js
 - All widgets have decided-upon merging behaviors in federation; network widget still WIP
 - Centralize data-downloaders (CSV, etc), table/chart/node filters in one standard container
-- All widget federation tested with test/dev.py: merging, stacking, side-by-side, interleaving
+- All widget federation tested with test/dev.py: merging, stacking, side-by-side, interleaving (since removed)
 
 ### 2025-12-29
 

@@ -7,12 +7,12 @@ The demo serves as living documentation: every widget configuration is visible, 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Reverse Proxy (:443)                     │
-│                  demo.monitorat.brege.org                   │
+│                   monitorat.brege.org                       │
 └─────────────────────────────────┬───────────────────────────┘
                                   │
                                   ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                   Central Head Node (:6100)                 │
+│                   Central Head Node (:6300)                 │
 │               demo/federation/central/config.yaml           │
 │                                                             │
 │   - Serves public dashboard                                 │
@@ -22,7 +22,7 @@ The demo serves as living documentation: every widget configuration is visible, 
                │                             │
                ▼                             ▼
 ┌──────────────────────────┐   ┌──────────────────────────┐
-│    nas-1 (:6601)         │   │    nas-2 (:6602)         │
+│    nas-1 (:6301)         │   │    nas-2 (:6302)         │
 │ demo/federation/nas-1/config.yaml │   │ demo/federation/nas-2/config.yaml │
 │                          │   │                          │
 │  - Auth required         │   │  - Auth required         │
@@ -32,10 +32,16 @@ The demo serves as living documentation: every widget configuration is visible, 
 └──────────────────────────┘   └──────────────────────────┘
 ```
 
+Subpath routing:
+- `/` -> simple demo on :6100
+- `/advanced` -> advanced demo on :6200
+- `/federation` -> federation demo on :6300
+
 ## Directory Structure
 
 ```
 demo/
+├── launcher.py                    # Starts simple/advanced/federation demos
 ├── README.md
 ├── setup.py                        # Generates demo/test data
 │
@@ -64,7 +70,6 @@ demo/
 │           └── modes/wiki/
 │
 └── federation/
-    ├── launcher.py                 # Starts all three servers
     ├── central/
     │   ├── config.yaml             # Main config, includes snippets
     │   ├── snippets/
@@ -118,17 +123,17 @@ Docs reference snippets via shortcode:
 ## Launcher Script
 
 ```bash
-python demo/federation/launcher.py                    # Start all servers
-python demo/federation/launcher.py --central-only     # Central only
-python demo/federation/launcher.py --background       # Daemonize
-python demo/federation/launcher.py --stop             # Stop all
-python demo/federation/launcher.py --status           # Show status
+python demo/launcher.py                               # Start simple demo
+python demo/launcher.py --mode advanced               # Start advanced demo
+python demo/launcher.py --mode federation             # Start federation demo
+python demo/launcher.py --background                  # Daemonize
+python demo/launcher.py --stop                        # Stop all
 ```
 
 ## Implementation Checklist
 
 ### Phase 1: Infrastructure [DONE]
-- [x] Create `demo/federation/launcher.py`
+- [x] Create `demo/launcher.py`
 - [x] Create `demo/federation/central/config.yaml`
 - [x] Create `demo/federation/nas-1/config.yaml` with auth
 - [x] Create `demo/federation/nas-2/config.yaml` with auth
@@ -154,7 +159,7 @@ python demo/federation/launcher.py --status           # Show status
 - [x] Network: combined, tiles/{column,stack}, uptime/{column,stack}, outages/{column,merge}
 
 ### Phase 4: Testing
-- [ ] Test full demo locally with demo/federation/launcher.py
+- [ ] Test full demo locally with demo/launcher.py
 - [ ] Run smoke tests against demo configuration
 - [ ] Regenerate demo data with fresh timestamps
 

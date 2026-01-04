@@ -3,17 +3,22 @@
 Run the demo:
 ```bash
 uv tool install monitorat
-monitorat demo --port 6161
+monitorat demo
 ```
-Open your browser at [http://localhost:6161](http://localhost:6161).
+Open your browser at [http://localhost:6100](http://localhost:6100).
 
 This dashboard is a read-only instance of monitor@, similar to the one you could be using on your machine. monitor@ is a continuous, scroll-focused dashboard with a widget system that aims to not be a knowledge sink.
 
 This demo mode is using mostly synthetic data (e.g., `network.log` and `speedtest.csv`). The data presented in the Metrics widget is real and provided by `demo/simple/data/metrics.csv`. But it's not showing you real *live* data.
 
 Other demo entry points:
-- `demo/advanced/config.yaml` for the single-node widget deep dive
-- `demo/federation/launcher.py` for the multi-node federation demo
+- `demo/launcher.py --mode advanced` for the single-node widget deep dive
+- `demo/launcher.py --mode federation` for the multi-node federation demo
+
+Ports:
+- Simple: 6100
+- Advanced: 6200
+- Federation: 6300 (head), 6301-6302 (remotes)
 
 #### Contents
 - [Metrics](#metrics-widget)

@@ -293,20 +293,15 @@ initSortDropdown () {
 | Script | Purpose |
 |--------|---------|
 | `test/harness.py` | Automated smoke tests - spawn servers, run assertions, teardown |
-| `test/dev.py` | Interactive development - spawn servers, keep running until Ctrl+C |
+| `demo/launcher.py` | Interactive demo mode (simple/advanced/federation) |
 
-### Dev Harness Usage
+### Interactive Usage
 
 ```bash
-uv run python test/dev.py                          # head + nas-1 + nas-2 (all widgets)
-uv run python test/dev.py --single nas-1           # just nas-1
-uv run python test/dev.py --remote nas-1           # head + nas-1
-uv run python test/dev.py --widget services        # all nodes, services only
-uv run python test/dev.py --remote nas-1 --widget speedtest
-uv run python test/dev.py --list
+python demo/launcher.py --mode federation
 ```
 
-Widget filtering generates temp configs with filtered `widgets.enabled` lists.
+For fixture-backed federation testing, start the three servers manually using the configs in `test/fixtures/`.
 
 ### Smoke Test Coverage
 

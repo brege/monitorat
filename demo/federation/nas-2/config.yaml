@@ -8,7 +8,7 @@ site:
   title: "NAS-2 Node"
 
 paths:
-  data: ../../../test/fixtures/nas-2/data/
+  data: data/
   img: ../../simple/img/
 
 auth:
@@ -27,7 +27,7 @@ widgets:
 
   wiki:
     name: "NAS-2 Documentation"
-    doc: ../../../test/fixtures/nas-2/docs/nas-2.md
+    doc: docs/nas-2.md
 
   metrics:
     name: "NAS-2 Metrics"
