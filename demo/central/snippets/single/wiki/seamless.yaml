@@ -3,4 +3,4 @@ widgets:
     type: wiki
     name: "Wiki: Seamless Mode"
     style: seamless
-    doc: docs/single/modes/wiki/seamless.md
+    doc: ../../../docs/single/modes/wiki/seamless.md

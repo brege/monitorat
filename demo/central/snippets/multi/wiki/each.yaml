@@ -15,4 +15,4 @@ widgets:
     type: wiki
     name: "Config: Single Remote"
     style: seamless
-    doc: docs/multi/wiki/each.md
+    doc: ../../../docs/multi/wiki/each.md

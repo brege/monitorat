@@ -14,4 +14,4 @@ widgets:
     type: wiki
     name: "Config: Tiles Columnated"
     style: seamless
-    doc: docs/multi/metrics/tiles/column.md
+    doc: ../../../../docs/multi/metrics/tiles/column.md

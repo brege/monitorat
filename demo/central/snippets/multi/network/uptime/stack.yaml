@@ -21,4 +21,4 @@ widgets:
     type: wiki
     name: "Config: Uptime Stacked"
     style: seamless
-    doc: docs/multi/network/uptime/stack.md
+    doc: ../../../../docs/multi/network/uptime/stack.md

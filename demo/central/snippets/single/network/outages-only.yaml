@@ -16,4 +16,4 @@ widgets:
     type: wiki
     name: "Config: Outages Only"
     style: seamless
-    doc: docs/single/features/network-outages.md
+    doc: ../../../docs/single/features/network-outages.md

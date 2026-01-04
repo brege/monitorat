@@ -15,4 +15,4 @@ widgets:
     type: wiki
     name: "Config: History Merged"
     style: seamless
-    doc: docs/multi/metrics/history/merge.md
+    doc: ../../../../docs/multi/metrics/history/merge.md

@@ -19,4 +19,4 @@ widgets:
     type: wiki
     name: "Config: Outages Columnated"
     style: seamless
-    doc: docs/multi/network/outages/column.md
+    doc: ../../../../docs/multi/network/outages/column.md

@@ -17,4 +17,4 @@ widgets:
     type: wiki
     name: "Config: History Stacked"
     style: seamless
-    doc: docs/multi/metrics/history/stack.md
+    doc: ../../../../docs/multi/metrics/history/stack.md

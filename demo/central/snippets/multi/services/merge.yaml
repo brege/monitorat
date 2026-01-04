@@ -11,4 +11,4 @@ widgets:
     type: wiki
     name: "Config: Services Merged"
     style: seamless
-    doc: docs/multi/services/merge.md
+    doc: ../../../docs/multi/services/merge.md

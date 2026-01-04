@@ -21,4 +21,4 @@ widgets:
     type: wiki
     name: "Config: Network"
     style: seamless
-    doc: docs/single/widgets/network.md
+    doc: ../../../docs/single/widgets/network.md

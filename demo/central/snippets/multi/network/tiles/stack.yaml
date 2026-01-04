@@ -16,4 +16,4 @@ widgets:
     type: wiki
     name: "Config: Tiles Stacked"
     style: seamless
-    doc: docs/multi/network/tiles/stack.md
+    doc: ../../../../docs/multi/network/tiles/stack.md

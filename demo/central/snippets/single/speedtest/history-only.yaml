@@ -14,4 +14,4 @@ widgets:
     type: wiki
     name: "Config: History Only"
     style: seamless
-    doc: docs/single/features/speedtest-history.md
+    doc: ../../../docs/single/features/speedtest-history.md

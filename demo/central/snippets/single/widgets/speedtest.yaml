@@ -11,4 +11,4 @@ widgets:
     type: wiki
     name: "Config: Speedtest"
     style: seamless
-    doc: docs/single/widgets/speedtest.md
+    doc: ../../../docs/single/widgets/speedtest.md

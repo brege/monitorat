@@ -8,4 +8,4 @@ widgets:
     type: wiki
     name: "Config: Reminders"
     style: seamless
-    doc: docs/single/widgets/reminders.md
+    doc: ../../../docs/single/widgets/reminders.md

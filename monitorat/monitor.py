@@ -489,6 +489,9 @@ def extend_widget_package_path():
         logging.getLogger(__name__).debug(f"Added custom widget path: {custom_path}")
 
 
+_REGISTERED_PROXY_ROUTES = set()
+
+
 def register_remote_widget_proxy(widget_name: str, widget_type: str, remote_name: str):
     """
     Register proxy routes for a remote widget.
@@ -496,6 +499,10 @@ def register_remote_widget_proxy(widget_name: str, widget_type: str, remote_name
     Routes like /api/{widget_name}/* proxy to the remote's /api/{widget_type}/*
     """
     logger = logging.getLogger(__name__)
+
+    if widget_name in _REGISTERED_PROXY_ROUTES:
+        return
+    _REGISTERED_PROXY_ROUTES.add(widget_name)
 
     remote = federation_client.get_remote(remote_name)
     if not remote:
@@ -561,6 +568,10 @@ def register_merged_widget_proxy(
 ):
     """
     Register proxy routes for a merged widget that combines data from multiple remotes.
+
+    Registers:
+    - /api/{widget_name} for merged operations
+    - /api/{widget_type}-{source} for each source (enables frontend per-source fetches)
     """
     logger = logging.getLogger(__name__)
     import concurrent.futures
@@ -576,6 +587,10 @@ def register_merged_widget_proxy(
     if not valid_sources:
         logger.error(f"No valid sources for merged widget '{widget_name}'")
         return
+
+    for source_name in valid_sources:
+        per_source_name = f"{widget_type}-{source_name}"
+        register_remote_widget_proxy(per_source_name, widget_type, source_name)
 
     def fetch_with_source(source_name: str, path: str) -> tuple:
         """Fetch from remote and return (source_name, response_data)."""

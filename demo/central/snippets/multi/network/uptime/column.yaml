@@ -21,4 +21,4 @@ widgets:
     type: wiki
     name: "Config: Uptime Columnated"
     style: seamless
-    doc: docs/multi/network/uptime/column.md
+    doc: ../../../../docs/multi/network/uptime/column.md

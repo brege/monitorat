@@ -11,4 +11,4 @@ widgets:
     type: wiki
     name: "Config: Metrics"
     style: seamless
-    doc: docs/single/widgets/metrics.md
+    doc: ../../../docs/single/widgets/metrics.md

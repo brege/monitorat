@@ -230,6 +230,9 @@ def print_banner(nodes: list[dict], background: bool = False):
     print("=" * 60 + "\n")
 
 
+WIDGET_TYPES = ["wiki", "metrics", "services", "reminders", "speedtest", "network"]
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Production launcher for the monitor@ demo",
@@ -256,6 +259,11 @@ def main():
         action="store_true",
         help="Show status of demo servers",
     )
+    parser.add_argument(
+        "--widget",
+        choices=WIDGET_TYPES,
+        help="Filter to show only widgets of this type (for debugging)",
+    )
 
     args = parser.parse_args()
 
@@ -266,6 +274,10 @@ def main():
     if args.stop:
         stop_servers()
         return 0
+
+    widget_filter = args.widget
+    if widget_filter:
+        print(f"Widget filter: {widget_filter}")
 
     if args.central_only:
         nodes_to_start = [NODES["central"]]

@@ -12,4 +12,4 @@ widgets:
     type: wiki
     name: "Config: Columnate"
     style: seamless
-    doc: docs/multi/wiki/column.md
+    doc: ../../../docs/multi/wiki/column.md

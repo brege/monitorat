@@ -3,4 +3,4 @@ widgets:
     type: wiki
     name: "Wiki: Featured Mode"
     style: featured
-    doc: docs/single/modes/wiki/featured.md
+    doc: ../../../docs/single/modes/wiki/featured.md

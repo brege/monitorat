@@ -16,4 +16,4 @@ widgets:
     type: wiki
     name: "Config: Speedtest Merged"
     style: seamless
-    doc: docs/multi/speedtest/merge.md
+    doc: ../../../docs/multi/speedtest/merge.md

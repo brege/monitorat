@@ -11,4 +11,4 @@ widgets:
     type: wiki
     name: "Config: Controls Only"
     style: seamless
-    doc: docs/single/features/speedtest-controls.md
+    doc: ../../../docs/single/features/speedtest-controls.md

@@ -19,4 +19,4 @@ widgets:
     type: wiki
     name: "Config: Per-Remote Metrics"
     style: seamless
-    doc: docs/multi/metrics/each.md
+    doc: ../../../docs/multi/metrics/each.md

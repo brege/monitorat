@@ -12,4 +12,4 @@ widgets:
     type: wiki
     name: "Config: Reminders Merged"
     style: seamless
-    doc: docs/multi/reminders/merge.md
+    doc: ../../../docs/multi/reminders/merge.md

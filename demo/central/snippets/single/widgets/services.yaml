@@ -8,4 +8,4 @@ widgets:
     type: wiki
     name: "Config: Services"
     style: seamless
-    doc: docs/single/widgets/services.md
+    doc: ../../../docs/single/widgets/services.md

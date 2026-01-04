@@ -18,4 +18,4 @@ widgets:
     type: wiki
     name: "Config: Uptime Only"
     style: seamless
-    doc: docs/single/features/network-uptime.md
+    doc: ../../../docs/single/features/network-uptime.md

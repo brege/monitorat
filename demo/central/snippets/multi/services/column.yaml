@@ -11,4 +11,4 @@ widgets:
     type: wiki
     name: "Config: Services Columnated"
     style: seamless
-    doc: docs/multi/services/column.md
+    doc: ../../../docs/multi/services/column.md

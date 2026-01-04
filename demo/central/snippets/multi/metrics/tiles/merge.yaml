@@ -14,4 +14,4 @@ widgets:
     type: wiki
     name: "Config: Tiles Merged"
     style: seamless
-    doc: docs/multi/metrics/tiles/merge.md
+    doc: ../../../../docs/multi/metrics/tiles/merge.md

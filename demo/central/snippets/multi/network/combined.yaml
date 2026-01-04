@@ -20,4 +20,4 @@ widgets:
     type: wiki
     name: "Config: Network Combined"
     style: seamless
-    doc: docs/multi/network/combined.md
+    doc: ../../../docs/multi/network/combined.md

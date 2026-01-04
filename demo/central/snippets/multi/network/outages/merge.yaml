@@ -19,4 +19,4 @@ widgets:
     type: wiki
     name: "Config: Outages Merged"
     style: seamless
-    doc: docs/multi/network/outages/merge.md
+    doc: ../../../../docs/multi/network/outages/merge.md

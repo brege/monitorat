@@ -11,4 +11,4 @@ widgets:
     type: wiki
     name: "Config: Tiles Only"
     style: seamless
-    doc: docs/single/features/metrics-tiles.md
+    doc: ../../../docs/single/features/metrics-tiles.md
