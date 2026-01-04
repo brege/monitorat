@@ -96,7 +96,7 @@ class ServicesWidget {
 
   async loadData () {
     try {
-      const mergeSources = this.config.federation?.merge
+      const mergeSources = this.config.federation?.nodes
       if (mergeSources && Array.isArray(mergeSources)) {
         await this.loadMergedServices(mergeSources)
       } else {
@@ -105,7 +105,7 @@ class ServicesWidget {
 
       this.render()
 
-      if (this.config.federation?.merge) {
+      if (this.config.federation?.nodes) {
         await this.loadMergedStatus()
       } else {
         await this.loadStatus()
@@ -173,7 +173,7 @@ class ServicesWidget {
   }
 
   async loadMergedStatus () {
-    const sources = this.config.federation?.merge || []
+    const sources = this.config.federation?.nodes || []
     const results = await Promise.all(
       sources.map(async (source) => {
         try {

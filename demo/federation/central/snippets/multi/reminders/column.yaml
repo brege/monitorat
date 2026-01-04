@@ -3,7 +3,7 @@ widgets:
     type: reminders
     name: "Reminders: Columnated"
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         cards: columnate
 

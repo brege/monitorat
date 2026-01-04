@@ -3,7 +3,7 @@ widgets:
     type: metrics
     name: "Metrics: History Merged"
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
     show:
       tiles: false
       history: true

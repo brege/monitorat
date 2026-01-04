@@ -724,10 +724,10 @@ def register_widgets():
         widget_type = widget_cfg.get("type", widget_name)
         remote_name = widget_cfg.get("remote")
         federation_cfg = widget_cfg.get("federation", {})
-        merge_sources = federation_cfg.get("merge") if federation_cfg else None
+        node_sources = federation_cfg.get("nodes") if federation_cfg else None
 
-        if merge_sources and isinstance(merge_sources, list):
-            register_merged_widget_proxy(widget_name, widget_type, merge_sources)
+        if node_sources and isinstance(node_sources, list):
+            register_merged_widget_proxy(widget_name, widget_type, node_sources)
             continue
 
         if remote_name:

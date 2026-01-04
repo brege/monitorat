@@ -142,7 +142,7 @@ class MetricsWidget {
     const nodeSelect = this.getElement('node-select')
     if (!nodeSelect) return
 
-    const mergeSources = this.widgetConfig.federation?.merge
+    const mergeSources = this.widgetConfig.federation?.nodes
     if (!mergeSources || !Array.isArray(mergeSources) || mergeSources.length < 2) {
       nodeSelect.style.display = 'none'
       return
@@ -192,7 +192,7 @@ class MetricsWidget {
       return
     }
 
-    const mergeSources = this.config.federation?.merge
+    const mergeSources = this.config.federation?.nodes
     if (mergeSources && Array.isArray(mergeSources) && mergeSources.length > 1) {
       const dropdown = document.createElement('select')
       dropdown.className = 'alerts-toggle'
@@ -231,7 +231,7 @@ class MetricsWidget {
     const showTiles = this.config.show?.tiles !== false
     if (!showTiles) return
 
-    const mergeSources = this.widgetConfig.federation?.merge
+    const mergeSources = this.widgetConfig.federation?.nodes
     if (mergeSources && Array.isArray(mergeSources)) {
       await this.loadMergedData(mergeSources)
     } else {

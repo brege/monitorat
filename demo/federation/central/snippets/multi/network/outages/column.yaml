@@ -8,7 +8,7 @@ widgets:
       interval_seconds: 600
       mode: ipv4
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         outages: columnate
     metrics:

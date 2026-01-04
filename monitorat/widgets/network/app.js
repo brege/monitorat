@@ -167,7 +167,7 @@ class NetworkWidget {
   }
 
   async loadLog () {
-    const mergeSources = this.config.federation?.merge
+    const mergeSources = this.config.federation?.nodes
     if (mergeSources && Array.isArray(mergeSources)) {
       await this.loadMergedLogs(mergeSources)
     } else {

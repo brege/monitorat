@@ -10,7 +10,7 @@ class RemindersAlerts {
     alertsContainer.innerHTML = ''
 
     const strategy = this.widget.getDisplayStrategy()
-    const hasMergedSources = this.widget.config.federation?.merge
+    const hasMergedSources = this.widget.config.federation?.nodes
 
     if (hasMergedSources && strategy === 'stack') {
       this.renderStacked(alertsContainer)
@@ -29,7 +29,7 @@ class RemindersAlerts {
   }
 
   renderStacked (container) {
-    const sources = this.widget.config.federation?.merge || []
+    const sources = this.widget.config.federation?.nodes || []
     sources.forEach(source => {
       const sourceReminders = this.widget.remindersConfig.filter(reminder => reminder._source === source)
       if (sourceReminders.length === 0) return
@@ -47,7 +47,7 @@ class RemindersAlerts {
   }
 
   renderColumnate (container) {
-    const sources = this.widget.config.federation?.merge || []
+    const sources = this.widget.config.federation?.nodes || []
     const columns = document.createElement('div')
     columns.className = 'federation-columns'
     columns.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;'

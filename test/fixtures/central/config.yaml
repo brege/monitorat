@@ -74,7 +74,7 @@ widgets:
     name: "All Wikis (stacked)"
     doc: true
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         document: stack
 
@@ -83,7 +83,7 @@ widgets:
     name: "All Wikis (columns)"
     doc: true
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         document: columnate
 
@@ -92,7 +92,7 @@ widgets:
     name: "All Wikis (stacked, no badges)"
     doc: true
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         document: stack
       show_badges: false
@@ -102,7 +102,7 @@ widgets:
     name: "All Wikis (columns, no badges)"
     doc: true
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         document: columnate
       show_badges: false
@@ -111,7 +111,7 @@ widgets:
     type: metrics
     name: "All Systems"
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         tiles: columnate
     chart:
@@ -122,7 +122,7 @@ widgets:
     type: metrics
     name: "All Systems (tiles only)"
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         tiles: columnate
     show:
@@ -133,7 +133,7 @@ widgets:
     type: metrics
     name: "All Systems (history only)"
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
     show:
       tiles: false
       history: true
@@ -165,7 +165,7 @@ widgets:
     type: services
     name: "All Services (merged)"
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         cards: merge
 
@@ -173,7 +173,7 @@ widgets:
     type: services
     name: "All Services (stacked)"
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         cards: stack
 
@@ -181,7 +181,7 @@ widgets:
     type: services
     name: "All Services (columns)"
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         cards: columnate
 
@@ -199,7 +199,7 @@ widgets:
     type: reminders
     name: "All Reminders (merged)"
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         cards: merge
       sort_by: date.desc
@@ -208,7 +208,7 @@ widgets:
     type: reminders
     name: "All Reminders (stacked)"
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         cards: stack
 
@@ -216,7 +216,7 @@ widgets:
     type: reminders
     name: "All Reminders (columns)"
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         cards: columnate
 
@@ -241,7 +241,7 @@ widgets:
     name: "All Speedtests (merged)"
     default: chart
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         chart: merge
         table: merge
@@ -262,7 +262,7 @@ widgets:
     name: "All Speedtests (history only)"
     default: chart
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         chart: merge
         table: merge
@@ -313,7 +313,7 @@ widgets:
     name: "All Networks"
     log_file: network.log
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
     metrics:
       show: true
     uptime:
@@ -330,7 +330,7 @@ widgets:
     name: "All Networks (tiles only)"
     log_file: network.log
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
     show:
       tiles: true
       uptime: false
@@ -350,7 +350,7 @@ widgets:
     name: "All Networks (uptime only)"
     log_file: network.log
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
     show:
       tiles: false
       uptime: true
@@ -370,7 +370,7 @@ widgets:
     name: "All Networks (outages only)"
     log_file: network.log
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
     show:
       tiles: false
       uptime: false
@@ -391,7 +391,7 @@ widgets:
     name: "All Networks (stacked)"
     log_file: network.log
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         tiles: stack
         uptime: stack
@@ -412,7 +412,7 @@ widgets:
     name: "All Networks (columns)"
     log_file: network.log
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         tiles: columnate
         uptime: columnate

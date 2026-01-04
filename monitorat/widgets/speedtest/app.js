@@ -176,7 +176,7 @@ class SpeedtestWidget {
     const nodeSelect = this.getElement('node-select')
     if (!nodeSelect) return
 
-    const mergeSources = this.config.federation?.merge
+    const mergeSources = this.config.federation?.nodes
     if (!mergeSources || !Array.isArray(mergeSources) || mergeSources.length < 2) {
       nodeSelect.style.display = 'none'
       return
@@ -223,7 +223,7 @@ class SpeedtestWidget {
       return
     }
 
-    const mergeSources = this.config.federation?.merge
+    const mergeSources = this.config.federation?.nodes
     if (mergeSources && Array.isArray(mergeSources) && mergeSources.length > 1) {
       const dropdown = document.createElement('select')
       dropdown.className = 'alerts-toggle'

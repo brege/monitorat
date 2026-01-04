@@ -3,7 +3,7 @@ widgets:
     type: metrics
     name: "Metrics: Tiles Columnated"
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         tiles: columnate
     show:

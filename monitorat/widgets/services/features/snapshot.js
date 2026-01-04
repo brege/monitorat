@@ -10,7 +10,7 @@ class ServicesSnapshot {
     cardsContainer.innerHTML = ''
 
     const strategy = this.widget.getDisplayStrategy()
-    const hasMergedSources = this.widget.config.federation?.merge
+    const hasMergedSources = this.widget.config.federation?.nodes
 
     if (hasMergedSources && strategy === 'stack') {
       this.renderStacked(cardsContainer)
@@ -29,7 +29,7 @@ class ServicesSnapshot {
   }
 
   renderStacked (container) {
-    const sources = this.widget.config.federation?.merge || []
+    const sources = this.widget.config.federation?.nodes || []
     const wrapper = document.createElement('div')
     wrapper.className = 'federation-stacked'
 
@@ -60,7 +60,7 @@ class ServicesSnapshot {
   }
 
   renderColumnate (container) {
-    const sources = this.widget.config.federation?.merge || []
+    const sources = this.widget.config.federation?.nodes || []
     const columns = document.createElement('div')
     columns.className = 'federation-columns'
     columns.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;'

@@ -4,7 +4,7 @@ widgets:
     name: "All Wikis (Columns)"
     doc: true
     federation:
-      merge: [nas-1, nas-2]
+      nodes: [nas-1, nas-2]
       display:
         document: columnate
 
