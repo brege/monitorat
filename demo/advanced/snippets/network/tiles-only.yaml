@@ -13,10 +13,6 @@ widgets:
       show: false
     alerts:
       show: false
-    show:
-      tiles: true
-      uptime: false
-      outages: false
 
   wiki-network-tiles-only:
     type: wiki

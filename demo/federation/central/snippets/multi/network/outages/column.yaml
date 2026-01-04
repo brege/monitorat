@@ -15,10 +15,6 @@ widgets:
       show: false
     uptime:
       show: false
-    show:
-      tiles: false
-      uptime: false
-      outages: true
     alerts:
       show: true
       max: 5
