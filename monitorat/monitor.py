@@ -709,6 +709,8 @@ def register_widgets():
         logger.error(f"Unable to resolve widget configuration: {exc}")
         return
 
+    registered_widget_types: Set[str] = set()
+
     for widget_name in enabled:
         try:
             widget_cfg = widgets_cfg[widget_name].get(dict)
@@ -744,8 +746,19 @@ def register_widgets():
         if hasattr(module, "register_routes"):
             if widget_type == "wiki":
                 module.register_routes(app, widget_name)
-            else:
-                module.register_routes(app)
+                logging.getLogger(__name__).info(
+                    f"Loaded {widget_name} widget ({widget_type})"
+                )
+                continue
+
+            if widget_type in registered_widget_types:
+                logging.getLogger(__name__).info(
+                    f"Skipped {widget_name} widget ({widget_type}) duplicate routes"
+                )
+                continue
+
+            module.register_routes(app)
+            registered_widget_types.add(widget_type)
             logging.getLogger(__name__).info(
                 f"Loaded {widget_name} widget ({widget_type})"
             )

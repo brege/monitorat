@@ -1,0 +1,11 @@
+widgets:
+  wiki-welcome:
+    type: wiki
+    name: "Welcome"
+    doc: ../../docs/README.md
+
+  wiki-single-intro:
+    type: wiki
+    name: "Single-Node Setup"
+    mode: seamless
+    doc: ../../docs/single/intro.md

@@ -32,25 +32,6 @@ Promise.
     [027631b](https://github.com/brege/monitorat/commit/027631b)
 - no emojis (SVG icons encouraged)
 
-### Project structure
-
-```
-├── README.md                   # project readme
-├── docs/                       # supporting docs, README screenshots
-├── systemd
-│   ├── monitor@pip.service     # systemd unit for pip installations
-│   └── monitor@source.service  # systemd unit for source installations
-└── monitorat/
-    ├── app.js                  # frontend javascript
-    ├── config_default.yaml     # all preset values
-    ├── index.html              # web UI
-    ├── monitor.py              # backend gunicorn server
-    ├── scripts/                # development
-    ├── shared/                 # javascript helpers for widgets
-    ├── vendors/                # markdown-it
-    └── widgets/                # widgets
-```
-
 ### Important dependencies
 
 The `vendors/` are for plotting and especially rendering and styling markdown documents (via [markdown-it](https://github.com/markdown-it/markdown-it)) like `README.md` in HTML. These libraries are automatically downloaded locally by `monitor.py` only once.
@@ -76,7 +57,3 @@ Widgets follow the three-file structure shown at the top of this document: `api.
 
 monitor@ will automatically load the matching backend `api.py` and its presets (a *local* `config_default.yaml`) and serve the widget's HTML/JS from that directory.
 
-### Roadmap
-
-
-- **federation** API keys for widgets for aggregating specs from multiple instances monitor@machineA and monitor@machineB viewable in monitor@local, perhaps.

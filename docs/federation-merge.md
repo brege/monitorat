@@ -328,12 +328,12 @@ Widget filtering generates temp configs with filtered `widgets.enabled` lists.
 
 ### Image Paths
 
-Test fixtures reference `demo/img/` for icons via relative path:
+Test fixtures reference `demo/simple/img/` for icons via relative path:
 
 ```yaml
 # test/fixtures/nas-1/config.yaml
 paths:
-  img: ../../../demo/img/
+  img: ../../../demo/simple/img/
 
 services:
   items:

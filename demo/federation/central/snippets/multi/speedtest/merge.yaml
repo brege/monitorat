@@ -1,0 +1,20 @@
+widgets:
+  speedtest-merge:
+    type: speedtest
+    name: "Speedtest: Merged"
+    default: chart
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        chart: merge
+        table: merge
+        button: stack
+    chart:
+      default_period: 1 month
+
+  wiki-speedtest-merge:
+    type: wiki
+    name: "Config: Speedtest Merged"
+    _suppressHeader: true
+    mode: seamless
+    doc: ../../../docs/multi/speedtest/merge.md

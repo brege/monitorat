@@ -121,8 +121,8 @@ def command_server(args):
 
 def get_demo_config_path() -> Path:
     package_root = Path(__file__).resolve().parent
-    package_demo = package_root / "demo" / "config.yaml"
-    repo_demo = package_root.parent / "demo" / "config.yaml"
+    package_demo = package_root / "demo" / "simple" / "config.yaml"
+    repo_demo = package_root.parent / "demo" / "simple" / "config.yaml"
 
     if package_demo.exists():
         return package_demo
@@ -138,10 +138,10 @@ def command_demo(args):
     """Run the demo server with bundled demo configuration."""
     demo_config = get_demo_config_path()
     if args.bootstrap:
-        demo_dir = demo_config.parent
+        demo_root = demo_config.parent.parent
         subprocess.run(
-            ["uv", "run", "python", str(demo_dir / "setup.py"), "--demo"],
-            cwd=demo_dir,
+            ["uv", "run", "python", str(demo_root / "setup.py"), "--demo"],
+            cwd=demo_root,
             check=True,
         )
     set_project_config_path(demo_config)

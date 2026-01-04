@@ -13,7 +13,7 @@ The demo serves as living documentation: every widget configuration is visible, 
                                   ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                   Central Head Node (:6100)                 │
-│                     demo/central/config.yaml                │
+│               demo/federation/central/config.yaml           │
 │                                                             │
 │   - Serves public dashboard                                 │
 │   - Proxies federation requests to nas-1, nas-2            │
@@ -23,7 +23,7 @@ The demo serves as living documentation: every widget configuration is visible, 
                ▼                             ▼
 ┌──────────────────────────┐   ┌──────────────────────────┐
 │    nas-1 (:6601)         │   │    nas-2 (:6602)         │
-│  demo/nas-1/config.yaml  │   │  demo/nas-2/config.yaml  │
+│ demo/federation/nas-1/config.yaml │   │ demo/federation/nas-2/config.yaml │
 │                          │   │                          │
 │  - Auth required         │   │  - Auth required         │
 │  - Not publicly exposed  │   │  - Not publicly exposed  │
@@ -36,129 +36,49 @@ The demo serves as living documentation: every widget configuration is visible, 
 
 ```
 demo/
-├── launcher.py                     # Starts all three servers
+├── README.md
 ├── setup.py                        # Generates demo/test data
 │
-├── central/
-│   ├── config.yaml                 # Main config, includes snippets
-│   │
-│   ├── snippets/
+├── simple/
+│   ├── config.yaml                 # Simple demo config
+│   ├── include/                    # Widget defaults
+│   ├── docs/                       # Widget docs for simple demo
+│   ├── data/                       # Shared demo data
+│   └── img/                        # Icons and images
+│
+├── advanced/
+│   ├── config.yaml                 # Single-node advanced demo
+│   ├── snippets/                   # Advanced widget snippets
 │   │   ├── site.yaml               # Site name, title
-│   │   ├── federation.yaml         # Remote definitions
-│   │   │
-│   │   ├── single/                 # Single-node configurations
-│   │   │   ├── widgets/            # Basic widget configs
-│   │   │   │   ├── wiki.yaml
-│   │   │   │   ├── metrics.yaml
-│   │   │   │   ├── services.yaml
-│   │   │   │   ├── reminders.yaml
-│   │   │   │   ├── speedtest.yaml
-│   │   │   │   └── network.yaml
-│   │   │   │
-│   │   │   ├── wiki/               # Wiki display modes
-│   │   │   │   ├── rail.yaml
-│   │   │   │   ├── featured.yaml
-│   │   │   │   └── seamless.yaml
-│   │   │   │
-│   │   │   ├── metrics/            # Feature toggles
-│   │   │   │   ├── tiles-only.yaml
-│   │   │   │   └── history-only.yaml
-│   │   │   │
-│   │   │   ├── speedtest/
-│   │   │   │   ├── controls-only.yaml
-│   │   │   │   └── history-only.yaml
-│   │   │   │
-│   │   │   └── network/
-│   │   │       ├── tiles-only.yaml
-│   │   │       ├── uptime-only.yaml
-│   │   │       └── outages-only.yaml
-│   │   │
-│   │   └── multi/                  # Federation configurations
-│   │       ├── intro.yaml
-│   │       │
-│   │       ├── wiki/
-│   │       │   ├── each.yaml       # Per-remote
-│   │       │   ├── column.yaml
-│   │       │   └── stack.yaml
-│   │       │
-│   │       ├── metrics/
-│   │       │   ├── each.yaml
-│   │       │   ├── tiles/
-│   │       │   │   ├── merge.yaml
-│   │       │   │   ├── stack.yaml
-│   │       │   │   └── column.yaml
-│   │       │   └── history/
-│   │       │       ├── merge.yaml
-│   │       │       └── stack.yaml
-│   │       │
-│   │       ├── services/
-│   │       │   ├── merge.yaml
-│   │       │   ├── stack.yaml
-│   │       │   └── column.yaml
-│   │       │
-│   │       ├── reminders/
-│   │       │   ├── merge.yaml
-│   │       │   ├── stack.yaml
-│   │       │   └── column.yaml
-│   │       │
-│   │       ├── speedtest/
-│   │       │   └── merge.yaml
-│   │       │
-│   │       └── network/
-│   │           ├── combined.yaml
-│   │           ├── tiles/
-│   │           │   ├── column.yaml
-│   │           │   └── stack.yaml
-│   │           ├── uptime/
-│   │           │   ├── column.yaml
-│   │           │   └── stack.yaml
-│   │           └── outages/
-│   │               ├── column.yaml
-│   │               └── merge.yaml
-│   │
-│   └── docs/                       # Wiki content (mirrors snippets/)
+│   │   ├── widgets/
+│   │   ├── wiki/
+│   │   ├── metrics/
+│   │   ├── speedtest/
+│   │   └── network/
+│   └── docs/                       # Advanced wiki content
 │       ├── README.md
-│       │
-│       ├── single/
-│       │   ├── intro.md
-│       │   ├── widgets/
-│       │   │   ├── metrics.md
-│       │   │   ├── services.md
-│       │   │   └── ...
-│       │   ├── features/
-│       │   │   ├── metrics-tiles.md
-│       │   │   ├── metrics-history.md
-│       │   │   └── ...
-│       │   └── modes/wiki/
-│       │       ├── rail.md
-│       │       ├── featured.md
-│       │       └── seamless.md
-│       │
-│       └── multi/
+│       └── single/
 │           ├── intro.md
-│           ├── wiki/
-│           ├── metrics/
-│           │   ├── each.md
-│           │   ├── tiles/
-│           │   └── history/
-│           ├── services/
-│           ├── reminders/
-│           ├── speedtest/
-│           └── network/
+│           ├── widgets/
+│           ├── features/
+│           └── modes/wiki/
 │
-├── nas-1/
-│   └── config.yaml                 # Standalone config with auth
-│
-├── nas-2/
-│   └── config.yaml                 # Standalone config with auth
-│
-├── data/                           # Shared demo data
-│   ├── metrics.csv
-│   ├── speedtest.csv
-│   ├── network.log
-│   └── ...
-│
-└── docs/                           # Original demo docs (legacy)
+└── federation/
+    ├── launcher.py                 # Starts all three servers
+    ├── central/
+    │   ├── config.yaml             # Main config, includes snippets
+    │   ├── snippets/
+    │   │   ├── site.yaml
+    │   │   ├── federation.yaml     # Remote definitions
+    │   │   └── multi/              # Federation configurations
+    │   └── docs/                   # Wiki content (mirrors snippets/)
+    │       └── multi/
+    │
+    ├── nas-1/
+    │   └── config.yaml             # Standalone config with auth
+    │
+    └── nas-2/
+        └── config.yaml             # Standalone config with auth
 ```
 
 ## Snippet Pattern
@@ -198,20 +118,20 @@ Docs reference snippets via shortcode:
 ## Launcher Script
 
 ```bash
-python demo/launcher.py                    # Start all servers
-python demo/launcher.py --central-only     # Central only
-python demo/launcher.py --background       # Daemonize
-python demo/launcher.py --stop             # Stop all
-python demo/launcher.py --status           # Show status
+python demo/federation/launcher.py                    # Start all servers
+python demo/federation/launcher.py --central-only     # Central only
+python demo/federation/launcher.py --background       # Daemonize
+python demo/federation/launcher.py --stop             # Stop all
+python demo/federation/launcher.py --status           # Show status
 ```
 
 ## Implementation Checklist
 
 ### Phase 1: Infrastructure [DONE]
-- [x] Create `demo/launcher.py`
-- [x] Create `demo/central/config.yaml`
-- [x] Create `demo/nas-1/config.yaml` with auth
-- [x] Create `demo/nas-2/config.yaml` with auth
+- [x] Create `demo/federation/launcher.py`
+- [x] Create `demo/federation/central/config.yaml`
+- [x] Create `demo/federation/nas-1/config.yaml` with auth
+- [x] Create `demo/federation/nas-2/config.yaml` with auth
 - [x] Verify three-server startup
 
 ### Phase 2: Single-Node Chapter [DONE]
@@ -234,7 +154,7 @@ python demo/launcher.py --status           # Show status
 - [x] Network: combined, tiles/{column,stack}, uptime/{column,stack}, outages/{column,merge}
 
 ### Phase 4: Testing
-- [ ] Test full demo locally with launcher.py
+- [ ] Test full demo locally with demo/federation/launcher.py
 - [ ] Run smoke tests against demo configuration
 - [ ] Regenerate demo data with fresh timestamps
 

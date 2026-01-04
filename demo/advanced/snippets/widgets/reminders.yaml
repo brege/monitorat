@@ -1,0 +1,11 @@
+widgets:
+  reminders-single:
+    type: reminders
+    name: "Reminders"
+
+  wiki-reminders-single:
+    type: wiki
+    name: "Config: Reminders"
+    _suppressHeader: true
+    mode: seamless
+    doc: ../../docs/single/widgets/reminders.md

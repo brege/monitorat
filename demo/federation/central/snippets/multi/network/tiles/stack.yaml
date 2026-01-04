@@ -1,0 +1,30 @@
+widgets:
+  network-tiles-stack:
+    type: network
+    name: "Network: Tiles Stacked"
+    log_file: network.log
+    chirper:
+      enabled: false
+      interval_seconds: 600
+      mode: ipv4
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        tiles: stack
+    metrics:
+      show: true
+    uptime:
+      show: false
+    alerts:
+      show: false
+    show:
+      tiles: true
+      uptime: false
+      outages: false
+
+  wiki-network-tiles-stack:
+    type: wiki
+    name: "Config: Tiles Stacked"
+    mode: seamless
+    _suppressHeader: true
+    doc: ../../../../docs/multi/network/tiles/stack.md

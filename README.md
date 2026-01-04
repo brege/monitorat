@@ -82,7 +82,7 @@ monitorat -c path/to/config.yaml server --host 0.0.0.0 --port 6161
 ```
 or run the demo:
 ```bash
-monitorat -c demo/config.yaml server
+monitorat -c demo/simple/config.yaml server
 ```
 
 #### Systemd service
@@ -162,7 +162,7 @@ They are also quite easy to build. Example of a widget built with Codex in 12 mi
 #### **Services**  
   The **Service Status** widget is a simple display to show what systemd service daemons, timers and docker containers are running or have failed.
   
-  [github](./demo/docs/services.md) - [demo](https://monitorat.brege.org/#services-widget)
+  [github](./demo/simple/docs/services.md) - [demo](https://monitorat.brege.org/#services-widget)
 
   You can configure the service tiles to have both your URL (or WAN IP) and a local address (or LAN IP) for use offline. **monitor@ is completely encapsulated and works offline even when internet is down.**
 
@@ -190,25 +190,25 @@ They are also quite easy to build. Example of a widget built with Codex in 12 mi
 #### **System Metrics**  
   Metrics provides an overview of system performance, including CPU, memory, disk and network usage, and temperature over time.  Data is logged to `metrics.csv`.
 
-  [github](./demo/docs/metrics.md) - [demo](https://monitorat.brege.org/#metrics-widget)
+  [github](./demo/simple/docs/metrics.md) - [demo](https://monitorat.brege.org/#metrics-widget)
 
 #### **Speedtest**  
   The **Speedtest** widget allows you to keep a record of your internet performance over time.
 It does not perform automated runs.
 
-  [github](./demo/docs/speedtest.md) - [demo](https://monitorat.brege.org/#speedtest-widget)
+  [github](./demo/simple/docs/speedtest.md) - [demo](https://monitorat.brege.org/#speedtest-widget)
 
 #### **Network**  
   The **Network** widget may be the most specific. This example uses `ddclient`-style generated logs.
 
-  [github](./demo/docs/network.md) - [demo](https://monitorat.brege.org/#network-widget)
+  [github](./demo/simple/docs/network.md) - [demo](https://monitorat.brege.org/#network-widget)
 
   The network widget is best used on machines with continuous uptime. You might even keep monitor@ running on your pi-hole.
 
 #### **Reminders**  
   The **Reminders** widget allows you to set reminders for system chores, login/key change reminders, and other one-offs chirps.
 
-  [github](./demo/docs/reminders.md) - [demo](https://monitorat.brege.org/#reminders-widget)
+  [github](./demo/simple/docs/reminders.md) - [demo](https://monitorat.brege.org/#reminders-widget)
 
   Reminders are facilitated by [Apprise](https://github.com/caronc/apprise) (see [below](#notifications)).
 

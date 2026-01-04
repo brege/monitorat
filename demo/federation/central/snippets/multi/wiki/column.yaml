@@ -1,0 +1,16 @@
+widgets:
+  wiki-column:
+    type: wiki
+    name: "All Wikis (Columns)"
+    doc: true
+    federation:
+      merge: [nas-1, nas-2]
+      display:
+        document: columnate
+
+  wiki-column-doc:
+    type: wiki
+    name: "Config: Columnate"
+    _suppressHeader: true
+    mode: seamless
+    doc: ../../../docs/multi/wiki/column.md

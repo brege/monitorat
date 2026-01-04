@@ -1,0 +1,19 @@
+widgets:
+  metrics-history-merge:
+    type: metrics
+    name: "Metrics: History Merged"
+    federation:
+      merge: [nas-1, nas-2]
+    show:
+      tiles: false
+      history: true
+    chart:
+      periods: [24 hours, 6 hours, 1 hour]
+      default_period: 6 hours
+
+  wiki-metrics-history-merge:
+    type: wiki
+    name: "Config: History Merged"
+    _suppressHeader: true
+    mode: seamless
+    doc: ../../../../docs/multi/metrics/history/merge.md

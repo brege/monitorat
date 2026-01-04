@@ -1,0 +1,8 @@
+---
+widgets:
+  wiki:
+    name: Demo Guide
+    mode: seamless
+    doc: ../../README.md
+    _suppressHeader: true
+    collapsible: false
