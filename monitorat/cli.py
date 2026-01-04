@@ -119,10 +119,10 @@ def command_server(args):
     flask_app.run(host=args.host, port=args.port, debug=args.debug, threaded=True)
 
 
-def get_demo_config_path() -> Path:
+def get_demo_launcher_path() -> Path:
     package_root = Path(__file__).resolve().parent
-    package_demo = package_root / "demo" / "simple" / "config.yaml"
-    repo_demo = package_root.parent / "demo" / "simple" / "config.yaml"
+    package_demo = package_root / "demo" / "launcher.py"
+    repo_demo = package_root.parent / "demo" / "launcher.py"
 
     if package_demo.exists():
         return package_demo
@@ -130,22 +130,19 @@ def get_demo_config_path() -> Path:
         return repo_demo
 
     raise FileNotFoundError(
-        "Demo config not found; reinstall with demo assets included."
+        "Demo launcher not found; reinstall with demo assets included."
     )
 
 
 def command_demo(args):
-    """Run the demo server with bundled demo configuration."""
-    demo_config = get_demo_config_path()
-    if args.bootstrap:
-        demo_root = demo_config.parent.parent
-        subprocess.run(
-            ["uv", "run", "python", str(demo_root / "setup.py"), "--demo"],
-            cwd=demo_root,
-            check=True,
-        )
-    set_project_config_path(demo_config)
-    command_server(args)
+    """Run the demo launcher with bundled demo assets."""
+    launcher_path = get_demo_launcher_path()
+    cmd = [sys.executable, str(launcher_path), "--mode", args.mode]
+    if args.background:
+        cmd.append("--background")
+    if args.stop:
+        cmd.append("--stop")
+    subprocess.run(cmd, cwd=launcher_path.parent, check=True)
 
 
 def main():
@@ -191,26 +188,20 @@ def main():
     )
     demo_parser = subparsers.add_parser("demo", help="Run the demo server")
     demo_parser.add_argument(
-        "--host",
-        default="127.0.0.1",
-        help="Host interface to bind.",
+        "--mode",
+        choices=["simple", "advanced", "federation"],
+        default="simple",
+        help="Demo mode to start.",
     )
     demo_parser.add_argument(
-        "--port",
-        type=int,
-        default=6161,
-        help="Port to bind.",
-    )
-    demo_parser.add_argument(
-        "--debug",
+        "--background",
         action="store_true",
-        help="Enable debug mode.",
+        help="Run demo servers in background.",
     )
     demo_parser.add_argument(
-        "--bootstrap",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Generate demo assets before starting the server.",
+        "--stop",
+        action="store_true",
+        help="Stop demo servers started in background.",
     )
 
     args = parser.parse_args()

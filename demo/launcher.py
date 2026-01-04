@@ -1,20 +1,13 @@
 #!/usr/bin/env python3
 """
-Production-ready launcher for the monitor@ federation demo.
-
-Starts central head node and remote nodes (nas-1, nas-2) for the live demo.
-Only the central node is exposed publicly; remotes serve federation requests.
+Launcher for the monitor@ demos (simple, advanced, federation).
 
 Usage:
-    python demo/federation/launcher.py                    # Start all servers
-    python demo/federation/launcher.py --central-only     # Start only central
-    python demo/federation/launcher.py --background       # Daemonize (for production)
-    python demo/federation/launcher.py --stop             # Stop all servers
-
-Ports:
-    central: 6100 (public, proxied)
-    nas-1:   6601 (internal only)
-    nas-2:   6602 (internal only)
+    python demo/launcher.py                          # Start simple demo
+    python demo/launcher.py --mode advanced          # Start advanced demo
+    python demo/launcher.py --mode federation        # Start federation demo
+    python demo/launcher.py --background             # Daemonize
+    python demo/launcher.py --stop                   # Stop all demo servers
 """
 
 import argparse
@@ -30,24 +23,42 @@ DEMO_DIR = Path(__file__).parent
 PID_DIR = DEMO_DIR / ".pids"
 
 NODES = {
+    "simple": {
+        "name": "simple",
+        "config": DEMO_DIR / "simple" / "config.yaml",
+        "port": 6100,
+        "is_head": True,
+    },
+    "advanced": {
+        "name": "advanced",
+        "config": DEMO_DIR / "advanced" / "config.yaml",
+        "port": 6200,
+        "is_head": True,
+    },
     "central": {
         "name": "central",
-        "config": DEMO_DIR / "central" / "config.yaml",
-        "port": 6100,
+        "config": DEMO_DIR / "federation" / "central" / "config.yaml",
+        "port": 6300,
         "is_head": True,
     },
     "nas-1": {
         "name": "nas-1",
-        "config": DEMO_DIR / "nas-1" / "config.yaml",
-        "port": 6601,
+        "config": DEMO_DIR / "federation" / "nas-1" / "config.yaml",
+        "port": 6301,
         "is_head": False,
     },
     "nas-2": {
         "name": "nas-2",
-        "config": DEMO_DIR / "nas-2" / "config.yaml",
-        "port": 6602,
+        "config": DEMO_DIR / "federation" / "nas-2" / "config.yaml",
+        "port": 6302,
         "is_head": False,
     },
+}
+
+MODES = {
+    "simple": ["simple"],
+    "advanced": ["advanced"],
+    "federation": ["nas-1", "nas-2", "central"],
 }
 
 running_processes: list[subprocess.Popen] = []
@@ -119,7 +130,7 @@ def is_process_running(pid: int) -> bool:
         return False
 
 
-def start_server(node: dict, background: bool = False) -> subprocess.Popen | int:
+def start_server(node: dict, background: bool = False) -> subprocess.Popen | int | None:
     """Start a server process for the given node."""
     config_path = node["config"]
 
@@ -147,10 +158,10 @@ def start_server(node: dict, background: bool = False) -> subprocess.Popen | int
         )
         write_pid(node["name"], proc.pid)
         return proc.pid
-    else:
-        proc = subprocess.Popen(cmd)
-        running_processes.append(proc)
-        return proc
+
+    proc = subprocess.Popen(cmd)
+    running_processes.append(proc)
+    return proc
 
 
 def wait_for_server(port: int, timeout: float = 15.0) -> bool:
@@ -187,25 +198,6 @@ def stop_servers():
         print("No running demo servers found.")
 
 
-def status():
-    """Show status of demo servers."""
-    print("\nDemo Server Status")
-    print("=" * 50)
-    any_running = False
-    for node_name, node in NODES.items():
-        pid = read_pid(node_name)
-        if pid and is_process_running(pid):
-            label = "HEAD" if node["is_head"] else "REMOTE"
-            print(f"  {node_name:12} [{label}]  RUNNING (PID {pid})")
-            any_running = True
-        else:
-            print(f"  {node_name:12}           STOPPED")
-            remove_pid(node_name)
-    if not any_running:
-        print("\n  No servers running.")
-    print()
-
-
 def print_banner(nodes: list[dict], background: bool = False):
     """Print server status and URLs."""
     print("\n" + "=" * 60)
@@ -219,25 +211,32 @@ def print_banner(nodes: list[dict], background: bool = False):
     print()
     if background:
         print("Servers running in background.")
-        print("Use 'python demo/federation/launcher.py --stop' to stop.")
+        print("Use 'python demo/launcher.py --stop' to stop.")
     else:
         print("Press Ctrl+C to stop all servers")
     print("=" * 60 + "\n")
 
 
-WIDGET_TYPES = ["wiki", "metrics", "services", "reminders", "speedtest", "network"]
+def bootstrap_demo_data():
+    """Generate demo data for simple/advanced modes."""
+    subprocess.run(
+        ["uv", "run", "python", str(DEMO_DIR / "setup.py"), "--demo"],
+        cwd=DEMO_DIR,
+        check=True,
+    )
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Production launcher for the monitor@ demo",
+        description="Launcher for the monitor@ demos",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
     parser.add_argument(
-        "--central-only",
-        action="store_true",
-        help="Start only the central head node",
+        "--mode",
+        choices=sorted(MODES.keys()),
+        default="simple",
+        help="Demo mode to start.",
     )
     parser.add_argument(
         "--background",
@@ -249,35 +248,17 @@ def main():
         action="store_true",
         help="Stop all running demo servers",
     )
-    parser.add_argument(
-        "--status",
-        action="store_true",
-        help="Show status of demo servers",
-    )
-    parser.add_argument(
-        "--widget",
-        choices=WIDGET_TYPES,
-        help="Filter to show only widgets of this type (for debugging)",
-    )
 
     args = parser.parse_args()
-
-    if args.status:
-        status()
-        return 0
 
     if args.stop:
         stop_servers()
         return 0
 
-    widget_filter = args.widget
-    if widget_filter:
-        print(f"Widget filter: {widget_filter}")
+    if args.mode in ("simple", "advanced"):
+        bootstrap_demo_data()
 
-    if args.central_only:
-        nodes_to_start = [NODES["central"]]
-    else:
-        nodes_to_start = [NODES["nas-1"], NODES["nas-2"], NODES["central"]]
+    nodes_to_start = [NODES[name] for name in MODES[args.mode]]
 
     for node_name in NODES:
         pid = read_pid(node_name)
