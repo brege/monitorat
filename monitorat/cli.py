@@ -147,7 +147,7 @@ def command_demo(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="monitorat", description="monitor@ system dashboard and monitoring tool"
+        prog="monitorat", description="monitorat system dashboard and monitoring tool"
     )
     parser.add_argument(
         "-v",

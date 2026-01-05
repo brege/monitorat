@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Launcher for the monitor@ demos (simple, advanced, federation).
+Launcher for the monitorat demos (simple, advanced, federation).
 
 Usage:
     python demo/launcher.py                          # Start simple demo
@@ -203,7 +203,7 @@ def stop_servers():
 def print_banner(nodes: list[dict], background: bool = False):
     """Print server status and URLs."""
     print("\n" + "=" * 60)
-    print("monitor@ Demo Servers")
+    print("monitorat Demo Servers")
     print("=" * 60)
 
     for node in nodes:
@@ -230,7 +230,7 @@ def bootstrap_demo_data():
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Launcher for the monitor@ demos",
+        description="Launcher for the monitorat demos",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )

@@ -12,7 +12,7 @@ https://github.com/brege/monitorat-widget-packages
 
 The AI agent (codex) created this widget in 12 minutes from this exact context.
 
-1. dropped in monitor@'s project directory
+1. dropped in monitorat's project directory
 2. providing `prompt.md` with a description of the widget the user wants to create
 3. configuring the agents with `AGENTS.md`
 
@@ -37,7 +37,7 @@ Promise.
 The `vendors/` are for plotting and especially rendering and styling markdown documents (via [markdown-it](https://github.com/markdown-it/markdown-it)) like `README.md` in HTML. These libraries are automatically downloaded locally by `monitor.py` only once.
 
 This project uses [confuse](https://confuse.readthedocs.io/en/latest/) for configuration management,
-and as such uses a common-sense config hierarchy. Parameters are set in `monitorat/config_default.yaml` and may be overridden in `~/.config/monitor@/config.yaml`.
+and as such uses a common-sense config hierarchy. Parameters are set in `monitorat/config_default.yaml` and may be overridden in `~/.config/monitorat/config.yaml`.
 
 See [confuse's docs](http://confuse.readthedocs.io/en/latest/usage.html) and [source](https://github.com/beetbox/confuse) for a deeper reference.
 
@@ -53,7 +53,7 @@ See `pyproject.toml` for dependencies.
 
 ### Adding widgets
 
-Widgets follow the three-file structure shown at the top of this document: `api.py`, `widget.html`, and `widget.js` in `monitorat/widgets/your-widget/`, or, users can drop custom widgets into the directory referenced by `paths.widgets` (default: `~/.config/monitor@/widgets/`) and reference them in `widgets.enabled`.
+Widgets follow the three-file structure shown at the top of this document: `api.py`, `widget.html`, and `widget.js` in `monitorat/widgets/your-widget/`, or, users can drop custom widgets into the directory referenced by `paths.widgets` (default: `~/.config/monitorat/widgets/`) and reference them in `widgets.enabled`.
 
-monitor@ will automatically load the matching backend `api.py` and its presets (a *local* `config_default.yaml`) and serve the widget's HTML/JS from that directory.
+monitorat will automatically load the matching backend `api.py` and its presets (a *local* `config_default.yaml`) and serve the widget's HTML/JS from that directory.
 

@@ -27,9 +27,34 @@ class ConfigManager:
         self._callbacks: List[Callable[[confuse.Configuration], None]] = []
         self._config = self._build_config()
 
+    def _resolve_application_name(self) -> str:
+        preferred_name = "monitorat"
+        legacy_name = "monitor@"
+        if self._project_config:
+            return preferred_name
+
+        config_filename = "config.yaml"
+        config_directories = [
+            Path(directory) for directory in confuse.util.config_dirs()
+        ]
+        preferred_exists = any(
+            (directory / preferred_name / config_filename).is_file()
+            for directory in config_directories
+        )
+        legacy_exists = any(
+            (directory / legacy_name / config_filename).is_file()
+            for directory in config_directories
+        )
+        if preferred_exists:
+            return preferred_name
+        if legacy_exists:
+            return legacy_name
+        return preferred_name
+
     def _build_config(self) -> confuse.Configuration:
-        config_obj = confuse.Configuration("monitor@", __name__)
-        default_config = confuse.Configuration("monitor@", __name__)
+        application_name = self._resolve_application_name()
+        config_obj = confuse.Configuration(application_name, __name__)
+        default_config = confuse.Configuration(application_name, __name__)
 
         config_obj.clear()
         default_config.clear()
@@ -45,34 +70,90 @@ class ConfigManager:
             filepath = default_config_dir / include
             if not filepath.exists():
                 raise FileNotFoundError(f"Include file not found: {include}")
-            config_obj.set_file(filepath)
-
-        includes = config_obj["includes"].get(list)
-        config_dir = Path(config_obj.config_dir())
-        for include in includes:
-            include_path = Path(include)
-            if include_path.is_absolute():
-                filepath = include_path
-            else:
-                candidates = [config_dir / include, default_config_dir / include]
-                filepath = next(
-                    (candidate for candidate in candidates if candidate.exists()), None
+            config_obj.add(
+                confuse.YamlSource(
+                    str(filepath),
+                    default=True,
+                    loader=config_obj.loader,
                 )
-            if not filepath or not filepath.exists():
-                raise FileNotFoundError(f"Include file not found: {include}")
-            config_obj.set_file(filepath)
+            )
+
+        if not self._project_config:
+            user_config_path = Path(config_obj.user_config_path())
+            if user_config_path.exists():
+                data = confuse.load_yaml(
+                    str(user_config_path), loader=config_obj.loader
+                )
+                includes = []
+                if isinstance(data, dict):
+                    includes = data.get("includes") or []
+                insert_index = next(
+                    (
+                        index
+                        for index, source in enumerate(config_obj.sources)
+                        if getattr(source, "default", False)
+                    ),
+                    len(config_obj.sources),
+                )
+                config_dir = user_config_path.parent
+                for include in includes:
+                    include_path = Path(include)
+                    if include_path.is_absolute():
+                        filepath = include_path
+                    else:
+                        candidates = [
+                            config_dir / include,
+                            default_config_dir / include,
+                        ]
+                        filepath = next(
+                            (
+                                candidate
+                                for candidate in candidates
+                                if candidate.exists()
+                            ),
+                            None,
+                        )
+                    if not filepath or not filepath.exists():
+                        raise FileNotFoundError(f"Include file not found: {include}")
+                    config_obj.sources.insert(
+                        insert_index,
+                        confuse.YamlSource(
+                            str(filepath),
+                            base_for_paths=True,
+                            loader=config_obj.loader,
+                        ),
+                    )
+                    insert_index += 1
 
         if self._project_config:
             candidate = self._project_config.expanduser()
             if candidate.exists():
                 config_obj.set_file(candidate, base_for_paths=True)
-                includes = config_obj["includes"].get(list)
-                config_dir = candidate.parent
+                data = confuse.load_yaml(str(candidate), loader=config_obj.loader)
+                includes = []
+                if isinstance(data, dict):
+                    includes = data.get("includes") or []
+                insert_index = next(
+                    (
+                        index
+                        for index, source in enumerate(config_obj.sources)
+                        if getattr(source, "default", False)
+                    ),
+                    len(config_obj.sources),
+                )
                 for include in includes:
-                    filepath = config_dir / include
+                    filepath = candidate.parent / include
                     if not filepath.exists():
                         raise FileNotFoundError(f"Include file not found: {filepath}")
-                    config_obj.set_file(filepath, base_for_paths=True)
+                    config_obj.sources.insert(
+                        insert_index,
+                        confuse.YamlSource(
+                            str(filepath),
+                            base_for_paths=True,
+                            loader=config_obj.loader,
+                        ),
+                    )
+                    insert_index += 1
 
         config_obj["notifications"]["apprise_urls"].redact = True
         return config_obj

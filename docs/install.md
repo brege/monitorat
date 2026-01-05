@@ -1,6 +1,6 @@
 ## Installation
 
-Both installation methods assume you are using a configuration file at `~/.config/monitor@/config.yaml`.
+Both installation methods assume you are using a configuration file at `~/.config/monitorat/config.yaml`.
 
 ### Installing with uv
 
@@ -76,14 +76,14 @@ bash <(curl -s https://raw.githubusercontent.com/brege/monitorat/refs/heads/main
 
 ### Alternative: Deploy monitorat/ directly
 
-You can also deploy the `monitorat/` directory directly to `/opt/monitor@/` or elsewhere without packaging. This is useful for development or when you want direct access to edit files.
+You can also deploy the `monitorat/` directory directly to `/opt/monitorat/` or elsewhere without packaging. This is useful for development or when you want direct access to edit files.
 
 Clone this repository:
 ```bash
 sudo apt install python3 python3-pip
-sudo mkdir -p /opt/monitor@
-sudo chown -R __user__:__group__ /opt/monitor@
-cd /opt/monitor@
+sudo mkdir -p /opt/monitorat
+sudo chown -R __user__:__group__ /opt/monitorat
+cd /opt/monitorat
 git clone https://github.com/brege/monitorat.git .
 ```
 

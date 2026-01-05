@@ -16,7 +16,7 @@ Available widgets:
 Widgets have a general, self-contained structure where both API and UI are straightforward to create.
 
 ```
-~/.config/monitor@/widgets/
+~/.config/monitorat/widgets/
 └── my-widget
     ├── api.py
     ├── index.html
@@ -60,7 +60,7 @@ use https://monitorat.brege.org/ to create screenshots
 
 ## Installation
 
-Both installation methods assume you are using a configuration file at `~/.config/monitor@/config.yaml`.
+Both installation methods assume you are using a configuration file at `~/.config/monitorat/config.yaml`.
 
 ### Installing with uv
 
@@ -96,13 +96,13 @@ These demos are all held on [monitorat.brege.org](https://monitorat.brege.org):
 
 #### Systemd service
 
-Assuming you'd like to run monitor@ as a systemd service with your normal user, group, and hostname:
+Assuming you'd like to run monitorat as a systemd service with your normal user, group, and hostname:
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/scripts/install-systemd-uv.sh)
 ```
 This pulls the uv-flavored systemd script from [scripts/install-systemd-uv.sh](./scripts/install-systemd-uv.sh), using sudo internally to install the systemd unit to `/etc/systemd/system/monitor@.service`.
 
-For **alternate installs**, see [docs/install.md](docs/install.md) to install `monitor@/monitorat` => `/opt/monitor@` and other deployments.
+For **alternate installs**, see [docs/install.md](docs/install.md) to install `monitor@/monitorat` => `/opt/monitorat` and other deployments.
 
 ## The Dashboard
 
@@ -110,7 +110,7 @@ Open `http://localhost:6161`, or your specifed port, or configure through a reve
 
 ### Configuration
 
-These are the basic monitor@ settings for your system, assuming you want to put all icons, data and the config file in `~/.config/monitor@/` which is the default location.
+These are the basic monitorat settings for your system, assuming you want to put all icons, data and the config file in `~/.config/monitorat/` which is the default location.
 
 ```yaml
 site:
@@ -119,7 +119,7 @@ site:
 
 paths:
   data: data/
-  img: img/  # or /home/user/.config/monitor@/img/
+  img: img/  # or /home/user/.config/monitorat/img/
 
 widgets: { ... }
 
@@ -130,7 +130,7 @@ widgets: { ... }
 
 ### Widgets
 
-**monitor@** has an extensible widget system. You can add any number of widgets to your dashboard multiple times over, re-order them, and enable/disable any you don't need. You can add more widgets from others in `~/.config/monitor@/widgets/`.
+**monitorat** has an extensible widget system. You can add any number of widgets to your dashboard multiple times over, re-order them, and enable/disable any you don't need. You can add more widgets from others in `~/.config/monitorat/widgets/`.
 
 ```yaml
 widgets:
@@ -142,13 +142,13 @@ widgets:
     - # reminders      # '#' disables this widget
     - network
     - speedtest
-    - my-widget        # in ~/.config/monitor@/widgets/
+    - my-widget        # in ~/.config/monitorat/widgets/
 ```
 
 Each widget can be configured in its own YAML block. To configure a widget in its own file,
 ```yaml
 includes:
-  - "/home/user/.config/monitor@/widgets/my-widget.yaml"
+  - "/home/user/.config/monitorat/widgets/my-widget.yaml"
 ```
 or do this for every widget through config snippets:
 ```yaml
@@ -171,7 +171,7 @@ They are also quite easy to build. Example of a widget built with Codex in 12 mi
 #### **Services**  
   The **Service Status** widget is a simple display to show what systemd service daemons, timers and docker containers are running or have failed. [GitHub](./demo/simple/docs/services.md) - [Demo](https://monitorat.brege.org/#services-widget)
 
-  You can configure the service tiles to have both your URL (or WAN IP) and a local address (or LAN IP) for use offline. **monitor@ is completely encapsulated and works offline even when internet is down.**
+  You can configure the service tiles to have both your URL (or WAN IP) and a local address (or LAN IP) for use offline. **monitorat is completely encapsulated and works offline even when internet is down.**
 
 #### **Wiki**  
   Some widgets you may want to use more than once. For two markdown documents ("wikis"), use **`type: wiki`**. **`wiki: <title>`** may only be used once. [GitHub](./demo/README.md) - [Demo](https://monitorat.brege.org/#wiki)
@@ -190,7 +190,7 @@ They are also quite easy to build. Example of a widget built with Codex in 12 mi
        - ...
    ```
 
-   **monitor@ uses GitHub-flavored markdown**
+   **monitorat uses GitHub-flavored markdown**
 
 #### **System Metrics**  
   Metrics provides an overview of system performance, including CPU, memory, disk and network usage, and temperature over time.  Data is logged to `metrics.csv`. [GitHub](./demo/simple/docs/metrics.md) - [Demo](https://monitorat.brege.org/#metrics-widget)
@@ -202,7 +202,7 @@ It does not perform automated runs. [GitHub](./demo/simple/docs/speedtest.md) - 
 #### **Network**  
   The **Network** widget may be the most specific. This example uses `ddclient`-style generated logs. [GitHub](./demo/simple/docs/network.md) - [Demo](https://monitorat.brege.org/#network-widget)
 
-  The network widget is best used on machines with continuous uptime. You might even keep monitor@ running on your pi-hole.
+  The network widget is best used on machines with continuous uptime. You might even keep monitorat running on your pi-hole.
 
 #### **Reminders**  
   The **Reminders** widget allows you to set reminders for system chores, login/key change reminders, and other one-offs chirps. [GitHub](./demo/simple/docs/reminders.md) - [Demo](https://monitorat.brege.org/#reminders-widget)

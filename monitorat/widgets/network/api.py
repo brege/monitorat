@@ -64,7 +64,7 @@ def fetch_external_ip():
     try:
         url = get_ip_source_url()
         request = urllib.request.Request(url)
-        request.add_header("User-Agent", "monitor@/chirper")
+        request.add_header("User-Agent", "monitorat/chirper")
         with urllib.request.urlopen(request, timeout=5) as response:
             ip = response.read().decode("utf-8").strip()
             return ip if ip else None

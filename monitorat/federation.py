@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class FederationClient:
-    """HTTP client for fetching from remote monitor@ instances."""
+    """HTTP client for fetching from remote monitorat instances."""
 
     def __init__(self):
         self._client: Optional[httpx.Client] = None

@@ -6,7 +6,7 @@ widgets:
     hidden: false
     items:
       monitor:
-        name: monitor@
+        name: monitorat
         icon: favicon.svg
         services: [monitor@demo.service]
         url: https://github.com/brege/monitorat

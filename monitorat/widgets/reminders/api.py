@@ -259,7 +259,7 @@ def send_test_notification(priority=0):
 
     notification_handler = NotificationHandler(apprise_urls)
 
-    return notification_handler.send_test_notification(priority, "monitor@ reminder")
+    return notification_handler.send_test_notification(priority, "monitorat reminder")
 
 
 def scheduled_notification_check():

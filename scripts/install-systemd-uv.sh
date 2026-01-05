@@ -44,4 +44,4 @@ echo "Service installed successfully!"
 echo "Status:"
 sudo systemctl status "monitor@${HOSTNAME}.service" --no-pager
 echo ""
-echo "Access monitor@ at: http://localhost:6161"
+echo "Access monitorat at: http://localhost:6161"

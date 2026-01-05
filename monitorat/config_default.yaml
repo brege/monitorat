@@ -1,5 +1,5 @@
 ---
-# minimal monitor@ configuration that renders a simple dashboard.
+# minimal monitorat configuration that renders a simple dashboard.
 includes:
   # TODO: eventually load snippets dynamically
   - widgets/metrics/config_default.yaml
@@ -12,7 +12,7 @@ site:
   name: monitor@
   title: System Monitor
   base_url: http://localhost:6161
-# all paths relative to monitor@ config dir (~/.config/monitor@/)
+# all paths relative to monitorat config dir (~/.config/monitorat/)
 # absolute paths also supported
 paths:
   data: data/

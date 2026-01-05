@@ -91,7 +91,7 @@ class NotificationHandler:
             self.logger.error(f"Notification error: {e}")
             return False
 
-    def send_test_notification(self, priority=0, service_name="monitor@"):
+    def send_test_notification(self, priority=0, service_name="monitorat"):
         """Send test notification with optional priority level
 
         Args:
