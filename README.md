@@ -3,8 +3,7 @@
 # <div align=center> [ [demo](https://monitorat.brege.org) ] </div>
 
 Monitorat is a federated dashboard and documentation system with a widget system.
-Its philosophy is to make system monitoring and documentation continuous, much like the way tables and igures are intergrated in journal or news articles.
-It does not control services or perform updates.
+Its philosophy is to make system monitoring and documentation continuous, much like the way tables and figures are integrated in journal or news articles.
 
 Available widgets:
 - [metrics](#system-metrics)

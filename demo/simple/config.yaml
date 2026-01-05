@@ -10,6 +10,7 @@ includes:
   - snippets/speedtest.yaml
   - snippets/reminders.yaml
   - snippets/wiki.yaml
+  - snippets/quick-links.yaml
 paths:
   data: data/
   img: img/
@@ -27,6 +28,7 @@ widgets:
     - speedtest-md
     - reminders
     - reminders-md
+    - wiki-quick-links
   metrics-md:
     type: wiki
     mode: rail

@@ -22,6 +22,7 @@ includes:
   - snippets/wiki/each.yaml
   - snippets/wiki/column.yaml
   - snippets/wiki/stack.yaml
+  - snippets/wiki/quick-links.yaml
 
   # Multi-node metrics
   - snippets/metrics/each.yaml
@@ -122,3 +123,4 @@ widgets:
     - wiki-network-outages-column
     - network-outages-merge
     - wiki-network-outages-merge
+    - wiki-quick-links
