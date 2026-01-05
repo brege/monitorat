@@ -152,6 +152,18 @@ def run_smoke_tests(widget_filter: str = None) -> int:
     return result.returncode
 
 
+def run_demo_smoke_tests() -> int:
+    """Run demo smoke tests, return exit code."""
+    print("\n" + "=" * 60)
+    print("Running demo smoke tests...")
+    print("=" * 60 + "\n")
+
+    cmd = ["uv", "run", "python", "test/smoke/demo.py"]
+    result = subprocess.run(cmd, cwd=PROJECT_ROOT)
+
+    return result.returncode
+
+
 def main():
     parser = argparse.ArgumentParser(description="Federation test harness")
     parser.add_argument(
@@ -165,12 +177,21 @@ def main():
         dest="list_widgets",
         help="List available widget filters",
     )
+    parser.add_argument(
+        "--set",
+        choices=["all", "federation", "demo"],
+        default="all",
+        help="Select which test set to run",
+    )
     args = parser.parse_args()
 
     if args.list_widgets:
         print("Available widget filters:")
         for widget in WIDGET_FILTERS:
             print(f"  {widget}")
+        print("Available test sets:")
+        print("  federation")
+        print("  demo")
         return 0
 
     print("=" * 60)
@@ -179,36 +200,50 @@ def main():
     print()
 
     processes = []
-    exit_code = 1
+    federation_exit = 1
+    demo_exit = None
 
     try:
-        processes = start_servers()
+        if args.set in ("all", "federation"):
+            processes = start_servers()
 
-        if not wait_for_ready(processes):
-            print("\nFailed to start all servers")
-            return 1
-
-        print("\nAll servers ready\n")
-
-        exit_code = run_smoke_tests(widget_filter=args.widget)
+            if not wait_for_ready(processes):
+                print("\nFailed to start all servers")
+                federation_exit = 1
+            else:
+                print("\nAll servers ready\n")
+                federation_exit = run_smoke_tests(widget_filter=args.widget)
+        else:
+            federation_exit = 0
 
     except KeyboardInterrupt:
         print("\nInterrupted")
-        exit_code = 130
+        federation_exit = 130
 
     finally:
         print()
         stop_servers(processes)
 
+    if args.set in ("all", "demo"):
+        if federation_exit == 130:
+            demo_exit = 130
+        else:
+            demo_exit = run_demo_smoke_tests()
+    else:
+        demo_exit = 0
+
     print()
     print("=" * 60)
-    if exit_code == 0:
-        print("Harness completed: ALL TESTS PASSED")
-    else:
-        print(f"Harness completed: exit code {exit_code}")
+    federation_status = (
+        "PASSED" if federation_exit == 0 else f"FAILED ({federation_exit})"
+    )
+    demo_status = "PASSED" if demo_exit == 0 else f"FAILED ({demo_exit})"
+    print("Harness completed:")
+    print(f"  federation: {federation_status}")
+    print(f"  demo: {demo_status}")
     print("=" * 60)
 
-    return exit_code
+    return 0 if federation_exit == 0 and demo_exit == 0 else 1
 
 
 if __name__ == "__main__":
