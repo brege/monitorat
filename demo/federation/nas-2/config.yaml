@@ -78,6 +78,10 @@ widgets:
       periods:
         - period: 1 hour
           segment_size: 5 minutes
+        - period: 6 hours
+          segment_size: 30 minutes
+        - period: 1 day
+          segment_size: 2 hours
     alerts:
       show: true
       max: 3

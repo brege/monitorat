@@ -43,11 +43,10 @@ TEST_NODE_WAVEFORMS = {
 TEST_NODE_REMINDERS = {
     "nas-1": [
         {"id": "backup", "name": "Backup Check", "days_ago": 5},
-        {"id": "zfs_scrub", "name": "ZFS Scrub", "days_ago": 20},
-        {"id": "apt_update", "name": "APT Updates", "days_ago": 10},
+        {"id": "monitorat", "name": "Install Monitorat", "days_ago": 2},
     ],
     "nas-2": [
-        {"id": "ssl_cert", "name": "SSL Certificate", "days_ago": 25},
+        {"id": "ssl_cert", "name": "SSL Certificate", "days_ago": 40},
     ],
     "nas-3": [
         {"id": "updates", "name": "System Updates", "days_ago": 10},
@@ -335,23 +334,52 @@ def generate_test_network(
 ) -> None:
     """Generate network.log with node-specific data."""
     start = now_value - timedelta(days=days)
+    if node_name == "nas-2":
+        start -= timedelta(hours=4)
     node_index = (
         list(TEST_NODE_WAVEFORMS.keys()).index(node_name)
         if node_name in TEST_NODE_WAVEFORMS
         else 0
     )
-    ip_address = f"192.168.1.{101 + node_index}"
+    ip_addresses = [
+        f"192.168.1.{101 + node_index}",
+        f"192.168.1.{111 + node_index}",
+    ]
     domain = f"{node_name}.local"
+    ip_change_time = start + timedelta(hours=days * 12)
 
     entries = []
     current = start
+    step = 0
+    steps_per_day = int(86400 / interval_seconds)
+    failure_interval = max(1, steps_per_day // 3)
+    failure_offset = node_index % failure_interval
+    outage_start_hour = (2 + node_index * 3) % 24
+    outage_duration_hours = 3
     while current <= now_value:
+        if (
+            outage_start_hour
+            <= current.hour
+            < outage_start_hour + outage_duration_hours
+        ):
+            current += timedelta(seconds=interval_seconds)
+            step += 1
+            continue
+
+        ip_address = ip_addresses[1] if current >= ip_change_time else ip_addresses[0]
         message = (
             f"{node_name} monitor-network: INFO:    "
             f"[{domain}]> detected IPv4 address {ip_address}"
         )
         entries.append(NetworkLine(timestamp=current, message=message))
+        if step % failure_interval == failure_offset:
+            failed_message = (
+                f"{node_name} monitor-network: FAILED:  "
+                f"[{domain}]> updating {domain}: nohost: unable to resolve current IP"
+            )
+            entries.append(NetworkLine(timestamp=current, message=failed_message))
         current += timedelta(seconds=interval_seconds)
+        step += 1
 
     output_lines = [
         f"{entry.timestamp:%b} {entry.timestamp.day:2d} {entry.timestamp:%H:%M:%S} {entry.message}"
