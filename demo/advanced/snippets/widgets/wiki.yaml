@@ -1,11 +1,7 @@
 widgets:
-  wiki-welcome:
+  wiki-readme:
     type: wiki
-    name: "Welcome"
+    name: "Advanced Demo"
+    _suppressHeader: true
+    mode: rail
     doc: ../../docs/README.md
-
-  wiki-single-intro:
-    type: wiki
-    name: "Single-Node Setup"
-    mode: seamless
-    doc: ../../docs/single/intro.md

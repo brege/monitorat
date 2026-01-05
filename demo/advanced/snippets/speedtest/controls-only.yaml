@@ -10,5 +10,5 @@ widgets:
     type: wiki
     name: "Config: Controls Only"
     _suppressHeader: true
-    mode: seamless
+    mode: rail
     doc: ../../docs/single/features/speedtest-controls.md

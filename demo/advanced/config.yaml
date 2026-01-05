@@ -46,11 +46,14 @@ paths:
 
 widgets:
   enabled:
-    # Welcome
-    - wiki-welcome
+    - wiki-readme
+    ## Wiki modes
+    - wiki-mode-rail
+    - wiki-mode-featured
+    - wiki-mode-seamless
 
     # Single-Node
-    - wiki-single-intro
+
 
     ## Metrics
     - metrics-single
@@ -85,8 +88,3 @@ widgets:
     - wiki-network-uptime-only
     - network-outages-only
     - wiki-network-outages-only
-
-    ## Wiki modes
-    - wiki-mode-rail
-    - wiki-mode-featured
-    - wiki-mode-seamless

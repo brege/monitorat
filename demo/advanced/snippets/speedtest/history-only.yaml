@@ -13,5 +13,5 @@ widgets:
     type: wiki
     name: "Config: History Only"
     _suppressHeader: true
-    mode: seamless
+    mode: rail
     doc: ../../docs/single/features/speedtest-history.md

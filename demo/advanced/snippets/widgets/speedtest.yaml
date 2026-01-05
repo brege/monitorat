@@ -10,5 +10,5 @@ widgets:
     type: wiki
     name: "Config: Speedtest"
     _suppressHeader: true
-    mode: seamless
+    mode: rail
     doc: ../../docs/single/widgets/speedtest.md

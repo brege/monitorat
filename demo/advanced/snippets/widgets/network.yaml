@@ -22,5 +22,5 @@ widgets:
     type: wiki
     name: "Config: Network"
     _suppressHeader: true
-    mode: seamless
+    mode: rail
     doc: ../../docs/single/widgets/network.md

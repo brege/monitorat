@@ -7,5 +7,5 @@ widgets:
     type: wiki
     name: "Config: Reminders"
     _suppressHeader: true
-    mode: seamless
+    mode: rail
     doc: ../../docs/single/widgets/reminders.md

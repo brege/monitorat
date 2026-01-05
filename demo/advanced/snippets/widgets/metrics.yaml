@@ -10,5 +10,5 @@ widgets:
     type: wiki
     name: "Config: Metrics"
     _suppressHeader: true
-    mode: seamless
+    mode: rail
     doc: ../../docs/single/widgets/metrics.md

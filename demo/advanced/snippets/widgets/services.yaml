@@ -7,5 +7,5 @@ widgets:
     type: wiki
     name: "Config: Services"
     _suppressHeader: true
-    mode: seamless
+    mode: rail
     doc: ../../docs/single/widgets/services.md

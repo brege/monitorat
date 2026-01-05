@@ -10,5 +10,5 @@ widgets:
     type: wiki
     name: "Config: Tiles Only"
     _suppressHeader: true
-    mode: seamless
+    mode: rail
     doc: ../../docs/single/features/metrics-tiles.md
