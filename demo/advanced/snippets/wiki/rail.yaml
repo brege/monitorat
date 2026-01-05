@@ -3,4 +3,4 @@ widgets:
     type: wiki
     name: "Wiki: Rail Mode"
     mode: rail
-    doc: ../../docs/single/modes/wiki/rail.md
+    doc: ../../docs/widgets/wiki/rail.md

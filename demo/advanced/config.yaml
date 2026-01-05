@@ -29,13 +29,13 @@ includes:
   - snippets/wiki/seamless.yaml
 
   # Single-node feature toggles
-  - snippets/metrics/tiles-only.yaml
-  - snippets/metrics/history-only.yaml
-  - snippets/speedtest/controls-only.yaml
-  - snippets/speedtest/history-only.yaml
-  - snippets/network/tiles-only.yaml
-  - snippets/network/uptime-only.yaml
-  - snippets/network/outages-only.yaml
+  - snippets/metrics/tiles.yaml
+  - snippets/metrics/history.yaml
+  - snippets/speedtest/controls.yaml
+  - snippets/speedtest/history.yaml
+  - snippets/network/tiles.yaml
+  - snippets/network/uptime.yaml
+  - snippets/network/outages.yaml
 
 demo: true
 
@@ -58,10 +58,10 @@ widgets:
     ## Metrics
     - metrics-single
     - wiki-metrics-single
-    - metrics-tiles-only
-    - wiki-metrics-tiles-only
-    - metrics-history-only
-    - wiki-metrics-history-only
+    - metrics-tiles
+    - wiki-metrics-tiles
+    - metrics-history
+    - wiki-metrics-history
 
     ## Services
     - services-single
@@ -76,17 +76,17 @@ widgets:
     ## Speedtest
     - speedtest-single
     - wiki-speedtest-single
-    - speedtest-controls-only
-    - wiki-speedtest-controls-only
-    - speedtest-history-only
-    - wiki-speedtest-history-only
+    - speedtest-controls
+    - wiki-speedtest-controls
+    - speedtest-history
+    - wiki-speedtest-history
 
     ## Network
     - network-single
     - wiki-network-single
-    - network-tiles-only
-    - wiki-network-tiles-only
-    - network-uptime-only
-    - wiki-network-uptime-only
-    - network-outages-only
-    - wiki-network-outages-only
+    - network-tiles
+    - wiki-network-tiles
+    - network-uptime
+    - wiki-network-uptime
+    - network-outages
+    - wiki-network-outages

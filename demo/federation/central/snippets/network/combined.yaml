@@ -1,0 +1,28 @@
+widgets:
+  network-combined:
+    type: network
+    name: "Network: Combined"
+    log_file: network.log
+    chirper:
+      enabled: false
+      interval_seconds: 600
+      mode: ipv4
+    federation:
+      nodes: [nas-1, nas-2]
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    alerts:
+      show: true
+      max: 5
+
+  wiki-network-combined:
+    type: wiki
+    name: "Config: Network Combined"
+    mode: rail
+    _suppressHeader: true
+    doc: ../../docs/network/combined.md

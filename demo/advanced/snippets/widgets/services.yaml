@@ -14,11 +14,11 @@ widgets:
     name: "Config: Services"
     _suppressHeader: true
     mode: rail
-    doc: ../../docs/single/widgets/services.md
+    doc: ../../docs/widgets/services/tiles.md
 
   wiki-services-compact:
     type: wiki
     name: "Config: Services Compact"
     _suppressHeader: true
     mode: rail
-    doc: ../../docs/single/widgets/services-compact.md
+    doc: ../../docs/widgets/services/compact.md

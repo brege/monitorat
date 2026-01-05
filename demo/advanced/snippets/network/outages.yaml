@@ -1,0 +1,23 @@
+widgets:
+  network-outages:
+    type: network
+    name: "Network: Outages"
+    log_file: network.log
+    chirper:
+      enabled: false
+      interval_seconds: 600
+      mode: ipv4
+    metrics:
+      show: false
+    uptime:
+      show: false
+    alerts:
+      show: true
+      max: 10
+
+  wiki-network-outages:
+    type: wiki
+    name: "Config: Outages"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../docs/widgets/network/outages.md

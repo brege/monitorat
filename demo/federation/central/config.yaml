@@ -1,6 +1,6 @@
 # Central Head Node - Federation Demo
 #
-# Snippets organized by: multi/ (federation)
+# Snippets organized by federation feature
 # Docs mirror the snippet structure for {{file:...}} shortcodes
 
 includes:
@@ -16,41 +16,41 @@ includes:
   - snippets/federation.yaml
 
   # Multi-node intro
-  - snippets/multi/intro.yaml
+  - snippets/intro.yaml
 
   # Multi-node wiki
-  - snippets/multi/wiki/each.yaml
-  - snippets/multi/wiki/column.yaml
-  - snippets/multi/wiki/stack.yaml
+  - snippets/wiki/each.yaml
+  - snippets/wiki/column.yaml
+  - snippets/wiki/stack.yaml
 
   # Multi-node metrics
-  - snippets/multi/metrics/each.yaml
-  - snippets/multi/metrics/tiles/stack.yaml
-  - snippets/multi/metrics/tiles/column.yaml
-  - snippets/multi/metrics/history/merge.yaml
-  - snippets/multi/metrics/history/stack.yaml
+  - snippets/metrics/each.yaml
+  - snippets/metrics/tiles/stack.yaml
+  - snippets/metrics/tiles/column.yaml
+  - snippets/metrics/history/merge.yaml
+  - snippets/metrics/history/stack.yaml
 
   # Multi-node services
-  - snippets/multi/services/merge.yaml
-  - snippets/multi/services/stack.yaml
-  - snippets/multi/services/column.yaml
+  - snippets/services/merge.yaml
+  - snippets/services/stack.yaml
+  - snippets/services/column.yaml
 
   # Multi-node reminders
-  - snippets/multi/reminders/merge.yaml
-  - snippets/multi/reminders/stack.yaml
-  - snippets/multi/reminders/column.yaml
+  - snippets/reminders/merge.yaml
+  - snippets/reminders/stack.yaml
+  - snippets/reminders/column.yaml
 
   # Multi-node speedtest
-  - snippets/multi/speedtest/merge.yaml
+  - snippets/speedtest/merge.yaml
 
   # Multi-node network
-  - snippets/multi/network/combined.yaml
-  - snippets/multi/network/tiles/column.yaml
-  - snippets/multi/network/tiles/stack.yaml
-  - snippets/multi/network/uptime/column.yaml
-  - snippets/multi/network/uptime/stack.yaml
-  - snippets/multi/network/outages/column.yaml
-  - snippets/multi/network/outages/merge.yaml
+  - snippets/network/combined.yaml
+  - snippets/network/tiles/column.yaml
+  - snippets/network/tiles/stack.yaml
+  - snippets/network/uptime/column.yaml
+  - snippets/network/uptime/stack.yaml
+  - snippets/network/outages/column.yaml
+  - snippets/network/outages/merge.yaml
 
 demo: true
 

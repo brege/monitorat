@@ -1,0 +1,29 @@
+widgets:
+  network-uptime-column:
+    type: network
+    name: "Network: Uptime Columnated"
+    log_file: network.log
+    chirper:
+      enabled: false
+      interval_seconds: 600
+      mode: ipv4
+    federation:
+      nodes: [nas-1, nas-2]
+      display:
+        uptime: columnate
+    metrics:
+      show: false
+    alerts:
+      show: false
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+
+  wiki-network-uptime-column:
+    type: wiki
+    name: "Config: Uptime Columnated"
+    mode: rail
+    _suppressHeader: true
+    doc: ../../../docs/network/uptime/column.md

@@ -1,0 +1,15 @@
+widgets:
+  services-stack:
+    type: services
+    name: "Services: Stacked"
+    federation:
+      nodes: [nas-1, nas-2]
+      display:
+        cards: stack
+
+  wiki-services-stack:
+    type: wiki
+    name: "Config: Services Stacked"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../docs/services/stack.md

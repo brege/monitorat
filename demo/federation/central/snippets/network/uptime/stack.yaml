@@ -1,0 +1,29 @@
+widgets:
+  network-uptime-stack:
+    type: network
+    name: "Network: Uptime Stacked"
+    log_file: network.log
+    chirper:
+      enabled: false
+      interval_seconds: 600
+      mode: ipv4
+    federation:
+      nodes: [nas-1, nas-2]
+      display:
+        uptime: stack
+    metrics:
+      show: false
+    alerts:
+      show: false
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+
+  wiki-network-uptime-stack:
+    type: wiki
+    name: "Config: Uptime Stacked"
+    mode: rail
+    _suppressHeader: true
+    doc: ../../../docs/network/uptime/stack.md

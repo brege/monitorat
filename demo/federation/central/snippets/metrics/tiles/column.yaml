@@ -1,0 +1,18 @@
+widgets:
+  metrics-tiles-column:
+    type: metrics
+    name: "Metrics: Tiles Columnated"
+    federation:
+      nodes: [nas-1, nas-2]
+      display:
+        tiles: columnate
+    show:
+      tiles: true
+      history: false
+
+  wiki-metrics-tiles-column:
+    type: wiki
+    name: "Config: Tiles Columnated"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../../docs/metrics/tiles/column.md

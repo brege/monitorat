@@ -1,0 +1,14 @@
+widgets:
+  metrics-tiles:
+    type: metrics
+    name: "Metrics: Tiles"
+    show:
+      tiles: true
+      history: false
+
+  wiki-metrics-tiles:
+    type: wiki
+    name: "Config: Tiles"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../docs/widgets/metrics/tiles.md

@@ -1,0 +1,25 @@
+widgets:
+  network-uptime:
+    type: network
+    name: "Network: Uptime"
+    log_file: network.log
+    chirper:
+      enabled: false
+      interval_seconds: 600
+      mode: ipv4
+    metrics:
+      show: false
+    alerts:
+      show: false
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+
+  wiki-network-uptime:
+    type: wiki
+    name: "Config: Uptime"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../docs/widgets/network/uptime.md

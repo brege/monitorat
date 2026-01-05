@@ -1,0 +1,16 @@
+widgets:
+  reminders-merge:
+    type: reminders
+    name: "Reminders: Merged"
+    federation:
+      nodes: [nas-1, nas-2]
+      display:
+        cards: merge
+      sort_by: date.desc
+
+  wiki-reminders-merge:
+    type: wiki
+    name: "Config: Reminders Merged"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../docs/reminders/merge.md

@@ -1,0 +1,17 @@
+widgets:
+  speedtest-history:
+    type: speedtest
+    name: "Speedtest: History"
+    default: chart
+    show:
+      controls: false
+      history: true
+    chart:
+      default_period: 1 month
+
+  wiki-speedtest-history:
+    type: wiki
+    name: "Config: History"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../docs/widgets/speedtest/history.md

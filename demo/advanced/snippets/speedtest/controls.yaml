@@ -1,0 +1,14 @@
+widgets:
+  speedtest-controls:
+    type: speedtest
+    name: "Speedtest: Controls"
+    show:
+      controls: true
+      history: false
+
+  wiki-speedtest-controls:
+    type: wiki
+    name: "Config: Controls"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../docs/widgets/speedtest/controls.md
