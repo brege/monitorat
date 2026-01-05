@@ -18,10 +18,10 @@ Other demo entry points:
 ### Online Demos
 
 - **Simple** - [http://monitorat.brege.org/](http://monitorat.brege.org/)
-- **Advanced** - [http://monitorat.brege.org/advanced](http://monitorat.brege.org/advanced)
+- **Widget Features and Modes** - [http://monitorat.brege.org/advanced](http://monitorat.brege.org/advanced)
 - **Federation** - [http://monitorat.brege.org/federation](http://monitorat.brege.org/federation)
 
-The [advanced](http://monitorat.brege.org/advanced) demo breaks down how different features of each widget can be toggled or configured. 
+The [advanced](http://monitorat.brege.org/advanced) demo breaks down how different features of each widget can be toggled, configured, and adjusted for different display modes.
 
 [Federation](http://monitorat.brege.org/federation) is a multi-node demo that demonstrates how widgets can be shared and used from central command. *Simple is a prerequisite for Advanced. Advanced is a prerequisite for Federation.*
 
@@ -33,7 +33,7 @@ The demos run on the following ports:
 - Federation: 6300 (head) [http://localhost:6300](http://localhost:6300), 6301-6302 (remotes)
 
 ### Contents
-- [Wiki](#demo)
+- [Wiki](#overview)
 - [Metrics](#metrics-widget)
 - [Network](#network-widget)
 - [Services](#services-widget)
