@@ -81,6 +81,7 @@ class WikiWidget {
       const notesElement = this.container.querySelector('#about-notes')
       if (notesElement) {
         notesElement.innerHTML = md.render(text)
+        this.renderMermaid(notesElement)
       }
     } catch (error) {
       const notesElement = this.container.querySelector('#about-notes')
@@ -116,6 +117,48 @@ class WikiWidget {
       this.renderColumnated(notesElement, results, md)
     } else {
       this.renderStacked(notesElement, results, md)
+    }
+
+    this.renderMermaid(notesElement)
+  }
+
+  renderMermaid (notesElement) {
+    const mermaidApi = window.mermaid
+    if (!mermaidApi || !notesElement) return
+
+    if (!window.monitorMermaidInitialized) {
+      mermaidApi.initialize({ startOnLoad: false })
+      window.monitorMermaidInitialized = true
+    }
+
+    const mermaidBlocks = notesElement.querySelectorAll('pre code.language-mermaid')
+    if (mermaidBlocks.length === 0) return
+
+    for (const mermaidBlock of mermaidBlocks) {
+      const diagramContainer = document.createElement('div')
+      diagramContainer.className = 'mermaid'
+      diagramContainer.textContent = mermaidBlock.textContent
+
+      const preElement = mermaidBlock.closest('pre')
+      if (preElement) {
+        preElement.replaceWith(diagramContainer)
+      } else {
+        mermaidBlock.replaceWith(diagramContainer)
+      }
+    }
+
+    const diagramNodes = notesElement.querySelectorAll('.mermaid')
+    if (diagramNodes.length === 0) return
+
+    const mermaidRun = mermaidApi.run
+    if (typeof mermaidRun === 'function') {
+      mermaidRun({ nodes: diagramNodes })
+      return
+    }
+
+    const mermaidInit = mermaidApi.init
+    if (typeof mermaidInit === 'function') {
+      mermaidInit(undefined, diagramNodes)
     }
   }
 

@@ -3,5 +3,5 @@ widgets:
     type: wiki
     name: "Advanced Demo"
     _suppressHeader: true
-    mode: rail
+    mode: seamless
     doc: ../../docs/README.md

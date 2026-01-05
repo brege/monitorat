@@ -11,5 +11,5 @@ widgets:
     type: wiki
     name: "Config: Services Merged"
     _suppressHeader: true
-    mode: seamless
+    mode: rail
     doc: ../../../docs/multi/services/merge.md

@@ -19,5 +19,5 @@ widgets:
     type: wiki
     name: "Config: Per-Remote Metrics"
     _suppressHeader: true
-    mode: seamless
+    mode: rail
     doc: ../../../docs/multi/metrics/each.md

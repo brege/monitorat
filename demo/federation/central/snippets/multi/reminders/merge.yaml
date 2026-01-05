@@ -12,5 +12,5 @@ widgets:
     type: wiki
     name: "Config: Reminders Merged"
     _suppressHeader: true
-    mode: seamless
+    mode: rail
     doc: ../../../docs/multi/reminders/merge.md

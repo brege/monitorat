@@ -22,6 +22,6 @@ widgets:
   wiki-network-outages-merge:
     type: wiki
     name: "Config: Outages Merged"
-    mode: seamless
+    mode: rail
     _suppressHeader: true
     doc: ../../../../docs/multi/network/outages/merge.md

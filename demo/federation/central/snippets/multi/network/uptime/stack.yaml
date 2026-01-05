@@ -24,6 +24,6 @@ widgets:
   wiki-network-uptime-stack:
     type: wiki
     name: "Config: Uptime Stacked"
-    mode: seamless
+    mode: rail
     _suppressHeader: true
     doc: ../../../../docs/multi/network/uptime/stack.md

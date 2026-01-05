@@ -25,5 +25,5 @@ widgets:
     type: wiki
     name: "Config: History Per Node"
     _suppressHeader: true
-    mode: seamless
+    mode: rail
     doc: ../../../../docs/multi/metrics/history/stack.md

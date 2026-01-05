@@ -11,5 +11,5 @@ widgets:
     type: wiki
     name: "Config: Services Stacked"
     _suppressHeader: true
-    mode: seamless
+    mode: rail
     doc: ../../../docs/multi/services/stack.md

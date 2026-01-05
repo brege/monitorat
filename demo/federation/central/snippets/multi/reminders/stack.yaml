@@ -11,5 +11,5 @@ widgets:
     type: wiki
     name: "Config: Reminders Stacked"
     _suppressHeader: true
-    mode: seamless
+    mode: rail
     doc: ../../../docs/multi/reminders/stack.md

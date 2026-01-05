@@ -21,6 +21,6 @@ widgets:
   wiki-network-tiles-stack:
     type: wiki
     name: "Config: Tiles Stacked"
-    mode: seamless
+    mode: rail
     _suppressHeader: true
     doc: ../../../../docs/multi/network/tiles/stack.md

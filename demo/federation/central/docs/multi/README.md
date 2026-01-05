@@ -1,8 +1,13 @@
-# Federation
+## Overview 
+
+Prerequisites:
+
+- Simple demo: [https://monitorat.brege.org/](https://monitorat.brege.org/)
+- Advanced demo: [https://monitorat.brege.org/advanced/](https://monitorat.brege.org/advanced/)
 
 Federation aggregates data from multiple monitor@ instances into a unified view. This makes comparing metric data across two or more instances more continuous, allowing you to merge charts, mix reminders and service status, and pull documentation from multiple sources in one continuous display.
 
-## Overview
+## How widgets can merge data in federation
 
 Different widgets and widget features support different integrations.
 
@@ -30,14 +35,13 @@ Stacking can always be done by using consecutive widgets of a single feature dis
 
 ## Architecture
 
-```
-       Central Head Node
-      (public, proxies requests)
-              │
-      ┌───────┴───────┐
-      ▼               ▼
-   nas-1           nas-2
-   :6301           :6302
+```mermaid
+flowchart TB
+  central["Central Head Node<br/>(public, proxies requests)"]
+  nas1["nas-1<br/>:6301"]
+  nas2["nas-2<br/>:6302"]
+  central --> nas1
+  central --> nas2
 ```
 
 ## Configuration

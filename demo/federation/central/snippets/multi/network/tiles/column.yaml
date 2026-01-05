@@ -21,6 +21,6 @@ widgets:
   wiki-network-tiles-column:
     type: wiki
     name: "Config: Tiles Columnated"
-    mode: seamless
+    mode: rail
     _suppressHeader: true
     doc: ../../../../docs/multi/network/tiles/column.md

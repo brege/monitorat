@@ -1,4 +1,4 @@
-### Demo
+## Overview
 
 Run the demo:
 ```bash
@@ -9,11 +9,13 @@ Open your browser at [http://localhost:6100](http://localhost:6100).
 
 This dashboard is a read-only instance of monitorat, similar to the one you could be using on your machine. monitorat is a continuous, scroll-focused dashboard with a widget system that aims to be a knowledge base, not a knowledge sink.
 
+### Local Demos
+
 Other demo entry points:
 - `monitorat demo --mode advanced` for the single-node widget deep dive
 - `monitorat demo --mode federation` for the multi-node federation demo
 
-**Online Demos**
+### Online Demos
 
 - **Simple** - [http://monitorat.brege.org/](http://monitorat.brege.org/)
 - **Advanced** - [http://monitorat.brege.org/advanced](http://monitorat.brege.org/advanced)
@@ -23,14 +25,15 @@ The [advanced](http://monitorat.brege.org/advanced) demo breaks down how differe
 
 [Federation](http://monitorat.brege.org/federation) is a multi-node demo that demonstrates how widgets can be shared and used from central command. *Simple is a prerequisite for Advanced. Advanced is a prerequisite for Federation.*
 
-#### Ports
+### Ports
 
 The demos run on the following ports:
 - Simple: 6100 [http://localhost:6100](http://localhost:6100)
 - Advanced: 6200 [http://localhost:6200](http://localhost:6200)
 - Federation: 6300 (head) [http://localhost:6300](http://localhost:6300), 6301-6302 (remotes)
 
-#### Contents
+### Contents
+- [Wiki](#demo)
 - [Metrics](#metrics-widget)
 - [Network](#network-widget)
 - [Services](#services-widget)
@@ -48,7 +51,7 @@ For documentation handling, I keep the `docs/` directory up-to-date through [Syn
 For the full project README and its source code, see:
 [https://github.com/brege/monitorat](https://github.com/brege/monitorat).
 
-#### Config
+### Config
 
 > **Note**
 >  

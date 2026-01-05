@@ -23,6 +23,6 @@ widgets:
   wiki-network-combined:
     type: wiki
     name: "Config: Network Combined"
-    mode: seamless
+    mode: rail
     _suppressHeader: true
     doc: ../../../docs/multi/network/combined.md

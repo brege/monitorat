@@ -1,8 +1,9 @@
 widgets:
   wiki-column:
     type: wiki
-    name: "All Wikis (Columns)"
+    name: "Both Wikis: Columns"
     doc: true
+    mode: featured
     federation:
       nodes: [nas-1, nas-2]
       display:
@@ -12,5 +13,5 @@ widgets:
     type: wiki
     name: "Config: Columnate"
     _suppressHeader: true
-    mode: seamless
+    mode: rail
     doc: ../../../docs/multi/wiki/column.md

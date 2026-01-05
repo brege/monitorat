@@ -14,5 +14,5 @@ widgets:
     type: wiki
     name: "Config: Tiles Columnated"
     _suppressHeader: true
-    mode: seamless
+    mode: rail
     doc: ../../../../docs/multi/metrics/tiles/column.md

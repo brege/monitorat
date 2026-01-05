@@ -16,5 +16,5 @@ widgets:
     type: wiki
     name: "Config: Speedtest Merged"
     _suppressHeader: true
-    mode: seamless
+    mode: rail
     doc: ../../../docs/multi/speedtest/merge.md
