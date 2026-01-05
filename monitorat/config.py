@@ -53,110 +53,162 @@ class ConfigManager:
 
     def _build_config(self) -> confuse.Configuration:
         application_name = self._resolve_application_name()
-        config_obj = confuse.Configuration(application_name, __name__)
-        default_config = confuse.Configuration(application_name, __name__)
+        config_object, default_config = self._create_configurations(application_name)
+        self._initialize_configurations(config_object, default_config)
 
-        config_obj.clear()
+        default_config_directory = Path(__file__).resolve().parent
+        self._add_default_includes(
+            config_object, default_config, default_config_directory
+        )
+
+        if self._project_config:
+            self._add_project_config_includes(config_object, default_config_directory)
+        else:
+            self._add_user_config_includes(config_object, default_config_directory)
+
+        self._apply_redactions(config_object)
+        return config_object
+
+    def _create_configurations(
+        self, application_name: str
+    ) -> tuple[confuse.Configuration, confuse.Configuration]:
+        config_object = confuse.Configuration(application_name, __name__)
+        default_config = confuse.Configuration(application_name, __name__)
+        return config_object, default_config
+
+    def _initialize_configurations(
+        self,
+        config_object: confuse.Configuration,
+        default_config: confuse.Configuration,
+    ) -> None:
+        config_object.clear()
         default_config.clear()
         if self._project_config:
-            config_obj.read(user=False, defaults=True)
+            config_object.read(user=False, defaults=True)
         else:
-            config_obj.read(user=True, defaults=True)
+            config_object.read(user=True, defaults=True)
         default_config.read(user=False, defaults=True)
 
+    def _add_default_includes(
+        self,
+        config_object: confuse.Configuration,
+        default_config: confuse.Configuration,
+        default_config_directory: Path,
+    ) -> None:
         default_includes = default_config["includes"].get(list)
-        default_config_dir = Path(__file__).resolve().parent
         for include in default_includes:
-            filepath = default_config_dir / include
+            filepath = default_config_directory / include
             if not filepath.exists():
                 raise FileNotFoundError(f"Include file not found: {include}")
-            config_obj.add(
+            config_object.add(
                 confuse.YamlSource(
                     str(filepath),
                     default=True,
-                    loader=config_obj.loader,
+                    loader=config_object.loader,
                 )
             )
 
-        if not self._project_config:
-            user_config_path = Path(config_obj.user_config_path())
-            if user_config_path.exists():
-                data = confuse.load_yaml(
-                    str(user_config_path), loader=config_obj.loader
-                )
-                includes = []
-                if isinstance(data, dict):
-                    includes = data.get("includes") or []
-                insert_index = next(
-                    (
-                        index
-                        for index, source in enumerate(config_obj.sources)
-                        if getattr(source, "default", False)
-                    ),
-                    len(config_obj.sources),
-                )
-                config_dir = user_config_path.parent
-                for include in includes:
-                    include_path = Path(include)
-                    if include_path.is_absolute():
-                        filepath = include_path
-                    else:
-                        candidates = [
-                            config_dir / include,
-                            default_config_dir / include,
-                        ]
-                        filepath = next(
-                            (
-                                candidate
-                                for candidate in candidates
-                                if candidate.exists()
-                            ),
-                            None,
-                        )
-                    if not filepath or not filepath.exists():
-                        raise FileNotFoundError(f"Include file not found: {include}")
-                    config_obj.sources.insert(
-                        insert_index,
-                        confuse.YamlSource(
-                            str(filepath),
-                            base_for_paths=True,
-                            loader=config_obj.loader,
-                        ),
-                    )
-                    insert_index += 1
+    def _add_user_config_includes(
+        self,
+        config_object: confuse.Configuration,
+        default_config_directory: Path,
+    ) -> None:
+        user_config_path = Path(config_object.user_config_path())
+        if not user_config_path.exists():
+            return
+        includes = self._load_includes_from_file(user_config_path, config_object.loader)
+        include_paths = self._resolve_include_paths(
+            includes,
+            user_config_path.parent,
+            default_config_directory,
+        )
+        self._insert_include_sources(
+            config_object,
+            include_paths,
+            base_for_paths=True,
+        )
 
-        if self._project_config:
-            candidate = self._project_config.expanduser()
-            if candidate.exists():
-                config_obj.set_file(candidate, base_for_paths=True)
-                data = confuse.load_yaml(str(candidate), loader=config_obj.loader)
-                includes = []
-                if isinstance(data, dict):
-                    includes = data.get("includes") or []
-                insert_index = next(
-                    (
-                        index
-                        for index, source in enumerate(config_obj.sources)
-                        if getattr(source, "default", False)
-                    ),
-                    len(config_obj.sources),
-                )
-                for include in includes:
-                    filepath = candidate.parent / include
-                    if not filepath.exists():
-                        raise FileNotFoundError(f"Include file not found: {filepath}")
-                    config_obj.sources.insert(
-                        insert_index,
-                        confuse.YamlSource(
-                            str(filepath),
-                            base_for_paths=True,
-                            loader=config_obj.loader,
-                        ),
-                    )
-                    insert_index += 1
+    def _add_project_config_includes(
+        self,
+        config_object: confuse.Configuration,
+        default_config_directory: Path,
+    ) -> None:
+        candidate = self._project_config.expanduser()
+        if not candidate.exists():
+            return
+        config_object.set_file(candidate, base_for_paths=True)
+        includes = self._load_includes_from_file(candidate, config_object.loader)
+        include_paths = self._resolve_include_paths(
+            includes,
+            candidate.parent,
+            None,
+        )
+        self._insert_include_sources(
+            config_object,
+            include_paths,
+            base_for_paths=True,
+        )
 
-        config_obj["notifications"]["apprise_urls"].redact = True
-        return config_obj
+    def _load_includes_from_file(self, config_path: Path, loader) -> List[str]:
+        data = confuse.load_yaml(str(config_path), loader=loader)
+        if not isinstance(data, dict):
+            return []
+        return data.get("includes") or []
+
+    def _resolve_include_paths(
+        self,
+        includes: List[str],
+        config_directory: Path,
+        default_config_directory: Optional[Path],
+    ) -> List[Path]:
+        include_paths = []
+        for include in includes:
+            include_path = Path(include)
+            if include_path.is_absolute():
+                filepath = include_path
+            else:
+                candidates = [config_directory / include]
+                if default_config_directory is not None:
+                    candidates.append(default_config_directory / include)
+                filepath = next(
+                    (candidate for candidate in candidates if candidate.exists()),
+                    None,
+                )
+            if not filepath or not filepath.exists():
+                raise FileNotFoundError(f"Include file not found: {include}")
+            include_paths.append(filepath)
+        return include_paths
+
+    def _insert_include_sources(
+        self,
+        config_object: confuse.Configuration,
+        include_paths: List[Path],
+        base_for_paths: bool,
+    ) -> None:
+        insert_index = self._find_default_insert_index(config_object)
+        for include_path in include_paths:
+            config_object.sources.insert(
+                insert_index,
+                confuse.YamlSource(
+                    str(include_path),
+                    base_for_paths=base_for_paths,
+                    loader=config_object.loader,
+                ),
+            )
+            insert_index += 1
+
+    def _find_default_insert_index(self, config_object: confuse.Configuration) -> int:
+        return next(
+            (
+                index
+                for index, source in enumerate(config_object.sources)
+                if getattr(source, "default", False)
+            ),
+            len(config_object.sources),
+        )
+
+    def _apply_redactions(self, config_object: confuse.Configuration) -> None:
+        config_object["notifications"]["apprise_urls"].redact = True
 
     def get(self) -> confuse.Configuration:
         return self._config
