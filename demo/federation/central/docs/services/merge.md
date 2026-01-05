@@ -1,9 +1,7 @@
 <details>
 <summary><b>Show config</b></summary>
 
-```yaml
-{{file:snippets/services/merge.yaml}}
-```
+{{ include:code path="snippets/services/merge.yaml" lang="yaml" }}
 </details>
 
 Shows services merged into a single list.

@@ -1,5 +1,7 @@
 Renders the Markdown file without any visual separation.
 
+Mode: seamless (no visual separation).
+
 <details>
 <summary><b>Show config</b></summary>
 

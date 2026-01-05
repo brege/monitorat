@@ -1,9 +1,7 @@
 <details>
 <summary><b>Show config</b></summary>
 
-```yaml
-{{file:snippets/network/uptime/stack.yaml}}
-```
+{{ include:code path="snippets/network/uptime/stack.yaml" lang="yaml" }}
 </details>
 
 Shows network uptime pills stacked by node.

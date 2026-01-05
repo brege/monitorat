@@ -1,9 +1,7 @@
 <details>
 <summary><b>Show config</b></summary>
 
-```yaml
-{{file:snippets/reminders/column.yaml}}
-```
+{{ include:code path="snippets/reminders/column.yaml" lang="yaml" }}
 </details>
 
 Shows reminders in columns by node.

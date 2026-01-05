@@ -1,9 +1,7 @@
 <details>
-<summary><b>Show config</b></summary>         
+<summary><b>Show config</b></summary>
 
-```yaml
-{{file:snippets/metrics/history/merge.yaml}}
-```
+{{ include:code path="snippets/metrics/history/merge.yaml" lang="yaml" }}
 </details>
 
 Shows metrics history merged across nodes (just full widget calls for each node).

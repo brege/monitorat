@@ -1,9 +1,7 @@
 <details>
 <summary><b>Show config</b></summary>
 
-```yaml
-{{file:snippets/network/tiles/column.yaml}}
-```
+{{ include:code path="snippets/network/tiles/column.yaml" lang="yaml" }}
 </details>
 
 Shows network tiles in columns by node.

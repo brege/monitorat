@@ -1,9 +1,7 @@
 <details>
 <summary><b>Show config</b></summary>
 
-```yaml
-{{file:snippets/speedtest/merge.yaml}}
-```
+{{ include:code path="snippets/speedtest/merge.yaml" lang="yaml" }}
 </details>
 
 Speedtest merges chart and table data; run buttons are stacked.

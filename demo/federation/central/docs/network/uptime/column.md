@@ -1,9 +1,7 @@
 <details>
 <summary><b>Show config</b></summary>
 
-```yaml
-{{file:snippets/network/uptime/column.yaml}}
-```
+{{ include:code path="snippets/network/uptime/column.yaml" lang="yaml" }}
 </details>
 
 Shows network uptime in columns by node.

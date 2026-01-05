@@ -1,9 +1,7 @@
 <details>
-<summary><b>Show config</b></summary>         
+<summary><b>Show config</b></summary>
 
-```yaml
-{{file:snippets/wiki/stack.yaml}}
-```
+{{ include:code path="snippets/wiki/stack.yaml" lang="yaml" }}
 </details>
 
 Stack displays wikis vertically with source headers.

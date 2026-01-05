@@ -19,6 +19,8 @@ import sys
 import time
 from pathlib import Path
 
+from docs import generate_docs
+
 DEMO_DIR = Path(__file__).parent
 PID_DIR = DEMO_DIR / ".pids"
 
@@ -254,6 +256,8 @@ def main():
     if args.stop:
         stop_servers()
         return 0
+
+    generate_docs(DEMO_DIR / "docs.yml")
 
     if args.mode in ("simple", "advanced"):
         bootstrap_demo_data()

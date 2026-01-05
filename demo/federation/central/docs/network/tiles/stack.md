@@ -1,9 +1,7 @@
 <details>
 <summary><b>Show config</b></summary>
 
-```yaml
-{{file:snippets/network/tiles/stack.yaml}}
-```
+{{ include:code path="snippets/network/tiles/stack.yaml" lang="yaml" }}
 </details>
 
 Shows network tiles stacked by node.
