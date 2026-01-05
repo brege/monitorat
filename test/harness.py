@@ -164,6 +164,18 @@ def run_demo_smoke_tests() -> int:
     return result.returncode
 
 
+def generate_test_fixtures() -> int:
+    """Generate test fixture data."""
+    print("\n" + "=" * 60)
+    print("Generating test fixtures...")
+    print("=" * 60 + "\n")
+
+    cmd = [sys.executable, "demo/setup.py", "--test"]
+    result = subprocess.run(cmd, cwd=PROJECT_ROOT)
+
+    return result.returncode
+
+
 def main():
     parser = argparse.ArgumentParser(description="Federation test harness")
     parser.add_argument(
@@ -205,14 +217,19 @@ def main():
 
     try:
         if args.set in ("all", "federation"):
-            processes = start_servers()
-
-            if not wait_for_ready(processes):
-                print("\nFailed to start all servers")
-                federation_exit = 1
+            setup_exit = generate_test_fixtures()
+            if setup_exit != 0:
+                print("\nFailed to generate test fixtures")
+                federation_exit = setup_exit
             else:
-                print("\nAll servers ready\n")
-                federation_exit = run_smoke_tests(widget_filter=args.widget)
+                processes = start_servers()
+
+                if not wait_for_ready(processes):
+                    print("\nFailed to start all servers")
+                    federation_exit = 1
+                else:
+                    print("\nAll servers ready\n")
+                    federation_exit = run_smoke_tests(widget_filter=args.widget)
         else:
             federation_exit = 0
 
