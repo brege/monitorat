@@ -44,10 +44,38 @@ SERVERS = [
 ]
 
 
-def wait_for_server(url: str, timeout: float = 10.0) -> bool:
-    """Poll until server responds or timeout."""
+def read_process_output(proc: subprocess.Popen, limit: int = 40) -> str | None:
+    """Read process output after exit for diagnostics."""
+    try:
+        stdout, stderr = proc.communicate(timeout=1)
+    except subprocess.TimeoutExpired:
+        return None
+
+    lines = []
+    if stdout:
+        lines.extend(stdout.strip().splitlines())
+    if stderr:
+        lines.extend(stderr.strip().splitlines())
+    if not lines:
+        return None
+    return "\n".join(lines[-limit:])
+
+
+def wait_for_server(
+    url: str, proc: subprocess.Popen, server_name: str, timeout: float = 10.0
+) -> bool:
+    """Poll until server responds, exits, or timeout."""
     start = time.monotonic()
     while time.monotonic() - start < timeout:
+        if proc.poll() is not None:
+            print(f"  {server_name}: FAILED (process exited, code {proc.returncode})")
+            output = read_process_output(proc)
+            if output:
+                print("  --- process output ---")
+                for line in output.splitlines():
+                    print(f"  {line}")
+                print("  --- end output ---")
+            return False
         try:
             response = httpx.get(url, timeout=1.0)
             if response.status_code == 200:
@@ -55,6 +83,7 @@ def wait_for_server(url: str, timeout: float = 10.0) -> bool:
         except (httpx.ConnectError, httpx.TimeoutException):
             pass
         time.sleep(0.2)
+    print(f"  {server_name}: TIMEOUT")
     return False
 
 
@@ -81,6 +110,7 @@ def start_servers() -> list:
             cwd=PROJECT_ROOT,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            text=True,
         )
         processes.append((server, proc))
 
@@ -92,14 +122,14 @@ def wait_for_ready(processes: list, timeout: float = 15.0) -> bool:
     print("Waiting for servers to be ready...")
 
     for server, proc in processes:
-        if proc.poll() is not None:
-            print(f"  {server['name']}: FAILED (process exited)")
-            return False
-
-        if wait_for_server(server["health_url"], timeout=timeout):
+        if wait_for_server(
+            server["health_url"],
+            proc,
+            server["name"],
+            timeout=timeout,
+        ):
             print(f"  {server['name']}: ready")
         else:
-            print(f"  {server['name']}: TIMEOUT")
             return False
 
     return True

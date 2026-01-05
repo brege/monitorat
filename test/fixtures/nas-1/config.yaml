@@ -1,5 +1,5 @@
 includes:
-  - ../../../demo/simple/include/metrics.yaml
+  - ../../../demo/simple/snippets/metrics.yaml
 
 site:
   name: "@nas-1"
