@@ -1,13 +1,6 @@
 ---
 # minimal monitorat configuration that renders a simple dashboard.
-includes:
-  # TODO: eventually load snippets dynamically
-  - widgets/metrics/config_default.yaml
-  - widgets/services/config_default.yaml
-  - widgets/reminders/config_default.yaml
-  - widgets/speedtest/config_default.yaml
-  - widgets/network/config_default.yaml
-  - widgets/wiki/config_default.yaml
+includes: []
 site:
   name: monitor@
   title: System Monitor

@@ -6,7 +6,9 @@
 - Made test network data non-degenerate and non-trivial
 - Improved error handling in test harness when documents can't resolve
 - Condensed 40+ \*.md snippets into demo/docs.{yml,py}
-- Bumped version to v0.9.1
+- Fixed non-snippetted config loading being overridden be defaults
+- Renamed widgets/\*/config_default.yaml to widgets/\*/default.yaml and load them dynamically
+- Bumped version to v0.9.2
 
 ### 2026-01-04
 

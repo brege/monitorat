@@ -96,10 +96,20 @@ class ConfigManager:
         default_config_directory: Path,
     ) -> None:
         default_includes = default_config["includes"].get(list)
-        for include in default_includes:
-            filepath = default_config_directory / include
+        include_paths = [
+            default_config_directory / include for include in default_includes
+        ]
+        include_paths.extend(
+            self._discover_widget_default_paths(default_config_directory)
+        )
+        seen_paths = set()
+        for filepath in include_paths:
+            resolved_path = filepath.resolve()
+            if resolved_path in seen_paths:
+                continue
+            seen_paths.add(resolved_path)
             if not filepath.exists():
-                raise FileNotFoundError(f"Include file not found: {include}")
+                raise FileNotFoundError(f"Include file not found: {filepath}")
             config_object.add(
                 confuse.YamlSource(
                     str(filepath),
@@ -209,6 +219,21 @@ class ConfigManager:
 
     def _apply_redactions(self, config_object: confuse.Configuration) -> None:
         config_object["notifications"]["apprise_urls"].redact = True
+
+    def _discover_widget_default_paths(
+        self, default_config_directory: Path
+    ) -> List[Path]:
+        widgets_root = default_config_directory / "widgets"
+        if not widgets_root.exists():
+            return []
+        default_paths = []
+        for widget_directory in sorted(widgets_root.iterdir(), key=lambda p: p.name):
+            if not widget_directory.is_dir():
+                continue
+            default_path = widget_directory / "default.yaml"
+            if default_path.exists():
+                default_paths.append(default_path)
+        return default_paths
 
     def get(self) -> confuse.Configuration:
         return self._config

@@ -55,5 +55,4 @@ See `pyproject.toml` for dependencies.
 
 Widgets follow the three-file structure shown at the top of this document: `api.py`, `widget.html`, and `widget.js` in `monitorat/widgets/your-widget/`, or, users can drop custom widgets into the directory referenced by `paths.widgets` (default: `~/.config/monitorat/widgets/`) and reference them in `widgets.enabled`.
 
-monitorat will automatically load the matching backend `api.py` and its presets (a *local* `config_default.yaml`) and serve the widget's HTML/JS from that directory.
-
+monitorat will automatically load the matching backend `api.py` and its presets (a *local* `default.yaml`) and serve the widget's HTML/JS from that directory.
