@@ -66,6 +66,8 @@ widgets:
     ## Services
     - services-single
     - wiki-services-single
+    - services-compact
+    - wiki-services-compact
 
     ## Reminders
     - reminders-single

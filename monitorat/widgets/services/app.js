@@ -23,6 +23,18 @@ class ServicesWidget {
     return this.config.federation?.display?.cards || 'merge'
   }
 
+  getDisplayMode () {
+    return this.config.mode || 'tiles'
+  }
+
+  getCompactIconScale () {
+    const scale = this.config.compact_icon_scale
+    if (typeof scale !== 'number' || Number.isNaN(scale)) {
+      throw new Error('Services compact_icon_scale must be a number')
+    }
+    return scale
+  }
+
   sortServices (services) {
     const sortBy = this.config.sort_by || 'name.asc'
     const [field, direction] = sortBy.split('.')
