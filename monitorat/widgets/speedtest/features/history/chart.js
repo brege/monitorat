@@ -22,7 +22,7 @@ class SpeedtestChart {
     if (!this.widget.chartManager) return
     await this.widget.chartManager.ensureChart()
 
-    const mergeSources = this.widget.config.federation?.merge
+    const mergeSources = this.widget.config.federation?.nodes
     if (mergeSources && Array.isArray(mergeSources)) {
       await this.loadMergedChartData(mergeSources)
     } else {
@@ -78,7 +78,7 @@ class SpeedtestChart {
   update () {
     if (!this.widget.chartManager?.hasChart()) return
 
-    const mergeSources = this.widget.config.federation?.merge
+    const mergeSources = this.widget.config.federation?.nodes
     if (mergeSources && Array.isArray(mergeSources)) {
       const filteredSources = this.getFilteredSources(mergeSources)
       this.updateMerged(filteredSources)

@@ -1,0 +1,15 @@
+widgets:
+  reminders-stack:
+    type: reminders
+    name: "Reminders: Stacked"
+    federation:
+      nodes: [nas-1, nas-2]
+      display:
+        cards: stack
+
+  wiki-reminders-stack:
+    type: wiki
+    name: "Config: Reminders Stacked"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../../docs/multi/reminders/stack.md

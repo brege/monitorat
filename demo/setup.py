@@ -80,7 +80,7 @@ def parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument(
         "--data-dir",
-        help="Directory to write data files (default: demo/data or test/data)",
+        help="Directory to write data files (default: demo/simple/data or test/data)",
     )
     parser.add_argument(
         "--node",
@@ -487,7 +487,9 @@ def main() -> None:
 
     if args.demo:
         data_dir = (
-            Path(args.data_dir) if args.data_dir else project_root / "demo" / "data"
+            Path(args.data_dir)
+            if args.data_dir
+            else project_root / "demo" / "simple" / "data"
         )
         run_demo_mode(data_dir)
     elif args.test:

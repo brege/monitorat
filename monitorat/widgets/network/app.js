@@ -167,7 +167,7 @@ class NetworkWidget {
   }
 
   async loadLog () {
-    const mergeSources = this.config.federation?.merge
+    const mergeSources = this.config.federation?.nodes
     if (mergeSources && Array.isArray(mergeSources)) {
       await this.loadMergedLogs(mergeSources)
     } else {
@@ -824,10 +824,8 @@ class NetworkWidget {
 }
 
 function mergeNetworkConfig (config) {
-  // Trust that confuse provides complete merged config
-  // Just add computed values that depend on config values
   const cfg = config || {}
-  const intervalSeconds = cfg.chirper?.interval_seconds ?? 300
+  const intervalSeconds = cfg.chirper?.interval_seconds
   const minutesPerCheck = (intervalSeconds * 1000) / 60000
   const cadenceRaw = Number(cfg.alerts?.cadence)
   const cadenceMinutes = Number.isFinite(cadenceRaw) ? Math.max(0, cadenceRaw) : 0
@@ -835,10 +833,6 @@ function mergeNetworkConfig (config) {
 
   return {
     ...cfg,
-    chirper: {
-      ...cfg.chirper,
-      interval_seconds: intervalSeconds
-    },
     alerts: {
       ...cfg.alerts,
       cadenceChecks

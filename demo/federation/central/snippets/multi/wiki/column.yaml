@@ -1,0 +1,17 @@
+widgets:
+  wiki-column:
+    type: wiki
+    name: "Both Wikis: Columns"
+    doc: true
+    mode: featured
+    federation:
+      nodes: [nas-1, nas-2]
+      display:
+        document: columnate
+
+  wiki-column-doc:
+    type: wiki
+    name: "Config: Columnate"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../../docs/multi/wiki/column.md

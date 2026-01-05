@@ -1,0 +1,14 @@
+widgets:
+  speedtest-single:
+    type: speedtest
+    name: "Speedtest"
+    default: chart
+    chart:
+      default_period: 1 month
+
+  wiki-speedtest-single:
+    type: wiki
+    name: "Config: Speedtest"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../docs/single/widgets/speedtest.md

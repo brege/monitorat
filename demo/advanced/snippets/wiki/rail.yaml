@@ -1,0 +1,6 @@
+widgets:
+  wiki-mode-rail:
+    type: wiki
+    name: "Wiki: Rail Mode"
+    mode: rail
+    doc: ../../docs/single/modes/wiki/rail.md

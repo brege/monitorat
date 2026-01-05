@@ -1,0 +1,29 @@
+widgets:
+  metrics-history-nas-1:
+    type: metrics
+    name: "Metrics: History (NAS-1)"
+    remote: nas-1
+    show:
+      tiles: false
+      history: true
+    chart:
+      periods: [24 hours, 6 hours, 1 hour]
+      default_period: 6 hours
+
+  metrics-history-nas-2:
+    type: metrics
+    name: "Metrics: History (NAS-2)"
+    remote: nas-2
+    show:
+      tiles: false
+      history: true
+    chart:
+      periods: [24 hours, 6 hours, 1 hour]
+      default_period: 6 hours
+
+  wiki-metrics-history-stack:
+    type: wiki
+    name: "Config: History Per Node"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../../../docs/multi/metrics/history/stack.md

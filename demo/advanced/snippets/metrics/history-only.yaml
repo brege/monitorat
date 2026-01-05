@@ -1,0 +1,17 @@
+widgets:
+  metrics-history-only:
+    type: metrics
+    name: "Metrics: History Only"
+    show:
+      tiles: false
+      history: true
+    chart:
+      periods: [24 hours, 6 hours, 1 hour]
+      default_period: 6 hours
+
+  wiki-metrics-history-only:
+    type: wiki
+    name: "Config: History Only"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../docs/single/features/metrics-history.md

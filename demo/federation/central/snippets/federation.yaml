@@ -1,0 +1,10 @@
+federation:
+  enabled: true
+  timeout_seconds: 10
+  remotes:
+    - name: nas-1
+      url: http://localhost:6301
+      api_key: "nas-1-demo-key"
+    - name: nas-2
+      url: http://localhost:6302
+      api_key: "nas-2-demo-key"

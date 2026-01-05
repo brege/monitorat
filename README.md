@@ -2,7 +2,9 @@
 
 # <div align=center> [ [demo](https://monitorat.brege.org) ] </div>
 
-This file is **monitor@**'s README, which is the default document served in the web UI. Document rendering is but one widget available in monitor@.
+Monitorat is a federated dashboard and documentation system with a widget system.
+Its philosophy is to make system monitoring and documentation continuous, much like the way tables and igures are intergrated in journal or news articles.
+It does not control services or perform updates.
 
 Available widgets:
 - [metrics](#system-metrics)
@@ -22,11 +24,11 @@ Widgets have a general, self-contained structure where both API and UI are strai
     └── app.js
 ```
 
-You can also add your own documentation through the Wiki widget, which may help you or your loved ones figure out how your headless homelab or riceware works. This document and any others you add to your wiki will be rendered in GitHub-flavored markdown via [markdown-it](https://github.com/markdown-it/markdown-it).
-
-But you want an actual monitor or dashboard.
+Dashboard documentation is handled through through the Wiki widget. Each document snippet added is a new widget instance. This document and any others you add to your wiki will be rendered in GitHub-flavored markdown via [markdown-it](https://github.com/markdown-it/markdown-it).
 
 ### Gallery
+
+It's best to checkout [the demo](https://monitorat.brege.org) which is a fully interactive version of the application you could be running on your machines. Screenshots of the demo are compiled below.
 
 <!-- 
 TODO: update screenshots 
@@ -82,8 +84,16 @@ monitorat -c path/to/config.yaml server --host 0.0.0.0 --port 6161
 ```
 or run the demo:
 ```bash
-monitorat -c demo/config.yaml server
+monitorat demo --mode simple      # single-instance dashboard
+monitorat demo --mode advanced    # single-instance, with feature config examples
+monitorat demo --mode federation  # multiple machines, and widget integration examples
 ```
+
+These demos are all held on [monitorat.brege.org](https://monitorat.brege.org):
+
+- [simple](https://monitorat.brege.org/)
+- [advanced](https://monitorat.brege.org/advanced)
+- [federation](https://monitorat.brege.org/federation)
 
 #### Systemd service
 
@@ -97,7 +107,7 @@ For **alternate installs**, see [docs/install.md](docs/install.md) to install `m
 
 ## The Dashboard
 
-Open `http://localhost:6161` or configure this through a reverse proxy. If you're just interested in playing with a read-only version, check out [**the demo**](https://monitorat.brege.org).
+Open `http://localhost:6161`, or your specifed port, or configure through a reverse proxy.
 
 ### Configuration
 
@@ -121,7 +131,7 @@ widgets: { ... }
 
 ### Widgets
 
-**monitor@** is an extensible widget system. You can add any number of widgets to your dashboard, re-order them, and enable/disable any you don't need. You can add more widgets from others in `~/.config/monitor@/widgets/`.
+**monitor@** has an extensible widget system. You can add any number of widgets to your dashboard multiple times over, re-order them, and enable/disable any you don't need. You can add more widgets from others in `~/.config/monitor@/widgets/`.
 
 ```yaml
 widgets:
@@ -141,7 +151,7 @@ Each widget can be configured in its own YAML block. To configure a widget in it
 includes:
   - "/home/user/.config/monitor@/widgets/my-widget.yaml"
 ```
-or do this for every widget:
+or do this for every widget through config snippets:
 ```yaml
 includes:
   - include/services.yaml
@@ -157,19 +167,15 @@ includes:
 
 They are also quite easy to build. Example of a widget built with Codex in 12 minutes:
 
-- [Contributing: Agentic Archetype](docs/contributing.md#agentic-archetype)
+- [Agentic Archetype: Building Widgets with AI](docs/contributing.md#agentic-archetype)
 
 #### **Services**  
-  The **Service Status** widget is a simple display to show what systemd service daemons, timers and docker containers are running or have failed.
-  
-  [github](./demo/docs/services.md) - [demo](https://monitorat.brege.org/#services-widget)
+  The **Service Status** widget is a simple display to show what systemd service daemons, timers and docker containers are running or have failed. [GitHub](./demo/simple/docs/services.md) - [Demo](https://monitorat.brege.org/#services-widget)
 
   You can configure the service tiles to have both your URL (or WAN IP) and a local address (or LAN IP) for use offline. **monitor@ is completely encapsulated and works offline even when internet is down.**
 
 #### **Wiki**  
-  Some widgets you may want to use more than once. For two markdown documents ("wikis"), use **`type: wiki`**. **`wiki: <title>`** may only be used once.
-
-  [github](./demo/README.md) - [demo](https://monitorat.brege.org/#wiki)
+  Some widgets you may want to use more than once. For two markdown documents ("wikis"), use **`type: wiki`**. **`wiki: <title>`** may only be used once. [GitHub](./demo/README.md) - [Demo](https://monitorat.brege.org/#wiki)
 
    Changing widget order or enabling/disabling widgets is rather straightforward.
 
@@ -188,27 +194,19 @@ They are also quite easy to build. Example of a widget built with Codex in 12 mi
    **monitor@ uses GitHub-flavored markdown**
 
 #### **System Metrics**  
-  Metrics provides an overview of system performance, including CPU, memory, disk and network usage, and temperature over time.  Data is logged to `metrics.csv`.
-
-  [github](./demo/docs/metrics.md) - [demo](https://monitorat.brege.org/#metrics-widget)
+  Metrics provides an overview of system performance, including CPU, memory, disk and network usage, and temperature over time.  Data is logged to `metrics.csv`. [GitHub](./demo/simple/docs/metrics.md) - [Demo](https://monitorat.brege.org/#metrics-widget)
 
 #### **Speedtest**  
   The **Speedtest** widget allows you to keep a record of your internet performance over time.
-It does not perform automated runs.
-
-  [github](./demo/docs/speedtest.md) - [demo](https://monitorat.brege.org/#speedtest-widget)
+It does not perform automated runs. [GitHub](./demo/simple/docs/speedtest.md) - [Demo](https://monitorat.brege.org/#speedtest-widget)
 
 #### **Network**  
-  The **Network** widget may be the most specific. This example uses `ddclient`-style generated logs.
-
-  [github](./demo/docs/network.md) - [demo](https://monitorat.brege.org/#network-widget)
+  The **Network** widget may be the most specific. This example uses `ddclient`-style generated logs. [GitHub](./demo/simple/docs/network.md) - [Demo](https://monitorat.brege.org/#network-widget)
 
   The network widget is best used on machines with continuous uptime. You might even keep monitor@ running on your pi-hole.
 
 #### **Reminders**  
-  The **Reminders** widget allows you to set reminders for system chores, login/key change reminders, and other one-offs chirps.
-
-  [github](./demo/docs/reminders.md) - [demo](https://monitorat.brege.org/#reminders-widget)
+  The **Reminders** widget allows you to set reminders for system chores, login/key change reminders, and other one-offs chirps. [GitHub](./demo/simple/docs/reminders.md) - [Demo](https://monitorat.brege.org/#reminders-widget)
 
   Reminders are facilitated by [Apprise](https://github.com/caronc/apprise) (see [below](#notifications)).
 

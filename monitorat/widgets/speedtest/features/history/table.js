@@ -8,7 +8,7 @@ class SpeedtestTable {
   }
 
   rebuildHeaders () {
-    const mergeSources = this.widget.config.federation?.merge
+    const mergeSources = this.widget.config.federation?.nodes
     if (mergeSources && Array.isArray(mergeSources)) {
       this.addSourceMetadataField()
     }
@@ -36,7 +36,7 @@ class SpeedtestTable {
   }
 
   async loadHistory () {
-    const mergeSources = this.widget.config.federation?.merge
+    const mergeSources = this.widget.config.federation?.nodes
     if (mergeSources && Array.isArray(mergeSources)) {
       await this.loadMergedHistory(mergeSources)
     } else {

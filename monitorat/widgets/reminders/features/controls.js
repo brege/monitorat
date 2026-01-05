@@ -38,7 +38,7 @@ class RemindersControls {
     const NotificationTester = window.monitorShared.NotificationTester
     if (!NotificationTester) return
 
-    const mergeSources = this.widget.config.federation?.merge
+    const mergeSources = this.widget.config.federation?.nodes
 
     this.notificationTester = new NotificationTester({
       container: this.widget.container,

@@ -14,7 +14,7 @@ class MetricsTable {
   }
 
   async loadHistory () {
-    const mergeSources = this.widget.widgetConfig.federation?.merge
+    const mergeSources = this.widget.widgetConfig.federation?.nodes
     if (mergeSources && Array.isArray(mergeSources)) {
       await this.loadMergedHistory(mergeSources)
     } else {

@@ -1,0 +1,26 @@
+widgets:
+  network-single:
+    type: network
+    name: "Network"
+    log_file: network.log
+    chirper:
+      enabled: false
+      interval_seconds: 300
+      mode: ipv4
+    metrics:
+      show: true
+    uptime:
+      show: true
+      periods:
+        - period: 1 hour
+          segment_size: 5 minutes
+    alerts:
+      show: true
+      max: 3
+
+  wiki-network-single:
+    type: wiki
+    name: "Config: Network"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../docs/single/widgets/network.md

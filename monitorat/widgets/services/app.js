@@ -23,6 +23,18 @@ class ServicesWidget {
     return this.config.federation?.display?.cards || 'merge'
   }
 
+  getDisplayMode () {
+    return this.config.mode || 'tiles'
+  }
+
+  getCompactIconScale () {
+    const scale = this.config.compact_icon_scale
+    if (typeof scale !== 'number' || Number.isNaN(scale)) {
+      throw new Error('Services compact_icon_scale must be a number')
+    }
+    return scale
+  }
+
   sortServices (services) {
     const sortBy = this.config.sort_by || 'name.asc'
     const [field, direction] = sortBy.split('.')
@@ -96,7 +108,7 @@ class ServicesWidget {
 
   async loadData () {
     try {
-      const mergeSources = this.config.federation?.merge
+      const mergeSources = this.config.federation?.nodes
       if (mergeSources && Array.isArray(mergeSources)) {
         await this.loadMergedServices(mergeSources)
       } else {
@@ -105,7 +117,7 @@ class ServicesWidget {
 
       this.render()
 
-      if (this.config.federation?.merge) {
+      if (this.config.federation?.nodes) {
         await this.loadMergedStatus()
       } else {
         await this.loadStatus()
@@ -173,7 +185,7 @@ class ServicesWidget {
   }
 
   async loadMergedStatus () {
-    const sources = this.config.federation?.merge || []
+    const sources = this.config.federation?.nodes || []
     const results = await Promise.all(
       sources.map(async (source) => {
         try {

@@ -1,0 +1,24 @@
+widgets:
+  services-single:
+    type: services
+    name: "Services"
+
+  services-compact:
+    type: services
+    name: "Services: Compact"
+    mode: compact
+    compact_icon_scale: 1.66
+
+  wiki-services-single:
+    type: wiki
+    name: "Config: Services"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../docs/single/widgets/services.md
+
+  wiki-services-compact:
+    type: wiki
+    name: "Config: Services Compact"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../docs/single/widgets/services-compact.md

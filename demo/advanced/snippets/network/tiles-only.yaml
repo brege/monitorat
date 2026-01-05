@@ -1,0 +1,22 @@
+widgets:
+  network-tiles-only:
+    type: network
+    name: "Network: Tiles Only"
+    log_file: network.log
+    chirper:
+      enabled: false
+      interval_seconds: 600
+      mode: ipv4
+    metrics:
+      show: true
+    uptime:
+      show: false
+    alerts:
+      show: false
+
+  wiki-network-tiles-only:
+    type: wiki
+    name: "Config: Tiles Only"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../docs/single/features/network-tiles.md

@@ -1,0 +1,124 @@
+# Central Head Node - Federation Demo
+#
+# Snippets organized by: multi/ (federation)
+# Docs mirror the snippet structure for {{file:...}} shortcodes
+
+includes:
+  # Widget defaults
+  - ../../simple/include/metrics.yaml
+  - ../../simple/include/network.yaml
+  - ../../simple/include/services.yaml
+  - ../../simple/include/speedtest.yaml
+  - ../../simple/include/wiki.yaml
+
+  # Site and federation
+  - snippets/site.yaml
+  - snippets/federation.yaml
+
+  # Multi-node intro
+  - snippets/multi/intro.yaml
+
+  # Multi-node wiki
+  - snippets/multi/wiki/each.yaml
+  - snippets/multi/wiki/column.yaml
+  - snippets/multi/wiki/stack.yaml
+
+  # Multi-node metrics
+  - snippets/multi/metrics/each.yaml
+  - snippets/multi/metrics/tiles/stack.yaml
+  - snippets/multi/metrics/tiles/column.yaml
+  - snippets/multi/metrics/history/merge.yaml
+  - snippets/multi/metrics/history/stack.yaml
+
+  # Multi-node services
+  - snippets/multi/services/merge.yaml
+  - snippets/multi/services/stack.yaml
+  - snippets/multi/services/column.yaml
+
+  # Multi-node reminders
+  - snippets/multi/reminders/merge.yaml
+  - snippets/multi/reminders/stack.yaml
+  - snippets/multi/reminders/column.yaml
+
+  # Multi-node speedtest
+  - snippets/multi/speedtest/merge.yaml
+
+  # Multi-node network
+  - snippets/multi/network/combined.yaml
+  - snippets/multi/network/tiles/column.yaml
+  - snippets/multi/network/tiles/stack.yaml
+  - snippets/multi/network/uptime/column.yaml
+  - snippets/multi/network/uptime/stack.yaml
+  - snippets/multi/network/outages/column.yaml
+  - snippets/multi/network/outages/merge.yaml
+
+demo: true
+
+paths:
+  data: data/
+  img: ../../simple/img/
+  favicon: ../../simple/img/favicon.svg
+
+widgets:
+  enabled:
+    # Federation
+    - wiki-multi-intro
+
+    ## Wiki federation
+    - wiki-nas-1
+    - wiki-nas-2
+    - wiki-each-doc
+    - wiki-column
+    - wiki-column-doc
+    - wiki-stack
+    - wiki-stack-doc
+
+    ## Metrics federation
+    - metrics-nas-1
+    - metrics-nas-2
+    - wiki-metrics-each
+    - metrics-tiles-stack
+    - wiki-metrics-tiles-stack
+    - metrics-tiles-column
+    - wiki-metrics-tiles-column
+    - metrics-history-merge
+    - wiki-metrics-history-merge
+    - metrics-history-nas-1
+    - metrics-history-nas-2
+    - wiki-metrics-history-stack
+
+    ## Services federation
+    - services-merge
+    - wiki-services-merge
+    - services-stack
+    - wiki-services-stack
+    - services-column
+    - wiki-services-column
+
+    ## Reminders federation
+    - reminders-merge
+    - wiki-reminders-merge
+    - reminders-stack
+    - wiki-reminders-stack
+    - reminders-column
+    - wiki-reminders-column
+
+    ## Speedtest federation
+    - speedtest-merge
+    - wiki-speedtest-merge
+
+    ## Network federation
+    - network-combined
+    - wiki-network-combined
+    - network-tiles-column
+    - wiki-network-tiles-column
+    - network-tiles-stack
+    - wiki-network-tiles-stack
+    - network-uptime-column
+    - wiki-network-uptime-column
+    - network-uptime-stack
+    - wiki-network-uptime-stack
+    - network-outages-column
+    - wiki-network-outages-column
+    - network-outages-merge
+    - wiki-network-outages-merge

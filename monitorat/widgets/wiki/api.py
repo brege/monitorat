@@ -8,23 +8,37 @@ from monitor import BASE, config, get_project_config_dir
 INCLUDE_CODE_PATTERN = re.compile(
     r"\{\{\s*include:code\s+path=\"([^\"]+)\"\s+lang=\"([^\"]+)\"\s*\}\}"
 )
+FILE_SHORTCODE_PATTERN = re.compile(r"\{\{\s*file:([^\}]+)\s*\}\}")
 
 
 def render_markdown_with_includes(markdown_text: str, documentation_root: Path) -> str:
     output_parts = []
     last_index = 0
+    matches = []
     for include_match in INCLUDE_CODE_PATTERN.finditer(markdown_text):
+        matches.append(("code", include_match))
+    for include_match in FILE_SHORTCODE_PATTERN.finditer(markdown_text):
+        matches.append(("file", include_match))
+    matches.sort(key=lambda item: item[1].start())
+
+    for include_type, include_match in matches:
         output_parts.append(markdown_text[last_index : include_match.start()])
-        include_path_text = include_match.group(1)
-        language = include_match.group(2)
+        include_path_text = include_match.group(1).strip()
+        language = ""
+        if include_type == "code":
+            language = include_match.group(2)
+
         include_path = (documentation_root / include_path_text).resolve()
         if not include_path.is_relative_to(documentation_root):
             abort(400, description="Include path escapes documentation root.")
         if not include_path.exists():
             abort(404, description="Included file not found.")
         include_contents = include_path.read_text(encoding="utf-8")
-        fenced_block = f"```{language}\n{include_contents}\n```"
-        output_parts.append(fenced_block)
+        if include_type == "file":
+            output_parts.append(include_contents)
+        else:
+            fenced_block = f"```{language}\n{include_contents}\n```"
+            output_parts.append(fenced_block)
         last_index = include_match.end()
     output_parts.append(markdown_text[last_index:])
     return "".join(output_parts)

@@ -1,0 +1,17 @@
+widgets:
+  wiki-stack:
+    type: wiki
+    name: "Both Wikis: Stacked"
+    doc: true
+    mode: featured
+    federation:
+      nodes: [nas-1, nas-2]
+      display:
+        document: stack
+
+  wiki-stack-doc:
+    type: wiki
+    name: "Config: Stack"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../../docs/multi/wiki/stack.md

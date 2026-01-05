@@ -1,0 +1,14 @@
+widgets:
+  metrics-single:
+    type: metrics
+    name: "System Metrics"
+    chart:
+      periods: [24 hours, 6 hours, 1 hour]
+      default_period: 6 hours
+
+  wiki-metrics-single:
+    type: wiki
+    name: "Config: Metrics"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../docs/single/widgets/metrics.md

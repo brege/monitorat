@@ -1,5 +1,5 @@
 includes:
-  - ../../../demo/include/metrics.yaml
+  - ../../../demo/simple/include/metrics.yaml
 
 site:
   name: "@nas-2"
@@ -7,7 +7,7 @@ site:
 
 paths:
   data: data/
-  img: ../../../demo/img/
+  img: ../../../demo/simple/img/
 
 auth:
   api_key: "nas-2-secret"

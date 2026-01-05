@@ -1,13 +1,28 @@
 <style>
 .service-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
 .service-grid-inner { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.service-grid.compact { display: flex; flex-wrap: wrap; gap: 12px; }
+.service-grid-inner.compact { display: flex; flex-wrap: wrap; gap: 12px; }
 .service-grid > .federation-stacked,
 .service-grid > .federation-columns { grid-column: 1 / -1; }
 .service-card { padding: 16px; display: flex; align-items: center; gap: 12px; min-height: 80px; cursor: pointer; }
+.service-card.compact { padding: var(--service-compact-padding); width: var(--service-compact-card-size); height: var(--service-compact-card-size); min-height: 0; justify-content: center; background: transparent; border-left: none; position: relative; }
 .service-icon { width: 32px; height: 32px; object-fit: contain; }
+.service-card.compact .service-icon { width: var(--service-compact-icon-size); height: var(--service-compact-icon-size); }
 .service-info { flex: 1; }
+.service-card.compact .service-info { display: none; }
 .service-name { font-weight: 600; margin-bottom: 4px; }
 .service-status { font-size: 0.9rem; color: var(--text-muted); }
+.service-status-dot { width: var(--service-compact-dot-size); height: var(--service-compact-dot-size); border-radius: 999px; position: absolute; right: var(--service-compact-dot-offset); bottom: var(--service-compact-dot-offset); background: rgb(var(--status-unknown-rgb)); }
+.service-card.status-ok .service-status-dot { background: rgb(var(--status-ok-rgb)); }
+.service-card.status-warning .service-status-dot,
+.service-card.status-warn .service-status-dot,
+.service-card.status-caution .service-status-dot { background: rgb(var(--status-warn-rgb)); }
+.service-card.status-down .service-status-dot,
+.service-card.status-expired .service-status-dot,
+.service-card.status-critical .service-status-dot { background: rgb(var(--status-critical-rgb)); }
+.service-card.status-unknown .service-status-dot,
+.service-card.status-never .service-status-dot { background: rgb(var(--status-unknown-rgb)); }
 .widget-controls { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
 .sort-direction-select { min-width: 5.5rem; }
 </style>

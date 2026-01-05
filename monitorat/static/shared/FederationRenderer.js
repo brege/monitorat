@@ -91,15 +91,15 @@ class FederationRenderer {
     return federationConfig.display[feature] || defaultStrategy
   }
 
-  static hasMergeSources (federationConfig) {
-    const merge = federationConfig?.merge
-    return merge && Array.isArray(merge) && merge.length > 1
+  static hasNodeSources (federationConfig) {
+    const nodes = federationConfig?.nodes
+    return nodes && Array.isArray(nodes) && nodes.length > 1
   }
 
-  static getMergeSources (federationConfig) {
-    const merge = federationConfig?.merge
-    if (!merge || !Array.isArray(merge)) return []
-    return merge
+  static getNodeSources (federationConfig) {
+    const nodes = federationConfig?.nodes
+    if (!nodes || !Array.isArray(nodes)) return []
+    return nodes
   }
 }
 

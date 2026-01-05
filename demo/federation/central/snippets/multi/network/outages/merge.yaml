@@ -1,0 +1,27 @@
+widgets:
+  network-outages-merge:
+    type: network
+    name: "Network: Outages Merged"
+    log_file: network.log
+    chirper:
+      enabled: false
+      interval_seconds: 600
+      mode: ipv4
+    federation:
+      nodes: [nas-1, nas-2]
+      display:
+        outages: merge
+    metrics:
+      show: false
+    uptime:
+      show: false
+    alerts:
+      show: true
+      max: 10
+
+  wiki-network-outages-merge:
+    type: wiki
+    name: "Config: Outages Merged"
+    mode: rail
+    _suppressHeader: true
+    doc: ../../../../docs/multi/network/outages/merge.md

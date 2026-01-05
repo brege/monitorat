@@ -3,4 +3,6 @@ widgets:
     name: Services
     collapsible: true
     hidden: false
+    mode: tiles  # tiles | compact
+    compact_icon_scale: 1.33
     items: {}  # { plex: {} ; jellyfin: {} ; ... }

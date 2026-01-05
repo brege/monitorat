@@ -8,9 +8,16 @@ class ServicesSnapshot {
     if (!cardsContainer || !this.widget.servicesData) return
 
     cardsContainer.innerHTML = ''
+    const isCompact = this.widget.getDisplayMode() === 'compact'
+    cardsContainer.classList.toggle('compact', isCompact)
+    if (isCompact) {
+      this.applyCompactSizing()
+    } else {
+      this.clearCompactSizing()
+    }
 
     const strategy = this.widget.getDisplayStrategy()
-    const hasMergedSources = this.widget.config.federation?.merge
+    const hasMergedSources = this.widget.config.federation?.nodes
 
     if (hasMergedSources && strategy === 'stack') {
       this.renderStacked(cardsContainer)
@@ -21,6 +28,29 @@ class ServicesSnapshot {
     }
   }
 
+  applyCompactSizing () {
+    const container = this.widget.container
+    if (!container) return
+
+    const scale = this.widget.getCompactIconScale()
+    container.style.setProperty('--service-compact-icon-size', `${Math.round(28 * scale)}px`)
+    container.style.setProperty('--service-compact-card-size', `${Math.round(52 * scale)}px`)
+    container.style.setProperty('--service-compact-padding', `${Math.round(8 * scale)}px`)
+    container.style.setProperty('--service-compact-dot-size', `${Math.round(10 * scale)}px`)
+    container.style.setProperty('--service-compact-dot-offset', `${Math.round(6 * scale)}px`)
+  }
+
+  clearCompactSizing () {
+    const container = this.widget.container
+    if (!container) return
+
+    container.style.removeProperty('--service-compact-icon-size')
+    container.style.removeProperty('--service-compact-card-size')
+    container.style.removeProperty('--service-compact-padding')
+    container.style.removeProperty('--service-compact-dot-size')
+    container.style.removeProperty('--service-compact-dot-offset')
+  }
+
   renderMerged (container) {
     const sorted = this.widget.sortServices(this.widget.servicesData)
     sorted.forEach(service => {
@@ -29,7 +59,7 @@ class ServicesSnapshot {
   }
 
   renderStacked (container) {
-    const sources = this.widget.config.federation?.merge || []
+    const sources = this.widget.config.federation?.nodes || []
     const wrapper = document.createElement('div')
     wrapper.className = 'federation-stacked'
 
@@ -47,6 +77,9 @@ class ServicesSnapshot {
 
       const grid = document.createElement('div')
       grid.className = 'service-grid-inner'
+      if (this.widget.getDisplayMode() === 'compact') {
+        grid.classList.add('compact')
+      }
       const sorted = this.widget.sortServices(sourceServices)
       sorted.forEach(service => {
         grid.appendChild(this.createServiceCard(service))
@@ -60,7 +93,7 @@ class ServicesSnapshot {
   }
 
   renderColumnate (container) {
-    const sources = this.widget.config.federation?.merge || []
+    const sources = this.widget.config.federation?.nodes || []
     const columns = document.createElement('div')
     columns.className = 'federation-columns'
     columns.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;'
@@ -77,6 +110,9 @@ class ServicesSnapshot {
 
       const grid = document.createElement('div')
       grid.className = 'service-grid-inner'
+      if (this.widget.getDisplayMode() === 'compact') {
+        grid.classList.add('compact')
+      }
       const sorted = this.widget.sortServices(sourceServices)
       sorted.forEach(service => {
         grid.appendChild(this.createServiceCard(service))
@@ -91,8 +127,10 @@ class ServicesSnapshot {
 
   createServiceCard (service) {
     const card = document.createElement('div')
+    const mode = this.widget.getDisplayMode()
     const hasBadge = this.widget.config.remote || service._source
-    card.className = `service-card card status-card${hasBadge ? ' has-badge' : ''}`
+    const baseClass = mode === 'compact' ? 'service-card compact' : 'service-card card status-card'
+    card.className = `${baseClass}${hasBadge ? ' has-badge' : ''}`
     card.setAttribute('data-service-key', service._key)
     card.setAttribute('data-service-source', service._source || '')
 
@@ -129,6 +167,12 @@ class ServicesSnapshot {
 
     card.appendChild(icon)
     card.appendChild(info)
+
+    if (mode === 'compact') {
+      const statusDot = document.createElement('span')
+      statusDot.className = 'service-status-dot'
+      card.appendChild(statusDot)
+    }
 
     card.addEventListener('click', (event) => {
       const useLocal = event.shiftKey && (event.ctrlKey || event.metaKey)
@@ -183,16 +227,20 @@ class ServicesSnapshot {
         })
       }
 
-      card.className = `service-card card status-card${card.classList.contains('has-badge') ? ' has-badge' : ''} status-${overallStatus}`
+      const hasBadge = card.classList.contains('has-badge')
+      const isCompact = card.classList.contains('compact')
+      const baseClass = isCompact ? 'service-card compact' : 'service-card card status-card'
+      card.className = `${baseClass}${hasBadge ? ' has-badge' : ''} status-${overallStatus}`
 
       const statusTextElement = card.querySelector('.service-status')
       if (statusTextElement) {
         statusTextElement.textContent = overallStatus === 'ok'
           ? 'Running'
           : overallStatus === 'down' ? 'Stopped' : 'Unknown'
-        const clickTip = `Click: ${service.url}\nCtrl+Shift+Click: ${service.local || service.url}`
-        statusTextElement.title = statusParts.join('\n') + '\n\n' + clickTip
       }
+
+      const clickTip = `Click: ${service.url}\nCtrl+Shift+Click: ${service.local || service.url}`
+      card.title = statusParts.join('\n') + '\n\n' + clickTip
     })
   }
 }
