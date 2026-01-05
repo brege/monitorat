@@ -1,7 +1,9 @@
 <details>
-<summary><b>Reminders in columns by node.</b></summary>
+<summary><b>Show config</b></summary>
 
 ```yaml
 {{file:snippets/reminders/column.yaml}}
 ```
 </details>
+
+Shows reminders in columns by node.

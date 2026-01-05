@@ -1,7 +1,8 @@
 <details>
-<summary><b>Metrics tiles stacked by node.</b></summary>
+<summary><b>Show config</b></summary>
 
 ```yaml
 {{file:snippets/metrics/tiles/stack.yaml}}
 ```
 </details>
+Shows metrics tiles stacked by node.

@@ -11,4 +11,4 @@ widgets:
     name: "Config: Speedtest"
     _suppressHeader: true
     mode: rail
-    doc: ../../docs/widgets/speedtest/full.md
+    doc: ../../docs/speedtest/full.md

@@ -5,5 +5,5 @@ The Speedtest widget keeps a record of your internet performance over time. It d
 <details>
 <summary><b>Show config</b></summary>
 
-{{ include:code path="include/speedtest.yaml" lang="yaml" }}
+{{ include:code path="snippets/speedtest.yaml" lang="yaml" }}
 </details>

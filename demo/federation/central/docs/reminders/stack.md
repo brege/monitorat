@@ -1,7 +1,9 @@
 <details>
-<summary><b>Reminders stacked by node.</b></summary>
+<summary><b>Show config</b></summary>
 
 ```yaml
 {{file:snippets/reminders/stack.yaml}}
 ```
 </details>
+
+Shows reminders stacked by node.

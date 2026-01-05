@@ -1,0 +1,11 @@
+widgets:
+  services-single:
+    type: services
+    name: "Services"
+
+  wiki-services-single:
+    type: wiki
+    name: "Config: Services"
+    _suppressHeader: true
+    mode: rail
+    doc: ../../docs/services/tiles.md

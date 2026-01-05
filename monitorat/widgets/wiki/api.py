@@ -1,4 +1,5 @@
 from flask import Response, abort, jsonify, request, send_from_directory
+import html
 from pathlib import Path
 import logging
 import re
@@ -37,8 +38,10 @@ def render_markdown_with_includes(markdown_text: str, documentation_root: Path) 
         if include_type == "file":
             output_parts.append(include_contents)
         else:
-            fenced_block = f"```{language}\n{include_contents}\n```"
-            output_parts.append(fenced_block)
+            code_class = f' class="language-{language}"' if language else ""
+            escaped_contents = html.escape(include_contents)
+            code_block = f"<pre><code{code_class}>{escaped_contents}</code></pre>"
+            output_parts.append(code_block)
         last_index = include_match.end()
     output_parts.append(markdown_text[last_index:])
     return "".join(output_parts)

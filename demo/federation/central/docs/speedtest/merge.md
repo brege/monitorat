@@ -1,5 +1,5 @@
 <details>
-<summary><b>Speedtest history merged across nodes.</b></summary>
+<summary><b>Show config</b></summary>
 
 ```yaml
 {{file:snippets/speedtest/merge.yaml}}

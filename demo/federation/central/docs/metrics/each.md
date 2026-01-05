@@ -1,5 +1,5 @@
 <details>
-<summary><b>Per-node metrics widgets (no combined layout).</b></summary>
+<summary><b>Show config</b></summary>         
 
 ```yaml
 {{file:snippets/metrics/each.yaml}}

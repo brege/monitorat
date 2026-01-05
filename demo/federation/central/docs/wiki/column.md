@@ -1,9 +1,9 @@
 <details>
-<summary><b>Both wikis in columns.</b></summary>
+<summary><b>Show config</b></summary>
 
 ```yaml
 {{file:snippets/wiki/column.yaml}}
 ```
 </details>
 
-Columnate displays wikis side-by-side.
+Columnate-mode displays wikis side-by-side.

@@ -1,7 +1,7 @@
 includes:
-  - ../../simple/include/metrics.yaml
-  - ../../simple/include/network.yaml
-  - ../../simple/include/speedtest.yaml
+  - ../../simple/snippets/metrics.yaml
+  - ../../simple/snippets/network.yaml
+  - ../../simple/snippets/speedtest.yaml
 
 site:
   name: "@nas-2"

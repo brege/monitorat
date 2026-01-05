@@ -11,4 +11,4 @@ widgets:
     name: "Config: Metrics"
     _suppressHeader: true
     mode: rail
-    doc: ../../docs/widgets/metrics/full.md
+    doc: ../../docs/metrics/full.md

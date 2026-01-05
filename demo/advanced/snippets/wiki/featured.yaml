@@ -1,6 +1,7 @@
+---
 widgets:
   wiki-mode-featured:
     type: wiki
     name: "Wiki: Featured Mode"
     mode: featured
-    doc: ../../docs/widgets/wiki/featured.md
+    doc: ../../docs/wiki/featured.md

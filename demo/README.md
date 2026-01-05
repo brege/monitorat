@@ -46,7 +46,7 @@ For this demo, each widget is chased by a corresponding ["Wiki" widget](/#wiki) 
 - performance of the system
 - documentation of how I made all of it work
 
-For documentation handling, I keep the `docs/` directory up-to-date through [Syncthing](https://syncthing.net/), making them phone-editable through [Obsidian](https://obsidian.md/) or [Markor](https://github.com/gsantner/markor). Documentation is an integral part of monitorat's philosophy: the dashboard is both the gauges and the manual. Refresh the page after you've saved your markdown edits.
+For documentation handling, I keep the `docs/` directory up-to-date through [Syncthing](https://syncthing.net/), making them phone-editable through [Obsidian](https://obsidian.md/) or [Markor](https://github.com/gsantner/markor). Documentation is an integral part of monitorat's philosophy: the dashboard is both the gauges and the manual. Refresh the page after you've saved your markdown edits and your changes immediately propagate.
 
 For the full project README and its source code, see:
 [https://github.com/brege/monitorat](https://github.com/brege/monitorat).

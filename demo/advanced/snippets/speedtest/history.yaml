@@ -14,4 +14,4 @@ widgets:
     name: "Config: History"
     _suppressHeader: true
     mode: rail
-    doc: ../../docs/widgets/speedtest/history.md
+    doc: ../../docs/speedtest/history.md

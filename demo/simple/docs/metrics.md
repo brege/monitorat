@@ -5,5 +5,5 @@ Metrics provides an overview of system performance, including CPU, memory, disk,
 <details>
 <summary><b>Show config</b></summary>
 
-{{ include:code path="include/metrics.yaml" lang="yaml" }}
+{{ include:code path="snippets/metrics.yaml" lang="yaml" }}
 </details>

@@ -11,4 +11,4 @@ widgets:
     name: "Config: Tiles"
     _suppressHeader: true
     mode: rail
-    doc: ../../docs/widgets/metrics/tiles.md
+    doc: ../../docs/metrics/tiles.md

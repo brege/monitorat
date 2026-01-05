@@ -5,5 +5,5 @@ The Services widget shows which systemd services, timers, and docker containers 
 <details>
 <summary><b>Show config</b></summary>
 
-{{ include:code path="include/services.yaml" lang="yaml" }}
+{{ include:code path="snippets/services.yaml" lang="yaml" }}
 </details>

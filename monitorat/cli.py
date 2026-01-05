@@ -124,10 +124,10 @@ def get_demo_launcher_path() -> Path:
     package_demo = package_root / "demo" / "launcher.py"
     repo_demo = package_root.parent / "demo" / "launcher.py"
 
-    if package_demo.exists():
-        return package_demo
     if repo_demo.exists():
         return repo_demo
+    if package_demo.exists():
+        return package_demo
 
     raise FileNotFoundError(
         "Demo launcher not found; reinstall with demo assets included."

@@ -4,12 +4,12 @@ site:
   name: '@demo'
   title: monitor@demo
 includes:
-  - include/metrics.yaml
-  - include/network.yaml
-  - include/services.yaml
-  - include/speedtest.yaml
-  - include/reminders.yaml
-  - include/wiki.yaml
+  - snippets/metrics.yaml
+  - snippets/network.yaml
+  - snippets/services.yaml
+  - snippets/speedtest.yaml
+  - snippets/reminders.yaml
+  - snippets/wiki.yaml
 paths:
   data: data/
   img: img/

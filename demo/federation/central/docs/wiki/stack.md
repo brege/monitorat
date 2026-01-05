@@ -1,5 +1,5 @@
 <details>
-<summary><b>Both wikis stacked.</b></summary>
+<summary><b>Show config</b></summary>         
 
 ```yaml
 {{file:snippets/wiki/stack.yaml}}

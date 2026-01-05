@@ -5,5 +5,5 @@ The Reminders widget tracks expiring items and sends nudges or urgent notificati
 <details>
 <summary><b>Show config</b></summary>
 
-{{ include:code path="include/reminders.yaml" lang="yaml" }}
+{{ include:code path="snippets/reminders.yaml" lang="yaml" }}
 </details>

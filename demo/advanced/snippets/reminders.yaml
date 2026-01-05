@@ -8,4 +8,4 @@ widgets:
     name: "Config: Reminders"
     _suppressHeader: true
     mode: rail
-    doc: ../../docs/widgets/reminders/full.md
+    doc: ../docs/reminders/full.md

@@ -13,5 +13,5 @@ This example is limited to seven days.
 <details>
 <summary><b>Show config</b></summary>
 
-{{ include:code path="include/network.yaml" lang="yaml" }}
+{{ include:code path="snippets/network.yaml" lang="yaml" }}
 </details>

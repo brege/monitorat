@@ -1,7 +1,9 @@
 <details>
-<summary><b>Network outages in columns by node.</b></summary>
+<summary><b>Show config</b></summary>
 
 ```yaml
 {{file:snippets/network/outages/column.yaml}}
 ```
 </details>
+
+Shows network outages in columns by node.

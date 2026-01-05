@@ -1,9 +1,9 @@
 <details>
-<summary><b>Network outages merged into a single list.</b></summary>
+<summary><b>Show config</b></summary>
 
 ```yaml
 {{file:snippets/network/outages/merge.yaml}}
 ```
 </details>
 
-Merged outages are sorted by time across all sources.
+Merged outages are sorted by time across all sources. This example shows network outages from multiple sources merged into a single list.

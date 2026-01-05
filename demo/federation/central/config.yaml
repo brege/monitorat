@@ -5,11 +5,11 @@
 
 includes:
   # Widget defaults
-  - ../../simple/include/metrics.yaml
-  - ../../simple/include/network.yaml
-  - ../../simple/include/services.yaml
-  - ../../simple/include/speedtest.yaml
-  - ../../simple/include/wiki.yaml
+  - ../../simple/snippets/metrics.yaml
+  - ../../simple/snippets/network.yaml
+  - ../../simple/snippets/services.yaml
+  - ../../simple/snippets/speedtest.yaml
+  - ../../simple/snippets/wiki.yaml
 
   # Site and federation
   - snippets/site.yaml

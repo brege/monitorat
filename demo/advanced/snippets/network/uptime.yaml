@@ -22,4 +22,4 @@ widgets:
     name: "Config: Uptime"
     _suppressHeader: true
     mode: rail
-    doc: ../../docs/widgets/network/uptime.md
+    doc: ../../docs/network/uptime.md

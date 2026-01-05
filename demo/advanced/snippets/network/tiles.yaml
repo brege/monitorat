@@ -19,4 +19,4 @@ widgets:
     name: "Config: Tiles"
     _suppressHeader: true
     mode: rail
-    doc: ../../docs/widgets/network/tiles.md
+    doc: ../../docs/network/tiles.md

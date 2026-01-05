@@ -20,4 +20,4 @@ widgets:
     name: "Config: Outages"
     _suppressHeader: true
     mode: rail
-    doc: ../../docs/widgets/network/outages.md
+    doc: ../../docs/network/outages.md

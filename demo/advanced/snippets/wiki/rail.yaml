@@ -1,6 +1,7 @@
+---
 widgets:
   wiki-mode-rail:
     type: wiki
     name: "Wiki: Rail Mode"
     mode: rail
-    doc: ../../docs/widgets/wiki/rail.md
+    doc: ../../docs/wiki/rail.md
