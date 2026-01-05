@@ -8,9 +8,31 @@ permissions:
   contents: read
 
 jobs:
+  smoke:
+    name: Smoke tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      UV_CACHE_DIR: .uv-cache
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Run smoke tests
+        run: uv run python test/harness.py --set all
+
   publish:
     name: Publish to PyPI
     runs-on: ubuntu-latest
+    needs: smoke
     permissions:
       id-token: write  # Required for trusted publishing
 
