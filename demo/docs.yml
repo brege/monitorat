@@ -46,12 +46,13 @@ documents:
 
       ### Demos
       - **Simple** - [http://monitorat.brege.org/](http://monitorat.brege.org/)
-      - **Widget Features and Modes** - [http://monitorat.brege.org/advanced](http://monitorat.brege.org/advanced)
+      - [**NEXT UP:**](http://monitorat.brege.org/advanced) **Widget Features and Modes** - [http://monitorat.brege.org/advanced](http://monitorat.brege.org/advanced)
       - **Federation** - [http://monitorat.brege.org/federation](http://monitorat.brege.org/federation)
 
       ### Repositories
       - **GitHub** - [https://github.com/brege/monitorat](https://github.com/brege/monitorat)
       - **PyPI** - [https://pypi.org/project/monitorat](https://pypi.org/project/monitorat) `uv tool install monitorat`
+    show_config: false
     include: snippets/quick-links.yaml
   - output: demo/advanced/docs/metrics/full.md
     preface: Full metrics widget with custom chart periods.
@@ -132,12 +133,13 @@ documents:
       ### Demos
       - **Simple** - [http://monitorat.brege.org/](http://monitorat.brege.org/)
       - **Widget Features and Modes** - [http://monitorat.brege.org/advanced](http://monitorat.brege.org/advanced)
-      - **Federation** - [http://monitorat.brege.org/federation](http://monitorat.brege.org/federation)
+      - [**NEXT UP:**](http://monitorat.brege.org/federation) **Federation** - [http://monitorat.brege.org/federation](http://monitorat.brege.org/federation)
 
       ### Repositories
       - **GitHub** - [https://github.com/brege/monitorat](https://github.com/brege/monitorat)
       - **PyPI** - [https://pypi.org/project/monitorat](https://pypi.org/project/monitorat) `uv tool install monitorat`
     include: snippets/wiki/quick-links.yaml
+    show_config: false
   - output: demo/federation/central/docs/wiki/each.md
     include: snippets/wiki/each.yaml
     footer: |-
@@ -216,6 +218,7 @@ documents:
       - **Federation** - [http://monitorat.brege.org/federation](http://monitorat.brege.org/federation)
 
       ### Repositories
-      - **GitHub** - [https://github.com/brege/monitorat](https://github.com/brege/monitorat)
+      - [**NEXT UP:**](https://github.com/brege/monitorat) **GitHub** - [https://github.com/brege/monitorat](https://github.com/brege/monitorat)
       - **PyPI** - [https://pypi.org/project/monitorat](https://pypi.org/project/monitorat) `uv tool install monitorat`
     include: snippets/wiki/quick-links.yaml
+    show_config: false

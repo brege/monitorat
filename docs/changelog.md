@@ -1,5 +1,26 @@
 ## Changelog
 
+### 2026-01-05
+
+- Added quick-link footers to demos for easier navigation
+- Made test network data non-degenerate and non-trivial
+- Improved error handling in test harness when documents can't resolve
+- Condensed 40+ \*.md snippets into demo/docs.{yml,py}
+- Bumped version to v0.9.1
+
+### 2026-01-04
+
+- Added test harness to GitHub Actions to prevent publishing some mistakes to PyPI
+- Added smoke test for demos to check for 200/404/503 etc responses
+- Added a compact view for services, so it feels like an app drawer
+- Added mermaid diagrams to vendors so users can make flowcharts
+- Unified the old test/dev and demo runner under one demo/launcher.py
+- Many small adjustments to demo snippets to make examples more interesting
+- Debut a fule demo stack showcasing:
+  - simple: the standard one-node demo
+  - advanced: a multi-node demo with federation
+  - federation: a multi-node demo with federation
+
 ### 2026-01-01
 
 - Extracted three shared utilities to reduce federation bloat in widget code:

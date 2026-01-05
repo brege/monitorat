@@ -9,7 +9,15 @@ import yaml
 
 
 ALLOWED_DEFAULT_KEYS = {"summary", "lang"}
-ALLOWED_DOC_KEYS = {"output", "preface", "footer", "summary", "include", "lang"}
+ALLOWED_DOC_KEYS = {
+    "output",
+    "preface",
+    "footer",
+    "summary",
+    "include",
+    "lang",
+    "show_config",
+}
 
 
 def load_manifest(manifest_path: Path) -> dict:
@@ -47,8 +55,10 @@ def validate_documents(documents: list) -> list:
         if not isinstance(output_path, str) or not output_path.strip():
             raise ValueError(f"Document entry at index {index} missing output path.")
         include_path = doc.get("include")
-        if not isinstance(include_path, str) or not include_path.strip():
-            raise ValueError(f"Document entry at index {index} missing include path.")
+        if include_path is not None and not isinstance(include_path, str):
+            raise ValueError(
+                f"Document entry at index {index} include must be a string."
+            )
         preface = doc.get("preface")
         if preface is not None and not isinstance(preface, str):
             raise ValueError(
@@ -64,6 +74,11 @@ def validate_documents(documents: list) -> list:
             raise ValueError(
                 f"Document entry at index {index} summary must be a string."
             )
+        show_config = doc.get("show_config")
+        if show_config is not None and not isinstance(show_config, bool):
+            raise ValueError(
+                f"Document entry at index {index} show_config must be a boolean."
+            )
         lang = doc.get("lang")
         if lang is not None and not isinstance(lang, str):
             raise ValueError(f"Document entry at index {index} lang must be a string.")
@@ -72,11 +87,9 @@ def validate_documents(documents: list) -> list:
 
 def render_document(doc: dict, defaults: dict) -> str:
     summary = doc.get("summary") or defaults.get("summary")
-    if not summary:
-        raise ValueError(f"Document {doc.get('output')} missing summary.")
     lang = doc.get("lang") or defaults.get("lang")
-    if not lang:
-        raise ValueError(f"Document {doc.get('output')} missing lang.")
+    show_config = doc.get("show_config", True)
+    include_path = doc.get("include")
 
     lines: list[str] = []
     preface = doc.get("preface")
@@ -84,12 +97,19 @@ def render_document(doc: dict, defaults: dict) -> str:
         lines.append(preface.rstrip())
         lines.append("")
 
-    include_path = doc["include"].strip()
-    lines.append("<details>")
-    lines.append(f"<summary><b>{summary}</b></summary>")
-    lines.append("")
-    lines.append(f'{{{{ include:code path="{include_path}" lang="{lang}" }}}}')
-    lines.append("</details>")
+    if show_config:
+        if not include_path:
+            raise ValueError(f"Document {doc.get('output')} missing include path.")
+        if not summary:
+            raise ValueError(f"Document {doc.get('output')} missing summary.")
+        if not lang:
+            raise ValueError(f"Document {doc.get('output')} missing lang.")
+        include_path = include_path.strip()
+        lines.append("<details>")
+        lines.append(f"<summary><b>{summary}</b></summary>")
+        lines.append("")
+        lines.append(f'{{{{ include:code path="{include_path}" lang="{lang}" }}}}')
+        lines.append("</details>")
 
     footer = doc.get("footer")
     if footer:
