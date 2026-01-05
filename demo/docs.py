@@ -145,7 +145,7 @@ def main() -> int:
         "--manifest",
         type=Path,
         default=Path(__file__).parent / "docs.yml",
-        help="Path to documentation manifest.",
+        help="path to documentation manifest.",
     )
     args = parser.parse_args()
     generate_docs(args.manifest)

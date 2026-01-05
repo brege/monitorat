@@ -647,7 +647,7 @@ def main():
     parser.add_argument(
         "--widget",
         choices=list(WIDGET_TESTS.keys()),
-        help="Run only tests for specified widget type",
+        help="run only tests for specified widget type",
     )
     args = parser.parse_args()
 

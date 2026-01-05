@@ -238,17 +238,17 @@ def main():
         "--mode",
         choices=sorted(MODES.keys()),
         default="simple",
-        help="Demo mode to start.",
+        help="demo mode to start.",
     )
     parser.add_argument(
         "--background",
         action="store_true",
-        help="Run servers in background (daemonize)",
+        help="run servers in background (daemonize)",
     )
     parser.add_argument(
         "--stop",
         action="store_true",
-        help="Stop all running demo servers",
+        help="stop all running demo servers",
     )
 
     args = parser.parse_args()

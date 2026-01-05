@@ -157,51 +157,52 @@ def main():
     )
     parser.add_argument(
         "-c",
+        "--config",
         dest="config",
         type=Path,
-        help="Path to config.yaml to load before running the command.",
+        help="path to config.yaml to load before running the command",
     )
 
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    subparsers = parser.add_subparsers(dest="command", help="available commands")
 
     subparsers.add_parser(
-        "config", help="Display the merged configuration with sensitive data redacted"
+        "config", help="display the merged configuration with sensitive data redacted"
     )
 
-    subparsers.add_parser("ls-widgets", help="List available widgets and their status")
-    server_parser = subparsers.add_parser("server", help="Run the development server")
+    subparsers.add_parser("ls-widgets", help="list available widgets and their status")
+    server_parser = subparsers.add_parser("server", help="run the development server")
     server_parser.add_argument(
         "--host",
         default="127.0.0.1",
-        help="Host interface to bind.",
+        help="host interface to bind",
     )
     server_parser.add_argument(
         "--port",
         type=int,
         default=6161,
-        help="Port to bind.",
+        help="port to bind",
     )
     server_parser.add_argument(
         "--debug",
         action="store_true",
-        help="Enable debug mode.",
+        help="enable debug mode",
     )
-    demo_parser = subparsers.add_parser("demo", help="Run the demo server")
+    demo_parser = subparsers.add_parser("demo", help="run the demo server")
     demo_parser.add_argument(
         "--mode",
         choices=["simple", "advanced", "federation"],
         default="simple",
-        help="Demo mode to start.",
+        help="demo mode to start",
     )
     demo_parser.add_argument(
         "--background",
         action="store_true",
-        help="Run demo servers in background.",
+        help="run demo servers in background",
     )
     demo_parser.add_argument(
         "--stop",
         action="store_true",
-        help="Stop demo servers started in background.",
+        help="stop demo servers started in background",
     )
 
     args = parser.parse_args()

@@ -211,19 +211,19 @@ def main():
     parser.add_argument(
         "--widget",
         choices=WIDGET_FILTERS,
-        help="Run only tests for specified widget type",
+        help="run only tests for specified widget type",
     )
     parser.add_argument(
         "--list",
         action="store_true",
         dest="list_widgets",
-        help="List available widget filters",
+        help="list available widget filters",
     )
     parser.add_argument(
         "--set",
         choices=["all", "federation", "demo"],
         default="all",
-        help="Select which test set to run",
+        help="select which test set to run",
     )
     args = parser.parse_args()
 

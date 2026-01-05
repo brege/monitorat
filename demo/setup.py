@@ -62,35 +62,35 @@ class NetworkLine:
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Generate synthetic data for demo or test modes."
+        description="generate synthetic data for demo or test modes."
     )
     mode_group = parser.add_mutually_exclusive_group(required=True)
     mode_group.add_argument(
         "-d",
         "--demo",
         action="store_true",
-        help="Generate demo data (network.log, speedtest.csv)",
+        help="generate demo data (network.log, speedtest.csv)",
     )
     mode_group.add_argument(
         "-t",
         "--test",
         action="store_true",
-        help="Generate test data (metrics.csv per node)",
+        help="generate test data (metrics.csv per node)",
     )
     parser.add_argument(
         "--data-dir",
-        help="Directory to write data files (default: demo/simple/data or test/data)",
+        help="directory to write data files (default: demo/simple/data or test/data)",
     )
     parser.add_argument(
         "--node",
         choices=list(TEST_NODE_WAVEFORMS.keys()),
-        help="Node name for test mode (determines waveform)",
+        help="node name for test mode (determines waveform)",
     )
     parser.add_argument(
         "--hours",
         type=int,
         default=24,
-        help="Hours of test data to generate (default: 24)",
+        help="hours of test data to generate (default: 24)",
     )
     return parser.parse_args()
 

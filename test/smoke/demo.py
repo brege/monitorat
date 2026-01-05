@@ -189,12 +189,12 @@ def main() -> int:
     parser.add_argument(
         "--mode",
         choices=list(MODES.keys()),
-        help="Run tests for a single demo mode",
+        help="run tests for a single demo mode",
     )
     parser.add_argument(
         "--no-launch",
         action="store_true",
-        help="Skip launcher start/stop (assume servers are already running)",
+        help="skip launcher start/stop (assume servers are already running)",
     )
     args = parser.parse_args()
 
