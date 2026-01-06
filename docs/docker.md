@@ -4,10 +4,11 @@
 
 1. Copy and customize the compose file to your container path. Example:
 ```bash
+mkdir -p ~/docker/monitorat  # CHANGE
 cp compose.yml ~/docker/monitorat/compose.yml
 ```
 
-2. Edit `compose.yml` with your values. The file comments show where to get each:
+2. Edit `compose.yml` with your values. The file comments show where to get each from the host:
    - User/group IDs: `id -u`, `id -g`
    - Docker group: `getent group docker | cut -d: -f3`
    - Messagebus group: `getent group messagebus | cut -d: -f3` (if non-standard)
@@ -18,11 +19,11 @@ cp compose.yml ~/docker/monitorat/compose.yml
 docker compose -f compose.yml up --build --detach
 ```
 
-4. Access at `http://localhost:PORT` (default 6161)
+4. Access at `http://localhost:PORT` (default PORT=6161)
 
 #### Management
 
-All configuration through `/config/config.yaml` on your host.
+All configuration through `/config/config.yaml` on your host. You can use includes snippets relative to `./config/` as well. See `../demo/simple` for an example.
 
 - **Config**: Edit the file, then restart:
   ```bash
@@ -39,4 +40,4 @@ All configuration through `/config/config.yaml` on your host.
   docker compose -f compose.yml down
   ```
 
-Note: Volume paths in `compose.yml` must exist on your host and be updated in the file before first run.
+Volume paths in `compose.yml` must exist on your host and be updated in the file before first run.

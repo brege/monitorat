@@ -3,32 +3,33 @@ services:
     build:
       context: .
       args:
-        USER_IDENTIFIER: 1000             # FROM: id -u
-        GROUP_IDENTIFIER: 1000            # FROM: id -g
-        DOCKER_GROUP_IDENTIFIER: 115      # FROM: getent group docker | cut -d: -f3
-        MESSAGEBUS_GID: 991               # FROM: getent group messagebus | cut -d: -f3
+        USER_IDENTIFIER: 1000             # CHANGE: run: id -u
+        GROUP_IDENTIFIER: 1000            # CHANGE: run: id -g
+        DOCKER_GROUP_IDENTIFIER: 115      # CHANGE: run: getent group docker | cut -d: -f3
+        MESSAGEBUS_GID: 991               # CHANGE: run: getent group messagebus | cut -d: -f3
     container_name: monitorat             # optional: change for multiple instances
-    user: "1000:1000"                     # USER_IDENTIFIER:GROUP_IDENTIFIER
+    user: "1000:1000"                     # CHANGE: use: USER_IDENTIFIER:GROUP_IDENTIFIER
     group_add:
-      - "115"                             # DOCKER_GROUP_IDENTIFIER
-      - "991"                             # MESSAGEBUS_GID
+      - "115"                             # CHANGE: use: DOCKER_GROUP_IDENTIFIER
+      - "991"                             # CHANGE: use: MESSAGEBUS_GID
     ports:
       - "6161:6161" # optional: change host port for multiple instances
     environment:
       DBUS_SYSTEM_BUS_ADDRESS: unix:path=/run/dbus/system_bus_socket
     volumes:
+      # syntax: /host/path:/container/path:ro
+      # paths.{data,docs,img,...} are mounted relative to ./config
       - ./config:/config
-      # services widget
+      # KEEP: for: services.items in /config/config.yaml
       - /run/systemd:/run/systemd:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      # metrics widget
+      # KEEP: for: metrics.enabled in /config/config.yaml
       - /run/dbus:/run/dbus:ro
       - /etc/machine-id:/etc/machine-id:ro
-      # CHANGE: these are metrics.storage.mounts in /config/config.yaml
-      # syntax:  /host/path:/container/path:ro
+      # CHANGE: for: metrics.storage.mounts in /config/config.yaml
       - /mnt/music:/media/music:ro
       - /mnt/linux-isos:/media/videos:ro
       - /mnt/backups:/backups:ro
-      # CHANGE: network.log_file in /config/config.yaml
+      # CHANGE: for: network.log_file in /config/config.yaml
       - /var/log/ddclient.log:/logs/ddclient.log:ro
     restart: unless-stopped

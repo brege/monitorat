@@ -57,6 +57,7 @@ use https://monitorat.brege.org/ to create screenshots
 - Keep a record of and [graph your internet speed](https://monitorat.brege.org/#speedtest-widget).
 - List of [all your reverse-proxied services](https://monitorat.brege.org/#services-widget) with offline-friendly bookmarks.
 
+---
 
 ## Installation
 
@@ -115,6 +116,8 @@ See: [Docker](./docs/docker.md) for running monitorat in a Docker container.
 ### Alternate Installs
 
 See: [Alternate Installs](./docs/install.md) for traditional deployments at `/opt/monitorat`.
+
+---
 
 ## The Dashboard
 
@@ -284,9 +287,11 @@ notifications:
 
 ## Contributors
 
-See [installing from source](./docs/install.md) for initializing a development server and alternative deployment methods.
+- [**contributing**](./docs/contributing.md)
 
-For all other development, see [**contributing**](./docs/contributing.md).
+- [**changelog**](./docs/changelog.md)
+
+- [**installation index**](./docs/install.md)
 
 ## License
 
