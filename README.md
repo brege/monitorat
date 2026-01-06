@@ -2,7 +2,7 @@
 
 # <div align=center> [ [demo](https://monitorat.brege.org) ] </div>
 
-Monitorat is a federated dashboard and documentation system with a widget system.
+Monitorat is a federated dashboard and documentation system with an extensible widget framework.
 Its philosophy is to make system monitoring and documentation continuous, much like the way tables and figures are integrated in journal or news articles.
 
 Available widgets:
@@ -64,13 +64,17 @@ Both the pip and uv installation methods assume you are using a configuration fi
 
 ### Installing with uv
 
-**PyPI**: The simplest way is to install from PyPI.
+##### **PyPI**
+
+The simplest way is to install from PyPI.
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 uv tool install monitorat
 ```
 
-**Source**: Or install the package from source/development (use `-e` if you're developing widgets):
+##### **From Source**
+
+Or install the package from source/development (use `-e` if you're developing widgets):
 ```bash
 git clone https://github.com/brege/monitorat.git
 cd monitorat
@@ -81,32 +85,36 @@ In either case, start the server:
 ```bash
 monitorat -c path/to/config.yaml server --host 0.0.0.0 --port 6161
 ```
-or run the demo:
+
+or run the demos:
 ```bash
 monitorat demo --mode simple      # single-instance dashboard
 monitorat demo --mode advanced    # single-instance, with feature config examples
 monitorat demo --mode federation  # multiple machines, and widget integration examples
 ```
 
-These demos are all held on [monitorat.brege.org](https://monitorat.brege.org):
-
+which are also held on [monitorat.brege.org](https://monitorat.brege.org):
 - [simple](https://monitorat.brege.org/)
 - [advanced](https://monitorat.brege.org/advanced)
 - [federation](https://monitorat.brege.org/federation)
 
+Monitorat will resolve your config file either at the destination given by `-c|--config`, or the default location `~/.config/monitorat/config.yaml`.
 
-### Alternate installs
-
-- [install.md](./docs/install.md) for traditional deployments in `/opt/monitorat`
-- [docker.md](./docs/docker.md) for Docker deployments
-
-#### Systemd service
+##### Daemonizing with Systemd
 
 Assuming you'd like to run monitorat as a systemd service with your normal user, group, and hostname:
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/scripts/install-systemd-uv.sh)
 ```
 This pulls the uv-flavored systemd script from [scripts/install-systemd-uv.sh](./scripts/install-systemd-uv.sh), using sudo internally to install the systemd unit to `/etc/systemd/system/monitor@.service`.
+
+### Installing with Docker
+
+See: [Docker](./docs/docker.md) for running monitorat in a Docker container.
+
+### Alternate Installs
+
+See: [Alternate Installs](./docs/install.md) for traditional deployments at `/opt/monitorat`.
 
 ## The Dashboard
 

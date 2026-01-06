@@ -1,60 +1,21 @@
 ## Installation
 
-Both installation methods assume you are using a configuration file at `~/.config/monitorat/config.yaml`.
-
 ### Installing with uv
 
-Install the package from PyPI:
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-uv tool install monitorat
-```
+See: [README](../README.md#installation).
 
-Or install the package from source:
-```bash
-git clone https://github.com/brege/monitorat.git
-cd monitorat
-uv tool install .
-```
+### Installing with Docker
 
-Then run the server:
-```bash
-monitorat -c /path/to/config.yaml server --host 0.0.0.0 --port 6161
-```
+See: [Docker](docker.md) for running monitorat in a Docker container.
 
-To run as a production server, use Systemd.
+### Installing with Pip
 
-#### Systemd service (uv)
-
-One command install:
-
-```bash
-bash <(curl -s https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/scripts/install-systemd-uv.sh)
-```
-
-The script uses sudo internally to install the systemd unit for uv tool installations to `/etc/systemd/system/monitor@.service`. It detects your `user`, `group`, and `hostname`. Fedora Workstation can be tricky because of SELinux.
-
-To review the script before running:
-- [`../scripts/install-systemd-uv.sh`](../scripts/install-systemd-uv.sh) (local)
-- [View on GitHub](https://github.com/brege/monitorat/blob/main/scripts/install-systemd-uv.sh)
-
-Or download and run manually:
-```bash
-curl -O https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/scripts/install-systemd-uv.sh
-bash install-systemd-uv.sh
-```
-
-> [!NOTE]
-> With **uv**, the systemd install works for both uv-pypi and uv-source installations.
-
-### Installing with pip
-
-Install from PyPI:
+#### **PyPI**
 ```bash
 pip install monitorat
 ```
 
-Or install the package from source:
+#### Local Install
 ```bash
 git clone https://github.com/brege/monitorat.git
 cd monitorat
@@ -63,7 +24,7 @@ pip install .
 
 Then run with:
 ```bash
-monitorat -c /path/to/config.yaml server --host 0.0.0.0 --port 6161
+monitorat -c config.yaml server --host 0.0.0.0 --port 6161
 ```
 
 #### Systemd service (pip)
@@ -74,11 +35,17 @@ One command install:
 bash <(curl -s https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/scripts/install-systemd-pip.sh)
 ```
 
-### Alternative: Deploy monitorat/ directly
+The script uses sudo internally to install the systemd unit for Pip installations to `/etc/systemd/system/monitor@.service`. It detects your `user`, `group`, and `hostname`.
 
-You can also deploy the `monitorat/` directory directly to `/opt/monitorat/` or elsewhere without packaging. This is useful for development or when you want direct access to edit files.
+To review the script before running:
+- **Local**: [`../scripts/install-systemd-pip.sh`](../scripts/install-systemd-pip.sh)
+- **GitHub**: [https://github.com/brege/monitorat/blob/main/scripts/install-systemd-pip.sh](https://github.com/brege/monitorat/blob/main/scripts/install-systemd-pip.sh)
 
-Clone this repository:
+### Deploying to /opt
+
+You can also deploy monitorat directly to `/opt/monitorat/` or elsewhere without the extra packaging. This is useful for thinner developments or when you want direct access to edit files.
+
+Clone the repo:
 ```bash
 sudo apt install python3 python3-pip
 sudo mkdir -p /opt/monitorat
@@ -86,6 +53,8 @@ sudo chown -R __user__:__group__ /opt/monitorat
 cd /opt/monitorat
 git clone https://github.com/brege/monitorat.git .
 ```
+
+#### Pip
 
 Install dependencies:
 ```bash
@@ -96,13 +65,23 @@ pip install .
 deactivate
 ```
 
-Run manually:
+Run the server:
 ```bash
 source .venv/bin/activate
-monitorat -c /path/to/config.yaml server --host 0.0.0.0 --port 6161
+monitorat -c config.yaml server --host 0.0.0.0 --port 6161
 ```
 
-#### Systemd service (source)
+#### uv
+
+Install dependencies and run the server:
+```bash
+cd /opt
+git clone https://github.com/brege/monitorat.git monitorat && cd monitorat
+uv tool install -e .
+monitorat -c config.yaml server --host 0.0.0.0 --port 6161
+```
+
+#### Systemd service for /opt installs 
 
 Update `systemd/monitor@source.service` replacing `__project__`, `__user__`, `__group__`, and `__port__`, then:
 ```bash
