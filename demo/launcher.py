@@ -22,7 +22,6 @@ from pathlib import Path
 from docs import generate_docs
 
 DEMO_DIR = Path(__file__).parent
-PID_DIR = DEMO_DIR / ".pids"
 
 NODES = {
     "simple": {
@@ -91,10 +90,18 @@ signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 
 
+def get_pid_directory() -> Path:
+    state_home = os.environ.get("XDG_STATE_HOME")
+    if state_home:
+        return Path(state_home) / "monitorat" / "demo" / "pids"
+    return Path.home() / ".local" / "state" / "monitorat" / "demo" / "pids"
+
+
 def get_pid_file(node_name: str) -> Path:
     """Get PID file path for a node."""
-    PID_DIR.mkdir(exist_ok=True)
-    return PID_DIR / f"{node_name}.pid"
+    pid_directory = get_pid_directory()
+    pid_directory.mkdir(parents=True, exist_ok=True)
+    return pid_directory / f"{node_name}.pid"
 
 
 def write_pid(node_name: str, pid: int):
