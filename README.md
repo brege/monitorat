@@ -27,35 +27,49 @@ Dashboard documentation is handled through through the Wiki widget. Each documen
 
 ### Gallery
 
-It's best to checkout [the demo](https://monitorat.brege.org) which is a fully interactive version of the application you could be running on your machines. Screenshots of the demo are compiled below.
-
-<!-- 
-TODO: update screenshots 
-4 + 2 + 4
-4 - light mode phone
-darkmode desktop + lightmode desktop
-4 - darkmode desktop
-use https://monitorat.brege.org/ to create screenshots
--->
+It's best to checkout [**the demo**](https://monitorat.brege.org) which is a fully interactive version of the application you could be running on your machines. Screenshots of the demo are compiled below.
 
 <table>
   <tr>
-    <td><img src="docs/img/screenshots/metrics.png" width="100%"></td>
-    <td><img src="docs/img/screenshots/services.png" width="100%"></td>
-    <td><img src="docs/img/screenshots/reminders.png" width="100%"></td>
-    <td><img src="docs/img/screenshots/speedtest.png" width="100%"></td>
+    <td><img src="docs/img/screenshots/desktop/dark/101.png" width="100%"></td>
+    <td><img src="docs/img/screenshots/desktop/dark/102.png" width="100%"></td>
+    <td><img src="docs/img/screenshots/desktop/dark/103.png" width="100%"></td>
   </tr>
 </table>
 <table>
   <tr>
-    <td><img src="docs/img/screenshots/network.png" width="100%"></td>
+    <td><img src="docs/img/screenshots/desktop/dark/100.png" width="100%"></td>
+    <td><img src="docs/img/screenshots/desktop/light/110.png" width="100%"></td>
+  </tr>
+</table>
+<table>
+  <tr>
+    <td><img src="docs/img/screenshots/desktop/light/111.png" width="100%"></td>
+    <td><img src="docs/img/screenshots/desktop/light/112.png" width="100%"></td>
+    <td><img src="docs/img/screenshots/desktop/light/113.png" width="100%"></td>
+  </tr>
+</table>
+<table>
+  <tr>
+    <td><img src="docs/img/screenshots/mobile/dark/201.png" width="100%"></td>
+    <td><img src="docs/img/screenshots/mobile/dark/202.png" width="100%"></td>
+    <td><img src="docs/img/screenshots/mobile/light/211.png" width="100%"></td>
+    <td><img src="docs/img/screenshots/mobile/light/212.png" width="100%"></td>
   </tr>
 </table>
 
-- See [how hot your CPU got today](https://monitorat.brege.org/#metrics-widget).
-- Be alerted [when under high load](#alerts).
-- Keep a record of and [graph your internet speed](https://monitorat.brege.org/#speedtest-widget).
+### Features
+
+- Beautiful documentation for your Homelab and media servers.
+- Completely headless and works offline.
+- Responsive design for mobile and desktop, with light and dark modes.
+- Track [how hot your CPU gets](https://monitorat.brege.org/#metrics-widget) over the course of the day.
+- Be alerted [when under extremely high loads](#alerts).
+- Keep a record of [internet speedtests](https://monitorat.brege.org/#speedtest-widget) even when AFK.
 - List of [all your reverse-proxied services](https://monitorat.brege.org/#services-widget) with offline-friendly bookmarks.
+- Even runs on Raspberry Pi 2/3 w/ Pi-Hole, Unraid, and other homelab systems.
+- Has [**federation**](https://monitorat.brege.org/federation): you can monitor services, metrics data, and documentation across many machines at a central command.
+
 
 ---
 
