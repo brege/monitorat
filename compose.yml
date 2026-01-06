@@ -1,0 +1,34 @@
+services:
+  monitorat:
+    build:
+      context: .
+      args:
+        USER_IDENTIFIER: 1000             # FROM: id -u
+        GROUP_IDENTIFIER: 1000            # FROM: id -g
+        DOCKER_GROUP_IDENTIFIER: 115      # FROM: getent group docker | cut -d: -f3
+        MESSAGEBUS_GID: 991               # FROM: getent group messagebus | cut -d: -f3
+    container_name: monitorat             # optional: change for multiple instances
+    user: "1000:1000"                     # USER_IDENTIFIER:GROUP_IDENTIFIER
+    group_add:
+      - "115"                             # DOCKER_GROUP_IDENTIFIER
+      - "991"                             # MESSAGEBUS_GID
+    ports:
+      - "6161:6161" # optional: change host port for multiple instances
+    environment:
+      DBUS_SYSTEM_BUS_ADDRESS: unix:path=/run/dbus/system_bus_socket
+    volumes:
+      - ./config:/config
+      # services widget
+      - /run/systemd:/run/systemd:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # metrics widget
+      - /run/dbus:/run/dbus:ro
+      - /etc/machine-id:/etc/machine-id:ro
+      # CHANGE: these are metrics.storage.mounts in /config/config.yaml
+      # syntax:  /host/path:/container/path:ro
+      - /mnt/music:/media/music:ro
+      - /mnt/linux-isos:/media/videos:ro
+      - /mnt/backups:/backups:ro
+      # CHANGE: network.log_file in /config/config.yaml
+      - /var/log/ddclient.log:/logs/ddclient.log:ro
+    restart: unless-stopped

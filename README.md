@@ -60,7 +60,7 @@ use https://monitorat.brege.org/ to create screenshots
 
 ## Installation
 
-Both installation methods assume you are using a configuration file at `~/.config/monitorat/config.yaml`.
+Both the pip and uv installation methods assume you are using a configuration file at `~/.config/monitorat/config.yaml`.
 
 ### Installing with uv
 
@@ -70,7 +70,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 uv tool install monitorat
 ```
 
-**Source**: Or install the package from source/development:
+**Source**: Or install the package from source/development (use `-e` if you're developing widgets):
 ```bash
 git clone https://github.com/brege/monitorat.git
 cd monitorat
@@ -94,6 +94,12 @@ These demos are all held on [monitorat.brege.org](https://monitorat.brege.org):
 - [advanced](https://monitorat.brege.org/advanced)
 - [federation](https://monitorat.brege.org/federation)
 
+
+### Alternate installs
+
+- [install.md](./docs/install.md) for traditional deployments in `/opt/monitorat`
+- [docker.md](./docs/docker.md) for Docker deployments
+
 #### Systemd service
 
 Assuming you'd like to run monitorat as a systemd service with your normal user, group, and hostname:
@@ -101,8 +107,6 @@ Assuming you'd like to run monitorat as a systemd service with your normal user,
 bash <(curl -s https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/scripts/install-systemd-uv.sh)
 ```
 This pulls the uv-flavored systemd script from [scripts/install-systemd-uv.sh](./scripts/install-systemd-uv.sh), using sudo internally to install the systemd unit to `/etc/systemd/system/monitor@.service`.
-
-For **alternate installs**, see [docs/install.md](docs/install.md) to install `monitor@/monitorat` => `/opt/monitorat` and other deployments.
 
 ## The Dashboard
 
