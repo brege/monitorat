@@ -155,6 +155,8 @@ def start_server(node: dict, background: bool = False) -> subprocess.Popen | int
         "-c",
         str(config_path),
         "server",
+        "--host",
+        "0.0.0.0",
         "--port",
         str(node["port"]),
     ]
