@@ -1,4 +1,4 @@
-/* global Chart */
+/* global Chart, getComputedStyle */
 class ChartManager {
   constructor (config) {
     this.canvasElement = config.canvasElement
@@ -161,14 +161,16 @@ class ChartManager {
 
   static buildGhostedDatasets ({ label, color, rawValues, windowSize = 3 }) {
     const smoothedValues = this.computeMovingAverage(rawValues, windowSize)
-    const ghostColor = 'rgba(148, 163, 184, 0.35)'
+    const computedStyle = getComputedStyle(document.documentElement)
+    const ghostColor = computedStyle.getPropertyValue('--color-ghost').trim() || 'rgba(148, 163, 184, 0.35)'
+    const ghostLightColor = computedStyle.getPropertyValue('--color-ghost-light').trim() || 'rgba(148, 163, 184, 0.08)'
 
     return [
       {
         label: `${label} (raw)`,
         data: rawValues,
         borderColor: ghostColor,
-        backgroundColor: 'rgba(148, 163, 184, 0.08)',
+        backgroundColor: ghostLightColor,
         borderWidth: 1,
         pointRadius: 0,
         pointHoverRadius: 3,

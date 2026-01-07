@@ -46,10 +46,7 @@ monitorAPI.applyWidgetHeader = function applyWidgetHeader (container, options = 
   if (downloadCsv && downloadUrl) {
     const headerParent = header.parentElement
     const wrapper = document.createElement('div')
-    wrapper.style.display = 'flex'
-    wrapper.style.alignItems = 'center'
-    wrapper.style.justifyContent = 'space-between'
-    wrapper.style.marginBottom = '16px'
+    wrapper.className = 'widget-header-wrapper'
 
     const downloadLink = document.createElement('a')
     downloadLink.href = '#'

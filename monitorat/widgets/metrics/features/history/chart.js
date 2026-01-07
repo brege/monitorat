@@ -1,3 +1,4 @@
+/* global getComputedStyle */
 class MetricsChart {
   constructor (widget) {
     this.widget = widget
@@ -96,8 +97,20 @@ class MetricsChart {
     return { labels, datasets, allValues }
   }
 
+  getSourceColors () {
+    const computedStyle = getComputedStyle(document.documentElement)
+    return [
+      computedStyle.getPropertyValue('--chart-series-1').trim(),
+      computedStyle.getPropertyValue('--chart-series-2').trim(),
+      computedStyle.getPropertyValue('--chart-series-3').trim(),
+      computedStyle.getPropertyValue('--chart-series-4').trim(),
+      computedStyle.getPropertyValue('--chart-series-5').trim(),
+      computedStyle.getPropertyValue('--chart-series-6').trim()
+    ]
+  }
+
   createMergedChartData (entries, metricsToChart, dataFormatter, sources) {
-    const sourceColors = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4']
+    const sourceColors = this.getSourceColors()
     const entriesBySource = {}
 
     for (const row of entries) {

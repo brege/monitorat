@@ -68,6 +68,23 @@
       --status-warn-rgb: 247, 183, 49;
       --status-critical-rgb: 239, 99, 81;
       --status-unknown-rgb: 197, 204, 213;
+      --status-ok: rgb(var(--status-ok-rgb));
+      --status-warn: rgb(var(--status-warn-rgb));
+      --status-critical: rgb(var(--status-critical-rgb));
+      --status-unknown: rgb(var(--status-unknown-rgb));
+      --status-degraded: var(--status-warn);
+      --status-offline: var(--status-critical);
+
+      --chart-series-1: #3b82f6;
+      --chart-series-2: #22c55e;
+      --chart-series-3: #f59e0b;
+      --chart-series-4: #ef4444;
+      --chart-series-5: #8b5cf6;
+      --chart-series-6: #06b6d4;
+
+      --color-ghost-rgb: 148, 163, 184;
+      --color-ghost: rgba(var(--color-ghost-rgb), 0.35);
+      --color-ghost-light: rgba(var(--color-ghost-rgb), 0.08);
 
       --bg-body: var(--theme-bg-body-light);
       --bg-surface: var(--theme-bg-surface-light);
@@ -89,6 +106,9 @@
       --icon-privacy-off: var(--theme-icon-privacy-off-light);
       --icon-theme-sun: var(--theme-icon-sun-light);
       --icon-theme-moon: var(--theme-icon-moon-light);
+      --text-secondary: var(--text-muted);
+      --bg-tertiary: rgba(128, 128, 128, 0.15);
+      --button-text: #ffffff;
     }
 
     :root[data-theme="dark"] {
@@ -328,7 +348,7 @@
       font-weight: 600;
       cursor: pointer;
       background: var(--accent);
-      color: #ffffff;
+      color: var(--button-text);
       transition: background 0.2s ease;
     }
 
@@ -344,6 +364,13 @@
     .muted {
       color: var(--text-muted);
       font-size: 0.9rem;
+    }
+
+    .widget-header-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
     }
 
     .card {

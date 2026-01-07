@@ -96,7 +96,6 @@ class ServicesSnapshot {
     const sources = this.widget.config.federation?.nodes || []
     const columns = document.createElement('div')
     columns.className = 'federation-columns'
-    columns.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;'
 
     sources.forEach(source => {
       const sourceServices = this.widget.servicesData.filter(service => service._source === source)

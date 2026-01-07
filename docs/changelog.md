@@ -1,8 +1,17 @@
 ## Changelog
 
+### 2026-01-07
+
+- Made service status resolving more robust for Docker and Systemd
+- Expanded schema for services widget to cover more status cases
+- Added toggle for local vs. CDN external JS/CSS (needed for demo on production)
+- Caught up scattered ghost colors and theme leakage in JS
+
 ### 2026-01-06
 
 - Added an installation guide for Docker
+- Improved all installation-related documentation
+- Bumped version to v0.9.3
 
 ### 2026-01-05
 
