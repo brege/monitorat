@@ -32,7 +32,7 @@ documents:
     preface: |-
       ### Services Widget
 
-      The Services widget shows which systemd services, timers, and docker containers are running or have failed, along with URLs for convenient access. The URLs in this demo simply link to their source code repository.
+      The Services widget shows which systemd services, timers, and docker containers are running or have failed, along with URLs for convenient access. The URLs in this demo simply link to their source code repository.  Toggle the info icon or long prss on mobile for statuses and direct internal/external links.
     include: snippets/services.yaml
   - output: demo/simple/docs/speedtest.md
     preface: |-
@@ -104,10 +104,15 @@ documents:
     footer: |-
       Use `show.controls: false` to display only the chart/table.
   - output: demo/advanced/docs/services/tiles.md
-    preface: Full services widget in the default tiles layout.
+    preface: |-
+      Full services widget in the default tiles layout. Click the info icon for
+      internal and external links, as well as status details. Long press on Mobile
+      or Shift/Ctrl+Shift click on Desktop works the same.
     include: snippets/services/tiles.yaml
   - output: demo/advanced/docs/services/compact.md
-    preface: Compact services layout with scaled icons.
+    preface: |-
+      Compact services layout with scaled icons. Long press on Mobile or 
+      Shift/Ctrl+Shift click on Desktop for the detail and link modal.
     include: snippets/services/compact.yaml
   - output: demo/advanced/docs/reminders/full.md
     preface: Full reminders widget with the default layout.

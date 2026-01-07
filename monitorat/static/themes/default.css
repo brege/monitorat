@@ -893,7 +893,12 @@ tr:last-child td {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+}
+
+.url-picker-icon-wrapper {
+  position: relative;
+  flex-shrink: 0;
 }
 
 .url-picker-icon {
@@ -901,6 +906,77 @@ tr:last-child td {
   height: 48px;
   border-radius: 8px;
 }
+
+.url-picker-status-dot {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-surface);
+  background: rgb(var(--status-unknown-rgb));
+}
+
+.url-picker-status-dot.status-ok { background: rgb(var(--status-ok-rgb)); }
+.url-picker-status-dot.status-warning,
+.url-picker-status-dot.status-warn,
+.url-picker-status-dot.status-caution { background: rgb(var(--status-warn-rgb)); }
+.url-picker-status-dot.status-down,
+.url-picker-status-dot.status-expired,
+.url-picker-status-dot.status-critical { background: rgb(var(--status-critical-rgb)); }
+
+.url-picker-status {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--bg-card);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.url-picker-status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.url-picker-status-item:not(:last-child) {
+  border-bottom: 1px solid var(--border-muted);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.url-picker-status-type {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.url-picker-status-type svg {
+  width: 100%;
+  height: 100%;
+}
+
+.url-picker-status-name {
+  flex: 1;
+  color: var(--text-muted);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.8rem;
+}
+
+.url-picker-status-label {
+  font-weight: 500;
+}
+
+.url-picker-status-label.status-ok { color: rgb(var(--status-ok-rgb)); }
+.url-picker-status-label.status-warning,
+.url-picker-status-label.status-warn,
+.url-picker-status-label.status-caution { color: rgb(var(--status-warn-rgb)); }
+.url-picker-status-label.status-down,
+.url-picker-status-label.status-expired,
+.url-picker-status-label.status-critical { color: rgb(var(--status-critical-rgb)); }
+.url-picker-status-label.status-unknown { color: rgb(var(--status-unknown-rgb)); }
 
 .url-picker-name {
   font-size: 1.1rem;
@@ -943,4 +1019,130 @@ tr:last-child td {
 .url-picker-external:hover {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
+}
+
+/* Menu Modal */
+.menu-modal-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.menu-modal-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.menu-modal-control:hover {
+  background: var(--bg-card);
+}
+
+.menu-modal-control:active {
+  transform: scale(0.98);
+}
+
+.menu-modal-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.menu-modal-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.menu-modal-label {
+  flex: 1;
+}
+
+.menu-modal-section {
+  margin-bottom: 20px;
+}
+
+.menu-modal-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.menu-modal-themes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.menu-modal-theme {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-muted);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.1s ease, background 0.1s ease;
+}
+
+.menu-modal-theme:hover {
+  background: var(--bg-card);
+}
+
+.menu-modal-theme.selected {
+  border-color: var(--accent);
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.menu-modal-theme input[type="radio"] {
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.menu-modal-theme-name {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.menu-modal-footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-muted);
+}
+
+.menu-modal-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.menu-modal-link:hover {
+  color: var(--accent);
+}
+
+.menu-modal-link svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
