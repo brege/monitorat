@@ -227,17 +227,19 @@ class ServicesSnapshot {
         <button type="button" class="url-picker-btn url-picker-external" data-url="${service.url}">
           Open External
         </button>
-        ${hasLocal ? `
+        ${hasLocal
+? `
         <button type="button" class="url-picker-btn url-picker-local" data-url="${service.local}">
           Open Local
         </button>
-        ` : ''}
+        `
+: ''}
       </div>
     `
 
     window.Modal.show({
       title: 'Open Service',
-      content: content
+      content
     })
 
     document.querySelectorAll('.url-picker-btn').forEach((btn) => {

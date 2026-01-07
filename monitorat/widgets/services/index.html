@@ -5,7 +5,9 @@
 .service-grid-inner.compact { display: flex; flex-wrap: wrap; gap: 12px; }
 .service-grid > .federation-stacked,
 .service-grid > .federation-columns { grid-column: 1 / -1; }
-.service-card { padding: 16px; display: flex; align-items: center; gap: 12px; min-height: 80px; cursor: pointer; }
+.service-card { padding: 16px; display: flex; align-items: center; gap: 12px; min-height: 80px; cursor: pointer; touch-action: manipulation; -webkit-touch-callout: none; user-select: none; }
+.service-card * { pointer-events: none; }
+.service-card { pointer-events: auto; }
 .service-card.compact { padding: var(--service-compact-padding); width: var(--service-compact-card-size); height: var(--service-compact-card-size); min-height: 0; justify-content: center; background: transparent; border-left: none; position: relative; }
 .service-icon { width: 32px; height: 32px; object-fit: contain; }
 .service-card.compact .service-icon { width: var(--service-compact-icon-size); height: var(--service-compact-icon-size); }
