@@ -314,6 +314,30 @@ def api_config_reload():
         return jsonify(error=str(exc)), 500
 
 
+@app.route("/api/info", methods=["GET"])
+def api_info():
+    try:
+        version = importlib.metadata.version("monitorat")
+    except importlib.metadata.PackageNotFoundError:
+        version = "dev"
+
+    themes_dir = WWW / "static" / "themes"
+    themes = []
+    if themes_dir.exists():
+        for css_file in sorted(themes_dir.glob("*.css")):
+            if css_file.name != "default.css":
+                themes.append(css_file.stem)
+        themes.insert(0, "default")
+
+    return jsonify(
+        {
+            "version": version,
+            "github": "https://github.com/brege/monitorat",
+            "themes": themes,
+        }
+    )
+
+
 def append_snapshot(payload: dict) -> None:
     snapshot_path = get_data_path() / "snapshot.jsonl"
     snapshot_path.parent.mkdir(parents=True, exist_ok=True)

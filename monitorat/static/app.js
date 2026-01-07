@@ -97,6 +97,7 @@ monitorAPI.applyWidgetHeader = function applyWidgetHeader (container, options = 
 
 document.addEventListener('DOMContentLoaded', async () => {
   initializeThemeToggle()
+  initializeInfoButton()
   syncPrivacyToggleState()
 
   const config = await loadConfig()
@@ -490,3 +491,122 @@ function toggleTheme () {
   }
 }
 window.toggleTheme = toggleTheme
+
+const COLOR_THEME_STORAGE_KEY = 'monitor-color-theme'
+
+function getStoredColorTheme () {
+  try {
+    return localStorage.getItem(COLOR_THEME_STORAGE_KEY) || 'default'
+  } catch (_) {
+    return 'default'
+  }
+}
+
+function applyColorTheme (themeName) {
+  document.querySelectorAll('link[href*="theme-overlay"], link[data-color-theme]').forEach((link) => link.remove())
+
+  if (themeName !== 'default') {
+    const link = document.createElement('link')
+    link.rel = 'stylesheet'
+    link.href = `themes/${themeName}.css`
+    link.dataset.colorTheme = themeName
+    const defaultTheme = document.querySelector('link[href*="themes/default.css"]')
+    if (defaultTheme && defaultTheme.nextSibling) {
+      defaultTheme.parentNode.insertBefore(link, defaultTheme.nextSibling)
+    } else {
+      document.head.appendChild(link)
+    }
+  }
+
+  try {
+    localStorage.setItem(COLOR_THEME_STORAGE_KEY, themeName)
+  } catch (_) {
+    /* localStorage may be unavailable */
+  }
+}
+
+async function fetchAppInfo () {
+  try {
+    const response = await fetch('api/info', { cache: 'no-store' })
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+    return await response.json()
+  } catch (error) {
+    console.error('Unable to load app info:', error.message)
+    return { version: 'unknown', github: 'https://github.com/brege/monitorat', themes: ['default'] }
+  }
+}
+
+function capitalizeFirst (str) {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+async function showInfoModal () {
+  const info = await fetchAppInfo()
+  const currentColorTheme = getStoredColorTheme()
+
+  const themesHtml = info.themes.map((theme) => {
+    const isSelected = theme === currentColorTheme ? ' selected' : ''
+    const isChecked = theme === currentColorTheme ? ' checked' : ''
+    return `
+      <label class="info-modal-theme${isSelected}">
+        <input type="radio" name="color-theme" value="${theme}"${isChecked}>
+        <span class="info-modal-theme-name">${capitalizeFirst(theme)}</span>
+      </label>
+    `
+  }).join('')
+
+  const githubSvg = '<svg viewBox="0 0 496 512" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>'
+
+  const forkSvg = '<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M21.007 8.222A3.738 3.738 0 0 0 15.045 5.2a3.737 3.737 0 0 0 1.156 6.583 2.988 2.988 0 0 1-2.668 1.67h-2.99a4.456 4.456 0 0 0-2.989 1.165V7.4a3.737 3.737 0 1 0-1.494 0v9.117a3.776 3.776 0 1 0 1.816.099 2.99 2.99 0 0 1 2.668-1.667h2.99a4.484 4.484 0 0 0 4.223-3.039 3.736 3.736 0 0 0 3.25-3.687zM4.565 3.738a2.242 2.242 0 1 1 4.484 0 2.242 2.242 0 0 1-4.484 0zm4.484 16.441a2.242 2.242 0 1 1-4.484 0 2.242 2.242 0 0 1 4.484 0zm8.221-9.715a2.242 2.242 0 1 1 0-4.485 2.242 2.242 0 0 1 0 4.485z"/></svg>'
+
+  const content = `
+    <div class="info-modal-section">
+      <h4>Theme</h4>
+      <div class="info-modal-themes">
+        ${themesHtml}
+      </div>
+    </div>
+    <div class="info-modal-footer-links">
+      <a href="${info.github}" target="_blank" rel="noopener" class="info-modal-link" title="GitHub Repository">
+        ${githubSvg}
+        <span>brege/monitorat</span>
+      </a>
+      <a href="${info.github}/releases/tag/v${info.version}" target="_blank" rel="noopener" class="info-modal-link" title="Release v${info.version}">
+        ${forkSvg}
+        <span>v${info.version}</span>
+      </a>
+    </div>
+  `
+
+  window.Modal.show({
+    title: 'About',
+    content,
+    onClose: () => {}
+  })
+
+  document.querySelectorAll('.info-modal-theme').forEach((label) => {
+    label.addEventListener('click', () => {
+      document.querySelectorAll('.info-modal-theme').forEach((l) => l.classList.remove('selected'))
+      label.classList.add('selected')
+      const radio = label.querySelector('input[type="radio"]')
+      if (radio) {
+        radio.checked = true
+        applyColorTheme(radio.value)
+      }
+    })
+  })
+}
+
+function initializeInfoButton () {
+  const button = document.getElementById('info-button')
+  if (button) {
+    button.addEventListener('click', showInfoModal)
+  }
+
+  const storedColorTheme = getStoredColorTheme()
+  if (storedColorTheme && storedColorTheme !== 'default') {
+    applyColorTheme(storedColorTheme)
+  }
+}
