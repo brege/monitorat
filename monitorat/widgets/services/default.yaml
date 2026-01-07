@@ -5,4 +5,5 @@ widgets:
     hidden: false
     mode: tiles  # tiles | compact
     compact_icon_scale: 1.33
-    items: {}  # { plex: {} ; jellyfin: {} ; ... }
+    uid: 1000
+    items: {}  # { plex: { user: false } ; jellyfin: {} ; ... }

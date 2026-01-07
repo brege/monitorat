@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
 import json
+import logging
+import os
+from pathlib import Path
 import shutil
 import subprocess
-from pathlib import Path
-import logging
 
 from monitor import config, register_snapshot_provider, get_data_path, is_demo_enabled
 
@@ -57,47 +58,59 @@ def get_systemd_status():
     if not services_config:
         return service_statuses
 
-    # Collect all unique services and timers from YAML
-    all_services = set()
-    all_timers = set()
+    user_identifier = config["widgets"]["services"]["uid"].get(int)
+    user_environment = {
+        "XDG_RUNTIME_DIR": f"/run/user/{user_identifier}",
+        "DBUS_SESSION_BUS_ADDRESS": f"unix:path=/run/user/{user_identifier}/bus",
+    }
 
     for service_info in services_config.values():
+        is_user_service = service_info.get("user", False)
+        if not isinstance(is_user_service, bool):
+            raise ValueError("Service entry user flag must be a boolean.")
         if "services" in service_info:
-            all_services.update(service_info["services"])
-
+            for service in service_info["services"]:
+                try:
+                    environment = os.environ.copy()
+                    command = ["systemctl"]
+                    if is_user_service:
+                        command.append("--user")
+                        environment.update(user_environment)
+                    command.extend(["is-active", service])
+                    result = subprocess.run(
+                        command,
+                        env=environment,
+                        capture_output=True,
+                        text=True,
+                        timeout=5,
+                    )
+                    status = result.stdout.strip()
+                    service_statuses[service] = "ok" if status == "active" else "down"
+                except Exception as e:
+                    logger.error(f"Error checking service {service}: {e}")
+                    service_statuses[service] = "unknown"
         if "timers" in service_info:
-            all_timers.update(service_info["timers"])
-
-    # Check services
-    for service in all_services:
-        try:
-            result = subprocess.run(
-                ["systemctl", "is-active", service],
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
-            status = result.stdout.strip()
-            service_statuses[service] = "ok" if status == "active" else "down"
-        except Exception as e:
-            logger.error(f"Error checking service {service}: {e}")
-            service_statuses[service] = "unknown"
-
-    # Check timers
-    for timer in all_timers:
-        try:
-            timer_name = timer if timer.endswith(".timer") else f"{timer}.timer"
-            result = subprocess.run(
-                ["systemctl", "is-active", timer_name],
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
-            status = result.stdout.strip()
-            service_statuses[timer] = "ok" if status == "active" else "down"
-        except Exception as e:
-            logger.error(f"Error checking timer {timer}: {e}")
-            service_statuses[timer] = "unknown"
+            for timer in service_info["timers"]:
+                try:
+                    timer_name = timer if timer.endswith(".timer") else f"{timer}.timer"
+                    environment = os.environ.copy()
+                    command = ["systemctl"]
+                    if is_user_service:
+                        command.append("--user")
+                        environment.update(user_environment)
+                    command.extend(["is-active", timer_name])
+                    result = subprocess.run(
+                        command,
+                        env=environment,
+                        capture_output=True,
+                        text=True,
+                        timeout=5,
+                    )
+                    status = result.stdout.strip()
+                    service_statuses[timer] = "ok" if status == "active" else "down"
+                except Exception as e:
+                    logger.error(f"Error checking timer {timer}: {e}")
+                    service_statuses[timer] = "unknown"
 
     return service_statuses
 

@@ -77,11 +77,11 @@ It's best to checkout [**the demo**](https://monitorat.brege.org) which is a ful
 
 Both the pip and uv installation methods assume you are using a configuration file at `~/.config/monitorat/config.yaml`.
 
-### Installing with uv
+### Installing with Pip or uv
 
 ##### **PyPI**
 
-The simplest way is to install from PyPI:
+**pip**: The simplest way is to install from PyPI:
 ```bash
 pip install monitorat
 monitorat demo --mode simple
