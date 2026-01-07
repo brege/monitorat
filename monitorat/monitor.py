@@ -415,6 +415,41 @@ def favicon():
     return send_from_directory(str(path.parent), path.name)
 
 
+@app.route("/themes/<path:filename>")
+def theme_files(filename):
+    """Serve factory themes from static/themes/."""
+    themes_dir = WWW / "static" / "themes"
+    return send_from_directory(str(themes_dir), filename)
+
+
+@app.route("/theme-overlay.css")
+def theme_overlay_css():
+    """Serve theme overlay (non-default themes) based on site.theme config."""
+    theme_name = config["site"]["theme"].get(str)
+    if not theme_name or theme_name == "default":
+        return "", 404
+    themes_dir = WWW / "static" / "themes"
+    theme_path = themes_dir / f"{theme_name}.css"
+    if theme_path.exists():
+        return send_from_directory(str(themes_dir), f"{theme_name}.css")
+    return "", 404
+
+
+@app.route("/theme.css")
+def theme_css():
+    """Serve user theme override from paths.theme config."""
+    theme_config = config["paths"]["theme"].get()
+    if theme_config is None:
+        return "", 404
+    theme_path = Path(theme_config)
+    if not theme_path.is_absolute():
+        config_dir = Path(config.config_dir())
+        theme_path = config_dir / theme_path
+    if theme_path.exists():
+        return send_from_directory(str(theme_path.parent), theme_path.name)
+    return "", 404
+
+
 @app.route("/img/<path:filename>")
 def img_files(filename):
     img_dir = Path(config["paths"]["img"].as_filename())

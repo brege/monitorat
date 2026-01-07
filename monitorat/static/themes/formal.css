@@ -1,0 +1,335 @@
+/*
+ * Formal Theme for monitorat
+ * A LaTeX/NYTimes-inspired academic look
+ */
+
+:root {
+  --font-heading: "Georgia", "Times New Roman", serif;
+  --font-body: "Georgia", "Times New Roman", serif;
+  --font-ui: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --theme-bg-body-light: rgb(247, 241, 232);
+  --theme-bg-surface-light: rgb(247, 241, 232);
+  --theme-bg-card-light: #f5efe5;
+  --theme-bg-notes-light: rgb(247, 241, 232);
+  --theme-border-muted-light: #e0d9ce;
+  --theme-shadow-strong-light: 0 4px 24px rgba(0, 0, 0, 0.06);
+  --theme-text-primary-light: #1a1a1a;
+  --theme-text-muted-light: #6b6b6b;
+  --theme-text-label-light: #7a7a7a;
+  --theme-text-heading-light: #2c2c2c;
+  --theme-accent-light: #2563eb;
+  --theme-accent-hover-light: #1d4ed8;
+  --theme-accent-disabled-light: #93c5fd;
+  --theme-toggle-bg-light: #f5efe5;
+  --theme-toggle-border-light: #e0d9ce;
+  --theme-toggle-hover-light: #ebe4d8;
+
+  --theme-bg-body-dark: #262624;
+  --theme-bg-surface-dark: #262624;
+  --theme-bg-card-dark: #343432;
+  --theme-bg-notes-dark: #262624;
+  --theme-border-muted-dark: #3d3d3a;
+  --theme-shadow-strong-dark: none;
+  --theme-text-primary-dark: #e8e8e8;
+  --theme-text-muted-dark: #a0a0a0;
+  --theme-text-label-dark: #909090;
+  --theme-text-heading-dark: #f0f0f0;
+  --theme-accent-dark: #60a5fa;
+  --theme-accent-hover-dark: #93c5fd;
+  --theme-accent-disabled-dark: #3b82f6;
+  --theme-toggle-bg-dark: #30302e;
+  --theme-toggle-border-dark: #3d3d3a;
+  --theme-toggle-hover-dark: #3a3a38;
+
+  --status-ok-rgb: 22, 163, 74;
+  --status-warn-rgb: 202, 138, 4;
+  --status-critical-rgb: 220, 38, 38;
+  --status-unknown-rgb: 156, 163, 175;
+
+  --chart-series-1: #1e40af;
+  --chart-series-2: #166534;
+  --chart-series-3: #92400e;
+  --chart-series-4: #991b1b;
+  --chart-series-5: #5b21b6;
+  --chart-series-6: #115e59;
+
+  --color-ghost-rgb: 120, 120, 120;
+  --color-ghost: rgba(var(--color-ghost-rgb), 0.25);
+  --color-ghost-light: rgba(var(--color-ghost-rgb), 0.06);
+
+  --button-text: #ffffff;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.widget-title {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 1.6rem;
+  letter-spacing: 0.02em;
+}
+
+.markdown-body {
+  font-family: var(--font-body);
+  font-size: 1.15rem;
+  line-height: 1.8;
+  letter-spacing: 0.01em;
+}
+
+.markdown-body p {
+  margin-bottom: 1.25em;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.markdown-body h1 {
+  font-size: 2em;
+  font-weight: 300;
+}
+
+.markdown-body h2 {
+  font-size: 1.6em;
+}
+
+.markdown-body h3 {
+  font-size: 1.3em;
+}
+
+.markdown-body code,
+.markdown-body pre {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.markdown-body blockquote {
+  font-style: italic;
+  border-left: 3px solid var(--border-muted);
+  padding-left: 1.25em;
+  margin-left: 0;
+  color: var(--text-muted);
+}
+
+.stat .label {
+  font-family: var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+
+.stat .value {
+  font-family: var(--font-ui);
+  font-weight: 500;
+}
+
+.stat {
+  border-radius: 4px;
+}
+
+.card {
+  border-radius: 4px;
+}
+
+main {
+  border-radius: 6px;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.05);
+}
+
+button {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  border-radius: 4px;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  padding: 10px 20px;
+}
+
+.control-btn {
+  border-radius: 4px;
+}
+
+table {
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+}
+
+th {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--text-label);
+  background: transparent;
+  border-bottom: 2px solid var(--border-muted);
+}
+
+td {
+  border-bottom: 1px solid var(--border-muted);
+  padding: 12px 8px;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+th {
+  background: var(--bg-card);
+}
+
+td {
+  background: var(--bg-surface);
+}
+
+tr:nth-child(even) td {
+  background: var(--bg-card);
+}
+
+.markdown-body pre,
+.markdown-body code {
+  background: #faf9f5;
+}
+
+:root[data-theme="dark"] .markdown-body pre,
+:root[data-theme="dark"] .markdown-body code {
+  background: #3a3a38;
+}
+
+:root[data-theme="dark"] th {
+  background: #3a3a38;
+}
+
+.service-card,
+.reminder-alert {
+  border-radius: 4px;
+  border-left-width: 3px;
+}
+
+.service-name,
+.reminder-name {
+  font-family: var(--font-ui);
+  font-weight: 500;
+}
+
+.header-anchor {
+  font-family: var(--font-ui);
+  opacity: 0.4;
+}
+
+.alerts-toggle {
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.muted {
+  font-family: var(--font-ui);
+}
+
+.federation-source-badge {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+
+.federation-source-header {
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  margin: 4px 0 0 0;
+}
+
+/* Alert cards (reminders, outages) - softer styling */
+.alert-card,
+.reminder-alert,
+.network-container .alert {
+  border-radius: 4px;
+  border-left-width: 3px;
+}
+
+.alert-list {
+  gap: 8px;
+}
+
+/* Details/summary toggle - sans font */
+details,
+summary,
+.alerts-toggle {
+  font-family: var(--font-ui);
+}
+
+summary {
+  font-weight: 500;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+/* Network uptime pills - circular dots on a line */
+.network-container .uptime-pills {
+  display: flex !important;
+  gap: 0 !important;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+
+.network-container .uptime-pills::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border-muted);
+  z-index: 0;
+}
+
+.network-container .uptime-pill {
+  height: 10px !important;
+  width: 10px !important;
+  min-width: 10px !important;
+  max-width: 10px !important;
+  border-radius: 50% !important;
+  flex-shrink: 0;
+  flex-grow: 0;
+  position: relative;
+  z-index: 1;
+}
+
+
+/* Remove top margin from first element in wiki columns */
+.federation-column .markdown-body :first-child,
+.wiki-source-content .markdown-body :first-child {
+  margin-top: 0 !important;
+}

@@ -5,6 +5,7 @@ site:
   name: monitor@
   title: System Monitor
   base_url: http://localhost:6161
+  theme: default # default | formal
 # all paths relative to monitorat config dir (~/.config/monitorat/)
 # absolute paths also supported
 paths:
@@ -13,6 +14,7 @@ paths:
   favicon: favicon.ico
   vendors: vendors/
   widgets: [widgets/]
+  theme: null  # your themes/minimal.css. applies on top of site.theme
 notifications:
   apprise_urls: []
 auth:

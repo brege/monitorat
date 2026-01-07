@@ -6,11 +6,14 @@
 - Expanded schema for services widget to cover more status cases
 - Added toggle for local vs. CDN external JS/CSS (needed for demo on production)
 - Caught up scattered ghost colors and theme leakage in JS
+- Added a formal.css theme for a Latex/Jorunal look
+- Gave users a theming key in config.yaml so they can change or layer on top of the factory themes
 
 ### 2026-01-06
 
 - Added an installation guide for Docker
 - Improved all installation-related documentation
+- Modernized screenshots in README to reflect new capabilities like federation
 - Bumped version to v0.9.3
 
 ### 2026-01-05
