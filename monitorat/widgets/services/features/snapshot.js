@@ -173,7 +173,13 @@ class ServicesSnapshot {
       card.appendChild(statusDot)
     }
 
+    let longPressTriggered = false
+
     card.addEventListener('click', (event) => {
+      if (longPressTriggered) {
+        longPressTriggered = false
+        return
+      }
       const useLocal = event.shiftKey && (event.ctrlKey || event.metaKey)
       const url = useLocal ? (service.local || service.url) : service.url
       if (url) {
@@ -181,7 +187,68 @@ class ServicesSnapshot {
       }
     })
 
+    let longPressTimer = null
+    const longPressDelay = 500
+
+    const cancelLongPress = () => {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer)
+        longPressTimer = null
+      }
+    }
+
+    card.addEventListener('touchstart', (event) => {
+      longPressTriggered = false
+      longPressTimer = setTimeout(() => {
+        longPressTriggered = true
+        this.showUrlPickerModal(service)
+      }, longPressDelay)
+    }, { passive: true })
+
+    card.addEventListener('touchend', cancelLongPress)
+    card.addEventListener('touchmove', cancelLongPress)
+    card.addEventListener('touchcancel', cancelLongPress)
+
     return card
+  }
+
+  showUrlPickerModal (service) {
+    const hasLocal = service.local && service.local !== service.url
+    const imgBase = service._source
+      ? `api/proxy/${service._source}/img`
+      : this.widget.getImgBase()
+
+    const content = `
+      <div class="url-picker-service">
+        <img src="${imgBase}/${service.icon}" alt="${service.name}" class="url-picker-icon">
+        <span class="url-picker-name">${service.name}</span>
+      </div>
+      <div class="url-picker-buttons">
+        <button type="button" class="url-picker-btn url-picker-external" data-url="${service.url}">
+          Open External
+        </button>
+        ${hasLocal ? `
+        <button type="button" class="url-picker-btn url-picker-local" data-url="${service.local}">
+          Open Local
+        </button>
+        ` : ''}
+      </div>
+    `
+
+    window.Modal.show({
+      title: 'Open Service',
+      content: content
+    })
+
+    document.querySelectorAll('.url-picker-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const url = btn.dataset.url
+        if (url) {
+          window.open(url, '_blank')
+        }
+        window.Modal.hide()
+      })
+    })
   }
 
   updateStatus () {

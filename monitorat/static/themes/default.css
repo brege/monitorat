@@ -887,3 +887,60 @@ tr:last-child td {
   height: 18px;
   flex-shrink: 0;
 }
+
+/* URL Picker Modal (Service Long-Press) */
+.url-picker-service {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.url-picker-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+}
+
+.url-picker-name {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.url-picker-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.url-picker-btn {
+  padding: 14px 20px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border-muted);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.url-picker-btn:hover {
+  background: var(--bg-surface);
+}
+
+.url-picker-btn:active {
+  transform: scale(0.98);
+}
+
+.url-picker-external {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--button-text);
+}
+
+.url-picker-external:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
