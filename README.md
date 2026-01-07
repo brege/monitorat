@@ -81,11 +81,19 @@ Both the pip and uv installation methods assume you are using a configuration fi
 
 ##### **PyPI**
 
-The simplest way is to install from PyPI.
+The simplest way is to install from PyPI:
+```bash
+pip install monitorat
+monitorat demo --mode simple
+```
+
+I like [uv](https://github.com/astral-sh/uv):
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 uv tool install monitorat
+monitorat demo  # --mode [simple|advanced|federation]
 ```
+Then open a browser at http://localhost:6100.
 
 ##### **From Source**
 

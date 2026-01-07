@@ -3,11 +3,12 @@
 Launcher for the monitorat demos (simple, advanced, federation).
 
 Usage:
-    python demo/launcher.py                          # Start simple demo
-    python demo/launcher.py --mode advanced          # Start advanced demo
-    python demo/launcher.py --mode federation        # Start federation demo
-    python demo/launcher.py --background             # Daemonize
-    python demo/launcher.py --stop                   # Stop all demo servers
+    python demo/launcher.py                 # Start simple demo
+    monitorat demo                          # (same as above)
+    monitorat demo --mode advanced          # Start advanced demo
+    monitorat demo --mode federation        # Start federation demo
+    monitorat demo --background             # Daemonize
+    monitorat demo --stop                   # Stop all demo servers
 """
 
 import argparse
@@ -220,7 +221,7 @@ def print_banner(nodes: list[dict], background: bool = False):
     print()
     if background:
         print("Servers running in background.")
-        print("Use 'python demo/launcher.py --stop' to stop.")
+        print("Use 'monitorat demo --stop' to stop.")
     else:
         print("Press Ctrl+C to stop all servers")
     print("=" * 60 + "\n")
