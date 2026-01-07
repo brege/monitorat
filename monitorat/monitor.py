@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from flask import Flask, send_from_directory, jsonify, request, Response
+from flask import Flask, send_from_directory, jsonify, request, Response, redirect
 from pathlib import Path
 from urllib.request import urlretrieve
 from datetime import datetime, timedelta, timezone
@@ -228,7 +228,10 @@ def strip_source_map_reference(path: Path) -> None:
 
 
 def ensure_vendors():
-    vendors_path = Path(config["paths"]["vendors"].as_filename())
+    vendors_config = config["paths"]["vendors"].get()
+    if vendors_config is None:
+        return
+    vendors_path = Path(vendors_config) if vendors_config else Path("vendors/")
     if not vendors_path.is_absolute():
         vendors_path = Path(__file__).parent / vendors_path
     vendors_path.mkdir(exist_ok=True, parents=True)
@@ -428,7 +431,13 @@ def docs_files(filename):
 
 @app.route("/vendors/<path:filename>")
 def vendor_files(filename):
-    vendors_path = Path(config["paths"]["vendors"].as_filename())
+    vendors_config = config["paths"]["vendors"].get()
+    if vendors_config is None:
+        url = VENDOR_URLS.get(filename)
+        if url:
+            return redirect(url, code=307)
+        return jsonify({"error": f"Vendor '{filename}' not found"}), 404
+    vendors_path = Path(vendors_config) if vendors_config else Path("vendors/")
     if not vendors_path.is_absolute():
         vendors_path = Path(__file__).parent / vendors_path
     return send_from_directory(str(vendors_path), filename)

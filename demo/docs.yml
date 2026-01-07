@@ -57,7 +57,7 @@ documents:
       - **Monitorat** - [https://monitorat.brege.org](https://monitorat.brege.org) (c) 2025-2026 GPL-3.0
       - **Wyatt Brege** - [https://brege.org](https://brege.org)
       - **GitHub** - [https://github.com/brege](https://github.com/brege)
-      - **Mastoodon** - [https://mastodon.social/@brege](https://mastodon.social/@brege)
+      - **Mastodon** - [https://mastodon.social/@brege](https://mastodon.social/@brege)
     
     include: snippets/quick-links.yaml
     show_config: false
@@ -150,7 +150,7 @@ documents:
       - **Monitorat** - [https://monitorat.brege.org](https://monitorat.brege.org) (c) 2025-2026 GPL-3.0
       - **Wyatt Brege** - [https://brege.org](https://brege.org)
       - **GitHub** - [https://github.com/brege](https://github.com/brege)
-      - **Mastoodon** - [https://mastodon.social/@brege](https://mastodon.social/@brege)
+      - **Mastodon** - [https://mastodon.social/@brege](https://mastodon.social/@brege)
 
     include: snippets/wiki/quick-links.yaml
     show_config: false
@@ -239,7 +239,7 @@ documents:
       - **Monitorat** - [https://monitorat.brege.org](https://monitorat.brege.org) (c) 2025-2026 GPL-3.0
       - **Wyatt Brege** - [https://brege.org](https://brege.org)
       - **GitHub** - [https://github.com/brege](https://github.com/brege)
-      - **Mastoodon** - [https://mastodon.social/@brege](https://mastodon.social/@brege)
+      - **Mastodon** - [https://mastodon.social/@brege](https://mastodon.social/@brege)
 
     include: snippets/wiki/quick-links.yaml
     show_config: false

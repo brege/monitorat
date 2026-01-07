@@ -15,6 +15,7 @@ paths:
   data: data/
   img: img/
   favicon: img/favicon.svg
+  vendors: vendors/ # use 'null' to use CDNs
 widgets:
   enabled:
     - wiki
