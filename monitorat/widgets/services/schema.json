@@ -5,6 +5,43 @@
     "label": "Services",
     "emptyMessage": "No services configured."
   },
+  "status": {
+    "default": "unknown",
+    "order": ["ok", "unknown", "missing", "down", "error"],
+    "severity": ["ok", "unknown", "missing", "down", "error"],
+    "labels": {
+      "ok": "Running",
+      "down": "Stopped",
+      "unknown": "Unknown",
+      "missing": "Missing",
+      "error": "Error"
+    },
+    "classes": {
+      "ok": "status-ok",
+      "unknown": "status-unknown",
+      "missing": "status-unknown",
+      "down": "status-down",
+      "error": "status-warn"
+    },
+    "docker": {
+      "running": { "status": "ok" },
+      "not_running": { "status": "down" },
+      "missing": { "status": "missing", "reason": "Container not found" },
+      "unavailable": { "status": "error", "reason": "Docker unavailable" }
+    },
+    "systemd": {
+      "returncodes": {
+        "0": { "status": "ok" },
+        "3": { "status": "down" },
+        "4": { "status": "missing", "reason": "Unit not found" },
+        "1": { "status": "error" }
+      },
+      "stderrContains": {
+        "failed to connect": { "status": "error", "reason": "Failed to connect to bus" },
+        "no such file or directory": { "status": "error", "reason": "No such file or directory" }
+      }
+    }
+  },
   "fields": [
     { "field": "name", "label": "Service Name" },
     { "field": "status", "label": "Status", "values": ["online", "offline", "partial", "unknown"] },

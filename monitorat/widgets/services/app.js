@@ -4,6 +4,7 @@ class ServicesWidget {
     this.container = null
     this.servicesData = []
     this.statusBySource = {}
+    this.statusSchema = null
     this.config = config
     this.features = {
       controls: null,
@@ -40,7 +41,10 @@ class ServicesWidget {
     const [field, direction] = sortBy.split('.')
     const ascending = direction !== 'desc'
 
-    const statusOrder = { ok: 0, unknown: 1, down: 2 }
+    const statusOrder = this.getStatusOrder().reduce((accumulator, status, index) => {
+      accumulator[status] = index
+      return accumulator
+    }, {})
 
     return [...services].sort((a, b) => {
       let valueA, valueB
@@ -75,13 +79,22 @@ class ServicesWidget {
       ...(service.timers || [])
     ]
 
+    if (checks.length === 0) return 'ok'
+
+    const severityOrder = this.getStatusSeverity()
+    let worstStatus = 'ok'
+    let worstIndex = this.getStatusRank(worstStatus, severityOrder)
+
     for (const check of checks) {
-      if (statusData[check] === 'down') return 'down'
+      const entry = this.getStatusEntry(statusData, check)
+      const statusIndex = this.getStatusRank(entry.status, severityOrder)
+      if (statusIndex > worstIndex) {
+        worstStatus = entry.status
+        worstIndex = statusIndex
+      }
     }
-    for (const check of checks) {
-      if (statusData[check] === 'unknown') return 'unknown'
-    }
-    return 'ok'
+
+    return worstStatus
   }
 
   async init (container, config = {}) {
@@ -103,6 +116,7 @@ class ServicesWidget {
     await this.loadFeatureScripts()
     this.initializeFeatures()
     this.features.controls.initialize()
+    await this.loadSchema()
     await this.loadData()
   }
 
@@ -125,6 +139,48 @@ class ServicesWidget {
     } catch (error) {
       console.error('Unable to load services:', error.message)
     }
+  }
+
+  async loadSchema () {
+    const response = await fetch(`${this.getApiBase()}/schema`)
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
+    const schema = await response.json()
+    this.statusSchema = schema
+  }
+
+  getStatusConfig () {
+    return this.statusSchema.status
+  }
+
+  getStatusDefault () {
+    return this.getStatusConfig().default
+  }
+
+  getStatusOrder () {
+    return this.getStatusConfig().order
+  }
+
+  getStatusSeverity () {
+    return this.getStatusConfig().severity
+  }
+
+  getStatusLabel (status) {
+    return this.getStatusConfig().labels[status]
+  }
+
+  getStatusClass (status) {
+    return this.getStatusConfig().classes[status]
+  }
+
+  getStatusRank (status, order) {
+    return order.indexOf(status)
+  }
+
+  getStatusEntry (statusData, key) {
+    const entry = statusData[key]
+    return entry || { status: this.getStatusDefault(), reason: null }
   }
 
   async loadServices () {

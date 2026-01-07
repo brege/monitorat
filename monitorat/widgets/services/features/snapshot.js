@@ -197,46 +197,62 @@ class ServicesSnapshot {
         ? (this.widget.statusBySource[service._source] || {})
         : (this.widget.statusBySource._local || {})
 
+      const severityOrder = this.widget.getStatusSeverity()
       let overallStatus = 'ok'
+      let worstIndex = this.widget.getStatusRank(overallStatus, severityOrder)
       const statusParts = []
 
       if (service.containers) {
         service.containers.forEach(container => {
-          const status = statusData[container]
-          if (status === 'down') overallStatus = 'down'
-          else if (status === 'unknown' && overallStatus === 'ok') overallStatus = 'unknown'
-          statusParts.push(`${container}: ${status || 'unknown'}`)
+          const entry = this.widget.getStatusEntry(statusData, container)
+          const statusIndex = this.widget.getStatusRank(entry.status, severityOrder)
+          if (statusIndex > worstIndex) {
+            overallStatus = entry.status
+            worstIndex = statusIndex
+          }
+          const label = this.widget.getStatusLabel(entry.status)
+          const reasonText = entry.reason ? ` (${entry.reason})` : ''
+          statusParts.push(`${container}: ${label}${reasonText}`)
         })
       }
 
       if (service.services) {
         service.services.forEach(serviceName => {
-          const status = statusData[serviceName]
-          if (status === 'down') overallStatus = 'down'
-          else if (status === 'unknown' && overallStatus === 'ok') overallStatus = 'unknown'
-          statusParts.push(`${serviceName}: ${status || 'unknown'}`)
+          const entry = this.widget.getStatusEntry(statusData, serviceName)
+          const statusIndex = this.widget.getStatusRank(entry.status, severityOrder)
+          if (statusIndex > worstIndex) {
+            overallStatus = entry.status
+            worstIndex = statusIndex
+          }
+          const label = this.widget.getStatusLabel(entry.status)
+          const reasonText = entry.reason ? ` (${entry.reason})` : ''
+          statusParts.push(`${serviceName}: ${label}${reasonText}`)
         })
       }
 
       if (service.timers) {
         service.timers.forEach(timer => {
-          const status = statusData[timer]
-          if (status === 'down') overallStatus = 'down'
-          else if (status === 'unknown' && overallStatus === 'ok') overallStatus = 'unknown'
-          statusParts.push(`${timer}: ${status || 'unknown'}`)
+          const entry = this.widget.getStatusEntry(statusData, timer)
+          const statusIndex = this.widget.getStatusRank(entry.status, severityOrder)
+          if (statusIndex > worstIndex) {
+            overallStatus = entry.status
+            worstIndex = statusIndex
+          }
+          const label = this.widget.getStatusLabel(entry.status)
+          const reasonText = entry.reason ? ` (${entry.reason})` : ''
+          statusParts.push(`${timer}: ${label}${reasonText}`)
         })
       }
 
       const hasBadge = card.classList.contains('has-badge')
       const isCompact = card.classList.contains('compact')
       const baseClass = isCompact ? 'service-card compact' : 'service-card card status-card'
-      card.className = `${baseClass}${hasBadge ? ' has-badge' : ''} status-${overallStatus}`
+      const statusClass = this.widget.getStatusClass(overallStatus)
+      card.className = `${baseClass}${hasBadge ? ' has-badge' : ''} ${statusClass}`
 
       const statusTextElement = card.querySelector('.service-status')
       if (statusTextElement) {
-        statusTextElement.textContent = overallStatus === 'ok'
-          ? 'Running'
-          : overallStatus === 'down' ? 'Stopped' : 'Unknown'
+        statusTextElement.textContent = this.widget.getStatusLabel(overallStatus)
       }
 
       const clickTip = `Click: ${service.url}\nCtrl+Shift+Click: ${service.local || service.url}`

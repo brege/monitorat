@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+from functools import lru_cache
 from pathlib import Path
 import shutil
 import subprocess
@@ -18,14 +19,38 @@ def services_items():
     return config["widgets"]["services"]["items"].get(dict)
 
 
-def get_docker_status():
+@lru_cache(maxsize=1)
+def load_status_schema() -> dict:
+    schema_path = Path(__file__).parent / "schema.json"
+    return json.loads(schema_path.read_text(encoding="utf-8"))["status"]
+
+
+def build_status_entry(entry: dict, reason: str | None = None) -> dict:
+    status = entry["status"]
+    entry_reason = entry.get("reason")
+    return {"status": status, "reason": reason if reason is not None else entry_reason}
+
+
+def get_docker_status(services_config: dict) -> dict:
     """Get status of Docker containers"""
     container_statuses = {}
+    configured_containers = []
+    for service_info in services_config.values():
+        containers = service_info.get("containers")
+        if containers:
+            configured_containers.extend(containers)
 
     # Check if docker is available before trying to run commands
+    if not configured_containers:
+        return container_statuses
 
     if not shutil.which("docker"):
         logger.debug("Docker not available in PATH, skipping Docker status check")
+        status_schema = load_status_schema()
+        docker_schema = status_schema["docker"]
+        unavailable_entry = docker_schema["unavailable"]
+        for container_name in configured_containers:
+            container_statuses[container_name] = build_status_entry(unavailable_entry)
         return container_statuses
 
     try:
@@ -36,16 +61,45 @@ def get_docker_status():
             timeout=10,
         )
 
-        if result.returncode == 0:
-            for line in result.stdout.strip().split("\n"):
-                if "\t" in line:
-                    name, state = line.split("\t", 1)
-                    container_statuses[name] = (
-                        "ok" if "running" in state.lower() else "down"
-                    )
+        status_schema = load_status_schema()
+        docker_schema = status_schema["docker"]
+        running_entry = docker_schema["running"]
+        not_running_entry = docker_schema["not_running"]
+        missing_entry = docker_schema["missing"]
+        unavailable_entry = docker_schema["unavailable"]
 
-    except Exception as e:
-        logger.error(f"Docker command exception: {e}")
+        if result.returncode != 0:
+            reason = result.stderr.strip() or None
+            for container_name in configured_containers:
+                container_statuses[container_name] = build_status_entry(
+                    unavailable_entry, reason=reason
+                )
+            return container_statuses
+
+        observed_states = {}
+        for line in result.stdout.strip().split("\n"):
+            if "\t" in line:
+                name, state = line.split("\t", 1)
+                observed_states[name] = state.strip().lower()
+
+        for container_name in configured_containers:
+            state = observed_states.get(container_name)
+            if state is None:
+                container_statuses[container_name] = build_status_entry(missing_entry)
+            elif "running" in state:
+                container_statuses[container_name] = build_status_entry(running_entry)
+            else:
+                container_statuses[container_name] = build_status_entry(
+                    not_running_entry
+                )
+
+    except Exception as exception:
+        logger.error(f"Docker command exception: {exception}")
+        status_schema = load_status_schema()
+        docker_schema = status_schema["docker"]
+        unavailable_entry = docker_schema["unavailable"]
+        for container_name in configured_containers:
+            container_statuses[container_name] = build_status_entry(unavailable_entry)
 
     return container_statuses
 
@@ -57,6 +111,12 @@ def get_systemd_status():
     services_config = services_items()
     if not services_config:
         return service_statuses
+
+    status_schema = load_status_schema()
+    systemd_schema = status_schema["systemd"]
+    returncode_map = systemd_schema["returncodes"]
+    stderr_contains = systemd_schema["stderrContains"]
+    error_entry = returncode_map["1"]
 
     user_identifier = config["widgets"]["services"]["uid"].get(int)
     user_environment = {
@@ -84,11 +144,26 @@ def get_systemd_status():
                         text=True,
                         timeout=5,
                     )
-                    status = result.stdout.strip()
-                    service_statuses[service] = "ok" if status == "active" else "down"
-                except Exception as e:
-                    logger.error(f"Error checking service {service}: {e}")
-                    service_statuses[service] = "unknown"
+                    returncode_key = str(result.returncode)
+                    entry = returncode_map.get(returncode_key)
+                    stderr_text = result.stderr.strip()
+                    stderr_lower = stderr_text.lower()
+                    override_entry = None
+                    for needle, mapping_entry in stderr_contains.items():
+                        if needle in stderr_lower:
+                            override_entry = mapping_entry
+                            break
+                    if override_entry is not None:
+                        entry = override_entry
+                    reason = stderr_text or None
+                    service_statuses[service] = build_status_entry(
+                        entry or error_entry, reason=reason
+                    )
+                except Exception as exception:
+                    logger.error(f"Error checking service {service}: {exception}")
+                    service_statuses[service] = build_status_entry(
+                        error_entry, reason=str(exception)
+                    )
         if "timers" in service_info:
             for timer in service_info["timers"]:
                 try:
@@ -106,11 +181,26 @@ def get_systemd_status():
                         text=True,
                         timeout=5,
                     )
-                    status = result.stdout.strip()
-                    service_statuses[timer] = "ok" if status == "active" else "down"
-                except Exception as e:
-                    logger.error(f"Error checking timer {timer}: {e}")
-                    service_statuses[timer] = "unknown"
+                    returncode_key = str(result.returncode)
+                    entry = returncode_map.get(returncode_key)
+                    stderr_text = result.stderr.strip()
+                    stderr_lower = stderr_text.lower()
+                    override_entry = None
+                    for needle, mapping_entry in stderr_contains.items():
+                        if needle in stderr_lower:
+                            override_entry = mapping_entry
+                            break
+                    if override_entry is not None:
+                        entry = override_entry
+                    reason = stderr_text or None
+                    service_statuses[timer] = build_status_entry(
+                        entry or error_entry, reason=reason
+                    )
+                except Exception as exception:
+                    logger.error(f"Error checking timer {timer}: {exception}")
+                    service_statuses[timer] = build_status_entry(
+                        error_entry, reason=str(exception)
+                    )
 
     return service_statuses
 
@@ -136,7 +226,8 @@ def get_service_status():
             raise KeyError("Missing services snapshot")
         return snapshot_payload["services"]
 
-    docker_status = get_docker_status()
+    services_config = services_items()
+    docker_status = get_docker_status(services_config)
     systemd_status = get_systemd_status()
 
     # Combine both status dictionaries
