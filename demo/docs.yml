@@ -52,8 +52,15 @@ documents:
       ### Repositories
       - **GitHub** - [https://github.com/brege/monitorat](https://github.com/brege/monitorat)
       - **PyPI** - [https://pypi.org/project/monitorat](https://pypi.org/project/monitorat) `uv tool install monitorat`
-    show_config: false
+      
+      ### About
+      - **Monitorat** - [https://monitorat.brege.org](https://monitorat.brege.org) (c) 2025-2026 GPL-3.0
+      - **Wyatt Brege** - [https://brege.org](https://brege.org)
+      - **GitHub** - [https://github.com/brege](https://github.com/brege)
+      - **Mastoodon** - [https://mastodon.social/@brege](https://mastodon.social/@brege)
+    
     include: snippets/quick-links.yaml
+    show_config: false
   - output: demo/advanced/docs/metrics/full.md
     preface: Full metrics widget with custom chart periods.
     include: snippets/metrics/full.yaml
@@ -138,6 +145,13 @@ documents:
       ### Repositories
       - **GitHub** - [https://github.com/brege/monitorat](https://github.com/brege/monitorat)
       - **PyPI** - [https://pypi.org/project/monitorat](https://pypi.org/project/monitorat) `uv tool install monitorat`
+
+      ### About
+      - **Monitorat** - [https://monitorat.brege.org](https://monitorat.brege.org) (c) 2025-2026 GPL-3.0
+      - **Wyatt Brege** - [https://brege.org](https://brege.org)
+      - **GitHub** - [https://github.com/brege](https://github.com/brege)
+      - **Mastoodon** - [https://mastodon.social/@brege](https://mastodon.social/@brege)
+
     include: snippets/wiki/quick-links.yaml
     show_config: false
   - output: demo/federation/central/docs/wiki/each.md
@@ -220,5 +234,12 @@ documents:
       ### Repositories
       - [**NEXT UP:**](https://github.com/brege/monitorat) **GitHub** - [https://github.com/brege/monitorat](https://github.com/brege/monitorat)
       - **PyPI** - [https://pypi.org/project/monitorat](https://pypi.org/project/monitorat) `uv tool install monitorat`
+
+      ### About
+      - **Monitorat** - [https://monitorat.brege.org](https://monitorat.brege.org) (c) 2025-2026 GPL-3.0
+      - **Wyatt Brege** - [https://brege.org](https://brege.org)
+      - **GitHub** - [https://github.com/brege](https://github.com/brege)
+      - **Mastoodon** - [https://mastodon.social/@brege](https://mastodon.social/@brege)
+
     include: snippets/wiki/quick-links.yaml
     show_config: false

@@ -134,7 +134,13 @@ def generate_docs(manifest_path: Path) -> None:
             raise ValueError(f"Output path escapes repo root: {output_path}")
         resolved_path.parent.mkdir(parents=True, exist_ok=True)
         content = render_document(doc, defaults)
+        existed = resolved_path.exists()
+        if existed and resolved_path.read_text(encoding="utf-8") == content:
+            continue
         resolved_path.write_text(content, encoding="utf-8")
+        label = "updated" if existed else "added"
+        display_path = output_path if not output_path.is_absolute() else resolved_path
+        print(f"{label}: {display_path}")
 
 
 def main() -> int:
