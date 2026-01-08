@@ -98,7 +98,8 @@ class RemindersAlerts {
     const content = document.createElement('div')
     content.className = 'reminder-alert-content'
 
-    const leftDiv = document.createElement('div')
+    const textDiv = document.createElement('div')
+    textDiv.className = 'reminder-alert-text'
 
     const nameDiv = document.createElement('div')
     nameDiv.className = 'reminder-alert-name'
@@ -108,9 +109,9 @@ class RemindersAlerts {
     descDiv.className = 'reminder-alert-description'
     descDiv.textContent = reminder.reason || ''
 
-    leftDiv.appendChild(nameDiv)
+    textDiv.appendChild(nameDiv)
     if (reminder.reason) {
-      leftDiv.appendChild(descDiv)
+      textDiv.appendChild(descDiv)
     }
 
     const statsDiv = document.createElement('div')
@@ -135,7 +136,7 @@ class RemindersAlerts {
     statsDiv.appendChild(daysSpan)
     statsDiv.appendChild(lastTouchSpan)
 
-    content.appendChild(leftDiv)
+    content.appendChild(textDiv)
     content.appendChild(statsDiv)
 
     alertElement.appendChild(icon)

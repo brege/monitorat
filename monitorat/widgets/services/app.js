@@ -180,7 +180,13 @@ class ServicesWidget {
 
   getStatusEntry (statusData, key) {
     const entry = statusData[key]
-    return entry || { status: this.getStatusDefault(), reason: null }
+    if (!entry) {
+      return { status: this.getStatusDefault(), reason: null }
+    }
+    if (typeof entry === 'string') {
+      return { status: entry, reason: null }
+    }
+    return entry
   }
 
   async loadServices () {

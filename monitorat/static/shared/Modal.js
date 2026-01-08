@@ -69,7 +69,7 @@ window.Modal = (function () {
 
     container.innerHTML = html
 
-    if (typeof content === 'object' && content instanceof HTMLElement) {
+    if (content && typeof content === 'object' && content.nodeType === 1) {
       container.querySelector('.modal-body').appendChild(content)
     }
 

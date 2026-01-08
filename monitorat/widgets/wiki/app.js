@@ -81,6 +81,7 @@ class WikiWidget {
       const notesElement = this.container.querySelector('#about-notes')
       if (notesElement) {
         notesElement.innerHTML = md.render(text)
+        this.wrapTables(notesElement)
         this.renderMermaid(notesElement)
       }
     } catch (error) {
@@ -120,6 +121,17 @@ class WikiWidget {
     }
 
     this.renderMermaid(notesElement)
+  }
+
+  wrapTables (container) {
+    const tables = container.querySelectorAll('table')
+    tables.forEach(table => {
+      if (table.parentElement?.classList.contains('table-wrapper')) return
+      const wrapper = document.createElement('div')
+      wrapper.className = 'table-wrapper'
+      table.parentNode.insertBefore(wrapper, table)
+      wrapper.appendChild(table)
+    })
   }
 
   renderMermaid (notesElement) {
@@ -185,6 +197,7 @@ class WikiWidget {
       content.className = 'wiki-source-content'
       if (result.content) {
         content.innerHTML = md.render(result.content)
+        this.wrapTables(content)
       } else {
         content.innerHTML = `<p class="muted">Unable to load: ${result.error}</p>`
       }
@@ -216,6 +229,7 @@ class WikiWidget {
       content.className = 'wiki-source-content'
       if (result.content) {
         content.innerHTML = md.render(result.content)
+        this.wrapTables(content)
       } else {
         content.innerHTML = `<p class="muted">Unable to load: ${result.error}</p>`
       }

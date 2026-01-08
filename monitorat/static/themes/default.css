@@ -201,6 +201,7 @@ body {
   background: var(--bg-body);
   color: var(--text-primary);
   position: relative;
+  overflow-x: hidden;
 }
 
 main {
@@ -210,12 +211,15 @@ main {
   background: var(--bg-surface);
   border-radius: 12px;
   box-shadow: var(--shadow-strong);
+  overflow: hidden;
 }
 
 .header-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
   margin-bottom: 16px;
 }
 
@@ -541,10 +545,16 @@ h6:hover .header-anchor {
   justify-content: space-between;
 }
 
+.table-wrapper {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
 table {
   width: 100%;
   margin-top: 12px;
   border-collapse: collapse;
+  min-width: max-content;
 }
 
 th,
@@ -553,6 +563,7 @@ td {
   font-size: 0.9rem;
   text-align: left;
   border-bottom: 1px solid var(--border-muted);
+  white-space: nowrap;
 }
 
 th {
@@ -566,6 +577,10 @@ tr:last-child td {
 }
 .markdown-body img {
   border-radius: 12px;
+}
+
+.notes .markdown-body table {
+  min-width: max-content;
 }
 .alerts-toggle:hover {
   background: none !important;

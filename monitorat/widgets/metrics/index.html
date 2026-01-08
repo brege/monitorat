@@ -11,7 +11,8 @@
 }
 .metrics-view-toggle {
   display: flex;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
   margin-bottom: 1rem;
   align-items: center;
 }
@@ -82,24 +83,26 @@
   
   <div data-metrics="table-container" style="display: none;">
     <p class="muted" data-metrics="history-status">Loading metrics history…</p>
-    <table>
-      <thead>
-        <tr>
-          <th>Timestamp</th>
-          <th>CPU %</th>
-          <th>Memory %</th>
-          <th>Disk Read MB/min</th>
-          <th>Disk Write MB/min</th>
-          <th>Net RX MB/min</th>
-          <th>Net TX MB/min</th>
-          <th>Load</th>
-          <th>Temp °C</th>
-          <th>Battery %</th>
-          <th>Source</th>
-        </tr>
-      </thead>
-      <tbody data-metrics="rows"></tbody>
-    </table>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>CPU %</th>
+            <th>Memory %</th>
+            <th>Disk Read MB/min</th>
+            <th>Disk Write MB/min</th>
+            <th>Net RX MB/min</th>
+            <th>Net TX MB/min</th>
+            <th>Load</th>
+            <th>Temp °C</th>
+            <th>Battery %</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody data-metrics="rows"></tbody>
+      </table>
+    </div>
     <button type="button" class="alerts-toggle" data-metrics="toggle">Show more</button>
   </div>
 </div>

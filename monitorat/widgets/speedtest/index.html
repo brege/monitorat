@@ -9,7 +9,8 @@
 }
 .speedtest-view-toggle {
   display: flex;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
   margin-bottom: 1rem;
   align-items: center;
 }
@@ -52,18 +53,20 @@
     
     <div data-speedtest="table-container" style="display: none;">
       <p class="muted" data-speedtest="history-status">Loading speedtest history…</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Timestamp</th>
-            <th>Download (Mbps)</th>
-            <th>Upload (Mbps)</th>
-            <th>Ping (ms)</th>
-            <th>Server</th>
-          </tr>
-        </thead>
-        <tbody data-speedtest="rows"></tbody>
-      </table>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Download (Mbps)</th>
+              <th>Upload (Mbps)</th>
+              <th>Ping (ms)</th>
+              <th>Server</th>
+            </tr>
+          </thead>
+          <tbody data-speedtest="rows"></tbody>
+        </table>
+      </div>
       <button type="button" class="alerts-toggle" data-speedtest="toggle">Show more</button>
     </div>
   </div>

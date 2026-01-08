@@ -1,6 +1,7 @@
 ## Overview
 
-Monitorat is a federated dashboard and documentation system with a widget system.
+Monitorat is a federated dashboard and documentation system with an extensible widget framework.
+
 Its philosophy is to make system monitoring and documentation continuous, much like the way tables and figures are integrated in journal or news articles.
 
 Run the demo:
