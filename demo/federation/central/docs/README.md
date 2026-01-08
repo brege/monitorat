@@ -15,10 +15,10 @@ Different widgets and widget features support different integrations.
 | --- | --- | --- | --- | --- |
 | wiki | document | ✔ | ✔ | ✖ |
 | metrics | tiles | ✔ | ✔ | ✖ |
-| metrics | history | ? | ✖ | ✔ |
-| services | cards | ✔ | ✔ | ✔ |
+| metrics | history | ~ | ✖ | ✔ |
+| services | cards  | ✔ | ✔ | ✔ |
 | reminders | cards | ✔ | ✔ | ✔ |
-| speedtest | chart/table | ? | ✖ | ✔ |
+| speedtest | chart/table | ~ | ✖ | ✔ |
 | network | tiles | ✔ | ✔ | ✖ |
 | network | uptime | ✔ | ✔ | ✖ |
 | network | outages | ✖ | ✔ | ✔ |

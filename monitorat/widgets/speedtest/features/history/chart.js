@@ -1,6 +1,8 @@
 class SpeedtestChart {
   constructor (widget) {
     this.widget = widget
+    this.lineStyles = [[], [5, 5], [2, 2], [10, 5, 2, 5]]
+    this.legendState = null
   }
 
   initializeManager () {
@@ -14,7 +16,12 @@ class SpeedtestChart {
       height: this.widget.config.chart.height,
       dataUrl: null,
       dataParams: null,
-      chartOptions: { scales }
+      chartOptions: {
+        scales,
+        plugins: {
+          legend: { display: false }
+        }
+      }
     })
   }
 
@@ -119,11 +126,14 @@ class SpeedtestChart {
         borderColor: color,
         backgroundColor,
         tension: this.widget.schema?.chart?.tension ?? 0.1,
-        yAxisID: metric.yAxisID
+        yAxisID: metric.yAxisID,
+        _metricField: metric.field,
+        _source: null
       })
     }
 
     this.widget.chartManager.updateChart({ labels, datasets })
+    this.renderLegends(metricsToUse, [])
   }
 
   getFilteredEntries () {
@@ -146,7 +156,6 @@ class SpeedtestChart {
     if (!this.widget.chartManager?.hasChart()) return
     const ChartManager = window.monitorShared?.ChartManager
     const DataFormatter = window.monitorShared?.DataFormatter
-    const lineStyles = [[], [5, 5], [2, 2], [10, 5, 2, 5]]
     const filteredEntries = this.getFilteredEntries()
 
     const entriesBySource = {}
@@ -207,19 +216,149 @@ class SpeedtestChart {
           data: values,
           borderColor: color,
           backgroundColor,
-          borderDash: lineStyles[sourceIndex % lineStyles.length],
+          borderDash: this.lineStyles[sourceIndex % this.lineStyles.length],
           tension: this.widget.schema?.chart?.tension ?? 0.1,
           yAxisID: metric.yAxisID,
-          spanGaps: true
+          spanGaps: true,
+          _metricField: metric.field,
+          _source: source
         })
       }
     })
 
     this.widget.chartManager.updateChart({ labels, datasets })
+    this.renderLegends(metricsToUse, sources)
   }
 
   updateView () {
     this.loadChartData()
+  }
+
+  renderLegends (metrics, sources) {
+    const chart = this.widget.chartManager?.chart
+    if (!chart) {
+      this.clearLegends()
+      return
+    }
+
+    this.legendState = { metrics, sources }
+    this.renderMetricLegend(chart, metrics)
+    this.renderNodeLegend(chart, sources)
+    this.widget.updateLegendVisibility()
+  }
+
+  clearLegends () {
+    const metricLegend = this.widget.getElement('metric-legend')
+    const nodeLegend = this.widget.getElement('node-legend')
+    if (metricLegend) metricLegend.innerHTML = ''
+    if (nodeLegend) nodeLegend.innerHTML = ''
+  }
+
+  renderMetricLegend (chart, metrics) {
+    const metricLegend = this.widget.getElement('metric-legend')
+    if (!metricLegend) {
+      return
+    }
+
+    metricLegend.innerHTML = ''
+    const datasets = chart.data.datasets || []
+    const metricsToRender = metrics.filter(metric =>
+      datasets.some(dataset => dataset._metricField === metric.field)
+    )
+    if (!metricsToRender.length) {
+      metricLegend.style.display = 'none'
+      return
+    }
+    metricLegend.style.display = ''
+
+    for (const metric of metricsToRender) {
+      const matchingIndexes = datasets
+        .map((dataset, index) => dataset._metricField === metric.field ? index : null)
+        .filter(index => index !== null)
+      const isVisible = matchingIndexes.some(index => chart.isDatasetVisible(index))
+
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.className = `speedtest-legend-item${isVisible ? ' active' : ''}`
+      button.addEventListener('click', () => {
+        this.toggleDatasets(chart, (dataset) => dataset._metricField === metric.field)
+        this.renderMetricLegend(chart, metrics)
+        if (this.legendState) {
+          this.renderNodeLegend(chart, this.legendState.sources)
+        }
+      })
+
+      const swatch = document.createElement('span')
+      swatch.className = 'speedtest-legend-swatch metric'
+      swatch.style.backgroundColor = metric.color || 'var(--text-muted)'
+
+      const label = document.createElement('span')
+      label.textContent = metric.label || metric.field
+
+      button.appendChild(swatch)
+      button.appendChild(label)
+      metricLegend.appendChild(button)
+    }
+  }
+
+  renderNodeLegend (chart, sources) {
+    const nodeLegend = this.widget.getElement('node-legend')
+    if (!nodeLegend) {
+      return
+    }
+
+    nodeLegend.innerHTML = ''
+    if (!sources || sources.length < 2) {
+      nodeLegend.style.display = 'none'
+      return
+    }
+
+    const datasets = chart.data.datasets || []
+    nodeLegend.style.display = ''
+
+    sources.forEach((source, index) => {
+      const matchingIndexes = datasets
+        .map((dataset, datasetIndex) => dataset._source === source ? datasetIndex : null)
+        .filter(datasetIndex => datasetIndex !== null)
+      const isVisible = matchingIndexes.some(datasetIndex => chart.isDatasetVisible(datasetIndex))
+
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.className = `speedtest-legend-item${isVisible ? ' active' : ''}`
+      button.addEventListener('click', () => {
+        this.toggleDatasets(chart, (dataset) => dataset._source === source)
+        if (this.legendState) {
+          this.renderMetricLegend(chart, this.legendState.metrics)
+        }
+        this.renderNodeLegend(chart, sources)
+      })
+
+      const swatch = document.createElement('span')
+      swatch.className = 'speedtest-legend-swatch line'
+      const dash = this.lineStyles[index % this.lineStyles.length]
+      swatch.style.borderTopStyle = dash.length ? 'dashed' : 'solid'
+
+      const label = document.createElement('span')
+      label.textContent = source
+
+      button.appendChild(swatch)
+      button.appendChild(label)
+      nodeLegend.appendChild(button)
+    })
+  }
+
+  toggleDatasets (chart, predicate) {
+    const datasets = chart.data.datasets || []
+    const indexes = datasets
+      .map((dataset, index) => predicate(dataset) ? index : null)
+      .filter(index => index !== null)
+    if (!indexes.length) return
+
+    const anyVisible = indexes.some(index => chart.isDatasetVisible(index))
+    indexes.forEach((index) => {
+      chart.setDatasetVisibility(index, !anyVisible)
+    })
+    chart.update()
   }
 }
 

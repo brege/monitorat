@@ -33,6 +33,7 @@ class SpeedtestControls {
         metricSelect.appendChild(option)
       }
       metricSelect.value = this.widget.selectedMetric
+      metricSelect.style.display = ''
       metricSelect.addEventListener('change', (event) => {
         this.widget.selectedMetric = event.target.value
         this.widget.updateChart()
@@ -44,6 +45,11 @@ class SpeedtestControls {
       this.widget.selectedPeriod = period
       this.widget.features.chart.loadChartData()
     })
+
+    if (periodSelect) {
+      const periods = this.widget.config.chart.periods
+      periodSelect.style.display = Array.isArray(periods) && periods.length > 0 ? '' : 'none'
+    }
   }
 
   async runSpeedtest () {

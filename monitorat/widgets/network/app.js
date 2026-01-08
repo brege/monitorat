@@ -154,7 +154,13 @@ class NetworkWidget {
     if (this.elements.alertToggle) {
       this.elements.alertToggle.addEventListener('click', () => {
         this.state.alertsExpanded = !this.state.alertsExpanded
-        this.features.outages.render()
+        const mergeSources = this.config.federation?.nodes
+        if (mergeSources && Array.isArray(mergeSources)) {
+          const sources = this.state.sources || mergeSources
+          this.renderMergedOutages(sources, this.state.sourceStates || {})
+        } else {
+          this.features.outages.render()
+        }
       })
     }
 

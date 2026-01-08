@@ -231,36 +231,7 @@ const ChartTableWidgetMethods = {
     const viewTable = this.getElement('view-table')
 
     if (viewChart) viewChart.addEventListener('click', () => this.setView('chart'))
-
-    const mergeSources = this.config?.federation?.nodes
-    if (viewTable && mergeSources && Array.isArray(mergeSources) && mergeSources.length > 1) {
-      const dropdown = document.createElement('select')
-      dropdown.className = 'alerts-toggle'
-
-      const placeholder = document.createElement('option')
-      placeholder.value = ''
-      placeholder.textContent = 'Table'
-      placeholder.disabled = true
-      placeholder.selected = true
-      dropdown.appendChild(placeholder)
-
-      for (const source of mergeSources) {
-        const option = document.createElement('option')
-        option.value = source
-        option.textContent = source
-        dropdown.appendChild(option)
-      }
-
-      dropdown.addEventListener('change', () => {
-        const source = dropdown.value
-        if (source && typeof this.openTableForSource === 'function') {
-          this.openTableForSource(source)
-        }
-        dropdown.selectedIndex = 0
-      })
-
-      viewTable.replaceWith(dropdown)
-    } else if (viewTable) {
+    if (viewTable) {
       viewTable.addEventListener('click', () => this.setView('table'))
     }
   },

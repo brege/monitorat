@@ -32,6 +32,16 @@ monitorAPI.applyWidgetHeader = function applyWidgetHeader (container, options = 
     return
   }
 
+  const headerControls = (() => {
+    const candidate = header.nextElementSibling
+    if (!candidate) return null
+    const controlClasses = ['widget-controls', 'speedtest-controls']
+    if (controlClasses.some((className) => candidate.classList.contains(className))) {
+      return candidate
+    }
+    return null
+  })()
+
   if (suppressHeader) {
     header.remove()
     return
@@ -42,12 +52,24 @@ monitorAPI.applyWidgetHeader = function applyWidgetHeader (container, options = 
     return
   }
 
+  let wrapper = null
+  if ((downloadCsv && downloadUrl) || headerControls) {
+    const headerParent = header.parentElement
+    if (headerParent && headerParent.classList.contains('widget-header-wrapper')) {
+      wrapper = headerParent
+    } else if (headerParent) {
+      wrapper = document.createElement('div')
+      wrapper.className = 'widget-header-wrapper'
+      headerParent.insertBefore(wrapper, header)
+      wrapper.appendChild(header)
+    }
+    if (wrapper && headerControls && headerControls.parentElement !== wrapper) {
+      wrapper.appendChild(headerControls)
+    }
+  }
+
   // Add download link if configured
   if (downloadCsv && downloadUrl) {
-    const headerParent = header.parentElement
-    const wrapper = document.createElement('div')
-    wrapper.className = 'widget-header-wrapper'
-
     const downloadLink = document.createElement('a')
     downloadLink.href = '#'
     downloadLink.textContent = 'Download CSV'
@@ -71,9 +93,9 @@ monitorAPI.applyWidgetHeader = function applyWidgetHeader (container, options = 
       document.body.removeChild(link)
     })
 
-    headerParent.insertBefore(wrapper, header)
-    wrapper.appendChild(header)
-    wrapper.appendChild(downloadLink)
+    if (wrapper) {
+      wrapper.appendChild(downloadLink)
+    }
   }
 
   if (typeof name === 'string' && name.length > 0) {

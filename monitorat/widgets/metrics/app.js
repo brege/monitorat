@@ -123,6 +123,7 @@ class MetricsWidget {
         metricSelect.appendChild(option)
       }
       metricSelect.value = this.selectedMetric
+      metricSelect.style.display = ''
       metricSelect.addEventListener('change', (event) => {
         this.selectedMetric = event.target.value
         if (this.chartManager?.hasChart()) this.updateChart()
@@ -133,9 +134,13 @@ class MetricsWidget {
       this.selectedPeriod = period
       this.features.table.loadHistory()
     })
+    if (periodSelect) {
+      periodSelect.style.display = ''
+    }
 
     this.setupNodeSelect()
     this.setupDownloadControl(downloadButton)
+    this.updateControlStates()
   }
 
   setupNodeSelect () {
@@ -166,7 +171,11 @@ class MetricsWidget {
     nodeSelect.value = this.selectedNode
     nodeSelect.addEventListener('change', (event) => {
       this.selectedNode = event.target.value
+      if (this.selectedNode === 'all' && this.currentView === 'table') {
+        this.setView('chart')
+      }
       this.applyNodeFilter()
+      this.updateControlStates()
     })
   }
 
@@ -192,39 +201,16 @@ class MetricsWidget {
       return
     }
 
-    const mergeSources = this.config.federation?.nodes
-    if (mergeSources && Array.isArray(mergeSources) && mergeSources.length > 1) {
-      const dropdown = document.createElement('select')
-      dropdown.className = 'alerts-toggle'
-
-      const placeholder = document.createElement('option')
-      placeholder.value = ''
-      placeholder.textContent = 'CSV'
-      placeholder.disabled = true
-      placeholder.selected = true
-      dropdown.appendChild(placeholder)
-
-      for (const source of mergeSources) {
-        const option = document.createElement('option')
-        option.value = source
-        option.textContent = source
-        dropdown.appendChild(option)
+    downloadButton.addEventListener('click', (event) => {
+      event.preventDefault()
+      const mergeSources = this.widgetConfig.federation?.nodes
+      const isFederated = mergeSources && Array.isArray(mergeSources) && mergeSources.length > 1
+      if (isFederated && this.selectedNode !== 'all') {
+        this.downloadCsvForSource(this.selectedNode)
+        return
       }
-
-      dropdown.addEventListener('change', () => {
-        if (dropdown.value) {
-          this.downloadCsvForSource(dropdown.value)
-          dropdown.value = ''
-        }
-      })
-
-      downloadButton.replaceWith(dropdown)
-    } else {
-      downloadButton.addEventListener('click', (event) => {
-        event.preventDefault()
-        this.downloadCsv()
-      })
-    }
+      this.downloadCsv()
+    })
   }
 
   async loadData () {
@@ -266,10 +252,7 @@ class MetricsWidget {
   }
 
   getViewControls () {
-    return [
-      this.getElement('metric-select'),
-      this.getElement('period-select')
-    ]
+    return []
   }
 
   applyVisibilityConfig () {
@@ -352,15 +335,43 @@ class MetricsWidget {
 Object.assign(MetricsWidget.prototype, window.monitorShared.ChartTableWidgetMethods || ChartTableWidgetMethods)
 
 MetricsWidget.prototype.getViewControls = function () {
-  return [
-    this.getElement('metric-select'),
-    this.getElement('period-select')
-  ]
+  return []
+}
+
+MetricsWidget.prototype.updateControlStates = function () {
+  const mergeSources = this.widgetConfig.federation?.nodes
+  const isFederated = mergeSources && Array.isArray(mergeSources) && mergeSources.length > 1
+  const isAllNodes = isFederated && this.selectedNode === 'all'
+  const isTableView = this.currentView === 'table'
+
+  const metricSelect = this.getElement('metric-select')
+  const periodSelect = this.getElement('period-select')
+  const tableButton = this.getElement('view-table')
+  const csvButton = this.getElement('download-csv')
+
+  if (metricSelect) metricSelect.disabled = isTableView
+  if (periodSelect) periodSelect.disabled = isTableView
+  if (tableButton) tableButton.disabled = isAllNodes
+  if (csvButton) csvButton.disabled = isAllNodes
+}
+
+MetricsWidget.prototype.setView = function (view) {
+  const nextView = ChartTableWidgetMethods.setView.call(this, view)
+  this.updateControlStates()
+  return nextView
 }
 
 MetricsWidget.prototype.openTableForSource = function (source) {
-  const csvUrl = `api/metrics-${source}/csv`
-  window.open(csvUrl, '_blank')
+  if (!source) {
+    return
+  }
+  this.selectedNode = source
+  const nodeSelect = this.getElement('node-select')
+  if (nodeSelect) {
+    nodeSelect.value = source
+  }
+  this.applyNodeFilter()
+  this.setView('table')
 }
 
 window.widgets = window.widgets || {}

@@ -361,7 +361,20 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
   margin-bottom: 16px;
+}
+.widget-header-wrapper .widget-controls,
+.widget-header-wrapper .speedtest-controls {
+  margin-bottom: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.widget-header-wrapper .widget-controls > *,
+.widget-header-wrapper .speedtest-controls > * {
+  flex-shrink: 0;
 }
 
 .card {
@@ -459,6 +472,25 @@ button:disabled {
   text-decoration: underline;
 }
 
+button.alerts-toggle {
+  background: var(--toggle-bg);
+  border: 1px solid var(--toggle-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+button.alerts-toggle:hover {
+  text-decoration: none;
+  background: var(--toggle-hover);
+}
+.alerts-toggle:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
 select.alerts-toggle {
   background: var(--toggle-bg);
   border: 1px solid var(--toggle-border);
@@ -471,6 +503,11 @@ select.alerts-toggle {
 select.alerts-toggle:hover {
   text-decoration: none;
   background: var(--toggle-hover);
+}
+select.alerts-toggle:disabled {
+  cursor: not-allowed;
+  color: var(--text-muted);
+  background: var(--toggle-bg);
 }
 
 .alert-list {

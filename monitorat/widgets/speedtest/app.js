@@ -200,7 +200,11 @@ class SpeedtestWidget {
     nodeSelect.value = this.selectedNode
     nodeSelect.addEventListener('change', (event) => {
       this.selectedNode = event.target.value
+      if (this.selectedNode === 'all' && this.currentView === 'table') {
+        this.setView('chart')
+      }
       this.applyNodeFilter()
+      this.updateControlStates()
     })
   }
 
@@ -222,40 +226,16 @@ class SpeedtestWidget {
       downloadButton.style.display = 'none'
       return
     }
-
-    const mergeSources = this.config.federation?.nodes
-    if (mergeSources && Array.isArray(mergeSources) && mergeSources.length > 1) {
-      const dropdown = document.createElement('select')
-      dropdown.className = 'alerts-toggle'
-
-      const placeholder = document.createElement('option')
-      placeholder.value = ''
-      placeholder.textContent = 'CSV'
-      placeholder.disabled = true
-      placeholder.selected = true
-      dropdown.appendChild(placeholder)
-
-      for (const source of mergeSources) {
-        const option = document.createElement('option')
-        option.value = source
-        option.textContent = source
-        dropdown.appendChild(option)
+    downloadButton.addEventListener('click', (event) => {
+      event.preventDefault()
+      const mergeSources = this.config.federation?.nodes
+      const isFederated = mergeSources && Array.isArray(mergeSources) && mergeSources.length > 1
+      if (isFederated && this.selectedNode !== 'all') {
+        this.downloadCsvForSource(this.selectedNode)
+        return
       }
-
-      dropdown.addEventListener('change', () => {
-        if (dropdown.value) {
-          this.downloadCsvForSource(dropdown.value)
-          dropdown.value = ''
-        }
-      })
-
-      downloadButton.replaceWith(dropdown)
-    } else {
-      downloadButton.addEventListener('click', (event) => {
-        event.preventDefault()
-        this.downloadCsv()
-      })
-    }
+      this.downloadCsv()
+    })
   }
 
   downloadCsv () {
@@ -282,15 +262,59 @@ class SpeedtestWidget {
 Object.assign(SpeedtestWidget.prototype, window.monitorShared.ChartTableWidgetMethods || ChartTableWidgetMethods)
 
 SpeedtestWidget.prototype.getViewControls = function () {
-  return [
-    this.getElement('metric-select'),
-    this.getElement('period-select')
-  ]
+  return []
+}
+
+SpeedtestWidget.prototype.updateControlStates = function () {
+  const mergeSources = this.config.federation?.nodes
+  const isFederated = mergeSources && Array.isArray(mergeSources) && mergeSources.length > 1
+  const isAllNodes = isFederated && this.selectedNode === 'all'
+  const isTableView = this.currentView === 'table'
+
+  const metricSelect = this.getElement('metric-select')
+  const periodSelect = this.getElement('period-select')
+  const tableButton = this.getElement('view-table')
+  const csvButton = this.getElement('download-csv')
+
+  if (metricSelect) metricSelect.disabled = isTableView
+  if (periodSelect) periodSelect.disabled = isTableView
+  if (tableButton) tableButton.disabled = isAllNodes
+  if (csvButton) csvButton.disabled = isAllNodes
+}
+
+SpeedtestWidget.prototype.updateLegendVisibility = function () {
+  const metricLegend = this.getElement('metric-legend')
+  const nodeLegend = this.getElement('node-legend')
+  if (!metricLegend && !nodeLegend) {
+    return
+  }
+  const show = this.currentView === 'chart'
+  if (metricLegend) {
+    metricLegend.style.display = show && metricLegend.childElementCount ? '' : 'none'
+  }
+  if (nodeLegend) {
+    nodeLegend.style.display = show && nodeLegend.childElementCount ? '' : 'none'
+  }
+}
+
+SpeedtestWidget.prototype.setView = function (view) {
+  const nextView = ChartTableWidgetMethods.setView.call(this, view)
+  this.updateControlStates()
+  this.updateLegendVisibility()
+  return nextView
 }
 
 SpeedtestWidget.prototype.openTableForSource = function (source) {
-  const csvUrl = `api/speedtest-${source}/csv`
-  window.open(csvUrl, '_blank')
+  if (!source) {
+    return
+  }
+  this.selectedNode = source
+  const nodeSelect = this.getElement('node-select')
+  if (nodeSelect) {
+    nodeSelect.value = source
+  }
+  this.applyNodeFilter()
+  this.setView('table')
 }
 
 window.widgets = window.widgets || {}
