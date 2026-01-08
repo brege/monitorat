@@ -2,6 +2,7 @@ widgets:
   metrics-single:
     type: metrics
     name: "System Metrics"
+    collapsible: true
     chart:
       periods: [24 hours, 6 hours, 1 hour]
       default_period: 6 hours
@@ -9,6 +10,7 @@ widgets:
   wiki-metrics-single:
     type: wiki
     name: "Config: Metrics"
+    parent: metrics-single
     _suppressHeader: true
     mode: rail
     doc: ../../docs/metrics/full.md

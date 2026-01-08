@@ -2,10 +2,12 @@ widgets:
   services-single:
     type: services
     name: "Services"
+    collapsible: true
 
   wiki-services-single:
     type: wiki
     name: "Config: Services"
+    parent: services-single
     _suppressHeader: true
     mode: rail
     doc: ../../docs/services/tiles.md

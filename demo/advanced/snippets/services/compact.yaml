@@ -2,12 +2,14 @@ widgets:
   services-compact:
     type: services
     name: "Services: Compact"
+    collapsible: true
     mode: compact
     compact_icon_scale: 1.66
 
   wiki-services-compact:
     type: wiki
     name: "Config: Services Compact"
+    parent: services-compact
     _suppressHeader: true
     mode: rail
     doc: ../../docs/services/compact.md

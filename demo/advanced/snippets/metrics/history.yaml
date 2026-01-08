@@ -2,6 +2,7 @@ widgets:
   metrics-history:
     type: metrics
     name: "Metrics: History"
+    collapsible: true
     show:
       tiles: false
       history: true
@@ -12,6 +13,7 @@ widgets:
   wiki-metrics-history:
     type: wiki
     name: "Config: History"
+    parent: metrics-history
     _suppressHeader: true
     mode: rail
     doc: ../../docs/metrics/history.md

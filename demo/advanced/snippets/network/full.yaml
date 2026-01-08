@@ -2,6 +2,7 @@ widgets:
   network-single:
     type: network
     name: "Network"
+    collapsible: true
     log_file: network.log
     chirper:
       enabled: false
@@ -21,6 +22,7 @@ widgets:
   wiki-network-single:
     type: wiki
     name: "Config: Network"
+    parent: network-single
     _suppressHeader: true
     mode: rail
     doc: ../../docs/network/full.md

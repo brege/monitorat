@@ -118,6 +118,10 @@ class NetworkWidget {
       uptimeRows: this.container.querySelector('[data-network="uptime-rows"]'),
       alertList: this.container.querySelector('[data-network="alerts-list"]'),
       alertToggle: this.container.querySelector('[data-network="alerts-toggle"]'),
+      sectionHeaders: {
+        uptime: this.container.querySelector('[data-network-section-header="uptime"]'),
+        outages: this.container.querySelector('[data-network-section-header="outages"]')
+      },
       sections: {
         metrics: this.container.querySelector('[data-network-section="metrics"]'),
         uptime: this.container.querySelector('[data-network-section="uptime"]'),
@@ -147,6 +151,15 @@ class NetworkWidget {
       tiles: this.elements.sections.metrics,
       uptime: this.elements.sections.uptime,
       outages: this.elements.sections.alerts
+    })
+
+    const visibleSections = Object.entries(showConfig).filter(([, visible]) => visible)
+    const onlySection = visibleSections.length === 1 ? visibleSections[0][0] : null
+
+    Object.entries(this.elements.sectionHeaders).forEach(([key, header]) => {
+      if (!header) return
+      const shouldHide = onlySection === key
+      header.classList.toggle('hidden', shouldHide)
     })
   }
 

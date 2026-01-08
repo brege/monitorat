@@ -269,7 +269,7 @@ tr:nth-child(even) td {
 
 .header-anchor {
   font-family: var(--font-ui);
-  opacity: 0.4;
+  opacity: 0;
 }
 
 .alerts-toggle {

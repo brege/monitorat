@@ -2,6 +2,7 @@ widgets:
   speedtest-history:
     type: speedtest
     name: "Speedtest: History"
+    collapsible: true
     default: chart
     show:
       controls: false
@@ -12,6 +13,7 @@ widgets:
   wiki-speedtest-history:
     type: wiki
     name: "Config: History"
+    parent: speedtest-history
     _suppressHeader: true
     mode: rail
     doc: ../../docs/speedtest/history.md
