@@ -1,5 +1,14 @@
 ## Changelog
 
+2026-01-08 -- 15d51fe..87afce4
+
+- Overhauled chart legends and created two-legend scheme for federation
+- Made ollama icon look better on both light and dark backgrounds
+- Overhauled headers inside and outside Markdown containers
+- Added Wikipedia chevrons to first-rate headers for easier collapsing
+
+2026-01-07 -- d17e19c..ebd479f
+
 ### 2026-01-07
 
 - Made service status resolving more robust for Docker and Systemd
@@ -8,6 +17,12 @@
 - Caught up scattered ghost colors and theme leakage in JS
 - Added a formal.css theme for a Latex/Jorunal look
 - Gave users a theming key in config.yaml so they can change or layer on top of the factory themes
+- Added a new about modal with live theme switching
+- Added a modal for long press on services cards/icons for more details
+- Added an info icon for services cards/icons (desktop benefits too)
+- Made markdown tables and TableManager tables gracefully overflow through scrolling in-body
+- Made demo bind to 0.0.0.0 for easier mobile debugging on Fedora
+
 
 ### 2026-01-06
 

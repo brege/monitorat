@@ -37,6 +37,7 @@ widgets:
     enabled: true
     doc: ./docs/metrics.md
     _suppressHeader: true
+    parent: metrics
   network-md:
     type: wiki
     mode: rail
@@ -44,6 +45,7 @@ widgets:
     enabled: true
     doc: ./docs/network.md
     _suppressHeader: true
+    parent: network
   services-md:
     type: wiki
     mode: rail
@@ -51,6 +53,7 @@ widgets:
     enabled: true
     doc: ./docs/services.md
     _suppressHeader: true
+    parent: services
   speedtest-md:
     type: wiki
     mode: rail
@@ -58,6 +61,7 @@ widgets:
     enabled: true
     doc: ./docs/speedtest.md
     _suppressHeader: true
+    parent: speedtest
   reminders-md:
     type: wiki
     mode: rail
@@ -65,3 +69,4 @@ widgets:
     enabled: true
     doc: ./docs/reminders.md
     _suppressHeader: true
+    parent: reminders
