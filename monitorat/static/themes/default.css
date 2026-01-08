@@ -65,6 +65,8 @@
   --chart-series-5: #8b5cf6;
   --chart-series-6: #06b6d4;
 
+  --chart-legend-bg-rgb: var(--color-ghost-rgb);
+
   --color-ghost-rgb: 148, 163, 184;
   --color-ghost: rgba(var(--color-ghost-rgb), 0.35);
   --color-ghost-light: rgba(var(--color-ghost-rgb), 0.08);
@@ -1215,4 +1217,107 @@ tr:last-child td {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
+}
+
+.chart-legend {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1px;
+}
+
+.chart-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 8px;
+  line-height: 1;
+  color: var(--text-muted);
+  border: none;
+  background: none;
+  padding: 1px 2px;
+  cursor: default;
+  white-space: nowrap;
+  text-transform: none;
+  letter-spacing: normal;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.chart-legend-item.active {
+  color: var(--text-primary);
+}
+
+.chart-legend-item.clickable {
+  cursor: pointer;
+}
+.chart-legend-item.clickable:hover {
+  background: rgba(var(--color-ghost-rgb), 0.18);
+}
+
+.chart-legend-swatch {
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.chart-legend-swatch.dashed {
+  background: none;
+  border-top: 2px dashed currentColor;
+  height: 0;
+}
+
+.chart-overlay {
+  position: absolute;
+  top: 4px;
+  left: 52px;
+  right: 44px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.chart-overlay .chart-legend {
+  background: rgba(var(--chart-legend-bg-rgb), 0.15);
+  border: 1px solid rgba(var(--chart-legend-bg-rgb), 0.25);
+  border-radius: 0;
+  padding: 3px 5px;
+  pointer-events: auto;
+}
+
+.chart-overlay .chart-legend.right {
+  align-items: stretch;
+}
+
+.chart-overlay .chart-legend.right .chart-legend-item {
+  justify-content: flex-end;
+}
+
+.chart-overlay .chart-legend.right .chart-legend-swatch {
+  background: none;
+  border-top: 2px solid currentColor;
+  height: 0;
+}
+
+.chart-overlay .chart-legend.right .chart-legend-swatch.dashed {
+  border-top-style: dashed;
+}
+
+@media (max-width: 640px) {
+  .chart-legend-item {
+    font-size: 7px;
+  }
+  .chart-legend-swatch {
+    width: 12px;
+  }
+  .chart-overlay .chart-legend {
+    padding: 2px 3px;
+  }
+  .chart-overlay {
+    left: 56px;
+    right: 48px;
+  }
 }

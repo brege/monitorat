@@ -71,13 +71,16 @@ class ChartManager {
         },
         plugins: {
           legend: {
-            position: 'top',
-            labels: {
-              boxWidth: 12,
-              padding: 8,
-              font: { size: 11 }
-            }
+            display: false
+          },
+          tooltip: {
+            enabled: true,
+            mode: 'index',
+            intersect: false
           }
+        },
+        layout: {
+          padding: { top: 4, right: 4, bottom: 0, left: 0 }
         },
         ...this.chartOptions
       }
@@ -266,14 +269,35 @@ class ChartManager {
 
   static buildScalesFromSchema (axes = {}, overrides = {}) {
     const scales = {}
-    const compactDefaults = {
-      ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 0 },
-      title: { font: { size: 11 } }
+
+    const minimalAxisDefaults = {
+      ticks: {
+        font: { size: 10, weight: '500' },
+        maxTicksLimit: 4,
+        padding: 0
+      },
+      title: {
+        display: false,
+        font: { size: 10, weight: '500' },
+        padding: { top: 0, bottom: 0 }
+      },
+      grid: {
+        drawTicks: true
+      }
+    }
+
+    const xAxisDefaults = {
+      ...minimalAxisDefaults,
+      ticks: {
+        ...minimalAxisDefaults.ticks,
+        maxRotation: 0
+      }
     }
 
     Object.entries(axes || {}).forEach(([scaleId, config]) => {
       const cloned = this.cloneObject(config)
-      scales[scaleId] = this.mergeObjects(compactDefaults, cloned)
+      const defaults = scaleId === 'x' ? xAxisDefaults : minimalAxisDefaults
+      scales[scaleId] = this.mergeObjects(defaults, cloned)
     })
 
     Object.entries(overrides || {}).forEach(([scaleId, overrideConfig]) => {

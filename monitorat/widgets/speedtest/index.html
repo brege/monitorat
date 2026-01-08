@@ -28,97 +28,6 @@
   flex: 1;
   min-width: 0.5rem;
 }
-.speedtest-legend {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-}
-.speedtest-legend-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.4rem;
-  line-height: 1.1;
-  color: var(--text-primary);
-  border: none;
-  background: none;
-  padding: 0;
-  cursor: pointer;
-  text-transform: none;
-  letter-spacing: normal;
-  white-space: nowrap;
-}
-.speedtest-legend-item.active {
-  color: var(--text-heading);
-  font-weight: 600;
-}
-.speedtest-legend-item:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-.speedtest-legend-swatch {
-  width: 32px;
-  height: 2px;
-  border-radius: 2px;
-  background: currentColor;
-}
-.speedtest-legend-swatch.metric {
-  height: 6px;
-  border-radius: 2px;
-}
-.speedtest-legend-swatch.line {
-  background: none;
-  border-top: 2px solid currentColor;
-}
-.speedtest-chart-overlay {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  right: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  pointer-events: none;
-  z-index: 2;
-}
-.speedtest-chart-overlay .speedtest-legend {
-  background: rgba(0, 0, 0, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
-  padding: 4px 6px;
-  pointer-events: auto;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.16);
-  max-width: 45%;
-}
-.speedtest-chart-overlay .speedtest-legend[data-speedtest="node-legend"] {
-  align-items: flex-end;
-}
-@media (max-width: 640px) {
-  .speedtest-legend {
-    gap: 4px;
-  }
-  .speedtest-legend-item {
-    font-size: 0.3rem;
-  }
-  .speedtest-legend-swatch {
-    width: 20px;
-  }
-  .speedtest-legend-swatch.metric {
-    height: 5px;
-  }
-  .speedtest-chart-overlay {
-    top: 6px;
-    left: 6px;
-    right: 6px;
-    gap: 6px;
-  }
-  .speedtest-chart-overlay .speedtest-legend {
-    padding: 3px 4px;
-    max-width: 48%;
-  }
-}
 </style>
 
 <section class="speedtests">
@@ -142,14 +51,13 @@
       <select class="alerts-toggle" data-speedtest="metric-select" style="display: none;"></select>
       <select class="alerts-toggle" data-speedtest="period-select" style="display: none;">
       </select>
-      <span class="view-toggle-spacer"></span>
       <button type="button" class="alerts-toggle" data-speedtest="download-csv">CSV</button>
     </div>
     
     <div class="speedtest-chart" data-speedtest="chart-container" style="display: none;">
-      <div class="speedtest-chart-overlay">
-        <div class="speedtest-legend" data-speedtest="metric-legend"></div>
-        <div class="speedtest-legend" data-speedtest="node-legend"></div>
+      <div class="chart-overlay">
+        <div class="chart-legend" data-speedtest="metric-legend"></div>
+        <div class="chart-legend right" data-speedtest="node-legend"></div>
       </div>
       <canvas data-speedtest="chart"></canvas>
     </div>

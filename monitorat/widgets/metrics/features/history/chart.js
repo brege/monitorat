@@ -45,6 +45,7 @@ class MetricsChart {
     })
 
     this.widget.chartManager.updateChart({ labels: chartData.labels, datasets: chartData.datasets }, scales)
+    this.renderLegend(chartData.datasets)
   }
 
   updateView () {
@@ -86,11 +87,15 @@ class MetricsChart {
 
     for (const metric of metricsToChart) {
       const values = chronological.map(row => parseFloat(row[metric.field]) || 0)
-      datasets.push(...ChartManager.buildGhostedDatasets({
+      const ghosted = ChartManager.buildGhostedDatasets({
         label: metric.label,
         color: metric.color,
         rawValues: values
+      }).map(dataset => ({
+        ...dataset,
+        _seriesLabel: metric.label
       }))
+      datasets.push(...ghosted)
       allValues.push(...values)
     }
 
@@ -158,13 +163,67 @@ class MetricsChart {
           borderWidth: 2,
           pointRadius: 0,
           tension: 0.3,
-          spanGaps: true
+          spanGaps: true,
+          _seriesLabel: label
         })
         allValues.push(...values.filter(value => value !== null))
       }
     })
 
     return { labels, datasets, allValues }
+  }
+
+  renderLegend (datasets) {
+    const legend = this.widget.getElement('chart-legend')
+    if (!legend) return
+
+    const ChartLegend = window.monitorShared?.ChartLegend
+    const chart = this.widget.chartManager?.chart
+    if (!ChartLegend || !chart) {
+      legend.innerHTML = ''
+      return
+    }
+
+    const seriesMap = new Map()
+    datasets.forEach((dataset, index) => {
+      const label = dataset._seriesLabel || dataset.label
+      if (!label) return
+      const baseLabel = label.endsWith(' (raw)') ? label.slice(0, -6) : label
+      if (!seriesMap.has(baseLabel)) {
+        seriesMap.set(baseLabel, {
+          label: baseLabel,
+          color: dataset.borderColor,
+          indexes: []
+        })
+      }
+      seriesMap.get(baseLabel).indexes.push(index)
+    })
+
+    const series = Array.from(seriesMap.values()).map(item => ({
+      field: item.label,
+      label: item.label,
+      color: item.color
+    }))
+    const activeMetrics = series.filter(item => {
+      const entry = seriesMap.get(item.label)
+      return entry.indexes.some(index => chart.isDatasetVisible(index))
+    }).map(item => item.label)
+
+    const toggleSeries = (label) => {
+      const entry = seriesMap.get(label)
+      if (!entry) return
+      const anyVisible = entry.indexes.some(index => chart.isDatasetVisible(index))
+      entry.indexes.forEach((index) => {
+        chart.setDatasetVisibility(index, !anyVisible)
+      })
+      chart.update()
+      this.renderLegend(chart.data.datasets || [])
+    }
+
+    ChartLegend.createMetricLegend(legend, series, {
+      activeMetrics,
+      onToggle: toggleSeries
+    })
   }
 }
 

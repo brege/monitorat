@@ -133,6 +133,7 @@ class SpeedtestChart {
     }
 
     this.widget.chartManager.updateChart({ labels, datasets })
+    this.updateAxisBounds(this.widget.chartManager.chart)
     this.renderLegends(metricsToUse, [])
   }
 
@@ -227,6 +228,7 @@ class SpeedtestChart {
     })
 
     this.widget.chartManager.updateChart({ labels, datasets })
+    this.updateAxisBounds(this.widget.chartManager.chart)
     this.renderLegends(metricsToUse, sources)
   }
 
@@ -256,11 +258,11 @@ class SpeedtestChart {
 
   renderMetricLegend (chart, metrics) {
     const metricLegend = this.widget.getElement('metric-legend')
-    if (!metricLegend) {
+    const ChartLegend = window.monitorShared?.ChartLegend
+    if (!metricLegend || !ChartLegend) {
       return
     }
 
-    metricLegend.innerHTML = ''
     const datasets = chart.data.datasets || []
     const metricsToRender = metrics.filter(metric =>
       datasets.some(dataset => dataset._metricField === metric.field)
@@ -269,81 +271,56 @@ class SpeedtestChart {
       metricLegend.style.display = 'none'
       return
     }
-    metricLegend.style.display = ''
 
-    for (const metric of metricsToRender) {
+    const activeMetrics = metricsToRender.filter(metric => {
       const matchingIndexes = datasets
         .map((dataset, index) => dataset._metricField === metric.field ? index : null)
         .filter(index => index !== null)
-      const isVisible = matchingIndexes.some(index => chart.isDatasetVisible(index))
+      return matchingIndexes.some(index => chart.isDatasetVisible(index))
+    }).map(metric => metric.field)
 
-      const button = document.createElement('button')
-      button.type = 'button'
-      button.className = `speedtest-legend-item${isVisible ? ' active' : ''}`
-      button.addEventListener('click', () => {
-        this.toggleDatasets(chart, (dataset) => dataset._metricField === metric.field)
-        this.renderMetricLegend(chart, metrics)
+    ChartLegend.createMetricLegend(metricLegend, metricsToRender, {
+      activeMetrics,
+      onToggle: (field) => {
+        this.toggleDatasets(chart, (dataset) => dataset._metricField === field)
+        this.renderMetricLegend(chart, metricsToRender)
         if (this.legendState) {
           this.renderNodeLegend(chart, this.legendState.sources)
         }
-      })
-
-      const swatch = document.createElement('span')
-      swatch.className = 'speedtest-legend-swatch metric'
-      swatch.style.backgroundColor = metric.color || 'var(--text-muted)'
-
-      const label = document.createElement('span')
-      label.textContent = metric.label || metric.field
-
-      button.appendChild(swatch)
-      button.appendChild(label)
-      metricLegend.appendChild(button)
-    }
+      }
+    })
   }
 
   renderNodeLegend (chart, sources) {
     const nodeLegend = this.widget.getElement('node-legend')
-    if (!nodeLegend) {
+    const ChartLegend = window.monitorShared?.ChartLegend
+    if (!nodeLegend || !ChartLegend) {
       return
     }
 
-    nodeLegend.innerHTML = ''
     if (!sources || sources.length < 2) {
       nodeLegend.style.display = 'none'
       return
     }
 
     const datasets = chart.data.datasets || []
-    nodeLegend.style.display = ''
-
-    sources.forEach((source, index) => {
+    const activeNodes = sources.filter((source) => {
       const matchingIndexes = datasets
         .map((dataset, datasetIndex) => dataset._source === source ? datasetIndex : null)
         .filter(datasetIndex => datasetIndex !== null)
-      const isVisible = matchingIndexes.some(datasetIndex => chart.isDatasetVisible(datasetIndex))
+      return matchingIndexes.some(datasetIndex => chart.isDatasetVisible(datasetIndex))
+    })
 
-      const button = document.createElement('button')
-      button.type = 'button'
-      button.className = `speedtest-legend-item${isVisible ? ' active' : ''}`
-      button.addEventListener('click', () => {
-        this.toggleDatasets(chart, (dataset) => dataset._source === source)
+    ChartLegend.createNodeLegend(nodeLegend, sources, {
+      lineStyles: this.lineStyles,
+      activeNodes,
+      onToggle: (node) => {
+        this.toggleDatasets(chart, (dataset) => dataset._source === node)
         if (this.legendState) {
           this.renderMetricLegend(chart, this.legendState.metrics)
         }
         this.renderNodeLegend(chart, sources)
-      })
-
-      const swatch = document.createElement('span')
-      swatch.className = 'speedtest-legend-swatch line'
-      const dash = this.lineStyles[index % this.lineStyles.length]
-      swatch.style.borderTopStyle = dash.length ? 'dashed' : 'solid'
-
-      const label = document.createElement('span')
-      label.textContent = source
-
-      button.appendChild(swatch)
-      button.appendChild(label)
-      nodeLegend.appendChild(button)
+      }
     })
   }
 
@@ -358,6 +335,47 @@ class SpeedtestChart {
     indexes.forEach((index) => {
       chart.setDatasetVisibility(index, !anyVisible)
     })
+    this.updateAxisBounds(chart)
+  }
+
+  updateAxisBounds (chart) {
+    if (!chart) return
+
+    const valuesByAxis = {}
+    const datasets = chart.data.datasets || []
+    datasets.forEach((dataset, index) => {
+      if (!chart.isDatasetVisible(index)) return
+      const axisId = dataset.yAxisID || 'y'
+      if (!valuesByAxis[axisId]) {
+        valuesByAxis[axisId] = []
+      }
+      for (const value of dataset.data || []) {
+        const numeric = Number(value)
+        if (Number.isFinite(numeric)) {
+          valuesByAxis[axisId].push(numeric)
+        }
+      }
+    })
+
+    const scales = chart.options?.scales || {}
+    Object.keys(scales).forEach((axisId) => {
+      const values = valuesByAxis[axisId] || []
+      if (!values.length) {
+        delete scales[axisId].min
+        delete scales[axisId].max
+        return
+      }
+      let min = Math.min(...values)
+      let max = Math.max(...values)
+      if (min === max) {
+        min -= 1
+        max += 1
+      }
+      const padding = (max - min) * 0.1
+      scales[axisId].min = min - padding
+      scales[axisId].max = max + padding
+    })
+
     chart.update()
   }
 }

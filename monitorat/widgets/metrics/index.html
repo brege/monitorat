@@ -80,11 +80,13 @@
       </select>
       <select class="alerts-toggle" data-metrics="period-select" style="display: none;">
       </select>
-      <span class="view-toggle-spacer"></span>
       <button type="button" class="alerts-toggle" data-metrics="download-csv">CSV</button>
     </div>
   
   <div class="metrics-chart" data-metrics="chart-container" style="display: none;">
+    <div class="chart-overlay">
+      <div class="chart-legend" data-metrics="chart-legend"></div>
+    </div>
     <canvas data-metrics="chart"></canvas>
   </div>
   
