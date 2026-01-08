@@ -199,7 +199,7 @@ class MetricsWidget {
 
       const placeholder = document.createElement('option')
       placeholder.value = ''
-      placeholder.textContent = 'Download CSV'
+      placeholder.textContent = 'CSV'
       placeholder.disabled = true
       placeholder.selected = true
       dropdown.appendChild(placeholder)
@@ -356,6 +356,11 @@ MetricsWidget.prototype.getViewControls = function () {
     this.getElement('metric-select'),
     this.getElement('period-select')
   ]
+}
+
+MetricsWidget.prototype.openTableForSource = function (source) {
+  const csvUrl = `api/metrics-${source}/csv`
+  window.open(csvUrl, '_blank')
 }
 
 window.widgets = window.widgets || {}

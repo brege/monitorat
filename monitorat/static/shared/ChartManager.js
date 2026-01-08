@@ -71,7 +71,12 @@ class ChartManager {
         },
         plugins: {
           legend: {
-            position: 'top'
+            position: 'top',
+            labels: {
+              boxWidth: 12,
+              padding: 8,
+              font: { size: 11 }
+            }
           }
         },
         ...this.chartOptions
@@ -261,8 +266,14 @@ class ChartManager {
 
   static buildScalesFromSchema (axes = {}, overrides = {}) {
     const scales = {}
+    const compactDefaults = {
+      ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 0 },
+      title: { font: { size: 11 } }
+    }
+
     Object.entries(axes || {}).forEach(([scaleId, config]) => {
-      scales[scaleId] = this.cloneObject(config)
+      const cloned = this.cloneObject(config)
+      scales[scaleId] = this.mergeObjects(compactDefaults, cloned)
     })
 
     Object.entries(overrides || {}).forEach(([scaleId, overrideConfig]) => {

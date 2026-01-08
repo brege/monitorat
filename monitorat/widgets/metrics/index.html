@@ -11,16 +11,23 @@
 }
 .metrics-view-toggle {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1rem;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
   margin-bottom: 1rem;
   align-items: center;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.25rem;
 }
 .metrics-view-toggle .alerts-toggle.active {
   font-weight: 600;
 }
+.metrics-view-toggle .alerts-toggle {
+  flex-shrink: 0;
+}
 .metrics-view-toggle .view-toggle-spacer {
   flex: 1;
+  min-width: 0.5rem;
 }
 </style>
 
@@ -74,7 +81,7 @@
       <select class="alerts-toggle" data-metrics="node-select" style="display: none;">
       </select>
       <span class="view-toggle-spacer"></span>
-      <button type="button" class="alerts-toggle" data-metrics="download-csv">Download CSV</button>
+      <button type="button" class="alerts-toggle" data-metrics="download-csv">CSV</button>
     </div>
   
   <div class="metrics-chart" data-metrics="chart-container" style="display: none;">

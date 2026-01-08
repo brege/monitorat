@@ -230,7 +230,7 @@ class SpeedtestWidget {
 
       const placeholder = document.createElement('option')
       placeholder.value = ''
-      placeholder.textContent = 'Download CSV'
+      placeholder.textContent = 'CSV'
       placeholder.disabled = true
       placeholder.selected = true
       dropdown.appendChild(placeholder)
@@ -286,6 +286,11 @@ SpeedtestWidget.prototype.getViewControls = function () {
     this.getElement('metric-select'),
     this.getElement('period-select')
   ]
+}
+
+SpeedtestWidget.prototype.openTableForSource = function (source) {
+  const csvUrl = `api/speedtest-${source}/csv`
+  window.open(csvUrl, '_blank')
 }
 
 window.widgets = window.widgets || {}

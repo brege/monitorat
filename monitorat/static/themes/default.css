@@ -204,6 +204,10 @@ body {
   overflow-x: hidden;
 }
 
+a {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
 main {
   max-width: 960px;
   margin: 0 auto;
@@ -453,6 +457,20 @@ button:disabled {
 
 .alerts-toggle:hover {
   text-decoration: underline;
+}
+
+select.alerts-toggle {
+  background: var(--toggle-bg);
+  border: 1px solid var(--toggle-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  appearance: auto;
+}
+
+select.alerts-toggle:hover {
+  text-decoration: none;
+  background: var(--toggle-hover);
 }
 
 .alert-list {
