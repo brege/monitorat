@@ -6,6 +6,7 @@
 - Made ollama icon look better on both light and dark backgrounds
 - Overhauled headers inside and outside Markdown containers
 - Added Wikipedia chevrons to first-rate headers for easier collapsing
+- Made all demo section headers collapsible
 
 2026-01-07 -- d17e19c..ebd479f
 

@@ -116,7 +116,12 @@ def command_server(args):
 
     mode_label = "on" if is_demo_enabled() else "off"
     print(f" * Demo mode: {mode_label}")
-    flask_app.run(host=args.host, port=args.port, debug=args.debug, threaded=True)
+    try:
+        flask_app.run(host=args.host, port=args.port, debug=args.debug, threaded=True)
+    except KeyboardInterrupt:
+        sys.exit(130)
+    finally:
+        print("\nShutting down server...")
 
 
 def get_demo_launcher_path() -> Path:
@@ -142,7 +147,11 @@ def command_demo(args):
         cmd.append("--background")
     if args.stop:
         cmd.append("--stop")
-    subprocess.run(cmd, cwd=launcher_path.parent, check=True)
+    try:
+        subprocess.run(cmd, cwd=launcher_path.parent, check=True)
+    except KeyboardInterrupt:
+        print("\nShutting down demo launcher...")
+        sys.exit(130)
 
 
 def main():
