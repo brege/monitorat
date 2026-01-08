@@ -3,6 +3,7 @@ widgets:
   metrics:
     name: System Metrics
     default: chart
+    collapsible: true
     enabled:
       - cpu_percent
       - memory_percent

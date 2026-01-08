@@ -1,7 +1,0 @@
-widgets:
-  wiki-quick-links:
-    type: wiki
-    name: Quick Links
-    mode: seamless
-    _suppressHeader: true
-    doc: ../../docs/quick-links.md

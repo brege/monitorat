@@ -50,13 +50,11 @@ documents:
       The Speedtest widget keeps a record of your internet performance
       over time. It does not perform automated runs.
     include: snippets/speedtest.yaml
-  - output: demo/simple/docs/quick-links.md
+  - output: demo/simple/docs/footer.md
     preface: |-
-      ## Links
-
       ### Demos
       - **Simple** - [http://monitorat.brege.org/](http://monitorat.brege.org/)
-      - [**NEXT UP:**](http://monitorat.brege.org/advanced) **Widget Features and Modes** - [http://monitorat.brege.org/advanced](http://monitorat.brege.org/advanced)
+      - **NEXT UP:** **Widget Features and Modes** - [http://monitorat.brege.org/advanced](http://monitorat.brege.org/advanced)
       - **Federation** - [http://monitorat.brege.org/federation](http://monitorat.brege.org/federation)
 
       ### Repositories
@@ -69,7 +67,7 @@ documents:
       - **GitHub** - [https://github.com/brege](https://github.com/brege)
       - **Mastodon** - [https://mastodon.social/@brege](https://mastodon.social/@brege)
     
-    include: snippets/quick-links.yaml
+    include: snippets/footer.yaml
     show_config: false
   - output: demo/advanced/docs/metrics/full.md
     preface: Full metrics widget with custom chart periods.
@@ -148,10 +146,8 @@ documents:
 
       Mode: seamless (no visual separation).
     include: snippets/wiki/seamless.yaml
-  - output: demo/advanced/docs/quick-links.md
+  - output: demo/advanced/docs/footer.md
     preface: |-
-      ## Links
-
       ### Demos
       - **Simple** -
         [http://monitorat.brege.org/](http://monitorat.brege.org/)
@@ -170,7 +166,7 @@ documents:
       - **GitHub** - [https://github.com/brege](https://github.com/brege)
       - **Mastodon** - [https://mastodon.social/@brege](https://mastodon.social/@brege)
 
-    include: snippets/wiki/quick-links.yaml
+    include: snippets/wiki/footer.yaml
     show_config: false
   - output: demo/federation/central/docs/wiki/each.md
     include: snippets/wiki/each.yaml
@@ -249,17 +245,15 @@ documents:
   - output: demo/federation/central/docs/speedtest/merge.md
     include: snippets/speedtest/merge.yaml
     footer: Speedtest merges chart and table data; run buttons are stacked.
-  - output: demo/federation/central/docs/quick-links.md
+  - output: demo/federation/central/docs/footer.md
     preface: |-
-      ## Links
-
       ### Demos
       - **Simple** - [http://monitorat.brege.org/](http://monitorat.brege.org/)
       - **Widget Features and Modes** - [http://monitorat.brege.org/advanced](http://monitorat.brege.org/advanced)
       - **Federation** - [http://monitorat.brege.org/federation](http://monitorat.brege.org/federation)
 
       ### Repositories
-      - [**NEXT UP:**](https://github.com/brege/monitorat) **GitHub** - [https://github.com/brege/monitorat](https://github.com/brege/monitorat)
+      - **NEXT UP:** **GitHub** - [https://github.com/brege/monitorat](https://github.com/brege/monitorat)
       - **PyPI** - [https://pypi.org/project/monitorat](https://pypi.org/project/monitorat) `uv tool install monitorat`
 
       ### About
@@ -268,5 +262,5 @@ documents:
       - **GitHub** - [https://github.com/brege](https://github.com/brege)
       - **Mastodon** - [https://mastodon.social/@brege](https://mastodon.social/@brege)
 
-    include: snippets/wiki/quick-links.yaml
+    include: snippets/wiki/footer.yaml
     show_config: false

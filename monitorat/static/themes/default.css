@@ -332,6 +332,36 @@ h1 {
   color: var(--text-heading);
 }
 
+h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--text-heading);
+}
+
+h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: var(--text-heading);
+}
+
+h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: var(--text-heading);
+}
+
+h5 {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text-heading);
+}
+
+h6 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-heading);
+}
+
 button {
   appearance: none;
   border: none;
@@ -541,10 +571,45 @@ select.alerts-toggle:disabled {
   margin-bottom: 16px;
 }
 
+.widget-header-collapsible {
+  cursor: pointer;
+  user-select: none;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.widget-header-collapsible.collapsed {
+  border-bottom-color: var(--border-muted);
+}
+
+.widget-chevron {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.widget-header-collapsible:not(.collapsed) .widget-chevron {
+  transform: rotate(180deg);
+}
+
 .widget-title {
   margin: 0;
   font-size: 1.4rem;
   color: var(--text-heading);
+}
+
+.markdown-body h2 {
+  font-size: 1.3rem;
+}
+
+.markdown-body h3 {
+  font-size: 1.15rem;
 }
 
 .widget-header .alerts-toggle {

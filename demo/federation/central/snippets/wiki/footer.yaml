@@ -1,0 +1,8 @@
+widgets:
+  wiki-footer:
+    type: wiki
+    name: Links
+    collapsible: true
+    mode: seamless
+    _suppressHeader: true
+    doc: ../../docs/footer.md

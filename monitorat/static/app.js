@@ -347,17 +347,18 @@ function setupCollapsibleWidget (container, widgetName, config) {
   const isHidden = config?.hidden === true
   const remoteName = config?.remote
 
+  const chevronSvg = '<svg class="widget-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'
+
   container.innerHTML = `
-    <div class="widget-header">
-      <h2 class="widget-title">
-        ${widgetTitle}
-      </h2>
-      <button type="button" class="alerts-toggle" onclick="toggleWidget('${widgetName}')">
-        ${isHidden ? 'Show' : 'Hide'}
-      </button>
+    <div class="widget-header widget-header-collapsible${isHidden ? ' collapsed' : ''}" data-widget="${widgetName}">
+      ${chevronSvg}
+      <h2 class="widget-title">${widgetTitle}</h2>
     </div>
     <div class="widget-content" style="display: ${isHidden ? 'none' : 'block'}"></div>
   `
+
+  const header = container.querySelector('.widget-header-collapsible')
+  header.addEventListener('click', () => toggleWidget(widgetName))
 
   if (remoteName && window.StatusIndicator && monitorAPI.federationStatus?.enabled) {
     const healthResult = monitorAPI.federationStatus.remotes?.[remoteName]
@@ -374,12 +375,15 @@ function toggleWidget (widgetName) {
   if (!container) return
 
   const content = container.querySelector('.widget-content')
-  const toggle = container.querySelector('.alerts-toggle')
-  if (!content || !toggle) return
+  const header = container.querySelector('.widget-header-collapsible')
+  if (!content) return
 
   const isHidden = content.style.display === 'none'
   content.style.display = isHidden ? 'block' : 'none'
-  toggle.textContent = isHidden ? 'Hide' : 'Show'
+
+  if (header) {
+    header.classList.toggle('collapsed', !isHidden)
+  }
 }
 window.toggleWidget = toggleWidget
 

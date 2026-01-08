@@ -28,7 +28,7 @@ includes:
   - snippets/wiki/rail.yaml
   - snippets/wiki/featured.yaml
   - snippets/wiki/seamless.yaml
-  - snippets/wiki/quick-links.yaml
+  - snippets/wiki/footer.yaml
 
   # Single-node feature toggles
   - snippets/metrics/tiles.yaml
@@ -92,4 +92,4 @@ widgets:
     - wiki-network-uptime
     - network-outages
     - wiki-network-outages
-    - wiki-quick-links
+    - wiki-footer
