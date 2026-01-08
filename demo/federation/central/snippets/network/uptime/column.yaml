@@ -2,6 +2,7 @@ widgets:
   network-uptime-column:
     type: network
     name: "Network: Uptime Columnated"
+    collapsible: true
     log_file: network.log
     chirper:
       enabled: false
@@ -28,6 +29,7 @@ widgets:
   wiki-network-uptime-column:
     type: wiki
     name: "Config: Uptime Columnated"
+    parent: network-uptime-column
     mode: rail
     _suppressHeader: true
     doc: ../../../docs/network/uptime/column.md

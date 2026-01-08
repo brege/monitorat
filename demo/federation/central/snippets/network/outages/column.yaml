@@ -2,6 +2,7 @@ widgets:
   network-outages-column:
     type: network
     name: "Network: Outages Columnated"
+    collapsible: true
     log_file: network.log
     chirper:
       enabled: false
@@ -22,6 +23,7 @@ widgets:
   wiki-network-outages-column:
     type: wiki
     name: "Config: Outages Columnated"
+    parent: network-outages-column
     mode: rail
     _suppressHeader: true
     doc: ../../../docs/network/outages/column.md

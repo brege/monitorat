@@ -2,6 +2,7 @@ widgets:
   services-column:
     type: services
     name: "Services: Columnated"
+    collapsible: true
     federation:
       nodes: [nas-1, nas-2]
       display:
@@ -10,6 +11,7 @@ widgets:
   wiki-services-column:
     type: wiki
     name: "Config: Services Columnated"
+    parent: services-column
     _suppressHeader: true
     mode: rail
     doc: ../../docs/services/column.md

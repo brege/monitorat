@@ -2,6 +2,7 @@ widgets:
   wiki-nas-1:
     type: wiki
     name: "NAS-1 Wiki"
+    collapsible: true
     remote: nas-1
     mode: featured
     doc: true
@@ -9,6 +10,7 @@ widgets:
   wiki-nas-2:
     type: wiki
     name: "NAS-2 Wiki"
+    collapsible: true
     remote: nas-2
     mode: featured
     doc: true
@@ -16,6 +18,7 @@ widgets:
   wiki-each-doc:
     type: wiki
     name: "Config: Single Remote"
+    parent: wiki-nas-1
     _suppressHeader: true
     mode: rail
     doc: ../../docs/wiki/each.md

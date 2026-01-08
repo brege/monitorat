@@ -2,6 +2,7 @@ widgets:
   network-combined:
     type: network
     name: "Network: Combined"
+    collapsible: true
     log_file: network.log
     chirper:
       enabled: false
@@ -27,6 +28,7 @@ widgets:
   wiki-network-combined:
     type: wiki
     name: "Config: Network Combined"
+    parent: network-combined
     mode: rail
     _suppressHeader: true
     doc: ../../docs/network/combined.md

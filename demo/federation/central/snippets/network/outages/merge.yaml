@@ -2,6 +2,7 @@ widgets:
   network-outages-merge:
     type: network
     name: "Network: Outages Merged"
+    collapsible: true
     log_file: network.log
     chirper:
       enabled: false
@@ -22,6 +23,7 @@ widgets:
   wiki-network-outages-merge:
     type: wiki
     name: "Config: Outages Merged"
+    parent: network-outages-merge
     mode: rail
     _suppressHeader: true
     doc: ../../../docs/network/outages/merge.md

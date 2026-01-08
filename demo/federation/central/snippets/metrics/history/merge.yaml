@@ -2,6 +2,7 @@ widgets:
   metrics-history-merge:
     type: metrics
     name: "Metrics: History Merged"
+    collapsible: true
     federation:
       nodes: [nas-1, nas-2]
     show:
@@ -14,6 +15,7 @@ widgets:
   wiki-metrics-history-merge:
     type: wiki
     name: "Config: History Merged"
+    parent: metrics-history-merge
     _suppressHeader: true
     mode: rail
     doc: ../../../docs/metrics/history/merge.md

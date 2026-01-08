@@ -2,6 +2,7 @@ widgets:
   network-tiles-column:
     type: network
     name: "Network: Tiles Columnated"
+    collapsible: true
     log_file: network.log
     chirper:
       enabled: false
@@ -21,6 +22,7 @@ widgets:
   wiki-network-tiles-column:
     type: wiki
     name: "Config: Tiles Columnated"
+    parent: network-tiles-column
     mode: rail
     _suppressHeader: true
     doc: ../../../docs/network/tiles/column.md

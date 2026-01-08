@@ -2,6 +2,7 @@ widgets:
   metrics-tiles-stack:
     type: metrics
     name: "Metrics: Tiles Stacked"
+    collapsible: true
     federation:
       nodes: [nas-1, nas-2]
       display:
@@ -13,6 +14,7 @@ widgets:
   wiki-metrics-tiles-stack:
     type: wiki
     name: "Config: Tiles Stacked"
+    parent: metrics-tiles-stack
     _suppressHeader: true
     mode: rail
     doc: ../../../docs/metrics/tiles/stack.md

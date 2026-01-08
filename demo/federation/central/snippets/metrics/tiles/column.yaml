@@ -2,6 +2,7 @@ widgets:
   metrics-tiles-column:
     type: metrics
     name: "Metrics: Tiles Columnated"
+    collapsible: true
     federation:
       nodes: [nas-1, nas-2]
       display:
@@ -13,6 +14,7 @@ widgets:
   wiki-metrics-tiles-column:
     type: wiki
     name: "Config: Tiles Columnated"
+    parent: metrics-tiles-column
     _suppressHeader: true
     mode: rail
     doc: ../../../docs/metrics/tiles/column.md

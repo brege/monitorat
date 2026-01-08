@@ -2,6 +2,7 @@ widgets:
   network-tiles-stack:
     type: network
     name: "Network: Tiles Stacked"
+    collapsible: true
     log_file: network.log
     chirper:
       enabled: false
@@ -21,6 +22,7 @@ widgets:
   wiki-network-tiles-stack:
     type: wiki
     name: "Config: Tiles Stacked"
+    parent: network-tiles-stack
     mode: rail
     _suppressHeader: true
     doc: ../../../docs/network/tiles/stack.md

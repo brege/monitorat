@@ -2,6 +2,7 @@ widgets:
   metrics-history-nas-1:
     type: metrics
     name: "Metrics: History (NAS-1)"
+    collapsible: true
     remote: nas-1
     show:
       tiles: false
@@ -13,6 +14,7 @@ widgets:
   metrics-history-nas-2:
     type: metrics
     name: "Metrics: History (NAS-2)"
+    collapsible: true
     remote: nas-2
     show:
       tiles: false
@@ -24,6 +26,7 @@ widgets:
   wiki-metrics-history-stack:
     type: wiki
     name: "Config: History Per Node"
+    parent: metrics-history-nas-1
     _suppressHeader: true
     mode: rail
     doc: ../../../docs/metrics/history/stack.md
