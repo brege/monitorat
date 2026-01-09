@@ -1,0 +1,76 @@
+.header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.header-row h1 {
+  margin: 0;
+  line-height: 1;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+}
+
+.header-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.header-btn:hover {
+  background: var(--toggle-hover);
+  color: var(--text-primary);
+}
+
+.header-btn:active {
+  background: var(--toggle-hover);
+  transform: scale(1.0);
+}
+
+.header-btn svg {
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+}
+
+.toc-modal-links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toc-modal-link {
+  display: block;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.95rem;
+  border-radius: 4px;
+  transition: background 0.15s ease, transform 0.15s ease;
+  transform-origin: left center;
+}
+
+.toc-modal-link:hover {
+  background: var(--toggle-hover);
+}

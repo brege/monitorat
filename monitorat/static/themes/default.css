@@ -220,45 +220,6 @@ main {
   overflow: hidden;
 }
 
-.header-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.controls {
-  display: flex;
-  gap: 8px;
-}
-
-.control-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 4px;
-  background: var(--toggle-bg);
-  border: 1px solid var(--toggle-border);
-  border-radius: 6px;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.control-btn:hover {
-  background: var(--toggle-hover);
-}
-
-.control-btn svg {
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -1288,6 +1249,11 @@ tr:last-child td {
 
 .menu-modal-control:hover {
   background: var(--bg-card);
+  transform: scale(1.0);
+}
+
+.menu-modal-control:hover .menu-modal-icon {
+  transform: scale(1.1);
 }
 
 .menu-modal-control:active {
@@ -1301,6 +1267,7 @@ tr:last-child td {
   width: 22px;
   height: 22px;
   flex-shrink: 0;
+  transition: transform 0.15s ease;
 }
 
 .menu-modal-icon svg {
@@ -1359,6 +1326,20 @@ tr:last-child td {
 .menu-modal-theme-name {
   font-weight: 500;
   color: var(--text-primary);
+}
+
+.menu-modal-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.menu-modal-checkbox input[type="checkbox"] {
+  margin: 0;
+  accent-color: var(--accent);
 }
 
 .menu-modal-footer {

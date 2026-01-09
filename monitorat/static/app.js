@@ -10,8 +10,12 @@ const privacyState = {
 const THEME_STORAGE_KEY = 'monitor-theme'
 const THEME_LIGHT = 'light'
 const THEME_DARK = 'dark'
+const REMEMBER_EXPANSIONS_KEY = 'monitor-remember-expansions'
+const EXPANSIONS_STATE_KEY = 'monitor-expansions'
 
 const monitorAPI = window.monitor = window.monitor || {}
+
+let cachedAppInfo = null
 
 monitorAPI.applyWidgetHeader = function applyWidgetHeader (container, options = {}) {
   if (!container) {
@@ -119,8 +123,14 @@ monitorAPI.applyWidgetHeader = function applyWidgetHeader (container, options = 
 
 document.addEventListener('DOMContentLoaded', async () => {
   initializeThemeToggle()
-  initializeMenuButton()
   syncPrivacyToggleState()
+  preloadAppInfo()
+
+  if (window.headerLoaded) {
+    await window.headerLoaded
+  }
+  initializeMenuButton()
+  initializeTocButton()
 
   const config = await loadConfig()
   const federationStatus = window.StatusIndicator
@@ -164,21 +174,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   })
 
   await Promise.all(
-    widgetOrder.map(async (widgetName) => {
+    widgetOrder.map((widgetName) => {
       const widgetConfig = config.widgets?.[widgetName]
-      if (!widgetConfig) {
-        return
-      }
-
+      if (!widgetConfig) return Promise.resolve()
       const widgetType = widgetConfig?.type || widgetName
-      const container = containersByWidget.get(widgetName)
-      if (!container) {
-        return
-      }
-
-      return initializeWidget(widgetName, widgetType, widgetConfig, container)
+      return ensureWidgetScript(widgetType)
     })
   )
+
+  for (const widgetName of widgetOrder) {
+    const widgetConfig = config.widgets?.[widgetName]
+    if (!widgetConfig) {
+      continue
+    }
+
+    const widgetType = widgetConfig?.type || widgetName
+    const container = containersByWidget.get(widgetName)
+    if (!container) {
+      continue
+    }
+
+    await initializeWidget(widgetName, widgetType, widgetConfig, container)
+  }
+
+  restoreExpansionStates()
 })
 
 async function loadConfig () {
@@ -411,8 +430,85 @@ function toggleWidget (widgetName, forceState) {
   childWidgets.forEach((child) => {
     child.style.display = shouldShow ? '' : 'none'
   })
+
+  saveExpansionStates()
 }
 window.toggleWidget = toggleWidget
+
+function isRememberExpansionsEnabled () {
+  try {
+    return localStorage.getItem(REMEMBER_EXPANSIONS_KEY) === 'true'
+  } catch (_) {
+    return false
+  }
+}
+
+function setRememberExpansions (enabled) {
+  try {
+    if (enabled) {
+      localStorage.setItem(REMEMBER_EXPANSIONS_KEY, 'true')
+      saveExpansionStates()
+    } else {
+      localStorage.removeItem(REMEMBER_EXPANSIONS_KEY)
+      localStorage.removeItem(EXPANSIONS_STATE_KEY)
+    }
+  } catch (_) {
+    /* localStorage may be unavailable */
+  }
+}
+
+function saveExpansionStates () {
+  if (!isRememberExpansionsEnabled()) {
+    return
+  }
+
+  const states = {}
+  document.querySelectorAll('.widget-header-collapsible').forEach((header) => {
+    const widgetName = header.dataset.widget
+    if (widgetName) {
+      states[widgetName] = !header.classList.contains('collapsed')
+    }
+  })
+
+  try {
+    localStorage.setItem(EXPANSIONS_STATE_KEY, JSON.stringify(states))
+  } catch (_) {
+    /* localStorage may be unavailable */
+  }
+}
+
+function restoreExpansionStates () {
+  if (!isRememberExpansionsEnabled()) {
+    return
+  }
+
+  try {
+    const stored = localStorage.getItem(EXPANSIONS_STATE_KEY)
+    if (!stored) {
+      return
+    }
+
+    const states = JSON.parse(stored)
+    Object.entries(states).forEach(([widgetName, expanded]) => {
+      const container = document.getElementById(`${widgetName}-widget`)
+      if (!container) return
+
+      const content = container.querySelector('.widget-content')
+      const header = container.querySelector('.widget-header-collapsible')
+      if (!content || !header) return
+
+      content.style.display = expanded ? 'block' : 'none'
+      header.classList.toggle('collapsed', !expanded)
+
+      const childWidgets = document.querySelectorAll(`[data-parent="${widgetName}"]`)
+      childWidgets.forEach((child) => {
+        child.style.display = expanded ? '' : 'none'
+      })
+    })
+  } catch (_) {
+    /* localStorage may be unavailable or corrupted */
+  }
+}
 
 function getStoredTheme () {
   try {
@@ -578,17 +674,30 @@ function applyColorTheme (themeName) {
   }
 }
 
+function getDefaultAppInfo () {
+  return { version: 'unknown', github: 'https://github.com/brege/monitorat', themes: ['default'] }
+}
+
 async function fetchAppInfo () {
+  if (cachedAppInfo) {
+    return cachedAppInfo
+  }
+
   try {
     const response = await fetch('api/info', { cache: 'no-store' })
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`)
     }
-    return await response.json()
+    cachedAppInfo = await response.json()
+    return cachedAppInfo
   } catch (error) {
     console.error('Unable to load app info:', error.message)
-    return { version: 'unknown', github: 'https://github.com/brege/monitorat', themes: ['default'] }
+    return getDefaultAppInfo()
   }
+}
+
+function preloadAppInfo () {
+  fetchAppInfo()
 }
 
 function capitalizeFirst (str) {
@@ -630,6 +739,7 @@ async function showMenuModal () {
   const currentTheme = document.documentElement.getAttribute('data-theme') || getPreferredTheme()
   const isDark = currentTheme === THEME_DARK
   const allCollapsed = areAllWidgetsCollapsed()
+  const rememberExpansions = isRememberExpansionsEnabled()
 
   const themesHtml = info.themes.map((theme) => {
     const isSelected = theme === currentColorTheme ? ' selected' : ''
@@ -666,6 +776,12 @@ async function showMenuModal () {
       <div class="menu-modal-themes">
         ${themesHtml}
       </div>
+    </div>
+    <div class="menu-modal-section">
+      <label class="menu-modal-checkbox">
+        <input type="checkbox" id="menu-remember-expansions"${rememberExpansions ? ' checked' : ''}>
+        <span>Remember expansions</span>
+      </label>
     </div>
     <div class="menu-modal-footer">
       <a href="${info.github}" target="_blank" rel="noopener" class="menu-modal-link hover-expand-parent" title="GitHub Repository">
@@ -725,6 +841,10 @@ async function showMenuModal () {
       }
     })
   })
+
+  document.getElementById('menu-remember-expansions')?.addEventListener('change', (event) => {
+    setRememberExpansions(event.target.checked)
+  })
 }
 
 function initializeMenuButton () {
@@ -736,5 +856,58 @@ function initializeMenuButton () {
   const storedColorTheme = getStoredColorTheme()
   if (storedColorTheme && storedColorTheme !== 'default') {
     applyColorTheme(storedColorTheme)
+  }
+}
+
+function showTocModal () {
+  const headers = document.querySelectorAll('.widget-header-collapsible')
+  if (headers.length === 0) {
+    return
+  }
+
+  const items = Array.from(headers).map((header) => {
+    const widgetName = header.dataset.widget
+    const titleElement = header.querySelector('.widget-title')
+    const title = titleElement ? titleElement.textContent.replace('#', '').trim() : widgetName
+    return { widgetName, title }
+  })
+
+  const linksHtml = items.map(({ widgetName, title }) => {
+    return `<a href="#${widgetName}-widget" class="toc-modal-link" data-widget="${widgetName}">${title}</a>`
+  }).join('')
+
+  const content = `
+    <div class="toc-modal-links">
+      ${linksHtml}
+    </div>
+  `
+
+  window.Modal.show({
+    title: 'Contents',
+    content,
+    onClose: () => {}
+  })
+
+  document.querySelectorAll('.toc-modal-link').forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault()
+      window.Modal.hide()
+      const href = link.getAttribute('href')
+      if (href === '#') {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      } else {
+        const target = document.querySelector(href)
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' })
+        }
+      }
+    })
+  })
+}
+
+function initializeTocButton () {
+  const button = document.getElementById('toc-button')
+  if (button) {
+    button.addEventListener('click', showTocModal)
   }
 }
