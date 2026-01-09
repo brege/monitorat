@@ -668,12 +668,12 @@ async function showMenuModal () {
       </div>
     </div>
     <div class="menu-modal-footer">
-      <a href="${info.github}" target="_blank" rel="noopener" class="menu-modal-link" title="GitHub Repository">
-        ${MENU_ICONS.github}
+      <a href="${info.github}" target="_blank" rel="noopener" class="menu-modal-link hover-expand-parent" title="GitHub Repository">
+        <span class="menu-modal-link-icon hover-expand">${MENU_ICONS.github}</span>
         <span>brege/monitorat</span>
       </a>
-      <a href="${info.github}/releases/tag/v${info.version}" target="_blank" rel="noopener" class="menu-modal-link" title="Release v${info.version}">
-        ${MENU_ICONS.fork}
+      <a href="${info.github}/releases/tag/v${info.version}" target="_blank" rel="noopener" class="menu-modal-link hover-expand-parent" title="Release v${info.version}">
+        <span class="menu-modal-link-icon hover-expand">${MENU_ICONS.fork}</span>
         <span>v${info.version}</span>
       </a>
     </div>

@@ -4,12 +4,13 @@
 
 - Add Roadmap
 - Hover on reminder alerts shows the URL target
-- Run button uses an speedometer icon on a square button
+- Run button uses an speedometer icon
 - Federation demo wiki samples shorter or summary/detail for side-by-side readability
 - Chart.js hover tooltip legend squares should be solid fill
 - CSV button hover tooltip should read "Download CSV"
 - Change "show less" to "show fewer"
 - Unit time labels use "hour"/"day" when unity; keep numerals for non-unity
+- Add link-icon expansion for informational links/modals
 
 ### 2026-01-08 
 

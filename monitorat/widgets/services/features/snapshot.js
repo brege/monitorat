@@ -187,7 +187,7 @@ class ServicesSnapshot {
     } else {
       const infoBtn = document.createElement('button')
       infoBtn.type = 'button'
-      infoBtn.className = 'service-info-btn'
+      infoBtn.className = 'service-info-btn hover-expand'
       infoBtn.innerHTML = SERVICE_ACTION_ICONS.info
       infoBtn.title = 'Service details'
       infoBtn.addEventListener('click', (event) => {
