@@ -7,7 +7,7 @@ Prerequisites:
 
 Federation aggregates data from multiple monitorat instances into a unified view. This makes comparing metric data across two or more instances more continuous, allowing you to merge charts, mix reminders and service status, and pull documentation from multiple sources in one continuous display.
 
-## How widgets can merge data in federation
+## How widgets can combine data in federation
 
 Different widgets and widget features support different integrations.
 
@@ -23,7 +23,7 @@ Different widgets and widget features support different integrations.
 | network | uptime | ✔ | ✔ | ✖ |
 | network | outages | ✖ | ✔ | ✔ |
 
-Each federated widget declares its sources with `federation.nodes: [nas-1, nas-2]`.
+Each federated widget declares its sources with, for example `federation.nodes: [nas-1, nas-2]`.
 
 ## Display Strategies
 

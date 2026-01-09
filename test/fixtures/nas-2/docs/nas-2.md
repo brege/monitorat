@@ -1,5 +1,12 @@
 # Universal Declaration of Human Rights
 
+<details>
+<summary>nas-2 information</summary>
+
+This is a document served from `nas-1`, accessed by the head node's backend via federation through `nas-1`'s API.
+
+</details>
+
 ## Article 1
 
 All human beings are born free and equal in dignity and rights. They are endowed with reason and conscience and should act towards one another in a spirit of brotherhood.

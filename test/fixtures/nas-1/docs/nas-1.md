@@ -1,6 +1,6 @@
 # Lorem Ipsum Overview
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+This is a document served from `nas-1`, accessed by the head node's backend via federation through `nas-1`'s API.
 
 For more information about certain topics, see these Wikipedia articles:
 - [LaTeX](https://en.wikipedia.org/wiki/LaTeX)
