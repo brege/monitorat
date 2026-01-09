@@ -26,7 +26,7 @@ Promise.
 - responsive for mobile and desktop
 - light and dark mode
 - use of CSS variables for theming `var(--theme-...)`
-- use of Firefox dev tools to measure performance 
+- use of Firefox DevTools to measure performance
   - [5aeeff0](https://github.com/brege/monitorat/commit/5aeeff0)
     [51557cc](https://github.com/brege/monitorat/commit/51557cc)
     [027631b](https://github.com/brege/monitorat/commit/027631b)
@@ -55,4 +55,4 @@ See `pyproject.toml` for dependencies.
 
 Widgets follow the three-file structure shown at the top of this document: `api.py`, `widget.html`, and `widget.js` in `monitorat/widgets/your-widget/`, or, users can drop custom widgets into the directory referenced by `paths.widgets` (default: `~/.config/monitorat/widgets/`) and reference them in `widgets.enabled`.
 
-monitorat will automatically load the matching backend `api.py` and its presets (a *local* `default.yaml`) and serve the widget's HTML/JS from that directory.
+Monitorat will automatically load the matching backend `api.py` and its presets (a *local* `default.yaml`) and serve the widget's HTML/JS from that directory.

@@ -2,7 +2,7 @@
 
 #### Setup
 
-1. Copy and customize the compose file to your container path. Example:
+1. Copy and customize the compose file into your container path. Example:
 ```bash
 mkdir -p ~/docker/monitorat  # CHANGE
 cp compose.yml ~/docker/monitorat/compose.yml
@@ -23,7 +23,7 @@ docker compose -f compose.yml up --build --detach
 
 #### Management
 
-All configuration through `/config/config.yaml` on your host. You can use includes snippets relative to `./config/` as well. See `../demo/simple` for an example.
+All configuration goes through `/config/config.yaml` on your host. You can use include snippets relative to `./config/` as well. See `../demo/simple` for an example.
 
 - **Config**: Edit the file, then restart:
   ```bash

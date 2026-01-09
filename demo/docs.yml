@@ -8,8 +8,8 @@ documents:
 
       Metrics provides an overview of system performance, including CPU, 
       memory, disk, network usage, and temperature over time. Continuous 
-      data is logged to `metrics.csv`; snapshots of tiles-data are 
-      applied on each page refresh. Batter usage is also available for
+      data is logged to `metrics.csv`; snapshots of tile data are 
+      applied on each page refresh. Battery usage is also available for
       laptop users.
     include: snippets/metrics.yaml
   - output: demo/simple/docs/network.md
@@ -39,10 +39,10 @@ documents:
     preface: |-
       ### Services Widget
       The Services widget shows which systemd services, timers, and
-      docker containers are running or have failed, along with URLs for 
+      Docker containers are running or have failed, along with URLs for 
       convenient access. The URLs in this demo simply link to their
-      source code repository.  Toggle the info icon or long press on
-      mobile for statuses and direct internal/external links.
+      source code repository. Toggle the info icon or long press on
+      mobile to see statuses and direct internal/external links.
     include: snippets/services.yaml
   - output: demo/simple/docs/speedtest.md
     preface: |-
@@ -99,7 +99,7 @@ documents:
     include: snippets/network/outages.yaml
     footer: Show only the outage alerts list.
   - output: demo/advanced/docs/speedtest/full.md
-    preface: Speedtest defaults to the chart view with a 1 month period.
+    preface: Speedtest defaults to the chart view with a 1-month period.
     include: snippets/speedtest/full.yaml
   - output: demo/advanced/docs/speedtest/controls.md
     preface: Speedtest controls only (history hidden).
@@ -114,13 +114,13 @@ documents:
   - output: demo/advanced/docs/services/tiles.md
     preface: |-
       Full services widget in the default tiles layout. Click the info icon for
-      internal and external links, as well as status details. Long press on Mobile
-      or Shift/Ctrl+Shift click on Desktop works the same.
+      internal and external links, as well as status details. Long press on mobile
+      or Shift/Ctrl+Shift click on desktop work the same.
     include: snippets/services/tiles.yaml
   - output: demo/advanced/docs/services/compact.md
     preface: |-
-      Compact services layout with scaled icons. Long press on Mobile or 
-      Shift/Ctrl+Shift click on Desktop for the detail and link modal.
+      Compact services layout with scaled icons. Long press on mobile or 
+      Shift/Ctrl+Shift click on desktop for the detail and link modal.
     include: snippets/services/compact.yaml
   - output: demo/advanced/docs/reminders/full.md
     preface: Full reminders widget with the default layout.
@@ -179,8 +179,8 @@ documents:
   - output: demo/federation/central/docs/wiki/column.md
     include: snippets/wiki/column.yaml
     footer: |- 
-      Columnate-mode displays wikis side-by-side. Columns fallback to
-      stack on mobile or very thin viewports.
+      Columnate mode displays wikis side-by-side. Columns fall back to
+      stacking on mobile or very thin viewports.
   - output: demo/federation/central/docs/metrics/each.md
     include: snippets/metrics/each.yaml
     footer: Per-remote widgets for independent display.
@@ -189,7 +189,7 @@ documents:
     footer: Shows metrics tiles stacked by node.
   - output: demo/federation/central/docs/metrics/tiles/column.md
     include: snippets/metrics/tiles/column.yaml
-    footer: Shows metrics tiles in columns by node. Will falback to stack on mobile.
+    footer: Shows metrics tiles in columns by node. Will fall back to stacking on mobile.
   - output: demo/federation/central/docs/metrics/history/stack.md
     include: snippets/metrics/history/stack.yaml
     footer: Shows metrics history stacked by node.
@@ -208,16 +208,16 @@ documents:
     footer: Shows network tiles stacked by node.
   - output: demo/federation/central/docs/network/tiles/column.md
     include: snippets/network/tiles/column.yaml
-    footer: Shows network tiles in columns by node. Will falback to stack on mobile.
+    footer: Shows network tiles in columns by node. Will fall back to stacking on mobile.
   - output: demo/federation/central/docs/network/uptime/stack.md
     include: snippets/network/uptime/stack.yaml
     footer: Shows network uptime pills stacked by node.
   - output: demo/federation/central/docs/network/uptime/column.md
     include: snippets/network/uptime/column.yaml
-    footer: Shows network uptime in columns by node. Will falback to stack on mobile.
+    footer: Shows network uptime in columns by node. Will fall back to stacking on mobile.
   - output: demo/federation/central/docs/network/outages/column.md
     include: snippets/network/outages/column.yaml
-    footer: Shows network outages in columns by node. Will falback to stack on mobile.
+    footer: Shows network outages in columns by node. Will fall back to stacking on mobile.
   - output: demo/federation/central/docs/network/outages/merge.md
     include: snippets/network/outages/merge.yaml
     footer: |- 
@@ -232,7 +232,7 @@ documents:
     footer: Shows services merged into a single list.
   - output: demo/federation/central/docs/services/column.md
     include: snippets/services/column.yaml
-    footer: Shows services in columns by node. Will falback to stack on mobile.
+    footer: Shows services in columns by node. Will fall back to stacking on mobile.
   - output: demo/federation/central/docs/reminders/stack.md
     include: snippets/reminders/stack.yaml
     footer: Shows reminders stacked by node.
@@ -241,7 +241,7 @@ documents:
     footer: Shows reminders merged into a single list.
   - output: demo/federation/central/docs/reminders/column.md
     include: snippets/reminders/column.yaml
-    footer: Shows reminders in columns by node. Will falback to stack on mobile.
+    footer: Shows reminders in columns by node. Will fall back to stacking on mobile.
   - output: demo/federation/central/docs/speedtest/merge.md
     include: snippets/speedtest/merge.yaml
     footer: Speedtest merges chart and table data; run buttons are stacked.

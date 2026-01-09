@@ -101,7 +101,7 @@ Try stopping nas-1 (`Ctrl+C` in terminal 1), then refresh http://localhost:6100 
 # Federation status (all remotes)
 curl -s http://localhost:6100/api/federation/status | jq .
 
-# Direct to remote without auth (should 401)
+# Direct to remote without auth (should return 401)
 curl -s -w "\n%{http_code}\n" http://localhost:6601/api/config
 
 # Direct to remote with auth
@@ -128,7 +128,6 @@ uv run python demo/setup.py --test
 Each node gets a distinct waveform pattern for metrics:
 - nas-1: sawtooth
 - nas-2: sine
-- nas-3: square
 
 This makes metrics visually distinguishable when charted.
 

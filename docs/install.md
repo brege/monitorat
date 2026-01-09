@@ -7,7 +7,7 @@ See: [README](../README.md#installation).
 I like uv because it's fast.
 
 <details>
-<summary>Click to see uv-install -> usable Web UI in \lt 3s</summary>
+<summary>Click to see uv-install -> usable Web UI in &lt; 3s</summary>
 
 ```
 $ uv tool uninstall monitorat
@@ -100,7 +100,7 @@ monitorat -c config.yaml server --host 0.0.0.0 --port 6161
 
 #### Systemd service (pip)
 
-One command install:
+One-command installation:
 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/scripts/install-systemd-pip.sh)
@@ -114,7 +114,7 @@ To review the script before running:
 
 ### Deploying to /opt
 
-You can also deploy monitorat directly to `/opt/monitorat/` or elsewhere without the extra packaging. This is useful for thinner developments or when you want direct access to edit files.
+You can also deploy monitorat directly to `/opt/monitorat/` or elsewhere without the extra packaging. This is useful for thinner deployments or when you want direct access to edit files.
 
 Clone the repo:
 ```bash

@@ -27,7 +27,7 @@ Other demo entry points:
 
 The [advanced](http://monitorat.brege.org/advanced) demo breaks down how different features of each widget can be toggled, configured, and adjusted for different display modes.
 
-[Federation](http://monitorat.brege.org/federation) is a multi-node demo that demonstrates how widgets can be shared and used from central command. *Simple is a prerequisite for Advanced. Advanced is a prerequisite for Federation.*
+[Federation](http://monitorat.brege.org/federation) is a multi-node demo that demonstrates how widgets can be shared and used from a central command. *Simple is a prerequisite for Advanced. Advanced is a prerequisite for Federation.*
 
 ### Ports
 
@@ -44,7 +44,7 @@ The demos run on the following ports:
 - [Speedtest](#speedtest-widget)
 - [Reminders](#reminders-widget)
 
-For this demo, each widget is chased by a corresponding ["Wiki" widget](/#wiki) that provides documentation for said widget. On my Linux computers, including a Raspberry Pi, each machine's monitor@README is its systems bible. It provides me with the three main things I want in a dashboard:
+For this demo, each widget is chased by a corresponding ["Wiki" widget](/#wiki) that provides documentation for said widget. On my Linux computers, including a Raspberry Pi, each machine's monitor@README is its system's bible. It provides me with the three main things I want in a dashboard:
 
 - service status and links to them
 - performance of the system

@@ -33,10 +33,10 @@ Each federated widget declares its sources with `federation.nodes: [nas-1, nas-2
 
 **Stacking** can always be done by using consecutive widgets of the same type, perhaps broken down into features, stacking feature-by-feature.
 
-**Columnating** will only work on desktop. Mobile widgets and thin screens gracefully fallback to stacking when columnating is enabled.
+**Columnating** will only work on desktop. Mobile widgets and thin screens gracefully fall back to stacking when columnating is enabled.
 
-**Merging** is a data-driven: it allows data from multiple hosts to be combined into a single chart.
-Merging can be used interleave alerts and services cards, giving you a multi-sourced mix of apps and network failures, and reminders from a central command.
+**Merging** is data-driven: it allows data from multiple hosts to be combined into a single chart.
+Merging can be used to interleave alerts and services cards, giving you a multi-sourced mix of apps and network failures, and reminders from a central command.
 
 
 ## Architecture

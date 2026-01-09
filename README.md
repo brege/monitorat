@@ -23,11 +23,11 @@ Widgets have a general, self-contained structure where both API and UI are strai
     └── app.js
 ```
 
-Dashboard documentation is handled through through the Wiki widget. Each document snippet added is a new widget instance. This document and any others you add to your wiki will be rendered in GitHub-flavored markdown via [markdown-it](https://github.com/markdown-it/markdown-it).
+Dashboard documentation is handled through the Wiki widget. Each document snippet added is a new widget instance. This document and any others you add to your wiki will be rendered in GitHub-flavored markdown via [markdown-it](https://github.com/markdown-it/markdown-it).
 
 ### Gallery
 
-It's best to checkout [**the demo**](https://monitorat.brege.org) which is a fully interactive version of the application you could be running on your machines. Screenshots of the demo are compiled below.
+It's best to check out [**the demo**](https://monitorat.brege.org) which is a fully interactive version of the application you could be running on your machines. Screenshots of the demo are compiled below.
 
 <table>
   <tr>
@@ -64,11 +64,11 @@ It's best to checkout [**the demo**](https://monitorat.brege.org) which is a ful
 - Completely headless and works offline.
 - Responsive design for mobile and desktop, with light and dark modes.
 - Track [how hot your CPU gets](https://monitorat.brege.org/#metrics-widget) over the course of the day.
-- Be alerted [when under extremely high loads](#alerts).
+- Be alerted [when under extremely high load](#alerts).
 - Keep a record of [internet speedtests](https://monitorat.brege.org/#speedtest-widget) even when AFK.
-- List of [all your reverse-proxied services](https://monitorat.brege.org/#services-widget) with offline-friendly bookmarks.
+- List [all your reverse-proxied services](https://monitorat.brege.org/#services-widget) with offline-friendly bookmarks.
 - Even runs on Raspberry Pi 2/3 w/ Pi-Hole, Unraid, and other homelab systems.
-- Has [**federation**](https://monitorat.brege.org/federation): you can monitor services, metrics data, and documentation across many machines at a central command.
+- Has [**federation**](https://monitorat.brege.org/federation): you can monitor services, metrics data, and documentation across many machines from a central command.
 
 
 ---
@@ -143,7 +143,7 @@ See: [Alternate Installs](./docs/install.md) for traditional deployments at `/op
 
 ## The Dashboard
 
-Open `http://localhost:6161`, or your specifed port, or configure through a reverse proxy.
+Open `http://localhost:6161`, or your specified port, or configure through a reverse proxy.
 
 ### Configuration
 
@@ -201,12 +201,12 @@ includes:
 
 ##### Making your own
 
-They are also quite easy to build. Example of a widget built with Codex in 12 minutes:
+They are also quite easy to build. An example of a widget built with Codex in 12 minutes:
 
 - [Agentic Archetype: Building Widgets with AI](docs/contributing.md#agentic-archetype)
 
 #### **Services**  
-  The **Service Status** widget is a simple display to show what systemd service daemons, timers and docker containers are running or have failed. [GitHub](./demo/simple/docs/services.md) - [Demo](https://monitorat.brege.org/#services-widget)
+  The **Service Status** widget is a simple display to show what systemd services, timers, and Docker containers are running or have failed. [GitHub](./demo/simple/docs/services.md) - [Demo](https://monitorat.brege.org/#services-widget)
 
   You can configure the service tiles to have both your URL (or WAN IP) and a local address (or LAN IP) for use offline. **monitorat is completely encapsulated and works offline even when internet is down.**
 
@@ -242,7 +242,7 @@ It does not perform automated runs. [GitHub](./demo/simple/docs/speedtest.md) - 
   The network widget is best used on machines with continuous uptime. You might even keep monitorat running on your pi-hole.
 
 #### **Reminders**  
-  The **Reminders** widget allows you to set reminders for system chores, login/key change reminders, and other one-offs chirps. [GitHub](./demo/simple/docs/reminders.md) - [Demo](https://monitorat.brege.org/#reminders-widget)
+  The **Reminders** widget allows you to set reminders for system chores, login/key change reminders, and other one-off chirps. [GitHub](./demo/simple/docs/reminders.md) - [Demo](https://monitorat.brege.org/#reminders-widget)
 
   Reminders are facilitated by [Apprise](https://github.com/caronc/apprise) (see [below](#notifications)).
 

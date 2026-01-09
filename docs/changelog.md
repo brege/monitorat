@@ -16,7 +16,7 @@
 - Expanded schema for services widget to cover more status cases
 - Added toggle for local vs. CDN external JS/CSS (needed for demo on production)
 - Caught up scattered ghost colors and theme leakage in JS
-- Added a formal.css theme for a Latex/Jorunal look
+- Added a formal.css theme for a LaTeX/Journal look
 - Gave users a theming key in config.yaml so they can change or layer on top of the factory themes
 - Added a new about modal with live theme switching
 - Added a modal for long press on services cards/icons for more details
@@ -38,7 +38,7 @@
 - Made test network data non-degenerate and non-trivial
 - Improved error handling in test harness when documents can't resolve
 - Condensed 40+ \*.md snippets into demo/docs.{yml,py}
-- Fixed non-snippetted config loading being overridden be defaults
+- Fixed non-snippetted config loading being overridden by default values
 - Renamed widgets/\*/config_default.yaml to widgets/\*/default.yaml and load them dynamically
 - Bumped version to v0.9.2
 
@@ -50,7 +50,7 @@
 - Added mermaid diagrams to vendors so users can make flowcharts
 - Unified the old test/dev and demo runner under one demo/launcher.py
 - Many small adjustments to demo snippets to make examples more interesting
-- Debut a fule demo stack showcasing:
+- Debut a full demo stack showcasing:
   - simple: the standard one-node demo
   - advanced: a multi-node demo with federation
   - federation: a multi-node demo with federation
@@ -88,13 +88,13 @@
   - test/harness.py introduced 26 smoke tests to check basic asserts/API response
   - test/dev.py allowed launching multiple local instances of monitorat (since removed)
   - --widget [metrics|network|...] allows for launching only a simplified, one-widget page
-  - Launces a head node and two "remote" nodes in one harness
+  - Launches a head node and two "remote" nodes in one harness
 - Fixed discovered DOM collisions from federation
 - Added API-prefixes so clients, nodes can distinguish data on same widgets
 - Bumped version to v0.8.1
 - Renamed "gaps" CSS naming to "alerts"
 - Added style switches to Wiki widget: seamless|featured|rail
-- Serve services, reminders icons through API
+- Serve service and reminder icons through API
 - All widgets now have Schema
 - All widget-specific configuration atomized into an includes' config snippets
 - All widget client app.js chunked into features: {chart|table|snapshot|...}.js
@@ -107,7 +107,7 @@
 - Created new branch: federation
 - Added experimental federation and auth support in the federation branch
 - Created test fixtures and a test harness to launch multiple instances at once
-- Extended demo/inti.py to demo/setup.py that bootstraps -t test's and -d demo's
+- Extended demo/init.py to demo/setup.py that bootstraps -t tests and -d demos
 - Packages added: httpx, Flask-HTTPAuth
 - Began backfilling this changelog
 - Bumped version to v0.8
@@ -117,7 +117,7 @@
 ### 2025-12-28
 
 - Added an interactive demo mode and pushed to https://monitorat.brege.org
-- Fixed incorrect colors in the network widget's stata
+- Fixed incorrect colors in the network widget's stats
 - Added support for nested markdown inclusions and shortcodes for {{file}} inclusion
 - Reduced onboarding friction by adding 'monitorat server' instead of gunicorn command
 - Condensed the README in favor of linking the interactive Demo
@@ -129,19 +129,19 @@
 
 ### 2025-11-23
 
-- Standardized widget structure with common mames: app.js, index.html, api.py, schema.json
+- Standardized widget structure with common names: app.js, index.html, api.py, schema.json
 - Fixed multiple issues with the Speedtest widget: 
   - Added a TimeSeries.js helper so temporal axes are consistent between widgets
   - Splitting responsibilities of charting and table formatting
   - Broken dropdowns and time-mismatches causing unstable UX on refresh
   - Made speedtest metadata declarative, removing duplicate code
-- Refactor Metrics widget to use new time-series methods from Speedtest effort
+- Refactored Metrics widget to use new time-series methods from Speedtest effort
 
 
 ### 2025-11-22
 
-- Added JSON schema for all chart-based widgets and refactoring TS widgets to use their schema
-- Make recording and measuring of metric quantities declarative, configurable by user
+- Added JSON schema for all chart-based widgets and refactored TS widgets to use their schema
+- Made recording and measuring of metric quantities declarative, configurable by user
 - Added a CSV handler so all widgets have predictable data handling
 
 ### 2025-11-20
@@ -335,5 +335,3 @@ git-changelog --before 2025-11-17 -P -d 3
 * wrong vendor error strikes again
 * css makeover
 * initial commit
-
-
