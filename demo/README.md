@@ -11,25 +11,31 @@ monitorat demo
 ```
 Open your browser at [http://localhost:6100](http://localhost:6100).
 
-This dashboard is a read-only instance of monitorat, similar to the one you could be using on your machine. monitorat is a continuous, scroll-focused dashboard with a widget system that aims to be a knowledge base, not a knowledge sink.
+This dashboard is a read-only instance of monitorat, similar to the one you could be using on your machine. Since monitorat is a continuous, scroll-focused dashboard putting documentation first, it aims to be a knowledge base and not a knowledge sink.
 
-### Local Demos
-
-Other demo entry points:
-- `monitorat demo --mode advanced` for the single-node widget deep dive
-- `monitorat demo --mode federation` for the multi-node federation demo
 
 ### Online Demos
+
+There are three demos.
 
 - **Simple** - [http://monitorat.brege.org/](http://monitorat.brege.org/)
 - **Widget Features and Modes** - [http://monitorat.brege.org/advanced](http://monitorat.brege.org/advanced)
 - **Federation** - [http://monitorat.brege.org/federation](http://monitorat.brege.org/federation)
 
+The [simple](http://monitorat.brege.org/) demo goes over the widget basics.
+
 The [advanced](http://monitorat.brege.org/advanced) demo breaks down how different features of each widget can be toggled, configured, and adjusted for different display modes.
 
 [Federation](http://monitorat.brege.org/federation) is a multi-node demo that demonstrates how widgets can be shared and used from a central command. *Simple is a prerequisite for Advanced. Advanced is a prerequisite for Federation.*
 
-### Ports
+### Local Demos
+
+Other demo entry points:
+- `monitorat demo --mode simple` for the simple dashboard
+- `monitorat demo --mode advanced` for the single-node widget deep dive
+- `monitorat demo --mode federation` for the multi-node federation demo
+
+#### Ports
 
 The demos run on the following ports:
 - Simple: 6100 [http://localhost:6100](http://localhost:6100)

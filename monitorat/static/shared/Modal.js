@@ -46,7 +46,7 @@ window.Modal = (function () {
     if (title) {
       html += `
         <div class="modal-header">
-          <h3 class="modal-title">${title}</h3>
+          <h2 class="modal-title">${title}</h2>
           <button type="button" class="modal-close" aria-label="Close">&times;</button>
         </div>
       `
