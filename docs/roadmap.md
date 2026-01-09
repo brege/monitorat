@@ -28,7 +28,7 @@
 
 ## Menu / Header
 - [ ] [feature] "Remember settings" in menu modal: headers hidden (priority) and chart dropdowns; local storage overrides config.
-- [ ] [style] Menu modal GitHub/release links behave like service card info buttons (no modal).
+- [x] [style] Menu modal GitHub/release links behave like service card info buttons (no modal).
 - [ ] [feature] Add the provided Wikipedia icon to the left of the monitor@demo header.  
   - /tmp/nshot/Screenshot-From-2026-01-08-21-16-55.png
   - cite:[1] for icon

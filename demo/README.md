@@ -1,48 +1,33 @@
-## Overview
+## About
 
-Monitorat is a federated dashboard and documentation system with an extensible widget framework.
+**Monitorat** is a federated dashboard and documentation system with an extensible widget framework.
 
 Its philosophy is to make system monitoring and documentation continuous, much like the way tables and figures are integrated in journal or news articles.
 
-Run the demo:
+### Quickstart
 ```bash
 uv tool install monitorat
 monitorat demo
 ```
-Open your browser at [http://localhost:6100](http://localhost:6100).
+then open your browser at [http://localhost:6100](http://localhost:6100).
 
-This dashboard is a read-only instance of monitorat, similar to the one you could be using on your machine. Since monitorat is a continuous, scroll-focused dashboard putting documentation first, it aims to be a knowledge base and not a knowledge sink.
+This dashboard is a read-only instance of [**monitorat**](https://github.com/brege/monitorat), similar to the one you could be using on your machine. Being scroll-focused and continuous, dashboard putting documentation first, it aims to be a knowledge base and not a knowledge sink.
 
-
-### Online Demos
+### Demos
 
 There are three demos.
 
-- **Simple** - [http://monitorat.brege.org/](http://monitorat.brege.org/)
-- **Widget Features and Modes** - [http://monitorat.brege.org/advanced](http://monitorat.brege.org/advanced)
-- **Federation** - [http://monitorat.brege.org/federation](http://monitorat.brege.org/federation)
+| Demo | Command | Port | Online Demo |
+|:--- |:--- | --- |:--- |
+| **Simple** | `monitorat demo --mode simple` | :6100  | [http://monitorat.brege.org/](http://monitorat.brege.org/) |
+| **Advanced** | `monitorat demo --mode advanced` | :6200 | [http://monitorat.brege.org/advanced](http://monitorat.brege.org/advanced) |
+| **Federation** | `monitorat demo --mode federation` | :6300 | [http://monitorat.brege.org/federation](http://monitorat.brege.org/federation) |
 
-The [simple](http://monitorat.brege.org/) demo goes over the widget basics.
+- The [simple](http://monitorat.brege.org/) demo goes over the widget basics.
+- The [advanced](http://monitorat.brege.org/advanced) demo breaks down how different features of each widget can be toggled, configured, and adjusted for different display modes.
+- [Federation](http://monitorat.brege.org/federation) is a multi-node demo that demonstrates how widgets can be shared and used from a central command. *Simple is a prerequisite for Advanced. Advanced is a prerequisite for Federation.* This demo launches 3 survers on ports `6300` (head), `6301` & `6302` (nodes).
 
-The [advanced](http://monitorat.brege.org/advanced) demo breaks down how different features of each widget can be toggled, configured, and adjusted for different display modes.
-
-[Federation](http://monitorat.brege.org/federation) is a multi-node demo that demonstrates how widgets can be shared and used from a central command. *Simple is a prerequisite for Advanced. Advanced is a prerequisite for Federation.*
-
-### Local Demos
-
-Other demo entry points:
-- `monitorat demo --mode simple` for the simple dashboard
-- `monitorat demo --mode advanced` for the single-node widget deep dive
-- `monitorat demo --mode federation` for the multi-node federation demo
-
-#### Ports
-
-The demos run on the following ports:
-- Simple: 6100 [http://localhost:6100](http://localhost:6100)
-- Advanced: 6200 [http://localhost:6200](http://localhost:6200)
-- Federation: 6300 (head) [http://localhost:6300](http://localhost:6300), 6301-6302 (remotes)
-
-### Contents
+### Widgets
 - [Wiki](#overview)
 - [Metrics](#metrics-widget)
 - [Network](#network-widget)
@@ -50,25 +35,35 @@ The demos run on the following ports:
 - [Speedtest](#speedtest-widget)
 - [Reminders](#reminders-widget)
 
-For this demo, each widget is chased by a corresponding ["Wiki" widget](/#wiki) that provides documentation for said widget. On my Linux computers, including a Raspberry Pi, each machine's monitor@README is its system's bible. It provides me with the three main things I want in a dashboard:
+For this (simple) demo, each widget is chased by a corresponding ["Wiki" widget](/#wiki) that provides that widget's documentation.
 
-- service status and links to them
-- performance of the system
-- documentation of how I made all of it work
+On headless machines (Raspberry Pi, a NAS, NUC, or Beelink), monitorat becomes both a central dashboard and a system's bible.
 
-For documentation handling, I keep the `docs/` directory up-to-date through [Syncthing](https://syncthing.net/), making them phone-editable through [Obsidian](https://obsidian.md/) or [Markor](https://github.com/gsantner/markor). Documentation is an integral part of monitorat's philosophy: the dashboard is both the gauges and the manual. Refresh the page after you've saved your markdown edits and your changes immediately propagate.
+### Purpose
 
-For the full project README and its source code, see:
-[https://github.com/brege/monitorat](https://github.com/brege/monitorat).
+- help me navigate to my services and check their statuses
+- centralize my documentation and notes so I remember how I deployed them
+- periodically check on system health, performance, and network quality
 
-### Config
+While an in-browser editor for Markdown files is in development, the current paradigm is:
 
-> **Note**
->  
-> You will see in each widget's note block the config snippet for that widget. This is the *head* config that loads each of the snippets through `includes`.
+  1. edit Markdown documents in a text editor
+     - console: [neovim](https://neovim.io/), [emacs](https://www.gnu.org/software/emacs/), etc
+     - phone: [Markor](https://github.com/gsantner/markor) or [Obsidian](https://obsidian.md/)
+  2. synchronize changes to `docs/` directory ([Syncthing](https://syncthing.net/), [rsync](https://rsync.samba.org/), etc)
+
+Refresh the page after saving edits to immediately see the changes.
+
+Documentation is an integral part of monitorat's philosophy: **a dashboard that is both the gauges and the manual.**
+
+See the full project [README](https://github.com/brege/monitorat/#readme) for more information.
+
+### Config Snippets
 
 <details>
 <summary><b>Show config</b></summary>
+
+> **Note:** You will see in each widget's note block the config snippet for that widget. This is the *head* config that loads each of the snippets through `includes`/snippet files.
 
 {{ include:code path="config.yaml" lang="yaml" }}
 </details>
