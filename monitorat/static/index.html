@@ -36,14 +36,30 @@
 </head>
 <body>
   <main>
-    <div id="header-container"></div>
-    <script>
-      window.headerLoaded = fetch('header/index.html')
-        .then(function(r) { return r.text(); })
-        .then(function(html) {
-          document.getElementById('header-container').innerHTML = html;
-        });
-    </script>
+    <div class="header-row">
+      <div class="header-left">
+        <button id="toc-button" class="header-btn" type="button" title="Contents" aria-label="Table of Contents">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 12H3"/>
+            <path d="M16 18H3"/>
+            <path d="M16 6H3"/>
+            <path d="M21 12h.01"/>
+            <path d="M21 18h.01"/>
+            <path d="M21 6h.01"/>
+          </svg>
+        </button>
+        <h1></h1>
+      </div>
+      <div class="controls">
+        <button id="menu-button" class="header-btn" type="button" title="Menu" aria-label="Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
     <div class="widget-stack">
       <!-- Widgets are dynamically created based on config -->
     </div>
@@ -65,5 +81,6 @@
   <script src="shared/TileRenderer.js"></script>
   <script src="shared/Modal.js"></script>
   <script src="app.js"></script>
+  <script src="header/index.js"></script>
 </body>
 </html>

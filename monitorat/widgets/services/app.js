@@ -279,6 +279,7 @@ class ServicesWidget {
   async loadFeatureScripts () {
     const featureScripts = [
       { globalName: 'ServicesControls', source: 'widgets/services/features/controls.js' },
+      { globalName: 'ServicesModal', source: 'widgets/services/features/modal.js' },
       { globalName: 'ServicesSnapshot', source: 'widgets/services/features/snapshot.js' }
     ]
 
@@ -287,13 +288,15 @@ class ServicesWidget {
 
   initializeFeatures () {
     const ControlsFeature = window.ServicesControls
+    const ModalFeature = window.ServicesModal
     const SnapshotFeature = window.ServicesSnapshot
 
-    if (!ControlsFeature || !SnapshotFeature) {
+    if (!ControlsFeature || !ModalFeature || !SnapshotFeature) {
       throw new Error('Services feature scripts not loaded')
     }
 
     this.features.controls = new ControlsFeature(this)
+    this.features.modal = new ModalFeature(this)
     this.features.snapshot = new SnapshotFeature(this)
   }
 }
