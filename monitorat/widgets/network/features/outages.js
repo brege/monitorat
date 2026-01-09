@@ -70,7 +70,7 @@ class NetworkOutages {
       } else {
         toggle.style.display = ''
         const remaining = filtered.length - maxVisible
-        toggle.textContent = state.alertsExpanded ? 'Show less' : `Show ${remaining} more`
+        toggle.textContent = state.alertsExpanded ? 'Show fewer' : `Show ${remaining} more`
       }
     }
   }

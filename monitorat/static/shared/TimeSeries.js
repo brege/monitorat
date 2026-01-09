@@ -45,6 +45,15 @@ class DataFormatter {
     return date.toLocaleString(undefined, options)
   }
 
+  static formatPeriodLabel (period) {
+    if (typeof period !== 'string') return period
+    const match = period.match(/^1\s+(hour|day|week|month|year)s?$/i)
+    if (match) {
+      return match[1].toLowerCase()
+    }
+    return period
+  }
+
   static selectByAttribute (container, attributeName, values) {
     const result = {}
     for (const value of values) {
@@ -105,7 +114,7 @@ class TimeSeriesHandler {
       for (const period of periods) {
         const option = document.createElement('option')
         option.value = period
-        option.textContent = period
+        option.textContent = DataFormatter.formatPeriodLabel(period)
         selectElement.appendChild(option)
       }
     }

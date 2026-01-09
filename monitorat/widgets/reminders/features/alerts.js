@@ -77,6 +77,10 @@ class RemindersAlerts {
     const alertElement = document.createElement('div')
     const hasBadge = this.widget.config.remote || reminder._source
     alertElement.className = `reminder-alert alert-card status-card status-${reminder.status}${hasBadge ? ' has-badge' : ''}`
+    if (reminder.url) {
+      alertElement.title = reminder.url
+      alertElement.style.cursor = 'pointer'
+    }
 
     if (hasBadge) {
       const sourceName = reminder._source || this.widget.config.remote

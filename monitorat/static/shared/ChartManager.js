@@ -55,6 +55,42 @@ class ChartManager {
     this.containerElement.style.height = `${height}px`
     this.containerElement.style.position = 'relative'
 
+    const defaultOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        intersect: false,
+        mode: 'index'
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          enabled: true,
+          mode: 'index',
+          intersect: false,
+          usePointStyle: false,
+          boxWidth: 12,
+          boxHeight: 12,
+          boxPadding: 4,
+          callbacks: {
+            labelColor: function (context) {
+              const color = context.dataset.borderColor
+              return {
+                borderColor: color,
+                backgroundColor: color,
+                borderWidth: 0
+              }
+            }
+          }
+        }
+      },
+      layout: {
+        padding: { top: 4, right: 4, bottom: 0, left: 0 }
+      }
+    }
+
     const ctx = this.canvasElement.getContext('2d')
     this.chart = new Chart(ctx, {
       type: 'line',
@@ -62,28 +98,7 @@ class ChartManager {
         labels: [],
         datasets: []
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: {
-          intersect: false,
-          mode: 'index'
-        },
-        plugins: {
-          legend: {
-            display: false
-          },
-          tooltip: {
-            enabled: true,
-            mode: 'index',
-            intersect: false
-          }
-        },
-        layout: {
-          padding: { top: 4, right: 4, bottom: 0, left: 0 }
-        },
-        ...this.chartOptions
-      }
+      options: ChartManager.mergeObjects(defaultOptions, this.chartOptions)
     })
   }
 
@@ -251,14 +266,27 @@ class ChartManager {
     return targetView
   }
 
-  static cloneObject (object) {
-    return JSON.parse(JSON.stringify(object || {}))
+  static cloneObject (value) {
+    if (Array.isArray(value)) {
+      return value.map(entry => this.cloneObject(entry))
+    }
+    if (!value || typeof value !== 'object') {
+      return value
+    }
+    if (value.constructor !== Object) {
+      return value
+    }
+    const cloned = {}
+    Object.entries(value).forEach(([key, entry]) => {
+      cloned[key] = this.cloneObject(entry)
+    })
+    return cloned
   }
 
   static mergeObjects (baseObject, overrideObject) {
     const merged = this.cloneObject(baseObject)
     Object.entries(overrideObject || {}).forEach(([key, value]) => {
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
+      if (value && typeof value === 'object' && !Array.isArray(value) && value.constructor === Object) {
         merged[key] = this.mergeObjects(merged[key] || {}, value)
       } else {
         merged[key] = value

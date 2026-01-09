@@ -70,7 +70,7 @@ class TableManager {
     if (shouldShow) {
       this.toggleElement.style.display = ''
       const remaining = this.entries.length - previewCount
-      this.toggleElement.textContent = this.expanded ? 'Show less' : `Show ${remaining} more`
+      this.toggleElement.textContent = this.expanded ? 'Show fewer' : `Show ${remaining} more`
     } else {
       this.toggleElement.style.display = 'none'
     }

@@ -4,14 +4,14 @@
 - [ ] [refactor] Extract the service modal into its own feature module (e.g., `services/features/modal.js`), leaving `snapshot.js` focused on card rendering.
 
 ## Reminders
-- [ ] [style] Hover on reminder alerts shows the URL target.
+- [x] [style] Hover on reminder alerts shows the URL target.
 - [ ] [feature] Clicking a reminder opens a modal first (no navigation); modal is the entry point for confirmation/completion.
 - [ ] [longterm] Modal markdown editor for reminders; save and sync to configured `docs/reminders/` path for checklist editing.
 
 ## Speedtest
 - [ ] [feature] Smooth demo ping data in `demo/setup.py` so the chart line is not jagged or unrealistic on mobile.  
   - /tmp/nshot/Screenshot-From-2026-01-08-21-11-41.png
-- [ ] [style] Run button uses an speedodometer icon on a square button.
+- [x] [style] Run button uses an speedometer icon on a square button.
   - cite:[2]
   
 ## Metrics
@@ -19,12 +19,12 @@
 
 ## Wiki
 - [ ] [longterm] Modal markdown editor for wiki widgets; cache edits, confirm save, and sync to configured docs path.
-- [ ] [style] Federation demo wiki samples shorter or summary/detail for side-by-side readability.
+- [x] [style] Federation demo wiki samples shorter or summary/detail for side-by-side readability.
 - [ ] [longterm] Editor library evaluation and any required `vendors/` + `pyproject.toml` updates.
 
 ## Histories (metrics/speedtest/network)
-- [ ] [style] Chart.js hover tooltip legend squares should be solid fill.
-- [ ] [style] CSV button hover tooltip should read "Download CSV".
+- [x] [style] Chart.js hover tooltip legend squares should be solid fill.
+- [x] [style] CSV button hover tooltip should read "Download CSV".
 
 ## Menu / Header
 - [ ] [feature] "Remember settings" in menu modal: headers hidden (priority) and chart dropdowns; local storage overrides config.
@@ -34,8 +34,8 @@
   - cite:[1] for icon
 
 ## UI Copy / Units
-- [ ] [style] Change "show less" to "show fewer".
-- [ ] [style] Unit time labels use "hour"/"day" when unity; keep numerals for non-unity.
+- [x] [style] Change "show less" to "show fewer".
+- [x] [style] Unit time labels use "hour"/"day" when unity; keep numerals for non-unity.
 - [ ] [feature] Per-module subtitles (tiles/uptime/outages/history/etc) reuse the badge mechanic as the only style, instead of separate method.
 
 ## Performance / Load

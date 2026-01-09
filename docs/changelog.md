@@ -1,14 +1,26 @@
 ## Changelog
 
-2026-01-08 -- 15d51fe..87afce4
+### 2026-01-09
+
+- Add Roadmap
+- Hover on reminder alerts shows the URL target
+- Run button uses an speedometer icon on a square button
+- Federation demo wiki samples shorter or summary/detail for side-by-side readability
+- Chart.js hover tooltip legend squares should be solid fill
+- CSV button hover tooltip should read "Download CSV"
+- Change "show less" to "show fewer"
+- Unit time labels use "hour"/"day" when unity; keep numerals for non-unity
+
+### 2026-01-08 
 
 - Overhauled chart legends and created two-legend scheme for federation
 - Made ollama icon look better on both light and dark backgrounds
 - Overhauled headers inside and outside Markdown containers
 - Added Wikipedia chevrons to first-rate headers for easier collapsing
 - Made all demo section headers collapsible
-
-2026-01-07 -- d17e19c..ebd479f
+- Fixed ~50 typos and grammar errors in Markdown
+- Make server shutdowns more graceful
+- Bumped version to v0.10
 
 ### 2026-01-07
 

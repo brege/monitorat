@@ -1,6 +1,6 @@
 # Lorem Ipsum Overview
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum vitae leo sed enim convallis malesuada. Mauris tempor, magna nec dignissim dapibus, metus augue pretium mi, non finibus magna mi in augue. Donec commodo elit nec velit vulputate, nec suscipit nibh faucibus.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 
 For more information about certain topics, see these Wikipedia articles:
 - [LaTeX](https://en.wikipedia.org/wiki/LaTeX)
@@ -10,6 +10,9 @@ For more information about certain topics, see these Wikipedia articles:
 ## Example Code Block
 
 Here is a simple dummy code snippet to illustrate formatting:
+
+<details>
+<summary>Show more</summary>
 
 ```python
 def lorem_ipsum():
@@ -22,3 +25,5 @@ if __name__ == "__main__":
 ```
 
 Suspendisse potenti. Sed blandit convallis consequat. Etiam facilisis massa in dolor tincidunt, non finibus metus elementum. Ut viverra justo vitae lectus scelerisque, ac tincidunt neque vehicula.
+
+</details>

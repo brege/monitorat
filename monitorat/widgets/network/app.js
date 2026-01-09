@@ -683,7 +683,7 @@ class NetworkWidget {
       } else {
         this.elements.alertToggle.style.display = ''
         const remaining = allAlerts.length - this.config.alerts.max
-        this.elements.alertToggle.textContent = this.state.alertsExpanded ? 'Show less' : `Show ${remaining} more`
+        this.elements.alertToggle.textContent = this.state.alertsExpanded ? 'Show fewer' : `Show ${remaining} more`
       }
     }
   }
@@ -1101,6 +1101,15 @@ function computeWindowStats (entries, slotNumbers, now, periodsConfig, expectedI
   })
 }
 
+function formatPeriodLabel (period) {
+  if (typeof period !== 'string') return period
+  const match = period.match(/^1\s+(hour|day|week|month|year)s?$/i)
+  if (match) {
+    return match[1].toLowerCase()
+  }
+  return period
+}
+
 function buildPeriodsDefinitions (now, periodsConfig, expectedIntervalMs) {
   const nowMs = now.getTime()
 
@@ -1118,7 +1127,7 @@ function buildPeriodsDefinitions (now, periodsConfig, expectedIntervalMs) {
 
     return {
       key: `period-${index}`,
-      label: `Past ${periodConfig.period}`,
+      label: `Past ${formatPeriodLabel(periodConfig.period)}`,
       segments
     }
   })
