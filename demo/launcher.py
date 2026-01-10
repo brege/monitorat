@@ -278,7 +278,7 @@ def main():
         "simple": DEMO_DIR / "simple" / "index.yml",
         "advanced": DEMO_DIR / "advanced" / "index.yml",
         "editor": DEMO_DIR / "editor" / "index.yml",
-        "federation": DEMO_DIR / "federation" / "central" / "index.yml",
+        "federation": DEMO_DIR / "federation" / "index.yml",
     }
     manifest = mode_to_manifest.get(args.mode)
     if manifest:

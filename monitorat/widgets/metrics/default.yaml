@@ -1,7 +1,7 @@
 widgets:
   metrics:  # temperature, cpu, memory, disk
     name: System Metrics
-    collapsible: false  # show hide/show toggle (default: false)
+    collapsible: true  # show hide/show toggle (default: false)
     hidden: false  # start collapsed (default: false)
     default: chart  # default view: "chart" or "table"
     table:

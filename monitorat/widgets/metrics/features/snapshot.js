@@ -106,41 +106,36 @@ class MetricsSnapshot {
   }
 
   createTilesForSource (data) {
-    const tilesContainer = document.createElement('div')
-    tilesContainer.className = 'metrics-source-tiles'
-
-    const allKeys = data.metric_keys || Object.keys(data.metrics || {})
-    const keys = allKeys.filter(key => key !== 'status' && key !== 'lastUpdated')
+    const TileRenderer = window.monitorShared.TileRenderer
     const metrics = data.metrics || {}
     const statuses = data.metric_statuses || {}
 
-    const labels = {
-      uptime: 'Uptime',
-      load: 'Load',
-      memory: 'Memory',
-      temp: 'Temp',
-      disk: 'Disk',
-      storage: 'Storage'
+    const resolveTileClass = (key) => {
+      const status = statuses[key] || 'ok'
+      return `stat status-card status-${status}`
     }
 
-    for (const key of keys) {
-      const tile = document.createElement('div')
-      tile.className = `stat status-card status-${statuses[key] || 'ok'}`
-
-      const label = document.createElement('span')
-      label.className = 'label'
-      label.textContent = labels[key] || key
-
-      const value = document.createElement('span')
-      value.className = 'value'
-      value.textContent = metrics[key] || '–'
-
-      tile.appendChild(label)
-      tile.appendChild(value)
-      tilesContainer.appendChild(tile)
-    }
-
-    return tilesContainer
+    return TileRenderer.createTilesFromSpec({
+      containerClass: 'stats',
+      rows: [
+        {
+          className: 'stats-row primary',
+          tiles: [
+            { label: 'Uptime', value: metrics.uptime || '–', options: { tileClass: resolveTileClass('uptime') } },
+            { label: 'Load Average', value: metrics.load || '–', options: { tileClass: resolveTileClass('load') } },
+            { label: 'Memory Usage', value: metrics.memory || '–', options: { tileClass: resolveTileClass('memory') } },
+            { label: 'Temperature', value: metrics.temp || '–', options: { tileClass: resolveTileClass('temp') } }
+          ]
+        },
+        {
+          className: 'stats-row dates',
+          tiles: [
+            { label: 'Disk Usage', value: metrics.disk || '–', options: { tileClass: resolveTileClass('disk') } },
+            { label: 'NFS Storage', value: metrics.storage || '–', options: { tileClass: resolveTileClass('storage') } }
+          ]
+        }
+      ]
+    })
   }
 }
 

@@ -830,6 +830,11 @@ tr:last-child td {
   gap: 32px;
 }
 
+.metrics-tile-columns .stats-row.primary,
+.metrics-tile-columns .stats-row.dates {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+}
+
 .metrics-source-tiles {
   display: flex;
   flex-wrap: wrap;

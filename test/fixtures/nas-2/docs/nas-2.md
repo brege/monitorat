@@ -3,7 +3,7 @@
 <details>
 <summary>nas-2 information</summary>
 
-This is a document served from `nas-1`, accessed by the head node's backend via federation through `nas-1`'s API.
+This is a document served from `nas-2`, accessed by the head node's backend via federation through `nas-2`'s API.
 
 </details>
 
