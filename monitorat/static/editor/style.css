@@ -1,0 +1,171 @@
+.editor-modal-content {
+  display: flex;
+  flex-direction: column;
+  height: 70vh;
+  min-height: 400px;
+  max-height: 80vh;
+}
+
+.editor-panes {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border-muted);
+  border-radius: 6px;
+}
+
+.editor-edit-pane,
+.editor-preview-pane {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.editor-edit-pane.active,
+.editor-preview-pane.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.editor-textarea {
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  border: none;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: var(--font-mono, 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.editor-textarea:focus {
+  background: var(--bg-card);
+}
+
+.editor-preview {
+  height: 100%;
+  padding: 16px;
+  overflow-y: auto;
+  background: var(--bg-surface);
+}
+
+.editor-curtain {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  margin-top: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-muted);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  user-select: none;
+}
+
+.editor-curtain:hover {
+  background: var(--toggle-hover);
+  color: var(--text-primary);
+}
+
+.editor-curtain:active {
+  transform: scale(0.98);
+}
+
+.editor-curtain-chevron {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.2s ease;
+}
+
+.editor-curtain:hover .editor-curtain-chevron {
+  transform: translateY(2px);
+}
+
+.editor-curtain[data-target="edit"]:hover .editor-curtain-chevron {
+  transform: translateY(-2px);
+}
+
+.editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  margin-top: 8px;
+}
+
+.editor-draft-indicator {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.editor-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.editor-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border-muted);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.editor-btn:hover {
+  background: var(--toggle-hover);
+}
+
+.editor-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.editor-btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.editor-btn-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 85%, black);
+  border-color: color-mix(in srgb, var(--accent) 85%, black);
+}
+
+.wiki-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  margin-left: 8px;
+}
+
+.wiki-edit-btn:hover {
+  background: var(--toggle-hover);
+  color: var(--text-primary);
+}
+
+.wiki-edit-btn svg {
+  width: 16px;
+  height: 16px;
+}

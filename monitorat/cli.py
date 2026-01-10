@@ -199,7 +199,7 @@ def main():
     demo_parser = subparsers.add_parser("demo", help="run the demo server")
     demo_parser.add_argument(
         "--mode",
-        choices=["simple", "advanced", "federation"],
+        choices=["simple", "advanced", "editor", "federation"],
         default="simple",
         help="demo mode to start",
     )

@@ -3,6 +3,8 @@ import html
 from pathlib import Path
 import logging
 import re
+import shutil
+from datetime import datetime
 
 from monitor import BASE, config, get_project_config_dir
 
@@ -92,3 +94,68 @@ def register_routes(app, instance="wiki"):
         with open(schema_path) as f:
             schema = json.load(f)
         return jsonify(schema)
+
+    @app.route("/api/wiki/source", endpoint=f"wiki_source_{instance}")
+    def wiki_source():
+        """Get raw markdown source for editing."""
+        widget_name = request.args.get("widget", instance)
+        widget_config = config["widgets"][widget_name]
+
+        if not widget_config["edit"].exists() or not widget_config["edit"].get(bool):
+            return jsonify({"error": "Editing not enabled for this widget"}), 403
+
+        doc_view = widget_config["doc"]
+        if not doc_view.exists():
+            return jsonify({"error": "No doc configured"}), 404
+
+        doc_file = Path(doc_view.as_filename())
+        if not doc_file.exists():
+            return jsonify({"error": "Document not found"}), 404
+
+        content = doc_file.read_text(encoding="utf-8")
+        return jsonify(
+            {"content": content, "path": str(doc_file), "widget": widget_name}
+        )
+
+    @app.route(
+        "/api/wiki/source", methods=["PUT"], endpoint=f"wiki_source_put_{instance}"
+    )
+    def wiki_source_put():
+        """Save markdown source with versioning."""
+        widget_name = request.args.get("widget", instance)
+        widget_config = config["widgets"][widget_name]
+
+        if not widget_config["edit"].exists() or not widget_config["edit"].get(bool):
+            return jsonify({"error": "Editing not enabled for this widget"}), 403
+
+        doc_view = widget_config["doc"]
+        if not doc_view.exists():
+            return jsonify({"error": "No doc configured"}), 404
+
+        doc_file = Path(doc_view.as_filename())
+
+        data = request.get_json()
+        if not data or "content" not in data:
+            return jsonify({"error": "Missing content"}), 400
+
+        new_content = data["content"]
+
+        if doc_file.exists():
+            backup_dir = doc_file.parent / ".versions"
+            backup_dir.mkdir(exist_ok=True)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_name = f"{doc_file.stem}_{timestamp}{doc_file.suffix}"
+            shutil.copy2(doc_file, backup_dir / backup_name)
+
+            old_backups = sorted(backup_dir.glob(f"{doc_file.stem}_*{doc_file.suffix}"))
+            max_versions = 10
+            for old_backup in old_backups[:-max_versions]:
+                old_backup.unlink()
+
+        doc_file.write_text(new_content, encoding="utf-8")
+
+        logging.getLogger(__name__).info(
+            "Wiki saved (widget=%s, path=%s)", widget_name, doc_file
+        )
+
+        return jsonify({"status": "ok", "path": str(doc_file)})

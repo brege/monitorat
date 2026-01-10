@@ -1,3 +1,5 @@
+/* global alert */
+
 class WikiWidget {
   constructor (config = {}) {
     this.container = null
@@ -20,6 +22,10 @@ class WikiWidget {
         suppressHeader: this.config._suppressHeader,
         name: this.config.name
       })
+    }
+
+    if (this.config.edit === true) {
+      this.addEditButton()
     }
 
     const mode = this.config.mode || 'featured'
@@ -239,6 +245,68 @@ class WikiWidget {
     }
 
     container.appendChild(columns)
+  }
+
+  addEditButton () {
+    const header = this.container.closest('[id$="-widget"]')?.querySelector('.widget-header-collapsible .widget-title')
+    const targetElement = header || this.container.querySelector('h2')
+
+    if (!targetElement) return
+
+    const editBtn = document.createElement('button')
+    editBtn.className = 'wiki-edit-btn'
+    editBtn.type = 'button'
+    editBtn.title = 'Edit'
+    editBtn.setAttribute('aria-label', 'Edit document')
+    editBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+    `
+
+    editBtn.addEventListener('click', (event) => {
+      event.stopPropagation()
+      this.openEditor()
+    })
+
+    targetElement.appendChild(editBtn)
+  }
+
+  async openEditor () {
+    const widgetName = this.config._widgetName || 'wiki'
+
+    try {
+      const response = await fetch(`api/wiki/source?widget=${widgetName}`)
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || `HTTP ${response.status}`)
+      }
+
+      const data = await response.json()
+
+      window.Editor.open({
+        widget: widgetName,
+        file: data.path,
+        content: data.content,
+        onSave: async (newContent) => {
+          const saveResponse = await fetch(`api/wiki/source?widget=${widgetName}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: newContent })
+          })
+
+          if (!saveResponse.ok) {
+            const error = await saveResponse.json()
+            throw new Error(error.error || `HTTP ${saveResponse.status}`)
+          }
+
+          await this.loadContent()
+        }
+      })
+    } catch (error) {
+      alert(`Failed to load source: ${error.message}`)
+    }
   }
 }
 

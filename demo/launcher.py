@@ -37,6 +37,12 @@ NODES = {
         "port": 6200,
         "is_head": True,
     },
+    "editor": {
+        "name": "editor",
+        "config": DEMO_DIR / "editor" / "config.yaml",
+        "port": 6400,
+        "is_head": True,
+    },
     "central": {
         "name": "central",
         "config": DEMO_DIR / "federation" / "central" / "config.yaml",
@@ -60,6 +66,7 @@ NODES = {
 MODES = {
     "simple": ["simple"],
     "advanced": ["advanced"],
+    "editor": ["editor"],
     "federation": ["nas-1", "nas-2", "central"],
 }
 
@@ -269,7 +276,7 @@ def main():
 
     generate_docs(DEMO_DIR / "docs.yml")
 
-    if args.mode in ("simple", "advanced"):
+    if args.mode in ("simple", "advanced", "editor"):
         bootstrap_demo_data()
 
     nodes_to_start = [NODES[name] for name in MODES[args.mode]]

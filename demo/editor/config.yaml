@@ -1,0 +1,44 @@
+---
+demo: true
+site:
+  name: '@editor'
+  title: monitor@editor
+includes:
+  - ../simple/snippets/wiki.yaml
+  - ../simple/snippets/footer.yaml
+paths:
+  data: ../simple/data/
+  img: ../simple/img/
+  favicon: ../simple/img/favicon.svg
+  vendors: ../simple/vendors/
+widgets:
+  enabled:
+    - wiki
+    - dummy
+    - wiki-footer
+  # - reminders
+  wiki:
+    name: Editor Demo
+    doc: docs/README.md
+    mode: seamless
+    edit: true
+    _suppressHeader: true
+    collapsible: false
+    edit: false
+
+  dummy:
+    type: wiki
+    name: Dummy Document
+    doc: docs/dummy.md
+    mode: rail
+    edit: true
+
+  wiki-footer:
+    type: wiki
+    name: Links
+    doc: docs/links.md
+    mode: seamless
+    hidden: true
+    name: null
+    doc: ../simple/docs/footer.md
+    edit: false

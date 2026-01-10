@@ -8,7 +8,8 @@
   "fields": [],
   "endpoints": {
     "doc": "/api/wiki/doc",
-    "schema": "/api/wiki/schema"
+    "schema": "/api/wiki/schema",
+    "source": "/api/wiki/source"
   },
   "content_type": "text/markdown"
 }
