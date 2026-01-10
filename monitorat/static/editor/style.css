@@ -1,9 +1,23 @@
 .editor-modal-content {
   display: flex;
   flex-direction: column;
-  height: 70vh;
-  min-height: 400px;
-  max-height: 80vh;
+  flex: 1;
+  height: 100%;
+  min-height: 0;
+  gap: 0;
+}
+
+.modal-container.editor-modal .modal-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.modal-container.editor-modal {
+  width: min(92vw, 720px);
+  max-width: 720px;
+  height: clamp(420px, 80vh, 720px);
 }
 
 .editor-panes {
@@ -11,7 +25,11 @@
   position: relative;
   overflow: hidden;
   border: 1px solid var(--border-muted);
-  border-radius: 6px;
+  border-top: 1px solid var(--border-muted);
+  border-radius: 0 0 6px 6px;
+  min-height: 0;
+  min-height: 240px;
+  margin-top: -1px;
 }
 
 .editor-edit-pane,
@@ -58,90 +76,62 @@
 .editor-curtain {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 10px 16px;
-  margin-top: 8px;
-  background: var(--bg-card);
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 10px 8px;
+  margin: 0;
+  background: var(--bg-surface);
   border: 1px solid var(--border-muted);
-  border-radius: 6px;
-  color: var(--text-muted);
-  font-size: 0.85rem;
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  color: var(--text-heading);
+  font-size: 1.3rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  transition: color 0.15s ease;
   user-select: none;
-}
-
-.editor-curtain:hover {
-  background: var(--toggle-hover);
-  color: var(--text-primary);
-}
-
-.editor-curtain:active {
-  transform: scale(0.98);
+  width: 100%;
 }
 
 .editor-curtain-chevron {
   width: 18px;
   height: 18px;
-  transition: transform 0.2s ease;
-}
-
-.editor-curtain:hover .editor-curtain-chevron {
-  transform: translateY(2px);
-}
-
-.editor-curtain[data-target="edit"]:hover .editor-curtain-chevron {
-  transform: translateY(-2px);
 }
 
 .editor-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding-top: 12px;
   margin-top: 8px;
+  width: 100%;
 }
 
 .editor-draft-indicator {
   font-size: 0.8rem;
   color: var(--text-muted);
+  flex: 1;
+  min-width: 0;
 }
 
 .editor-actions {
   display: flex;
   gap: 8px;
+  margin-left: auto;
+  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 
-.editor-btn {
-  padding: 8px 16px;
-  border: 1px solid var(--border-muted);
-  border-radius: 6px;
-  background: var(--bg-card);
-  color: var(--text-primary);
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
+@media (max-width: 560px) {
+  .editor-actions {
+    gap: 10px;
+  }
 
-.editor-btn:hover {
-  background: var(--toggle-hover);
-}
-
-.editor-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.editor-btn-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-}
-
-.editor-btn-primary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent) 85%, black);
-  border-color: color-mix(in srgb, var(--accent) 85%, black);
+  .editor-action-save {
+    width: 100%;
+    flex: 1 0 100%;
+    justify-content: center;
+  }
 }
 
 .wiki-edit-btn {
