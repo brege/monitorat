@@ -10,7 +10,7 @@ widgets:
     chart:
       default_metric: cpu_memory  # options: cpu_memory, cpu_percent, memory_percent, disk_io, net_io, temp_c, load_1min, battery_percent
       default_period: 1 hour  # natural language
-      height: 400px  # fixed chart height
+      height: 300px  # fixed chart height
       curve:
         fill: true  # shade area under line
         interpolation: 0.3  # 0: straight lines, 1.0: max smoothing
@@ -25,7 +25,7 @@ widgets:
       - net_tx_mb
       - load_1min
       - temp_c
-      # - battery_percent
+    # - battery_percent
     daemon:
       enabled: true
       interval_seconds: 60  # sampling cadence for the collector (seconds)

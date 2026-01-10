@@ -124,7 +124,7 @@ def generate_docs(manifest_path: Path) -> None:
     defaults = validate_defaults(manifest.get("defaults", {}))
     documents = validate_documents(manifest.get("documents"))
 
-    repo_root = manifest_path.parent.parent.resolve()
+    repo_root = manifest_path.parents[2].resolve()
     for doc in documents:
         output_path = Path(doc["output"])
         resolved_path = output_path
@@ -150,11 +150,26 @@ def main() -> int:
     parser.add_argument(
         "--manifest",
         type=Path,
-        default=Path(__file__).parent / "docs.yml",
-        help="path to documentation manifest.",
+        help="path to documentation manifest (optional; auto-discovers if not provided).",
     )
     args = parser.parse_args()
-    generate_docs(args.manifest)
+
+    demo_dir = Path(__file__).parent
+    manifests = []
+
+    if args.manifest:
+        manifests = [args.manifest]
+    else:
+        manifests = sorted(demo_dir.glob("*/index.yml"))
+
+    if not manifests:
+        parser.error(
+            "No manifests found. Provide --manifest or create */index.yml files."
+        )
+
+    for manifest in manifests:
+        generate_docs(manifest)
+
     return 0
 
 

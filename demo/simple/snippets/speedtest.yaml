@@ -9,5 +9,4 @@ widgets:
       max: 100
     chart:
       default_period: 1 month
-      height: 300px
       days: 30

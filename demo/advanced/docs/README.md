@@ -19,13 +19,44 @@ This pattern applies to metrics, speedtest, and network widgets.
 
 ## Sections
 
-| widget | section 1 | section 2 | section 3 |
-| --- | --- | --- | --- |
-| wiki | rail mode | featured | seamless |
-| metrics | full | tiles only | history only |
-| services | full | — | — |
-| reminders | full | — | — |
-| speedtest | full | controls only | history only |
-| network | tiles only | uptime only | outages only |
+<table>
+  <!-- using an HTML table in case of href's spamming the source doc -->
+  <tr>
+    <td><b>wiki</b></td>
+    <td>rail mode</td>
+    <td>featured</td>
+    <td>seamless</td>
+  </tr>
+  <tr>
+    <td><b>metrics</b></td>
+    <td>tiles</td>
+    <td>history</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><b>services</b></td>
+    <td>compact</td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><b>reminders</b></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td><b>speedtest</b></td>
+    <td>full</td>
+    <td>controls only</td>
+    <td>history only</td>
+  </tr>
+  <tr>
+    <td><b>network</b></td>
+    <td>tiles only</td>    
+    <td>uptime only</td>
+    <td>outages only</td>
+  </tr>
+</table>
 
 Widget order matches the simple and federation demos.

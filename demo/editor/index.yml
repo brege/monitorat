@@ -1,0 +1,36 @@
+defaults:
+  summary: Show config
+  lang: yaml
+documents:
+  - output: demo/editor/docs/dummy.md
+    preface: |-
+      ### Edit Me
+
+      This is a dummy document for testing the editor. It is not
+      intended for actual use.
+
+      ```bash
+      uv tool install monitorat
+      ```
+    footer: See https://github.com/brege/monitorat for more information.
+    include: demo/editor/config.yaml
+    show_config: false
+  - output: demo/editor/docs/footer.md
+    preface: |-
+      ### Demos
+      - **Simple** - [http://monitorat.brege.org/](http://monitorat.brege.org/)
+      - **Widget Features and Modes** - [http://monitorat.brege.org/advanced](http://monitorat.brege.org/advanced)
+      - **Federation** - [http://monitorat.brege.org/federation](http://monitorat.brege.org/federation)
+
+      ### Repositories
+      - **NEXT UP:** **GitHub** - [https://github.com/brege/monitorat](https://github.com/brege/monitorat)
+      - **PyPI** - [https://pypi.org/project/monitorat](https://pypi.org/project/monitorat) `uv tool install monitorat`
+
+      ### About
+      - **Monitorat** - [https://monitorat.brege.org](https://monitorat.brege.org) (c) 2025-2026 GPL-3.0
+      - **Wyatt Brege** - [https://brege.org](https://brege.org)
+      - **GitHub** - [https://github.com/brege](https://github.com/brege)
+      - **Mastodon** - [https://mastodon.social/@brege](https://mastodon.social/@brege)
+
+    include: snippets/wiki/footer.yaml
+    show_config: false

@@ -1,0 +1,97 @@
+defaults:
+  summary: Show config
+  lang: yaml
+documents:
+  - output: demo/advanced/docs/metrics/tiles.md
+    preface: Metrics tiles only (history hidden).
+    include: snippets/metrics/tiles.yaml
+    footer: |-
+      Use `show.history: false` to display only the stat tiles.
+  - output: demo/advanced/docs/metrics/history.md
+    preface: |-
+      Metrics history with default curve styling (filled area, smooth
+      interpolation, ghost raw data). Tiles are hidden.
+    include: snippets/metrics/history.yaml
+    footer: |-
+      Use `show.tiles: false` to display only the chart/table history.
+  - output: demo/advanced/docs/metrics/original.md
+    preface: |-
+      Unprocessed metric chart data. Straight lines with no smoothing,
+      no fill, and no ghost raw data overlay.
+    include: snippets/metrics/original.yaml
+  - output: demo/advanced/docs/network/tiles.md
+    preface: Network tiles only (uptime/outages hidden).
+    include: snippets/network/tiles.yaml
+    footer: |-
+      Network has three features: `tiles`, `uptime`, `outages`.
+  - output: demo/advanced/docs/network/uptime.md
+    preface: Network uptime only (tiles/outages hidden).
+    include: snippets/network/uptime.yaml
+    footer: Show only the uptime pill visualization.
+  - output: demo/advanced/docs/network/outages.md
+    preface: Network outages only (tiles/uptime hidden).
+    include: snippets/network/outages.yaml
+    footer: Show only the outage alerts list.
+  - output: demo/advanced/docs/speedtest/controls.md
+    preface: Speedtest controls only (history hidden).
+    include: snippets/speedtest/controls.yaml
+    footer: |-
+      Use `show.history: false` to display only the run button.
+  - output: demo/advanced/docs/speedtest/history.md
+    preface: Speedtest history only (controls hidden).
+    include: snippets/speedtest/history.yaml
+    footer: |-
+      Use `show.controls: false` to display only the chart/table.
+  - output: demo/advanced/docs/speedtest/original.md
+    preface: |-
+      Unprocessed speedtest chart data. Straight lines connecting
+      measurement points with no curve interpolation applied.
+    include: snippets/speedtest/original.yaml
+  - output: demo/advanced/docs/services/compact.md
+    preface: |-
+      Compact services layout with scaled icons. Long press on mobile or
+      Shift/Ctrl+Shift click on desktop for the detail and link modal.
+    include: snippets/services/compact.yaml
+  - output: demo/advanced/docs/reminders/full.md
+    preface: Full reminders widget with the default layout.
+    include: snippets/reminders.yaml
+  - output: demo/advanced/docs/wiki/rail.md
+    preface: |-
+      Renders the Markdown file with a small bar on the left.
+
+      Mode: rail (narrow sidebar layout).
+    include: snippets/wiki/rail.yaml
+  - output: demo/advanced/docs/wiki/featured.md
+    preface: |-
+      Renders the Markdown file on an elevated card.
+
+      Mode: featured (prominent header styling).
+    include: snippets/wiki/featured.yaml
+  - output: demo/advanced/docs/wiki/seamless.md
+    preface: |-
+      Renders the Markdown file without any visual separation.
+
+      Mode: seamless (no visual separation).
+    include: snippets/wiki/seamless.yaml
+  - output: demo/advanced/docs/footer.md
+    preface: |-
+      ### Demos
+      - **Simple** -
+        [http://monitorat.brege.org/](http://monitorat.brege.org/)
+      - **Widget Features and Modes** -
+        [http://monitorat.brege.org/advanced](http://monitorat.brege.org/advanced)
+      - **NEXT UP:**
+        **Federation** - [http://monitorat.brege.org/federation](http://monitorat.brege.org/federation)
+
+      ### Repositories
+      - **GitHub** - [https://github.com/brege/monitorat](https://github.com/brege/monitorat)
+      - **PyPI** - [https://pypi.org/project/monitorat](https://pypi.org/project/monitorat) `uv tool install monitorat`
+
+      ### About
+      - **Monitorat** - [https://monitorat.brege.org](https://monitorat.brege.org) (c) 2025-2026 GPL-3.0
+      - **Wyatt Brege** - [https://brege.org](https://brege.org)
+      - **GitHub** - [https://github.com/brege](https://github.com/brege)
+      - **Mastodon** - [https://mastodon.social/@brege](https://mastodon.social/@brege)
+
+    include: snippets/wiki/footer.yaml
+    show_config: false

@@ -274,7 +274,15 @@ def main():
         stop_servers()
         return 0
 
-    generate_docs(DEMO_DIR / "docs.yml")
+    mode_to_manifest = {
+        "simple": DEMO_DIR / "simple" / "index.yml",
+        "advanced": DEMO_DIR / "advanced" / "index.yml",
+        "editor": DEMO_DIR / "editor" / "index.yml",
+        "federation": DEMO_DIR / "federation" / "central" / "index.yml",
+    }
+    manifest = mode_to_manifest.get(args.mode)
+    if manifest:
+        generate_docs(manifest)
 
     if args.mode in ("simple", "advanced", "editor"):
         bootstrap_demo_data()
