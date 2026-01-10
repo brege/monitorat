@@ -40,5 +40,5 @@ widgets:
     name: Links
     hidden: true
     mode: seamless
-    doc: docs/footer.md
+    doc: ../simple/docs/footer.md
     edit: false

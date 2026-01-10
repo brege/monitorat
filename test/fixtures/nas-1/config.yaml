@@ -32,7 +32,7 @@ widgets:
     items:
       plex:
         name: Plex
-        icon: services/systemd/plex.png
+        icon: services/systemd/plex.svg
         services: [plexmediaserver.service]
         url: https://plex.tv
       syncthing:

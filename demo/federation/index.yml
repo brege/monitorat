@@ -4,97 +4,78 @@ defaults:
 documents:
   - output: demo/federation/central/docs/wiki/each.md
     include: snippets/wiki/each.yaml
-    footer: |-
+    epilogue: |-
       Shows per-node wiki widgets. No combined layout. Use
       `remote: nas-1` to fetch wiki from a single remote.
   - output: demo/federation/central/docs/wiki/stack.md
     include: snippets/wiki/stack.yaml
-    footer: Stack displays wikis vertically with source headers.
+    epilogue: Stack displays wikis vertically with source headers.
   - output: demo/federation/central/docs/wiki/column.md
     include: snippets/wiki/column.yaml
-    footer: |-
+    epilogue: |-
       Columnate mode displays wikis side-by-side. Columns fall back to
       stacking on mobile or very thin viewports.
   - output: demo/federation/central/docs/metrics/each.md
     include: snippets/metrics/each.yaml
-    footer: Per-remote widgets for independent display.
+    epilogue: Per-remote widgets for independent display.
   - output: demo/federation/central/docs/metrics/tiles/stack.md
     include: snippets/metrics/tiles/stack.yaml
-    footer: Shows metrics tiles stacked by node.
+    epilogue: Shows metrics tiles stacked by node.
   - output: demo/federation/central/docs/metrics/tiles/column.md
     include: snippets/metrics/tiles/column.yaml
-    footer: Shows metrics tiles in columns by node. Will fall back to stacking on mobile.
+    epilogue: Shows metrics tiles in columns by node. Will fall back to stacking on mobile.
   - output: demo/federation/central/docs/metrics/history/stack.md
     include: snippets/metrics/history/stack.yaml
-    footer: Shows metrics history stacked by node.
+    epilogue: Shows metrics history stacked by node.
   - output: demo/federation/central/docs/metrics/history/merge.md
     include: snippets/metrics/history/merge.yaml
-    footer: |-
+    epilogue: |-
       Shows metrics history merged across nodes (just full widget calls
       for each node).
   - output: demo/federation/central/docs/network/combined.md
     include: snippets/network/combined.yaml
-    footer: |-
+    epilogue: |-
       Network has per-feature display control: `tiles`, `uptime`,
       `outages`. This example shows all of them together.
   - output: demo/federation/central/docs/network/tiles/stack.md
     include: snippets/network/tiles/stack.yaml
-    footer: Shows network tiles stacked by node.
+    epilogue: Shows network tiles stacked by node.
   - output: demo/federation/central/docs/network/tiles/column.md
     include: snippets/network/tiles/column.yaml
-    footer: Shows network tiles in columns by node. Will fall back to stacking on mobile.
+    epilogue: Shows network tiles in columns by node. Will fall back to stacking on mobile.
   - output: demo/federation/central/docs/network/uptime/stack.md
     include: snippets/network/uptime/stack.yaml
-    footer: Shows network uptime pills stacked by node.
+    epilogue: Shows network uptime pills stacked by node.
   - output: demo/federation/central/docs/network/uptime/column.md
     include: snippets/network/uptime/column.yaml
-    footer: Shows network uptime in columns by node. Will fall back to stacking on mobile.
+    epilogue: Shows network uptime in columns by node. Will fall back to stacking on mobile.
   - output: demo/federation/central/docs/network/outages/column.md
     include: snippets/network/outages/column.yaml
-    footer: Shows network outages in columns by node. Will fall back to stacking on mobile.
+    epilogue: Shows network outages in columns by node. Will fall back to stacking on mobile.
   - output: demo/federation/central/docs/network/outages/merge.md
     include: snippets/network/outages/merge.yaml
-    footer: |-
+    epilogue: |-
       Merged outages are sorted by time across all sources. This
       example shows network outages from multiple sources merged into
       a single list.
   - output: demo/federation/central/docs/services/stack.md
     include: snippets/services/stack.yaml
-    footer: Shows services stacked by node.
+    epilogue: Shows services stacked by node.
   - output: demo/federation/central/docs/services/merge.md
     include: snippets/services/merge.yaml
-    footer: Shows services merged into a single list.
+    epilogue: Shows services merged into a single list.
   - output: demo/federation/central/docs/services/column.md
     include: snippets/services/column.yaml
-    footer: Shows services in columns by node. Will fall back to stacking on mobile.
+    epilogue: Shows services in columns by node. Will fall back to stacking on mobile.
   - output: demo/federation/central/docs/reminders/stack.md
     include: snippets/reminders/stack.yaml
-    footer: Shows reminders stacked by node.
+    epilogue: Shows reminders stacked by node.
   - output: demo/federation/central/docs/reminders/merge.md
     include: snippets/reminders/merge.yaml
-    footer: Shows reminders merged into a single list.
+    epilogue: Shows reminders merged into a single list.
   - output: demo/federation/central/docs/reminders/column.md
     include: snippets/reminders/column.yaml
-    footer: Shows reminders in columns by node. Will fall back to stacking on mobile.
+    epilogue: Shows reminders in columns by node. Will fall back to stacking on mobile.
   - output: demo/federation/central/docs/speedtest/merge.md
     include: snippets/speedtest/merge.yaml
-    footer: Speedtest merges chart and table data; run buttons are stacked.
-  - output: demo/federation/central/docs/footer.md
-    preface: |-
-      ### Demos
-      - **Simple** - [http://monitorat.brege.org/](http://monitorat.brege.org/)
-      - **Widget Features and Modes** - [http://monitorat.brege.org/advanced](http://monitorat.brege.org/advanced)
-      - **Federation** - [http://monitorat.brege.org/federation](http://monitorat.brege.org/federation)
-
-      ### Repositories
-      - **NEXT UP:** **GitHub** - [https://github.com/brege/monitorat](https://github.com/brege/monitorat)
-      - **PyPI** - [https://pypi.org/project/monitorat](https://pypi.org/project/monitorat) `uv tool install monitorat`
-
-      ### About
-      - **Monitorat** - [https://monitorat.brege.org](https://monitorat.brege.org) (c) 2025-2026 GPL-3.0
-      - **Wyatt Brege** - [https://brege.org](https://brege.org)
-      - **GitHub** - [https://github.com/brege](https://github.com/brege)
-      - **Mastodon** - [https://mastodon.social/@brege](https://mastodon.social/@brege)
-
-    include: snippets/wiki/footer.yaml
-    show_config: false
+    epilogue: Speedtest merges chart and table data; run buttons are stacked.

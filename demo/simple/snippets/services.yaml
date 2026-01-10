@@ -41,7 +41,7 @@ widgets:
         local: http://demo-host:2283
       plex:
         name: Plex
-        icon: services/systemd/plex.png
+        icon: services/systemd/plex.svg
         services: [plexmediaserver.service]
         url: https://plex.tv
         local: http://demo-host:32400

@@ -4,4 +4,4 @@ widgets:
     name: Links
     collapsible: true
     mode: seamless
-    doc: ../../docs/footer.md
+    doc: ../../../simple/docs/footer.md

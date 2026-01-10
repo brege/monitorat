@@ -12,7 +12,7 @@ ALLOWED_DEFAULT_KEYS = {"summary", "lang"}
 ALLOWED_DOC_KEYS = {
     "output",
     "preface",
-    "footer",
+    "epilogue",
     "summary",
     "include",
     "lang",
@@ -64,10 +64,10 @@ def validate_documents(documents: list) -> list:
             raise ValueError(
                 f"Document entry at index {index} preface must be a string."
             )
-        footer = doc.get("footer")
-        if footer is not None and not isinstance(footer, str):
+        epilogue = doc.get("epilogue")
+        if epilogue is not None and not isinstance(epilogue, str):
             raise ValueError(
-                f"Document entry at index {index} footer must be a string."
+                f"Document entry at index {index} epilogue must be a string."
             )
         summary = doc.get("summary")
         if summary is not None and not isinstance(summary, str):
@@ -111,12 +111,19 @@ def render_document(doc: dict, defaults: dict) -> str:
         lines.append(f'{{{{ include:code path="{include_path}" lang="{lang}" }}}}')
         lines.append("</details>")
 
-    footer = doc.get("footer")
-    if footer:
+    epilogue = doc.get("epilogue")
+    if epilogue:
         lines.append("")
-        lines.append(footer.rstrip())
+        lines.append(epilogue.rstrip())
 
     return "\n".join(lines).rstrip() + "\n"
+
+
+def find_repo_root(manifest_path: Path) -> Path:
+    for parent in manifest_path.parents:
+        if parent.name == "demo":
+            return parent.parent.resolve()
+    raise ValueError(f"Manifest must live under demo/: {manifest_path}")
 
 
 def generate_docs(manifest_path: Path) -> None:
@@ -124,7 +131,7 @@ def generate_docs(manifest_path: Path) -> None:
     defaults = validate_defaults(manifest.get("defaults", {}))
     documents = validate_documents(manifest.get("documents"))
 
-    repo_root = manifest_path.parents[2].resolve()
+    repo_root = find_repo_root(manifest_path)
     for doc in documents:
         output_path = Path(doc["output"])
         resolved_path = output_path
@@ -160,7 +167,9 @@ def main() -> int:
     if args.manifest:
         manifests = [args.manifest]
     else:
-        manifests = sorted(demo_dir.glob("*/index.yml"))
+        manifests = sorted(
+            path for path in demo_dir.rglob("index.yml") if path.is_file()
+        )
 
     if not manifests:
         parser.error(

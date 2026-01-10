@@ -5,4 +5,4 @@ widgets:
     collapsible: true
     mode: seamless
     _suppressHeader: true
-    doc: ../../docs/footer.md
+    doc: ../../../../simple/docs/footer.md
