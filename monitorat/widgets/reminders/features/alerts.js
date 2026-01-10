@@ -76,7 +76,7 @@ class RemindersAlerts {
   createReminderCard (reminder) {
     const alertElement = document.createElement('div')
     const hasBadge = this.widget.config.remote || reminder._source
-    alertElement.className = `reminder-alert alert-card status-card status-${reminder.status}${hasBadge ? ' has-badge' : ''}`
+    alertElement.className = `reminder-alert alert-card status-card status-${reminder.status} hover-expand-parent${hasBadge ? ' has-badge' : ''}`
     if (reminder.url) {
       alertElement.title = reminder.url
       alertElement.style.cursor = 'pointer'
@@ -92,7 +92,7 @@ class RemindersAlerts {
     }
 
     const icon = document.createElement('img')
-    icon.className = 'reminder-alert-icon'
+    icon.className = 'reminder-alert-icon hover-expand'
     const imgBase = reminder._source
       ? `api/proxy/${reminder._source}/img`
       : this.widget.getImgBase()

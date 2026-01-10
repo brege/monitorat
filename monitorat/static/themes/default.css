@@ -447,7 +447,7 @@ button:disabled {
 }
 
 .stat .value {
-  font-size: 1.35rem;
+  font-size: clamp(1.15rem, calc(1.35rem - 1.5vw), 1.35rem);
   font-weight: 600;
 }
 

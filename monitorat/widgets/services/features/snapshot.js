@@ -129,7 +129,7 @@ class ServicesSnapshot {
     const card = document.createElement('div')
     const mode = this.widget.getDisplayMode()
     const hasBadge = this.widget.config.remote || service._source
-    const baseClass = mode === 'compact' ? 'service-card compact' : 'service-card card status-card'
+    const baseClass = mode === 'compact' ? 'service-card compact' : 'service-card card status-card hover-expand-parent'
     card.className = `${baseClass}${hasBadge ? ' has-badge' : ''}`
     card.setAttribute('data-service-key', service._key)
     card.setAttribute('data-service-source', service._source || '')
@@ -144,7 +144,7 @@ class ServicesSnapshot {
     }
 
     const icon = document.createElement('img')
-    icon.className = 'service-icon'
+    icon.className = 'service-icon hover-expand'
     const imgBase = service._source
       ? `api/proxy/${service._source}/img`
       : this.widget.getImgBase()
@@ -288,7 +288,7 @@ class ServicesSnapshot {
 
       const hasBadge = card.classList.contains('has-badge')
       const isCompact = card.classList.contains('compact')
-      const baseClass = isCompact ? 'service-card compact' : 'service-card card status-card'
+      const baseClass = isCompact ? 'service-card compact' : 'service-card card status-card hover-expand-parent'
       const statusClass = this.widget.getStatusClass(overallStatus)
       card.className = `${baseClass}${hasBadge ? ' has-badge' : ''} ${statusClass}`
 
