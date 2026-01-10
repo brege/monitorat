@@ -188,13 +188,18 @@ class MetricsChart {
     datasets.forEach((dataset, index) => {
       const label = dataset._seriesLabel || dataset.label
       if (!label) return
+      const isRaw = typeof dataset.label === 'string' && dataset.label.endsWith(' (raw)')
       const baseLabel = label.endsWith(' (raw)') ? label.slice(0, -6) : label
       if (!seriesMap.has(baseLabel)) {
         seriesMap.set(baseLabel, {
           label: baseLabel,
           color: dataset.borderColor,
-          indexes: []
+          indexes: [],
+          hasPrimary: !isRaw
         })
+      } else if (!isRaw && !seriesMap.get(baseLabel).hasPrimary) {
+        seriesMap.get(baseLabel).color = dataset.borderColor
+        seriesMap.get(baseLabel).hasPrimary = true
       }
       seriesMap.get(baseLabel).indexes.push(index)
     })

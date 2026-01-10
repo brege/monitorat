@@ -7,8 +7,8 @@
 - [x] [style] Hover on reminder alerts shows the URL target.
 - [ ] [feature] Clicking a reminder opens a modal first (no navigation); modal is the entry point for confirmation/completion.
 - [ ] [longterm] Modal markdown editor for reminders; save and sync to configured `docs/reminders/` path for checklist editing.
-- [NO] [style] Add bell icon to the "Test Notification" button.
-  - cite:[3]
+- [x] ~~[style] Add bell icon to the "Test Notification" button.
+  - cite:[3]~~
 
 ## Speedtest
 - [ ] [feature] Smooth demo ping data in `demo/setup.py` so the chart line is not jagged or unrealistic on mobile.  

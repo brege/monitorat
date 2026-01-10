@@ -1250,25 +1250,26 @@ tr:last-child td {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 1px;
+  gap: 0;
 }
 
 .chart-legend-item {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 2px;
-  font-size: 8px;
-  line-height: 1;
+  gap: 6px;
+  font-size: 0.72rem;
+  line-height: 1.25;
   color: var(--text-muted);
   border: none;
   background: none;
-  padding: 1px 2px;
+  padding: 4px 8px;
   cursor: default;
   white-space: nowrap;
   text-transform: none;
   letter-spacing: normal;
   width: 100%;
   justify-content: flex-start;
+  box-sizing: border-box;
 }
 
 .chart-legend-item.active {
@@ -1279,25 +1280,31 @@ tr:last-child td {
   cursor: pointer;
 }
 .chart-legend-item.clickable:hover {
-  background: rgba(var(--color-ghost-rgb), 0.18);
+  background: color-mix(in srgb, var(--bg-surface) 82%, var(--border-muted) 18%);
+}
+
+.chart-legend-item.clickable:focus-visible {
+  background: color-mix(in srgb, var(--bg-surface) 82%, var(--border-muted) 18%);
+  outline: 1px solid var(--border-muted);
+  outline-offset: -1px;
 }
 
 .chart-legend-swatch {
   width: 16px;
-  height: 2px;
-  border-radius: 1px;
+  height: 3px;
+  border-radius: 2px;
   flex-shrink: 0;
 }
 
 .chart-legend-swatch.dashed {
   background: none;
-  border-top: 2px dashed currentColor;
+  border-top: 3px dashed currentColor;
   height: 0;
 }
 
 .chart-overlay {
   position: absolute;
-  top: 4px;
+  top: 10px;
   left: 52px;
   right: 44px;
   display: flex;
@@ -1308,10 +1315,12 @@ tr:last-child td {
 }
 
 .chart-overlay .chart-legend {
-  background: rgba(var(--chart-legend-bg-rgb), 0.15);
-  border: 1px solid rgba(var(--chart-legend-bg-rgb), 0.25);
-  border-radius: 0;
-  padding: 3px 5px;
+  background: color-mix(in srgb, var(--bg-surface) 92%, var(--text-primary) 8%);
+  border: 1px solid color-mix(in srgb, var(--border-muted) 70%, var(--text-primary) 30%);
+  border-radius: 6px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
   pointer-events: auto;
 }
 
@@ -1325,7 +1334,7 @@ tr:last-child td {
 
 .chart-overlay .chart-legend.right .chart-legend-swatch {
   background: none;
-  border-top: 2px solid currentColor;
+  border-top: 3px solid currentColor;
   height: 0;
 }
 
@@ -1335,15 +1344,17 @@ tr:last-child td {
 
 @media (max-width: 640px) {
   .chart-legend-item {
-    font-size: 7px;
+    font-size: 0.68rem;
   }
   .chart-legend-swatch {
     width: 12px;
+    height: 3px;
   }
   .chart-overlay .chart-legend {
-    padding: 2px 3px;
+    border-radius: 5px;
   }
   .chart-overlay {
+    top: 8px;
     left: 56px;
     right: 48px;
   }
