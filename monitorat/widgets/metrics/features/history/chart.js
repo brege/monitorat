@@ -84,18 +84,36 @@ class MetricsChart {
     const labels = chronological.map(row => dataFormatter.formatTime(row.timestamp))
     const datasets = []
     const allValues = []
+    const curve = this.widget.config?.chart?.curve || { fill: true, interpolation: 0.3, ghosts: true }
 
     for (const metric of metricsToChart) {
       const values = chronological.map(row => parseFloat(row[metric.field]) || 0)
-      const ghosted = ChartManager.buildGhostedDatasets({
-        label: metric.label,
-        color: metric.color,
-        rawValues: values
-      }).map(dataset => ({
-        ...dataset,
-        _seriesLabel: metric.label
-      }))
-      datasets.push(...ghosted)
+
+      if (curve.ghosts) {
+        const ghosted = ChartManager.buildGhostedDatasets({
+          label: metric.label,
+          color: metric.color,
+          rawValues: values
+        }).map(dataset => ({
+          ...dataset,
+          tension: curve.interpolation,
+          _seriesLabel: metric.label
+        }))
+        datasets.push(...ghosted)
+      } else {
+        const backgroundColor = curve.fill ? metric.color + '33' : undefined
+        datasets.push({
+          label: metric.label,
+          data: values,
+          borderColor: metric.color,
+          backgroundColor,
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: curve.interpolation,
+          _seriesLabel: metric.label
+        })
+      }
+
       allValues.push(...values)
     }
 

@@ -92,7 +92,6 @@ class SpeedtestChart {
       return
     }
 
-    const ChartManager = window.monitorShared?.ChartManager
     const DataFormatter = window.monitorShared?.DataFormatter
     const filteredEntries = this.getFilteredEntries()
     const labels = filteredEntries.map(entry => DataFormatter.formatTime(entry.timestamp))
@@ -100,6 +99,7 @@ class SpeedtestChart {
     const metricsToUse = this.widget.selectedMetric === 'all'
       ? this.widget.metricFields
       : this.widget.metricFields.filter(metric => metric.field === this.widget.selectedMetric)
+    const curve = this.widget.config?.chart?.curve || { fill: false, interpolation: 0.3, ghosts: false }
 
     for (const metric of metricsToUse) {
       const values = filteredEntries.map((entry) => {
@@ -117,15 +117,16 @@ class SpeedtestChart {
       })
 
       const color = metric.color
-      const backgroundAlpha = this.widget.schema?.chart?.backgroundAlpha ?? 0.1
-      const backgroundColor = ChartManager.withAlpha(color, backgroundAlpha)
+      const backgroundColor = curve.fill ? color + '33' : undefined
 
       datasets.push({
         label: metric.label || metric.field,
         data: values,
         borderColor: color,
         backgroundColor,
-        tension: this.widget.schema?.chart?.tension ?? 0.1,
+        borderWidth: 2,
+        pointRadius: 0,
+        tension: curve.interpolation,
         yAxisID: metric.yAxisID,
         _metricField: metric.field,
         _source: null
@@ -155,7 +156,6 @@ class SpeedtestChart {
 
   updateMerged (sources) {
     if (!this.widget.chartManager?.hasChart()) return
-    const ChartManager = window.monitorShared?.ChartManager
     const DataFormatter = window.monitorShared?.DataFormatter
     const filteredEntries = this.getFilteredEntries()
 
@@ -182,6 +182,7 @@ class SpeedtestChart {
       : this.widget.metricFields.filter(metric => metric.field === this.widget.selectedMetric)
 
     const datasets = []
+    const curve = this.widget.config?.chart?.curve || { fill: false, interpolation: 0.3, ghosts: false }
 
     sources.forEach((source, sourceIndex) => {
       const sourceEntries = entriesBySource[source] || []
@@ -209,16 +210,17 @@ class SpeedtestChart {
 
         const label = `${source}: ${metric.label || metric.field}`
         const color = metric.color
-        const backgroundAlpha = this.widget.schema?.chart?.backgroundAlpha ?? 0.1
-        const backgroundColor = ChartManager.withAlpha(color, backgroundAlpha)
+        const backgroundColor = curve.fill ? color + '33' : undefined
 
         datasets.push({
           label,
           data: values,
           borderColor: color,
           backgroundColor,
+          borderWidth: 2,
+          pointRadius: 0,
           borderDash: this.lineStyles[sourceIndex % this.lineStyles.length],
-          tension: this.widget.schema?.chart?.tension ?? 0.1,
+          tension: curve.interpolation,
           yAxisID: metric.yAxisID,
           spanGaps: true,
           _metricField: metric.field,

@@ -18,5 +18,9 @@ widgets:
       max: 20  # maximum rows to load
     chart:
       height: 400px  # fixed chart height
+      curve:
+        fill: false  # shade area under line
+        interpolation: 0.3  # 0: straight lines, 1.0: max smoothing
+        ghosts: false  # show raw data overlay
       default_period: all
       periods: [all, 1 year, 1 month, 1 week]
