@@ -108,7 +108,7 @@ class SpeedtestWidget {
     const showControls = this.config.show?.controls !== false
     const showHistory = this.config.show?.history !== false
 
-    if (showControls) {
+    if (showControls || showHistory) {
       this.features.controls.setupEventListeners()
     }
 

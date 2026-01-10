@@ -1,5 +1,16 @@
 ## Changelog
 
+### 2026-01-10
+
+- Introduced modal Markdown editing (esperimental) via textarea
+- Standardize Action buttons into new icon-label group (save, cancel, restore, run speedtest)
+- Made chart legends much easier to read
+- Trimmed the full-fat widgets from advanced demo, so it focuses only on: 
+  - features
+  - styling
+  - components  
+  of each widget
+
 ### 2026-01-09
 
 - Add Roadmap
@@ -10,7 +21,10 @@
 - CSV button hover tooltip should read "Download CSV"
 - Change "show less" to "show fewer"
 - Unit time labels use "hour"/"day" when unity; keep numerals for non-unity
-- Add link-icon expansion for informational links/modals
+- Added link-icon expansion for informational links/modals
+- Added docs.py to pre-commit as insurance before pushing to prod demos
+- Refactored header and menu code into central monitorat/static/header/
+- Added TOC button to left of site header for easier navigation
 
 ### 2026-01-08 
 
