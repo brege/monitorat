@@ -1,7 +1,7 @@
 widgets:
   speedtest-history:
     type: speedtest
-    name: "Speedtest: History"
+    name: "Speedtest: History - Default"
     collapsible: true
     default: chart
     show:

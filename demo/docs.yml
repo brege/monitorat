@@ -71,22 +71,23 @@ documents:
     include: snippets/footer.yaml
     show_config: false
   # Advanced
-  - output: demo/advanced/docs/metrics/full.md
-    preface: Full metrics widget with custom chart periods.
-    include: snippets/metrics/full.yaml
   - output: demo/advanced/docs/metrics/tiles.md
     preface: Metrics tiles only (history hidden).
     include: snippets/metrics/tiles.yaml
     footer: |-
       Use `show.history: false` to display only the stat tiles.
   - output: demo/advanced/docs/metrics/history.md
-    preface: Metrics history only (tiles hidden).
+    preface: |-
+      Metrics history with default curve styling (filled area, smooth
+      interpolation, ghost raw data). Tiles are hidden.
     include: snippets/metrics/history.yaml
     footer: |-
       Use `show.tiles: false` to display only the chart/table history.
-  - output: demo/advanced/docs/network/full.md
-    preface: Network with tiles, uptime, and outages enabled (chirper off).
-    include: snippets/network/full.yaml
+  - output: demo/advanced/docs/metrics/original.md
+    preface: |-
+      Unprocessed metric chart data. Straight lines with no smoothing,
+      no fill, and no ghost raw data overlay.
+    include: snippets/metrics/original.yaml
   - output: demo/advanced/docs/network/tiles.md
     preface: Network tiles only (uptime/outages hidden).
     include: snippets/network/tiles.yaml
@@ -100,9 +101,6 @@ documents:
     preface: Network outages only (tiles/uptime hidden).
     include: snippets/network/outages.yaml
     footer: Show only the outage alerts list.
-  - output: demo/advanced/docs/speedtest/full.md
-    preface: Speedtest defaults to the chart view with a 1-month period.
-    include: snippets/speedtest/full.yaml
   - output: demo/advanced/docs/speedtest/controls.md
     preface: Speedtest controls only (history hidden).
     include: snippets/speedtest/controls.yaml
@@ -113,12 +111,11 @@ documents:
     include: snippets/speedtest/history.yaml
     footer: |-
       Use `show.controls: false` to display only the chart/table.
-  - output: demo/advanced/docs/services/tiles.md
+  - output: demo/advanced/docs/speedtest/original.md
     preface: |-
-      Full services widget in the default tiles layout. Click the info icon for
-      internal and external links, as well as status details. Long press on mobile
-      or Shift/Ctrl+Shift click on desktop work the same.
-    include: snippets/services/tiles.yaml
+      Unprocessed speedtest chart data. Straight lines connecting
+      measurement points with no curve interpolation applied.
+    include: snippets/speedtest/original.yaml
   - output: demo/advanced/docs/services/compact.md
     preface: |-
       Compact services layout with scaled icons. Long press on mobile or 
@@ -127,9 +124,6 @@ documents:
   - output: demo/advanced/docs/reminders/full.md
     preface: Full reminders widget with the default layout.
     include: snippets/reminders.yaml
-  - output: demo/advanced/docs/wiki/index.md
-    preface: Seamless README wiki with the header suppressed.
-    include: snippets/wiki/full.yaml
   - output: demo/advanced/docs/wiki/rail.md
     preface: |-
       Renders the Markdown file with a small bar on the left.

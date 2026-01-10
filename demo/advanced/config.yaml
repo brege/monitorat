@@ -10,31 +10,28 @@ includes:
   - ../simple/snippets/services.yaml
   - ../simple/snippets/reminders.yaml
   - ../simple/snippets/speedtest.yaml
-  - ../simple/snippets/wiki.yaml
 
   # Site
   - snippets/site.yaml
 
-  # Single-node widgets
+  # README
   - snippets/wiki/full.yaml
-  - snippets/metrics/full.yaml
-  - snippets/services/tiles.yaml
-  - snippets/services/compact.yaml
-  - snippets/reminders.yaml
-  - snippets/speedtest/full.yaml
-  - snippets/network/full.yaml
 
-  # Single-node wiki modes
+  # Wiki modes
   - snippets/wiki/rail.yaml
   - snippets/wiki/featured.yaml
   - snippets/wiki/seamless.yaml
   - snippets/wiki/footer.yaml
 
-  # Single-node feature toggles
+  # Feature toggles & options
   - snippets/metrics/tiles.yaml
   - snippets/metrics/history.yaml
+  - snippets/metrics/original.yaml
+  - snippets/services/compact.yaml
+  - snippets/reminders.yaml
   - snippets/speedtest/controls.yaml
   - snippets/speedtest/history.yaml
+  - snippets/speedtest/original.yaml
   - snippets/network/tiles.yaml
   - snippets/network/uptime.yaml
   - snippets/network/outages.yaml
@@ -54,20 +51,17 @@ widgets:
     - wiki-mode-featured
     - wiki-mode-seamless
 
-    # Single-Node
-
+    # Feature & Option Variations
 
     ## Metrics
-    - metrics-single
-    - wiki-metrics-single
     - metrics-tiles
     - wiki-metrics-tiles
     - metrics-history
     - wiki-metrics-history
+    - metrics-curve-unprocessed
+    - wiki-metrics-curve-unprocessed
 
     ## Services
-    - services-single
-    - wiki-services-single
     - services-compact
     - wiki-services-compact
 
@@ -76,16 +70,14 @@ widgets:
     - wiki-reminders-single
 
     ## Speedtest
-    - speedtest-single
-    - wiki-speedtest-single
     - speedtest-controls
     - wiki-speedtest-controls
     - speedtest-history
     - wiki-speedtest-history
+    - speedtest-curve-unprocessed
+    - wiki-speedtest-curve-unprocessed
 
     ## Network
-    - network-single
-    - wiki-network-single
     - network-tiles
     - wiki-network-tiles
     - network-uptime

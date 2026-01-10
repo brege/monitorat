@@ -1,0 +1,23 @@
+widgets:
+  metrics-curve-unprocessed:
+    type: metrics
+    name: "Metrics: History - Unprocessed"
+    collapsible: true
+    show:
+      tiles: false
+      history: true
+    chart:
+      periods: [24 hours, 6 hours, 1 hour]
+      default_period: 6 hours
+      curve:
+        fill: false
+        interpolation: 0
+        ghosts: false
+
+  wiki-metrics-curve-unprocessed:
+    type: wiki
+    name: "Config: Unprocessed"
+    parent: metrics-curve-unprocessed
+    _suppressHeader: true
+    mode: rail
+    doc: ../../docs/metrics/original.md

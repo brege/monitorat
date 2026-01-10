@@ -1,0 +1,23 @@
+widgets:
+  speedtest-curve-unprocessed:
+    type: speedtest
+    name: "Speedtest: History - Unprocessed"
+    collapsible: true
+    default: chart
+    show:
+      controls: false
+      history: true
+    chart:
+      default_period: 1 month
+      curve:
+        fill: false
+        interpolation: 0
+        ghosts: false
+
+  wiki-speedtest-curve-unprocessed:
+    type: wiki
+    name: "Config: Unprocessed"
+    parent: speedtest-curve-unprocessed
+    _suppressHeader: true
+    mode: rail
+    doc: ../../docs/speedtest/original.md
