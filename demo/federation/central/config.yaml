@@ -43,13 +43,7 @@ includes:
   # Multi-node speedtest
   - snippets/speedtest/merge.yaml
 
-  # Multi-node network
-  - snippets/network/tiles/column.yaml
-  - snippets/network/tiles/stack.yaml
-  - snippets/network/uptime/column.yaml
-  - snippets/network/uptime/stack.yaml
-  - snippets/network/outages/stack.yaml
-  - snippets/network/outages/column.yaml
+  # Multi-node network (outages combinator only)
   - snippets/network/outages/merge.yaml
 
 demo: true
@@ -104,19 +98,7 @@ widgets:
     - speedtest-merge
     - wiki-speedtest-merge
 
-    ## Network federation
-    - network-tiles-column
-    - wiki-network-tiles-column
-    - network-tiles-stack
-    - wiki-network-tiles-stack
-    - network-uptime-column
-    - wiki-network-uptime-column
-    - network-uptime-stack
-    - wiki-network-uptime-stack
-    - network-outages-stack
-    - wiki-network-outages-stack
-    - network-outages-column
-    - wiki-network-outages-column
+    ## Network federation (outages combinator only)
     - network-outages-merge
     - wiki-network-outages-merge
     - wiki-footer
