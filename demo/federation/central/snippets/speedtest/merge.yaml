@@ -6,10 +6,6 @@ widgets:
     default: chart
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        chart: merge
-        table: merge
-        button: stack
     chart:
       default_period: 1 month
 

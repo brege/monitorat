@@ -761,7 +761,7 @@ tr:last-child td {
 }
 
 .feature-header {
-  margin: 16px 0 8px 0;
+  margin: 16px 0 0 0;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-secondary);
@@ -783,19 +783,26 @@ tr:last-child td {
   font-weight: 500;
 }
 
-.federation-columns {
+.layout-columns {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 24px;
 }
 
-.federation-column {
+.layout-group {
+  --layout-group-columns: 1;
+  --layout-group-min: 320px;
+  grid-template-columns: repeat(var(--layout-group-columns), minmax(min(100%, var(--layout-group-min)), 1fr));
+  gap: var(--layout-group-gap, 32px);
+}
+
+.layout-column {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.wiki-columns .federation-column {
+.wiki-columns .layout-column {
   min-width: 0;
 }
 
@@ -804,7 +811,7 @@ tr:last-child td {
 }
 
 @media (max-width: 700px) {
-  .federation-columns {
+  .layout-columns {
     grid-template-columns: 1fr;
   }
 }

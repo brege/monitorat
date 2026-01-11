@@ -379,10 +379,10 @@ class NetworkWidget {
     const existingStats = container.querySelectorAll('.stats-row')
     existingStats.forEach(row => { row.style.display = 'none' })
 
-    let mergedContainer = container.querySelector('.federation-merged-snapshots')
+    let mergedContainer = container.querySelector('.layout-merged-snapshots')
     if (!mergedContainer) {
       mergedContainer = document.createElement('div')
-      mergedContainer.className = 'federation-merged-snapshots'
+      mergedContainer.className = 'layout-merged-snapshots'
       container.appendChild(mergedContainer)
     }
     mergedContainer.innerHTML = ''
@@ -396,14 +396,14 @@ class NetworkWidget {
 
   renderSnapshotColumnated (container, sources, sourceStates) {
     const columns = document.createElement('div')
-    columns.className = 'federation-columns network-tile-columns'
+    columns.className = 'layout-columns network-tile-columns'
 
     for (const source of sources) {
       const sourceState = sourceStates[source]
       const analysis = sourceState?.analysis
 
       const column = document.createElement('div')
-      column.className = 'federation-column'
+      column.className = 'layout-column'
 
       const header = document.createElement('div')
       header.className = 'feature-header'
@@ -485,10 +485,10 @@ class NetworkWidget {
 
     for (const periodLabel of allPeriodLabels) {
       const periodRow = document.createElement('div')
-      periodRow.className = 'uptime-item federation-uptime-period'
+      periodRow.className = 'uptime-item layout-uptime-period'
 
       const columns = document.createElement('div')
-      columns.className = 'federation-columns network-uptime-columns'
+      columns.className = 'layout-columns network-uptime-columns'
 
       for (const source of sources) {
         const sourceState = sourceStates[source]
@@ -496,13 +496,13 @@ class NetworkWidget {
         const stat = stats.find(s => s.label === periodLabel)
 
         const column = document.createElement('div')
-        column.className = 'federation-column'
+        column.className = 'layout-column'
 
         const headerRow = document.createElement('div')
         headerRow.className = 'uptime-column-header'
 
         const sourceLabel = document.createElement('span')
-        sourceLabel.className = 'federation-source-label'
+        sourceLabel.className = 'source-label'
         sourceLabel.textContent = source
 
         const periodLabelElement = document.createElement('span')
@@ -610,10 +610,12 @@ class NetworkWidget {
     const showOutages = this.config.show?.outages !== false && this.config.alerts.show
     if (!showOutages || !this.elements.alertList) return
 
-    if (this.config.columns === 1) {
-      this.renderMergedOutagesSources(sources, sourceStates)
-    } else {
+    if (this.config.features?.alerts?.merge === true) {
       this.renderMergedOutagesCombined(sources, sourceStates)
+    } else if (this.config.columns && this.config.columns > 1) {
+      this.renderMergedOutagesColumnated(sources, sourceStates)
+    } else {
+      this.renderMergedOutagesSources(sources, sourceStates)
     }
   }
 
@@ -750,14 +752,14 @@ class NetworkWidget {
     list.innerHTML = ''
 
     const columns = document.createElement('div')
-    columns.className = 'federation-columns network-outages-columns'
+    columns.className = 'layout-columns network-outages-columns'
 
     for (const source of sources) {
       const sourceState = sourceStates[source]
       const analysis = sourceState?.analysis
 
       const column = document.createElement('div')
-      column.className = 'federation-column'
+      column.className = 'layout-column'
 
       const header = document.createElement('div')
       header.className = 'feature-header'

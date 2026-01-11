@@ -32,6 +32,9 @@ class ServicesWidget {
 
   getDisplayStrategy () {
     if (this.config.federation?.nodes) {
+      if (this.config.features?.services?.merge === true) {
+        return 'merge'
+      }
       return this.config.columns === 1 ? 'sources' : 'columnate'
     }
     return 'merge'

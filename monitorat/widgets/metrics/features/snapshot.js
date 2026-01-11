@@ -37,10 +37,10 @@ class MetricsSnapshot {
     const existingRows = statsContainer.querySelectorAll('.stats-row')
     existingRows.forEach(row => { row.style.display = 'none' })
 
-    let mergedContainer = statsContainer.querySelector('.federation-merged-tiles')
+    let mergedContainer = statsContainer.querySelector('.layout-merged-tiles')
     if (!mergedContainer) {
       mergedContainer = document.createElement('div')
-      mergedContainer.className = 'federation-merged-tiles'
+      mergedContainer.className = 'layout-merged-tiles'
       statsContainer.appendChild(mergedContainer)
     }
     mergedContainer.innerHTML = ''
@@ -54,11 +54,11 @@ class MetricsSnapshot {
 
   renderColumnated (container, results) {
     const columns = document.createElement('div')
-    columns.className = 'federation-columns metrics-tile-columns'
+    columns.className = 'layout-columns metrics-tile-columns'
 
     for (const result of results) {
       const column = document.createElement('div')
-      column.className = 'federation-column'
+      column.className = 'layout-column'
 
       const header = document.createElement('div')
       header.className = 'feature-header'

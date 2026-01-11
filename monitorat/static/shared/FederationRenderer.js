@@ -1,8 +1,8 @@
 class FederationRenderer {
   static renderColumnated (sources, sourceStates, options = {}) {
     const {
-      containerClass = 'federation-columns',
-      columnClass = 'federation-column',
+      containerClass = 'layout-columns',
+      columnClass = 'layout-column',
       headerClass = 'feature-header',
       contentRenderer
     } = options
@@ -63,7 +63,7 @@ class FederationRenderer {
     return badge
   }
 
-  static createSourceLabel (source, className = 'federation-source-label') {
+  static createSourceLabel (source, className = 'source-label') {
     const label = document.createElement('span')
     label.className = className
     label.textContent = source

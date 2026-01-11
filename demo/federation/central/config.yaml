@@ -48,6 +48,7 @@ includes:
   - snippets/network/tiles/stack.yaml
   - snippets/network/uptime/column.yaml
   - snippets/network/uptime/stack.yaml
+  - snippets/network/outages/stack.yaml
   - snippets/network/outages/column.yaml
   - snippets/network/outages/merge.yaml
 
@@ -112,6 +113,8 @@ widgets:
     - wiki-network-uptime-column
     - network-uptime-stack
     - wiki-network-uptime-stack
+    - network-outages-stack
+    - wiki-network-outages-stack
     - network-outages-column
     - wiki-network-outages-column
     - network-outages-merge

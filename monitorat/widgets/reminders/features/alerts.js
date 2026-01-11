@@ -11,8 +11,9 @@ class RemindersAlerts {
 
     const strategy = this.widget.getDisplayStrategy()
     const hasMergedSources = this.widget.config.federation?.nodes
-
-    if (hasMergedSources && strategy === 'columnate') {
+    if (strategy === 'merge') {
+      this.renderMerged(alertsContainer)
+    } else if (hasMergedSources && strategy === 'columnate') {
       this.renderColumnate(alertsContainer)
     } else if (hasMergedSources) {
       this.renderSources(alertsContainer)
@@ -49,13 +50,13 @@ class RemindersAlerts {
   renderColumnate (container) {
     const sources = this.widget.config.federation?.nodes || []
     const columns = document.createElement('div')
-    columns.className = 'federation-columns'
+    columns.className = 'layout-columns'
     columns.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;'
 
     sources.forEach(source => {
       const sourceReminders = this.widget.remindersConfig.filter(reminder => reminder._source === source)
       const column = document.createElement('div')
-      column.className = 'federation-column'
+      column.className = 'layout-column'
 
       const header = document.createElement('h4')
       header.className = 'feature-header'

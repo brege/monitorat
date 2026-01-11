@@ -360,7 +360,7 @@ summary {
 
 
 /* Remove top margin from first element in wiki columns */
-.federation-column .markdown-body :first-child,
+.layout-column .markdown-body :first-child,
 .wiki-source-content .markdown-body :first-child {
   margin-top: 0 !important;
 }

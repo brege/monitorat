@@ -225,11 +225,11 @@ class WikiWidget {
     const showBadges = this.shouldShowBadges()
 
     const columns = document.createElement('div')
-    columns.className = 'federation-columns wiki-columns'
+    columns.className = 'layout-columns wiki-columns'
 
     for (const result of results) {
       const column = document.createElement('div')
-      column.className = 'federation-column'
+      column.className = 'layout-column'
 
       if (showBadges) {
         const header = document.createElement('div')

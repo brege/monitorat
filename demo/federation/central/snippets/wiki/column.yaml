@@ -5,10 +5,9 @@ widgets:
     collapsible: true
     doc: true
     mode: featured
+    columns: 2
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        document: columnate
 
   wiki-column-doc:
     type: wiki

@@ -20,7 +20,9 @@ class ServicesSnapshot {
     const strategy = this.widget.getDisplayStrategy()
     const hasMergedSources = this.widget.config.federation?.nodes
 
-    if (hasMergedSources && strategy === 'columnate') {
+    if (strategy === 'merge') {
+      this.renderMerged(cardsContainer)
+    } else if (hasMergedSources && strategy === 'columnate') {
       this.renderColumnate(cardsContainer)
     } else if (hasMergedSources) {
       this.renderSources(cardsContainer)
@@ -87,12 +89,12 @@ class ServicesSnapshot {
   renderColumnate (container) {
     const sources = this.widget.config.federation?.nodes || []
     const columns = document.createElement('div')
-    columns.className = 'federation-columns'
+    columns.className = 'layout-columns'
 
     sources.forEach(source => {
       const sourceServices = this.widget.servicesData.filter(service => service._source === source)
       const column = document.createElement('div')
-      column.className = 'federation-column'
+      column.className = 'layout-column'
 
       const header = document.createElement('h4')
       header.className = 'feature-header'

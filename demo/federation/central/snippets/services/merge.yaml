@@ -5,8 +5,9 @@ widgets:
     collapsible: true
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        cards: merge
+    features:
+      services:
+        merge: true
 
   wiki-services-merge:
     type: wiki

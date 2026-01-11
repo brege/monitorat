@@ -4,6 +4,9 @@ const EXPANSIONS_STATE_KEY = 'monitor-expansions'
 
 const monitorAPI = window.monitor = window.monitor || {}
 
+const layoutGroups = new Map()
+let layoutObserver = null
+
 monitorAPI.applyWidgetHeader = function applyWidgetHeader (container, options = {}) {
   if (!container) {
     return
@@ -108,6 +111,119 @@ monitorAPI.applyWidgetHeader = function applyWidgetHeader (container, options = 
   }
 }
 
+function resolveLayoutGroupKey (widgetName, widgetConfig) {
+  const group = widgetConfig?.group
+  if (group && typeof group === 'string') {
+    return `group:${group}`
+  }
+  return `widget:${widgetName}`
+}
+
+function resolveLayoutColumns (widgetConfig) {
+  const columns = Number(widgetConfig?.columns)
+  if (Number.isFinite(columns) && columns > 0) {
+    return Math.floor(columns)
+  }
+  return 1
+}
+
+function ensureLayoutObserver () {
+  if (layoutObserver) return
+  layoutObserver = new ResizeObserver((entries) => {
+    entries.forEach((entry) => {
+      updateLayoutGroup(entry.target)
+    })
+  })
+}
+
+function createLayoutGroup (groupKey) {
+  const group = document.createElement('div')
+  group.className = 'layout-columns layout-group'
+  group.dataset.layoutGroup = groupKey
+  group.dataset.layoutColumns = '1'
+  group.style.setProperty('--layout-group-columns', '1')
+  document.querySelector('.widget-stack').appendChild(group)
+  ensureLayoutObserver()
+  layoutObserver.observe(group)
+  layoutGroups.set(groupKey, group)
+  return group
+}
+
+function getLayoutGroup (widgetName, widgetConfig) {
+  const groupKey = resolveLayoutGroupKey(widgetName, widgetConfig)
+  const columns = resolveLayoutColumns(widgetConfig)
+  let group = layoutGroups.get(groupKey)
+  if (!group) {
+    group = createLayoutGroup(groupKey)
+  }
+  const existingColumns = Number(group.dataset.layoutColumns || 1)
+  if (columns > existingColumns) {
+    group.dataset.layoutColumns = String(columns)
+  }
+  return group
+}
+
+function updateLayoutGroup (group) {
+  if (!group) return
+  const maxColumns = Math.max(1, Number(group.dataset.layoutColumns || 1))
+  const styles = window.getComputedStyle(group)
+  const minWidthValue = parseFloat(styles.getPropertyValue('--layout-group-min')) || 320
+  const gapValue = parseFloat(styles.columnGap || styles.gap) || 0
+  const containerWidth = group.clientWidth
+  const availableColumns = Math.max(1, Math.min(maxColumns, Math.floor((containerWidth + gapValue) / (minWidthValue + gapValue))))
+  group.style.setProperty('--layout-group-columns', String(availableColumns))
+  applyLayoutSpan(group, availableColumns)
+}
+
+function updateLayoutGroups () {
+  layoutGroups.forEach((group) => updateLayoutGroup(group))
+}
+
+function applyLayoutSpan (group, columns) {
+  const items = Array.from(group.children).filter((item) => {
+    const display = window.getComputedStyle(item).display
+    return display !== 'none'
+  })
+  items.forEach((item) => {
+    item.style.gridColumn = ''
+  })
+  if (columns <= 1) return
+  const hasPosition = items.some((item) => item.dataset.position !== undefined)
+  if (hasPosition) return
+  if (items.length === 0) return
+  const remainder = items.length % columns
+  if (remainder === 1) {
+    const lastItem = items[items.length - 1]
+    lastItem.style.gridColumn = `span ${columns}`
+  }
+}
+
+function orderLayoutGroup (group) {
+  const items = Array.from(group.children)
+  const hasPosition = items.some((item) => item.dataset.position !== undefined)
+  if (!hasPosition) return
+  const ordered = items.sort((left, right) => {
+    const leftPos = left.dataset.position !== undefined ? Number(left.dataset.position) : null
+    const rightPos = right.dataset.position !== undefined ? Number(right.dataset.position) : null
+    if (leftPos === null && rightPos === null) {
+      return Number(left.dataset.order) - Number(right.dataset.order)
+    }
+    if (leftPos === null) return 1
+    if (rightPos === null) return -1
+    if (leftPos === rightPos) {
+      return Number(left.dataset.order) - Number(right.dataset.order)
+    }
+    return leftPos - rightPos
+  })
+  ordered.forEach((item) => {
+    group.appendChild(item)
+  })
+}
+
+function orderLayoutGroups () {
+  layoutGroups.forEach((group) => orderLayoutGroup(group))
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const config = await loadConfig()
   const federationStatus = window.StatusIndicator
@@ -131,14 +247,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const containersByWidget = new Map()
 
-  widgetOrder.forEach((widgetName) => {
+  widgetOrder.forEach((widgetName, index) => {
     const widgetConfig = config.widgets?.[widgetName]
     if (!widgetConfig) {
       return
     }
-    const container = document.getElementById(`${widgetName}-widget`) || createWidgetContainer(widgetName)
+    const container = createWidgetContainer(widgetName, widgetConfig, index)
     containersByWidget.set(widgetName, container)
   })
+  orderLayoutGroups()
+  updateLayoutGroups()
 
   await Promise.all(
     widgetOrder.map((widgetName) => {
@@ -260,7 +378,7 @@ async function initializeWidget (widgetName, widgetType, config, containerOverri
 
   let container = containerOverride || document.getElementById(`${widgetName}-widget`)
   if (!container) {
-    container = createWidgetContainer(widgetName)
+    container = createWidgetContainer(widgetName, config, 0)
   }
   if (!window.widgets || !window.widgets[widgetType]) {
     return
@@ -330,10 +448,22 @@ async function ensureWidgetScript (widgetType) {
   return promise
 }
 
-function createWidgetContainer (widgetName) {
-  const container = document.createElement('div')
-  container.id = `${widgetName}-widget`
-  document.querySelector('.widget-stack').appendChild(container)
+function createWidgetContainer (widgetName, widgetConfig, orderIndex) {
+  const group = getLayoutGroup(widgetName, widgetConfig)
+  let container = document.getElementById(`${widgetName}-widget`)
+  if (!container) {
+    container = document.createElement('div')
+    container.id = `${widgetName}-widget`
+  }
+  container.dataset.order = String(orderIndex)
+  if (widgetConfig?.position !== undefined) {
+    container.dataset.position = String(widgetConfig.position)
+  } else {
+    delete container.dataset.position
+  }
+  if (container.parentElement !== group) {
+    group.appendChild(container)
+  }
   return container
 }
 
@@ -398,6 +528,7 @@ function toggleWidget (widgetName, forceState) {
     child.style.display = shouldShow ? '' : 'none'
   })
 
+  updateLayoutGroups()
   saveExpansionStates()
 }
 window.toggleWidget = toggleWidget

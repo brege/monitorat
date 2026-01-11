@@ -41,6 +41,9 @@ documents:
   - output: demo/federation/central/docs/network/uptime/column.md
     include: snippets/network/uptime/column.yaml
     epilogue: Shows network uptime in columns by node. Will fall back to stacking on mobile.
+  - output: demo/federation/central/docs/network/outages/stack.md
+    include: snippets/network/outages/stack.yaml
+    epilogue: Shows network outages stacked by node.
   - output: demo/federation/central/docs/network/outages/column.md
     include: snippets/network/outages/column.yaml
     epilogue: Shows network outages in columns by node. Will fall back to stacking on mobile.

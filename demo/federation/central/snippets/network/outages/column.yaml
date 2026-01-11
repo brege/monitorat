@@ -8,10 +8,9 @@ widgets:
       enabled: false
       interval_seconds: 600
       mode: ipv4
+    columns: 2
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        outages: columnate
     metrics:
       show: false
     uptime:

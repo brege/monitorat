@@ -75,17 +75,14 @@ widgets:
     doc: true
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        document: stack
 
   wiki-columns:
     type: wiki
     name: "All Wikis (columns)"
     doc: true
+    columns: 2
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        document: columnate
 
   wiki-stacked-no-badges:
     type: wiki
@@ -93,27 +90,23 @@ widgets:
     doc: true
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        document: stack
       show_badges: false
 
   wiki-columns-no-badges:
     type: wiki
     name: "All Wikis (columns, no badges)"
     doc: true
+    columns: 2
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        document: columnate
       show_badges: false
 
   metrics-combined:
     type: metrics
     name: "All Systems"
+    columns: 2
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        tiles: columnate
     chart:
       periods: [24 hours, 6 hours, 1 hour]
       default_period: 6 hours
@@ -121,10 +114,9 @@ widgets:
   metrics-tiles-only:
     type: metrics
     name: "All Systems (tiles only)"
+    columns: 2
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        tiles: columnate
     show:
       tiles: true
       history: false
@@ -166,24 +158,22 @@ widgets:
     name: "All Services (merged)"
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        cards: merge
+    features:
+      services:
+        merge: true
 
   services-stacked:
     type: services
     name: "All Services (stacked)"
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        cards: stack
 
   services-columns:
     type: services
     name: "All Services (columns)"
+    columns: 2
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        cards: columnate
 
   reminders-nas-1:
     type: reminders
@@ -200,25 +190,23 @@ widgets:
     name: "All Reminders (merged)"
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        cards: merge
-      sort_by: date.desc
+    features:
+      reminders:
+        merge: true
+    sort_by: due.desc
 
   reminders-stacked:
     type: reminders
     name: "All Reminders (stacked)"
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        cards: stack
 
   reminders-columns:
     type: reminders
     name: "All Reminders (columns)"
+    columns: 2
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        cards: columnate
 
   speedtest-nas-1:
     type: speedtest
@@ -242,10 +230,6 @@ widgets:
     default: chart
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        chart: merge
-        table: merge
-        button: stack
     chart:
       default_period: 1 month
 
@@ -263,9 +247,6 @@ widgets:
     default: chart
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        chart: merge
-        table: merge
     show:
       controls: false
       history: true
@@ -416,10 +397,6 @@ widgets:
     log_file: network.log
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        tiles: stack
-        uptime: stack
-        outages: stack
     metrics:
       show: true
     uptime:
@@ -439,12 +416,9 @@ widgets:
     type: network
     name: "All Networks (columns)"
     log_file: network.log
+    columns: 2
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        tiles: columnate
-        uptime: columnate
-        outages: columnate
     metrics:
       show: true
     uptime:

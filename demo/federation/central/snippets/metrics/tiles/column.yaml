@@ -3,10 +3,9 @@ widgets:
     type: metrics
     name: "Metrics: Tiles Columnated"
     collapsible: true
+    columns: 2
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        tiles: columnate
     show:
       tiles: true
       history: false
