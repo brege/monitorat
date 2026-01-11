@@ -5,6 +5,7 @@ const EXPANSIONS_STATE_KEY = 'monitor-expansions'
 const monitorAPI = window.monitor = window.monitor || {}
 
 const layoutGroups = new Map()
+const sectionHeaders = new Map()
 let layoutObserver = null
 
 monitorAPI.applyWidgetHeader = function applyWidgetHeader (container, options = {}) {
@@ -136,13 +137,24 @@ function ensureLayoutObserver () {
   })
 }
 
-function createLayoutGroup (groupKey) {
+function createLayoutGroup (groupKey, sectionTitle = null) {
+  const widgetStack = document.querySelector('.widget-stack')
+
+  if (sectionTitle && !sectionHeaders.has(groupKey)) {
+    const section = document.createElement('div')
+    section.className = 'section-separator'
+    section.dataset.sectionGroup = groupKey
+    section.innerHTML = `<h2 class="section-title">${sectionTitle}</h2>`
+    widgetStack.appendChild(section)
+    sectionHeaders.set(groupKey, section)
+  }
+
   const group = document.createElement('div')
   group.className = 'layout-columns layout-group'
   group.dataset.layoutGroup = groupKey
   group.dataset.layoutColumns = '1'
   group.style.setProperty('--layout-group-columns', '1')
-  document.querySelector('.widget-stack').appendChild(group)
+  widgetStack.appendChild(group)
   ensureLayoutObserver()
   layoutObserver.observe(group)
   layoutGroups.set(groupKey, group)
@@ -152,9 +164,18 @@ function createLayoutGroup (groupKey) {
 function getLayoutGroup (widgetName, widgetConfig) {
   const groupKey = resolveLayoutGroupKey(widgetName, widgetConfig)
   const columns = resolveLayoutColumns(widgetConfig)
+  const sectionTitle = widgetConfig?.section || null
   let group = layoutGroups.get(groupKey)
   if (!group) {
-    group = createLayoutGroup(groupKey)
+    group = createLayoutGroup(groupKey, sectionTitle)
+  } else if (sectionTitle && !sectionHeaders.has(groupKey)) {
+    const widgetStack = document.querySelector('.widget-stack')
+    const section = document.createElement('div')
+    section.className = 'section-separator'
+    section.dataset.sectionGroup = groupKey
+    section.innerHTML = `<h2 class="section-title">${sectionTitle}</h2>`
+    widgetStack.insertBefore(section, group)
+    sectionHeaders.set(groupKey, section)
   }
   const existingColumns = Number(group.dataset.layoutColumns || 1)
   if (columns > existingColumns) {
@@ -167,9 +188,22 @@ function updateLayoutGroup (group) {
   if (!group) return
   const maxColumns = Math.max(1, Number(group.dataset.layoutColumns || 1))
   const styles = window.getComputedStyle(group)
-  const minWidthValue = parseFloat(styles.getPropertyValue('--layout-group-min')) || 320
   const gapValue = parseFloat(styles.columnGap || styles.gap) || 0
   const containerWidth = group.clientWidth
+
+  const children = Array.from(group.children).filter((child) => {
+    return window.getComputedStyle(child).display !== 'none'
+  })
+
+  let minWidthValue = parseFloat(styles.getPropertyValue('--layout-group-min')) || 320
+  for (const child of children) {
+    const childMin = parseFloat(window.getComputedStyle(child).getPropertyValue('--widget-min-width'))
+    if (childMin && childMin > minWidthValue) {
+      minWidthValue = childMin
+    }
+  }
+
+  group.style.setProperty('--layout-group-min', `${minWidthValue}px`)
   const availableColumns = Math.max(1, Math.min(maxColumns, Math.floor((containerWidth + gapValue) / (minWidthValue + gapValue))))
   group.style.setProperty('--layout-group-columns', String(availableColumns))
   applyLayoutSpan(group, availableColumns)
@@ -394,15 +428,20 @@ async function initializeWidget (widgetName, widgetType, config, containerOverri
   }
 
   try {
-    if (config?.collapsible === true) {
+    const groupKey = resolveLayoutGroupKey(widgetName, config)
+    const hasSection = sectionHeaders.has(groupKey)
+    const isColumnated = hasSection && resolveLayoutColumns(config) > 1
+    const useCollapsible = config?.collapsible === true && !isColumnated
+
+    if (useCollapsible) {
       setupCollapsibleWidget(container, widgetName, config)
     }
 
-    const contentContainer = config?.collapsible === true
+    const contentContainer = useCollapsible
       ? container.querySelector('.widget-content')
       : container
 
-    const widgetConfig = config?.collapsible === true
+    const widgetConfig = useCollapsible || isColumnated
       ? { ...config, _suppressHeader: true }
       : { ...config }
 

@@ -45,8 +45,4 @@ Editing wiki docs: **experimental.**
 
 ## 5. Layout Demo
 
-@TODO
-
-- wiki columns, stacks, document inclusions
-- mixed widget columns, stacks
-- NxM grid examples
+@layout/README.md

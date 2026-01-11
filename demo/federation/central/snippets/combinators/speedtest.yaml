@@ -1,7 +1,7 @@
 widgets:
   speedtest-merge:
     type: speedtest
-    name: "Speedtest: Merged"
+    name: "Speedtest: Chart Merging"
     collapsible: true
     default: chart
     federation:

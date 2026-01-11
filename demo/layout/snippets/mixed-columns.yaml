@@ -1,0 +1,20 @@
+# Mixed columns: services + reminders side by side
+widgets:
+  services-col:
+    type: services
+    name: Services
+    group: mixed-row
+    section: Status
+    columns: 2
+    position: 1
+    collapsible: true
+    mode: compact
+    compact_icon_scale: 1.5
+
+  reminders-col:
+    type: reminders
+    name: Reminders
+    group: mixed-row
+    columns: 2
+    position: 2
+    collapsible: true

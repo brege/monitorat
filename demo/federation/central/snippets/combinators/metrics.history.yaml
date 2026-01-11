@@ -1,7 +1,7 @@
 widgets:
   metrics-history-merge:
     type: metrics
-    name: "Metrics: History Merged"
+    name: "System Metrics: Chart Merging"
     collapsible: true
     federation:
       nodes: [nas-1, nas-2]

@@ -1,7 +1,7 @@
 widgets:
   network-outages-merge:
     type: network
-    name: "Network: Outages Merged"
+    name: "Network: Outages and filtering"
     collapsible: true
     log_file: network.log
     chirper:

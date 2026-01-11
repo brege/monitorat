@@ -23,7 +23,8 @@ documents:
       source badges and filter controls.
   - output: demo/federation/central/docs/combinators/speedtest.md
     include: snippets/combinators/speedtest.yaml
-    epilogue: Speedtest merges chart and table data from multiple sources.
+    epilogue: |-
+      Speedtest plots download and upload speed from multiple sources over time.
   - output: demo/federation/central/docs/combinators/metrics.history.md
     include: snippets/combinators/metrics.history.yaml
     epilogue: |-
@@ -31,7 +32,12 @@ documents:
       overlay.
   - output: demo/federation/central/docs/combinators/services.md
     include: snippets/combinators/services.yaml
-    epilogue: Shows services merged into a single grid with source badges.
+    epilogue: |- 
+      Shows services cards merged into a single grid with source badges. Allows
+      for filtering by status and name.
   - output: demo/federation/central/docs/combinators/reminders.md
     include: snippets/combinators/reminders.yaml
-    epilogue: Shows reminders merged into a single list with source badges.
+    epilogue: |-
+      Interleaves reminders from multiple sources into a single timeline. Can
+      sort by due dae, last touched, name and can send notifications configured
+      from each source ([Apprise](https://github.com/caronc/apprise)).

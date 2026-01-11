@@ -1,7 +1,7 @@
 widgets:
   services-merge:
     type: services
-    name: "Services: Merged"
+    name: "Services: Status over all nodes"
     collapsible: true
     federation:
       nodes: [nas-1, nas-2]
