@@ -278,14 +278,26 @@ def readme():
 def api_config():
     try:
         widgets_merged = {}
+        default_columns = (
+            config["widgets"]["columns"].get(int)
+            if "columns" in config["widgets"].keys()
+            else 1
+        )
         for key in config["widgets"].keys():
             # {widget}.enabled = list
             if key == "enabled":
                 enabled = config["widgets"][key].get()
                 widgets_merged[key] = enabled
                 continue
+            # skip widget-level defaults
+            if key == "columns":
+                continue
             # merge values from all sources
-            widgets_merged[key] = config["widgets"][key].flatten()
+            widget_config = config["widgets"][key].flatten()
+            # inject default columns if not set
+            if isinstance(widget_config, dict) and "columns" not in widget_config:
+                widget_config["columns"] = default_columns
+            widgets_merged[key] = widget_config
 
         payload = {
             "version": get_package_version(),

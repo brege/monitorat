@@ -12,6 +12,16 @@ class ServicesWidget {
     }
   }
 
+  initializeFeatureHeaders () {
+    const features = this.config.features || {}
+    for (const [featureId, featureConfig] of Object.entries(features)) {
+      const headerEl = this.container.querySelector(`[data-services-section-header="${featureId}"]`)
+      if (headerEl && featureConfig.header) {
+        headerEl.textContent = featureConfig.header
+      }
+    }
+  }
+
   getApiBase () {
     return this.config._apiPrefix ? `api/${this.config._apiPrefix}` : 'api/services'
   }
@@ -21,7 +31,10 @@ class ServicesWidget {
   }
 
   getDisplayStrategy () {
-    return this.config.federation?.display?.cards || 'merge'
+    if (this.config.federation?.nodes) {
+      return this.config.columns === 1 ? 'sources' : 'columnate'
+    }
+    return 'merge'
   }
 
   getDisplayMode () {
@@ -113,6 +126,7 @@ class ServicesWidget {
       })
     }
 
+    this.initializeFeatureHeaders()
     await this.loadFeatureScripts()
     this.initializeFeatures()
     this.features.controls.initialize()

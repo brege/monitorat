@@ -7,6 +7,16 @@ class WikiWidget {
     this.apiPrefix = config._apiPrefix || 'wiki'
   }
 
+  initializeFeatureHeaders () {
+    const features = this.config.features || {}
+    for (const [featureId, featureConfig] of Object.entries(features)) {
+      const headerEl = this.container.querySelector(`[data-wiki-section-header="${featureId}"]`)
+      if (headerEl && featureConfig.header) {
+        headerEl.textContent = featureConfig.header
+      }
+    }
+  }
+
   async init (container, config = {}) {
     this.container = container
     this.config = { ...this.config, ...config }
@@ -23,6 +33,8 @@ class WikiWidget {
         name: this.config.name
       })
     }
+
+    this.initializeFeatureHeaders()
 
     if (this.config.edit === true) {
       this.addEditButton()
@@ -42,7 +54,7 @@ class WikiWidget {
   }
 
   getDisplayStrategy () {
-    return this.config.federation?.display?.document || 'stack'
+    return this.config.columns === 1 ? 'sources' : 'columnate'
   }
 
   getMarkdownRenderer () {
@@ -123,7 +135,7 @@ class WikiWidget {
     if (strategy === 'columnate') {
       this.renderColumnated(notesElement, results, md)
     } else {
-      this.renderStacked(notesElement, results, md)
+      this.renderSources(notesElement, results, md)
     }
 
     this.renderMermaid(notesElement)
@@ -184,19 +196,16 @@ class WikiWidget {
     return this.config.federation?.show_badges !== false
   }
 
-  renderStacked (container, results, md) {
+  renderSources (container, results, md) {
     container.innerHTML = ''
     const showBadges = this.shouldShowBadges()
 
     for (const result of results) {
-      const section = document.createElement('div')
-      section.className = 'federation-stack-section'
-
       if (showBadges) {
         const header = document.createElement('div')
-        header.className = 'federation-source-header'
+        header.className = 'feature-header'
         header.textContent = result.source
-        section.appendChild(header)
+        container.appendChild(header)
       }
 
       const content = document.createElement('div')
@@ -207,9 +216,7 @@ class WikiWidget {
       } else {
         content.innerHTML = `<p class="muted">Unable to load: ${result.error}</p>`
       }
-      section.appendChild(content)
-
-      container.appendChild(section)
+      container.appendChild(content)
     }
   }
 
@@ -226,7 +233,7 @@ class WikiWidget {
 
       if (showBadges) {
         const header = document.createElement('div')
-        header.className = 'federation-source-header'
+        header.className = 'feature-header'
         header.textContent = result.source
         column.appendChild(header)
       }

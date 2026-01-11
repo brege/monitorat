@@ -12,10 +12,10 @@ class RemindersAlerts {
     const strategy = this.widget.getDisplayStrategy()
     const hasMergedSources = this.widget.config.federation?.nodes
 
-    if (hasMergedSources && strategy === 'stack') {
-      this.renderStacked(alertsContainer)
-    } else if (hasMergedSources && strategy === 'columnate') {
+    if (hasMergedSources && strategy === 'columnate') {
       this.renderColumnate(alertsContainer)
+    } else if (hasMergedSources) {
+      this.renderSources(alertsContainer)
     } else {
       this.renderMerged(alertsContainer)
     }
@@ -28,14 +28,14 @@ class RemindersAlerts {
     })
   }
 
-  renderStacked (container) {
+  renderSources (container) {
     const sources = this.widget.config.federation?.nodes || []
     sources.forEach(source => {
       const sourceReminders = this.widget.remindersConfig.filter(reminder => reminder._source === source)
       if (sourceReminders.length === 0) return
 
       const header = document.createElement('h4')
-      header.className = 'federation-source-header'
+      header.className = 'feature-header'
       header.textContent = source
       container.appendChild(header)
 
@@ -58,7 +58,7 @@ class RemindersAlerts {
       column.className = 'federation-column'
 
       const header = document.createElement('h4')
-      header.className = 'federation-source-header'
+      header.className = 'feature-header'
       header.textContent = source
       column.appendChild(header)
 
@@ -85,7 +85,7 @@ class RemindersAlerts {
     if (hasBadge) {
       const sourceName = reminder._source || this.widget.config.remote
       const badge = document.createElement('span')
-      badge.className = `federation-source-badge federation-source-${sourceName}`
+      badge.className = `source-badge source-${sourceName}`
       badge.textContent = sourceName
       badge.title = `Source: ${sourceName}`
       alertElement.appendChild(badge)

@@ -283,7 +283,7 @@ tr:nth-child(even) td {
   font-family: var(--font-ui);
 }
 
-.federation-source-badge {
+.source-badge {
   font-family: var(--font-ui);
   font-size: 0.7rem;
   letter-spacing: 0.04em;
@@ -291,7 +291,7 @@ tr:nth-child(even) td {
   border-radius: 2px;
 }
 
-.federation-source-header {
+.feature-header {
   font-family: var(--font-ui);
   font-weight: 500;
   font-size: 1rem;

@@ -25,6 +25,7 @@ federation:
   remotes: []
 demo: false
 widgets:
+  columns: 1  # default layout: 1 = stacked, 2+ = columnated, auto = responsive
   enabled:  # provides order and visibility
     - metrics  # monitorat/widgets/* for available widgets
     - speedtest

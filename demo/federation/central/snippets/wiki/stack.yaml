@@ -7,8 +7,6 @@ widgets:
     mode: featured
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        document: stack
 
   wiki-stack-doc:
     type: wiki

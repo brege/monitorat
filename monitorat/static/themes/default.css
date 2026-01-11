@@ -729,7 +729,7 @@ tr:last-child td {
   }
 }
 
-.federation-source-badge {
+.source-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -739,12 +739,9 @@ tr:last-child td {
   font-weight: 500;
   background: var(--bg-tertiary, rgba(128, 128, 128, 0.2));
   color: var(--text-secondary);
-  position: absolute;
-  top: 6px;
-  right: 6px;
 }
 
-.federation-source-badge img {
+.source-badge img {
   width: 12px;
   height: 12px;
 }
@@ -755,7 +752,15 @@ tr:last-child td {
   position: relative;
 }
 
-.federation-source-header {
+.alert-card.has-badge .source-badge,
+.service-card.has-badge .source-badge,
+.reminder-alert.has-badge .source-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+
+.feature-header {
   margin: 16px 0 8px 0;
   font-size: 0.9rem;
   font-weight: 600;
@@ -764,8 +769,18 @@ tr:last-child td {
   letter-spacing: 0.05em;
 }
 
-.federation-source-header:first-child {
+.feature-header:first-child {
   margin-top: 0;
+}
+
+.feature-header:empty {
+  display: none;
+}
+
+.feature-header .source-badge {
+  margin-left: 8px;
+  text-transform: none;
+  font-weight: 500;
 }
 
 .federation-columns {
@@ -794,18 +809,6 @@ tr:last-child td {
   }
 }
 
-.federation-stacked {
-  display: block;
-  width: 100%;
-}
-
-.federation-stack-section {
-  margin-bottom: 24px;
-}
-
-.federation-stack-section:last-child {
-  margin-bottom: 0;
-}
 
 .network-merged-stats {
   display: flex;

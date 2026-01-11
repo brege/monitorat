@@ -3,6 +3,9 @@ widgets:
     name: Documentation
     collapsible: true  # enable collapse/expand
     hidden: false  # start expanded
+    features:
+      content:
+        header: null
     doc: ''  # path to markdown file. use '' for monitorat's README.md
     mode: rail  # featured | seamless | rail
   # OR set multiple wikis:

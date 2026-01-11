@@ -10,8 +10,6 @@ widgets:
       mode: ipv4
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        uptime: stack
     metrics:
       show: false
     alerts:

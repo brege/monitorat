@@ -15,9 +15,6 @@ documents:
     epilogue: |-
       Columnate mode displays wikis side-by-side. Columns fall back to
       stacking on mobile or very thin viewports.
-  - output: demo/federation/central/docs/metrics/each.md
-    include: snippets/metrics/each.yaml
-    epilogue: Per-remote widgets for independent display.
   - output: demo/federation/central/docs/metrics/tiles/stack.md
     include: snippets/metrics/tiles/stack.yaml
     epilogue: Shows metrics tiles stacked by node.
@@ -32,11 +29,6 @@ documents:
     epilogue: |-
       Shows metrics history merged across nodes (just full widget calls
       for each node).
-  - output: demo/federation/central/docs/network/combined.md
-    include: snippets/network/combined.yaml
-    epilogue: |-
-      Network has per-feature display control: `tiles`, `uptime`,
-      `outages`. This example shows all of them together.
   - output: demo/federation/central/docs/network/tiles/stack.md
     include: snippets/network/tiles/stack.yaml
     epilogue: Shows network tiles stacked by node.

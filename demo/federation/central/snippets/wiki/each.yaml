@@ -3,6 +3,7 @@ widgets:
     type: wiki
     name: "NAS-1 Wiki"
     collapsible: true
+    hidden: true
     remote: nas-1
     mode: featured
     doc: true
@@ -11,6 +12,7 @@ widgets:
     type: wiki
     name: "NAS-2 Wiki"
     collapsible: true
+    hidden: true
     remote: nas-2
     mode: featured
     doc: true

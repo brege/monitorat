@@ -5,8 +5,6 @@ widgets:
     collapsible: true
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        cards: stack
 
   wiki-reminders-stack:
     type: wiki

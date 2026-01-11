@@ -38,6 +38,18 @@ class MetricsWidget {
     this.metricFields = this.resolveMetricFields()
   }
 
+  initializeFeatureHeaders () {
+    const features = this.config.features || {}
+    for (const [featureId, featureConfig] of Object.entries(features)) {
+      if (featureConfig.header !== null && featureConfig.header !== undefined) {
+        const headerEl = this.container.querySelector(`[data-metrics-section-header="${featureId}"]`)
+        if (headerEl) {
+          headerEl.textContent = featureConfig.header
+        }
+      }
+    }
+  }
+
   buildConfig (overrides = {}) {
     return TimeSeriesHandler.buildConfig(this.defaults, this.widgetConfig, overrides)
   }
@@ -70,6 +82,7 @@ class MetricsWidget {
     container.innerHTML = html
 
     this.applyVisibilityConfig()
+    this.initializeFeatureHeaders()
     await this.loadFeatureScripts()
     this.initializeFeatures()
     this.features.table.rebuildHeaders()
@@ -247,7 +260,7 @@ class MetricsWidget {
       })
     )
 
-    const displayStrategy = this.widgetConfig.federation?.display?.tiles || 'columnate'
+    const displayStrategy = this.widgetConfig.columns === 1 ? 'sources' : 'columnate'
     this.features.snapshot.renderMerged(results, displayStrategy)
   }
 

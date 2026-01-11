@@ -9,6 +9,13 @@ widgets:
       enabled: true
       interval_seconds: 300  # check IP every 5 minutes
       mode: ipv4  # or ipv6
+    features:
+      metrics:
+        header: "Statistics"
+      uptime:
+        header: "Uptime"
+      alerts:
+        header: "Outages"
     metrics:
       show: true
     uptime:

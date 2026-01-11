@@ -3,6 +3,9 @@ widgets:
     name: Reminders
     collapsible: true
     hidden: false
+    features:
+      reminders:
+        header: null
     state_file: reminders.json  # relative to data path, or absolute 
     nudges: [14, 7]  # days, lower priority (apprise param 0)
     urgents: [3, 1, 0]  # days, higher priority (apprise param 1 or 2)

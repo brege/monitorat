@@ -20,10 +20,10 @@ class ServicesSnapshot {
     const strategy = this.widget.getDisplayStrategy()
     const hasMergedSources = this.widget.config.federation?.nodes
 
-    if (hasMergedSources && strategy === 'stack') {
-      this.renderStacked(cardsContainer)
-    } else if (hasMergedSources && strategy === 'columnate') {
+    if (hasMergedSources && strategy === 'columnate') {
       this.renderColumnate(cardsContainer)
+    } else if (hasMergedSources) {
+      this.renderSources(cardsContainer)
     } else {
       this.renderMerged(cardsContainer)
     }
@@ -59,22 +59,17 @@ class ServicesSnapshot {
     })
   }
 
-  renderStacked (container) {
+  renderSources (container) {
     const sources = this.widget.config.federation?.nodes || []
-    const wrapper = document.createElement('div')
-    wrapper.className = 'federation-stacked'
 
     sources.forEach(source => {
       const sourceServices = this.widget.servicesData.filter(service => service._source === source)
       if (sourceServices.length === 0) return
 
-      const section = document.createElement('div')
-      section.className = 'federation-stack-section'
-
       const header = document.createElement('h4')
-      header.className = 'federation-source-header'
+      header.className = 'feature-header'
       header.textContent = source
-      section.appendChild(header)
+      container.appendChild(header)
 
       const grid = document.createElement('div')
       grid.className = 'service-grid-inner'
@@ -85,12 +80,8 @@ class ServicesSnapshot {
       sorted.forEach(service => {
         grid.appendChild(this.createServiceCard(service))
       })
-      section.appendChild(grid)
-
-      wrapper.appendChild(section)
+      container.appendChild(grid)
     })
-
-    container.appendChild(wrapper)
   }
 
   renderColumnate (container) {
@@ -104,7 +95,7 @@ class ServicesSnapshot {
       column.className = 'federation-column'
 
       const header = document.createElement('h4')
-      header.className = 'federation-source-header'
+      header.className = 'feature-header'
       header.textContent = source
       column.appendChild(header)
 
@@ -137,7 +128,7 @@ class ServicesSnapshot {
     if (hasBadge) {
       const sourceName = service._source || this.widget.config.remote
       const badge = document.createElement('span')
-      badge.className = `federation-source-badge federation-source-${sourceName}`
+      badge.className = `source-badge source-${sourceName}`
       badge.textContent = sourceName
       badge.title = `Source: ${sourceName}`
       card.appendChild(badge)

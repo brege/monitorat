@@ -25,7 +25,6 @@ includes:
   - snippets/wiki/footer.yaml
 
   # Multi-node metrics
-  - snippets/metrics/each.yaml
   - snippets/metrics/tiles/stack.yaml
   - snippets/metrics/tiles/column.yaml
   - snippets/metrics/history/merge.yaml
@@ -45,7 +44,6 @@ includes:
   - snippets/speedtest/merge.yaml
 
   # Multi-node network
-  - snippets/network/combined.yaml
   - snippets/network/tiles/column.yaml
   - snippets/network/tiles/stack.yaml
   - snippets/network/uptime/column.yaml
@@ -75,9 +73,6 @@ widgets:
     - wiki-stack-doc
 
     ## Metrics federation
-    - metrics-nas-1
-    - metrics-nas-2
-    - wiki-metrics-each
     - metrics-tiles-stack
     - wiki-metrics-tiles-stack
     - metrics-tiles-column
@@ -109,8 +104,6 @@ widgets:
     - wiki-speedtest-merge
 
     ## Network federation
-    - network-combined
-    - wiki-network-combined
     - network-tiles-column
     - wiki-network-tiles-column
     - network-tiles-stack

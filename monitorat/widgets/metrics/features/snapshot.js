@@ -48,7 +48,7 @@ class MetricsSnapshot {
     if (displayStrategy === 'columnate') {
       this.renderColumnated(mergedContainer, results)
     } else {
-      this.renderStacked(mergedContainer, results)
+      this.renderSources(mergedContainer, results)
     }
   }
 
@@ -61,7 +61,7 @@ class MetricsSnapshot {
       column.className = 'federation-column'
 
       const header = document.createElement('div')
-      header.className = 'federation-source-header'
+      header.className = 'feature-header'
       header.textContent = result.source
       column.appendChild(header)
 
@@ -81,27 +81,22 @@ class MetricsSnapshot {
     container.appendChild(columns)
   }
 
-  renderStacked (container, results) {
+  renderSources (container, results) {
     for (const result of results) {
-      const section = document.createElement('div')
-      section.className = 'federation-stack-section'
-
       const header = document.createElement('div')
-      header.className = 'federation-source-header'
+      header.className = 'feature-header'
       header.textContent = result.source
-      section.appendChild(header)
+      container.appendChild(header)
 
       if (result.data) {
         const tiles = this.createTilesForSource(result.data)
-        section.appendChild(tiles)
+        container.appendChild(tiles)
       } else {
         const error = document.createElement('p')
         error.className = 'muted'
         error.textContent = result.error || 'Unable to load'
-        section.appendChild(error)
+        container.appendChild(error)
       }
-
-      container.appendChild(section)
     }
   }
 

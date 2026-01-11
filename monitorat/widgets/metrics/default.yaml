@@ -3,6 +3,11 @@ widgets:
     name: System Metrics
     collapsible: true  # show hide/show toggle (default: false)
     hidden: false  # start collapsed (default: false)
+    features:
+      snapshot:
+        header: "Current Status"
+      history:
+        header: "History"
     default: chart  # default view: "chart" or "table"
     table:
       min: 5  # minimum rows to show

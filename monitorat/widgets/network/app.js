@@ -105,11 +105,24 @@ class NetworkWidget {
     }
 
     await this.loadFeatureScripts()
+    this.initializeFeatureHeaders()
     this.cacheElements()
     this.initializeFeatures()
     this.applySectionVisibility()
     this.attachEvents()
     await this.loadLog()
+  }
+
+  initializeFeatureHeaders () {
+    const features = this.config.features || {}
+    for (const [featureId, featureConfig] of Object.entries(features)) {
+      if (featureConfig.header !== null && featureConfig.header !== undefined) {
+        const headerEl = this.container.querySelector(`[data-network-section-header="${featureId}"]`)
+        if (headerEl) {
+          headerEl.textContent = featureConfig.header
+        }
+      }
+    }
   }
 
   cacheElements () {
@@ -119,8 +132,9 @@ class NetworkWidget {
       alertList: this.container.querySelector('[data-network="alerts-list"]'),
       alertToggle: this.container.querySelector('[data-network="alerts-toggle"]'),
       sectionHeaders: {
+        metrics: this.container.querySelector('[data-network-section-header="metrics"]'),
         uptime: this.container.querySelector('[data-network-section-header="uptime"]'),
-        outages: this.container.querySelector('[data-network-section-header="outages"]')
+        alerts: this.container.querySelector('[data-network-section-header="alerts"]')
       },
       sections: {
         metrics: this.container.querySelector('[data-network-section="metrics"]'),
@@ -373,12 +387,10 @@ class NetworkWidget {
     }
     mergedContainer.innerHTML = ''
 
-    const displayStrategy = this.config.federation?.display?.tiles || 'columnate'
-
-    if (displayStrategy === 'columnate') {
-      this.renderSnapshotColumnated(mergedContainer, sources, sourceStates)
+    if (this.config.columns === 1) {
+      this.renderSnapshotSources(mergedContainer, sources, sourceStates)
     } else {
-      this.renderSnapshotStacked(mergedContainer, sources, sourceStates)
+      this.renderSnapshotColumnated(mergedContainer, sources, sourceStates)
     }
   }
 
@@ -394,7 +406,7 @@ class NetworkWidget {
       column.className = 'federation-column'
 
       const header = document.createElement('div')
-      header.className = 'federation-source-header'
+      header.className = 'feature-header'
       header.textContent = source
       column.appendChild(header)
 
@@ -407,23 +419,18 @@ class NetworkWidget {
     container.appendChild(columns)
   }
 
-  renderSnapshotStacked (container, sources, sourceStates) {
+  renderSnapshotSources (container, sources, sourceStates) {
     for (const source of sources) {
       const sourceState = sourceStates[source]
       const analysis = sourceState?.analysis
 
-      const section = document.createElement('div')
-      section.className = 'federation-stack-section'
-
       const header = document.createElement('div')
-      header.className = 'federation-source-header'
+      header.className = 'feature-header'
       header.textContent = source
-      section.appendChild(header)
+      container.appendChild(header)
 
       const tiles = this.createSnapshotTiles(analysis)
-      section.appendChild(tiles)
-
-      container.appendChild(section)
+      container.appendChild(tiles)
     }
   }
 
@@ -460,12 +467,10 @@ class NetworkWidget {
     const container = this.elements.uptimeRows
     container.innerHTML = ''
 
-    const displayStrategy = this.config.federation?.display?.uptime || 'columnate'
-
-    if (displayStrategy === 'columnate') {
-      this.renderUptimeColumnated(container, sources, sourceStates)
+    if (this.config.columns === 1) {
+      this.renderUptimeSources(container, sources, sourceStates)
     } else {
-      this.renderUptimeStacked(container, sources, sourceStates)
+      this.renderUptimeColumnated(container, sources, sourceStates)
     }
   }
 
@@ -526,33 +531,28 @@ class NetworkWidget {
     }
   }
 
-  renderUptimeStacked (container, sources, sourceStates) {
+  renderUptimeSources (container, sources, sourceStates) {
     for (const source of sources) {
       const sourceState = sourceStates[source]
       const analysis = sourceState?.analysis
       const stats = analysis?.windowStats || []
 
-      const section = document.createElement('div')
-      section.className = 'federation-stack-section'
-
       const header = document.createElement('div')
-      header.className = 'federation-source-header'
+      header.className = 'feature-header'
       header.textContent = source
-      section.appendChild(header)
+      container.appendChild(header)
 
       if (!stats.length) {
         const info = document.createElement('p')
         info.className = 'muted'
         info.textContent = sourceState?.error || 'No log data available.'
-        section.appendChild(info)
+        container.appendChild(info)
       } else {
         for (const stat of stats) {
           const row = this.createUptimeRow(stat)
-          section.appendChild(row)
+          container.appendChild(row)
         }
       }
-
-      container.appendChild(section)
     }
   }
 
@@ -610,12 +610,8 @@ class NetworkWidget {
     const showOutages = this.config.show?.outages !== false && this.config.alerts.show
     if (!showOutages || !this.elements.alertList) return
 
-    const displayStrategy = this.config.federation?.display?.outages || 'merge'
-
-    if (displayStrategy === 'stack') {
-      this.renderMergedOutagesStacked(sources, sourceStates)
-    } else if (displayStrategy === 'columnate') {
-      this.renderMergedOutagesColumnated(sources, sourceStates)
+    if (this.config.columns === 1) {
+      this.renderMergedOutagesSources(sources, sourceStates)
     } else {
       this.renderMergedOutagesCombined(sources, sourceStates)
     }
@@ -658,7 +654,7 @@ class NetworkWidget {
     const maxVisible = this.state.alertsExpanded ? allAlerts.length : Math.min(this.config.alerts.max, allAlerts.length)
     allAlerts.slice(0, maxVisible).forEach((alert) => {
       const item = document.createElement('div')
-      const sourceLabel = `<span class="federation-source-badge">${alert._source}</span>`
+      const sourceLabel = `<span class="source-badge">${alert._source}</span>`
 
       if (alert.type === 'ipchange') {
         item.className = 'alert alert-card ipchange has-badge'
@@ -688,7 +684,7 @@ class NetworkWidget {
     }
   }
 
-  renderMergedOutagesStacked (sources, sourceStates) {
+  renderMergedOutagesSources (sources, sourceStates) {
     const list = this.elements.alertList
     list.innerHTML = ''
 
@@ -696,20 +692,16 @@ class NetworkWidget {
       const sourceState = sourceStates[source]
       const analysis = sourceState?.analysis
 
-      const section = document.createElement('div')
-      section.className = 'federation-stack-section'
-
       const header = document.createElement('div')
-      header.className = 'federation-source-header'
+      header.className = 'feature-header'
       header.textContent = source
-      section.appendChild(header)
+      list.appendChild(header)
 
       if (!analysis?.entries?.length) {
         const info = document.createElement('p')
         info.className = 'muted'
         info.textContent = sourceState?.error || 'No log entries.'
-        section.appendChild(info)
-        list.appendChild(section)
+        list.appendChild(info)
         continue
       }
 
@@ -723,7 +715,7 @@ class NetworkWidget {
         const info = document.createElement('p')
         info.className = 'muted'
         info.textContent = 'No missed intervals detected.'
-        section.appendChild(info)
+        list.appendChild(info)
       } else {
         const reversed = [...filtered].reverse()
         const maxVisible = Math.min(3, reversed.length)
@@ -743,11 +735,9 @@ class NetworkWidget {
             const countLabel = alert.missedChecks === 1 ? 'check' : 'checks'
             item.innerHTML = `<strong>${alert.missedChecks} ${countLabel} missed</strong> from ${this.helpers.formatDateTime(alert.start)} to ${endLabel} (${duration})`
           }
-          section.appendChild(item)
+          list.appendChild(item)
         })
       }
-
-      list.appendChild(section)
     }
 
     if (this.elements.alertToggle) {
@@ -770,7 +760,7 @@ class NetworkWidget {
       column.className = 'federation-column'
 
       const header = document.createElement('div')
-      header.className = 'federation-source-header'
+      header.className = 'feature-header'
       header.textContent = source
       column.appendChild(header)
 
