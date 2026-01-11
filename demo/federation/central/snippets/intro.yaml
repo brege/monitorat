@@ -4,4 +4,4 @@ widgets:
     name: "Federation: Multi-Node Aggregation"
     _suppressHeader: true
     mode: seamless
-    doc: ../docs/README.md
+    doc: ../../README.md

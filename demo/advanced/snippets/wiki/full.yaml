@@ -4,4 +4,4 @@ widgets:
     name: "Advanced Demo"
     _suppressHeader: true
     mode: seamless
-    doc: ../../docs/README.md
+    doc: ../../README.md

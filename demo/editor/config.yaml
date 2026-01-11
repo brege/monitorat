@@ -21,7 +21,7 @@ widgets:
   editor-readme:
     type: wiki
     _suppressHeader: true
-    doc: docs/README.md
+    doc: ./README.md
     mode: seamless
     edit: true
     collapsible: false

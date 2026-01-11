@@ -1,4 +1,4 @@
-/* global localStorage */
+/* global localStorage ResizeObserver */
 const REMEMBER_EXPANSIONS_KEY = 'monitor-remember-expansions'
 const EXPANSIONS_STATE_KEY = 'monitor-expansions'
 
