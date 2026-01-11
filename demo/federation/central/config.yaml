@@ -1,7 +1,7 @@
 # Central Head Node - Federation Demo
 #
-# Snippets organized by federation feature
-# Docs mirror the snippet structure for {{file:...}} shortcodes
+# Combinators: multi-source widgets that merge data across nodes
+# Layout demos moved to separate demo (TODO)
 
 includes:
   # Widget defaults
@@ -18,33 +18,15 @@ includes:
   # Multi-node intro
   - snippets/intro.yaml
 
-  # Multi-node wiki
-  - snippets/wiki/each.yaml
-  - snippets/wiki/column.yaml
-  - snippets/wiki/stack.yaml
+  # Site footer
   - snippets/wiki/footer.yaml
 
-  # Multi-node metrics
-  - snippets/metrics/tiles/stack.yaml
-  - snippets/metrics/tiles/column.yaml
-  - snippets/metrics/history/merge.yaml
-  - snippets/metrics/history/stack.yaml
-
-  # Multi-node services
-  - snippets/services/merge.yaml
-  - snippets/services/stack.yaml
-  - snippets/services/column.yaml
-
-  # Multi-node reminders
-  - snippets/reminders/merge.yaml
-  - snippets/reminders/stack.yaml
-  - snippets/reminders/column.yaml
-
-  # Multi-node speedtest
-  - snippets/speedtest/merge.yaml
-
-  # Multi-node network (outages combinator only)
-  - snippets/network/outages/merge.yaml
+  # Combinators: true federation features
+  - snippets/combinators/metrics.history.yaml
+  - snippets/combinators/services.yaml
+  - snippets/combinators/reminders.yaml
+  - snippets/combinators/speedtest.yaml
+  - snippets/combinators/network.outages.yaml
 
 demo: true
 
@@ -55,50 +37,24 @@ paths:
 
 widgets:
   enabled:
-    # Federation
+    # Federation intro
     - wiki-multi-intro
 
-    ## Wiki federation
-    - wiki-nas-1
-    - wiki-nas-2
-    - wiki-each-doc
-    - wiki-column
-    - wiki-column-doc
-    - wiki-stack
-    - wiki-stack-doc
-
-    ## Metrics federation
-    - metrics-tiles-stack
-    - wiki-metrics-tiles-stack
-    - metrics-tiles-column
-    - wiki-metrics-tiles-column
+    # Multi-source widgets
     - metrics-history-merge
     - wiki-metrics-history-merge
-    - metrics-history-nas-1
-    - metrics-history-nas-2
-    - wiki-metrics-history-stack
 
-    ## Services federation
     - services-merge
     - wiki-services-merge
-    - services-stack
-    - wiki-services-stack
-    - services-column
-    - wiki-services-column
 
-    ## Reminders federation
     - reminders-merge
     - wiki-reminders-merge
-    - reminders-stack
-    - wiki-reminders-stack
-    - reminders-column
-    - wiki-reminders-column
 
-    ## Speedtest federation
     - speedtest-merge
     - wiki-speedtest-merge
 
-    ## Network federation (outages combinator only)
     - network-outages-merge
     - wiki-network-outages-merge
+
+    # Site footer
     - wiki-footer

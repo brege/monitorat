@@ -1,3 +1,9 @@
+// ServicesSnapshot: Unified service renderer
+//
+// Handles both single-source and multi-source (federation) cases.
+// Single-source is the trivial case: one source, no badges.
+// Multi-source merges all services with source badges.
+
 class ServicesSnapshot {
   constructor (widget) {
     this.widget = widget
@@ -17,18 +23,26 @@ class ServicesSnapshot {
       this.clearCompactSizing()
     }
 
-    const strategy = this.widget.getDisplayStrategy()
-    const hasMergedSources = this.widget.config.federation?.nodes
+    const isMultiSource = this.hasMultipleSources()
+    const sorted = this.widget.sortServices(this.widget.servicesData)
 
-    if (strategy === 'merge') {
-      this.renderMerged(cardsContainer)
-    } else if (hasMergedSources && strategy === 'columnate') {
-      this.renderColumnate(cardsContainer)
-    } else if (hasMergedSources) {
-      this.renderSources(cardsContainer)
-    } else {
-      this.renderMerged(cardsContainer)
+    if (!sorted.length) {
+      const info = document.createElement('p')
+      info.className = 'muted'
+      info.textContent = 'No services configured.'
+      cardsContainer.appendChild(info)
+      return
     }
+
+    sorted.forEach(service => {
+      cardsContainer.appendChild(this.createServiceCard(service, isMultiSource))
+    })
+  }
+
+  hasMultipleSources () {
+    const services = this.widget.servicesData || []
+    const sources = new Set(services.map(s => s._source).filter(Boolean))
+    return sources.size > 1
   }
 
   applyCompactSizing () {
@@ -54,85 +68,20 @@ class ServicesSnapshot {
     container.style.removeProperty('--service-compact-dot-offset')
   }
 
-  renderMerged (container) {
-    const sorted = this.widget.sortServices(this.widget.servicesData)
-    sorted.forEach(service => {
-      container.appendChild(this.createServiceCard(service))
-    })
-  }
-
-  renderSources (container) {
-    const sources = this.widget.config.federation?.nodes || []
-
-    sources.forEach(source => {
-      const sourceServices = this.widget.servicesData.filter(service => service._source === source)
-      if (sourceServices.length === 0) return
-
-      const header = document.createElement('h4')
-      header.className = 'feature-header'
-      header.textContent = source
-      container.appendChild(header)
-
-      const grid = document.createElement('div')
-      grid.className = 'service-grid-inner'
-      if (this.widget.getDisplayMode() === 'compact') {
-        grid.classList.add('compact')
-      }
-      const sorted = this.widget.sortServices(sourceServices)
-      sorted.forEach(service => {
-        grid.appendChild(this.createServiceCard(service))
-      })
-      container.appendChild(grid)
-    })
-  }
-
-  renderColumnate (container) {
-    const sources = this.widget.config.federation?.nodes || []
-    const columns = document.createElement('div')
-    columns.className = 'layout-columns'
-
-    sources.forEach(source => {
-      const sourceServices = this.widget.servicesData.filter(service => service._source === source)
-      const column = document.createElement('div')
-      column.className = 'layout-column'
-
-      const header = document.createElement('h4')
-      header.className = 'feature-header'
-      header.textContent = source
-      column.appendChild(header)
-
-      const grid = document.createElement('div')
-      grid.className = 'service-grid-inner'
-      if (this.widget.getDisplayMode() === 'compact') {
-        grid.classList.add('compact')
-      }
-      const sorted = this.widget.sortServices(sourceServices)
-      sorted.forEach(service => {
-        grid.appendChild(this.createServiceCard(service))
-      })
-      column.appendChild(grid)
-
-      columns.appendChild(column)
-    })
-
-    container.appendChild(columns)
-  }
-
-  createServiceCard (service) {
+  createServiceCard (service, showBadge) {
     const card = document.createElement('div')
     const mode = this.widget.getDisplayMode()
-    const hasBadge = this.widget.config.remote || service._source
+    const hasBadge = showBadge && service._source
     const baseClass = mode === 'compact' ? 'service-card compact' : 'service-card card status-card hover-expand-parent'
     card.className = `${baseClass}${hasBadge ? ' has-badge' : ''}`
     card.setAttribute('data-service-key', service._key)
     card.setAttribute('data-service-source', service._source || '')
 
     if (hasBadge) {
-      const sourceName = service._source || this.widget.config.remote
       const badge = document.createElement('span')
-      badge.className = `source-badge source-${sourceName}`
-      badge.textContent = sourceName
-      badge.title = `Source: ${sourceName}`
+      badge.className = `source-badge source-${service._source}`
+      badge.textContent = service._source
+      badge.title = `Source: ${service._source}`
       card.appendChild(badge)
     }
 

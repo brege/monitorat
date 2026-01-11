@@ -93,7 +93,7 @@ class NetworkOutages {
     if (isMultiSource && !this.elements.sourceFilter) {
       const sourceSelect = document.createElement('select')
       sourceSelect.className = 'outages-filter'
-      sourceSelect.innerHTML = `<option value="all">All Nodes</option>`
+      sourceSelect.innerHTML = '<option value="all">All Nodes</option>'
       sources.forEach((source) => {
         const option = document.createElement('option')
         option.value = source

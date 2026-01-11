@@ -30,16 +30,6 @@ class ServicesWidget {
     return this.config.remote ? `api/proxy/${this.config.remote}/img` : 'img'
   }
 
-  getDisplayStrategy () {
-    if (this.config.federation?.nodes) {
-      if (this.config.features?.services?.merge === true) {
-        return 'merge'
-      }
-      return this.config.columns === 1 ? 'sources' : 'columnate'
-    }
-    return 'merge'
-  }
-
   getDisplayMode () {
     return this.config.mode || 'tiles'
   }

@@ -1,3 +1,9 @@
+// RemindersAlerts: Unified reminder renderer
+//
+// Handles both single-source and multi-source (federation) cases.
+// Single-source is the trivial case: one source, no badges.
+// Multi-source merges all reminders with source badges.
+
 class RemindersAlerts {
   constructor (widget) {
     this.widget = widget
@@ -9,74 +15,31 @@ class RemindersAlerts {
 
     alertsContainer.innerHTML = ''
 
-    const strategy = this.widget.getDisplayStrategy()
-    const hasMergedSources = this.widget.config.federation?.nodes
-    if (strategy === 'merge') {
-      this.renderMerged(alertsContainer)
-    } else if (hasMergedSources && strategy === 'columnate') {
-      this.renderColumnate(alertsContainer)
-    } else if (hasMergedSources) {
-      this.renderSources(alertsContainer)
-    } else {
-      this.renderMerged(alertsContainer)
-    }
-  }
-
-  renderMerged (container) {
+    const isMultiSource = this.hasMultipleSources()
     const sortedReminders = this.widget.sortReminders(this.widget.remindersConfig)
+
+    if (!sortedReminders.length) {
+      const info = document.createElement('p')
+      info.className = 'muted'
+      info.textContent = 'No reminders configured.'
+      alertsContainer.appendChild(info)
+      return
+    }
+
     sortedReminders.forEach(reminder => {
-      container.appendChild(this.createReminderCard(reminder))
+      alertsContainer.appendChild(this.createReminderCard(reminder, isMultiSource))
     })
   }
 
-  renderSources (container) {
-    const sources = this.widget.config.federation?.nodes || []
-    sources.forEach(source => {
-      const sourceReminders = this.widget.remindersConfig.filter(reminder => reminder._source === source)
-      if (sourceReminders.length === 0) return
-
-      const header = document.createElement('h4')
-      header.className = 'feature-header'
-      header.textContent = source
-      container.appendChild(header)
-
-      const sorted = this.widget.sortReminders(sourceReminders)
-      sorted.forEach(reminder => {
-        container.appendChild(this.createReminderCard(reminder))
-      })
-    })
+  hasMultipleSources () {
+    const reminders = this.widget.remindersConfig || []
+    const sources = new Set(reminders.map(r => r._source).filter(Boolean))
+    return sources.size > 1
   }
 
-  renderColumnate (container) {
-    const sources = this.widget.config.federation?.nodes || []
-    const columns = document.createElement('div')
-    columns.className = 'layout-columns'
-    columns.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;'
-
-    sources.forEach(source => {
-      const sourceReminders = this.widget.remindersConfig.filter(reminder => reminder._source === source)
-      const column = document.createElement('div')
-      column.className = 'layout-column'
-
-      const header = document.createElement('h4')
-      header.className = 'feature-header'
-      header.textContent = source
-      column.appendChild(header)
-
-      const sorted = this.widget.sortReminders(sourceReminders)
-      sorted.forEach(reminder => {
-        column.appendChild(this.createReminderCard(reminder))
-      })
-
-      columns.appendChild(column)
-    })
-
-    container.appendChild(columns)
-  }
-
-  createReminderCard (reminder) {
+  createReminderCard (reminder, showBadge) {
     const alertElement = document.createElement('div')
-    const hasBadge = this.widget.config.remote || reminder._source
+    const hasBadge = showBadge && reminder._source
     alertElement.className = `reminder-alert alert-card status-card status-${reminder.status} hover-expand-parent${hasBadge ? ' has-badge' : ''}`
     if (reminder.url) {
       alertElement.title = reminder.url
@@ -84,11 +47,10 @@ class RemindersAlerts {
     }
 
     if (hasBadge) {
-      const sourceName = reminder._source || this.widget.config.remote
       const badge = document.createElement('span')
-      badge.className = `source-badge source-${sourceName}`
-      badge.textContent = sourceName
-      badge.title = `Source: ${sourceName}`
+      badge.className = `source-badge source-${reminder._source}`
+      badge.textContent = reminder._source
+      badge.title = `Source: ${reminder._source}`
       alertElement.appendChild(badge)
     }
 

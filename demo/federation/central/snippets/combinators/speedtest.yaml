@@ -15,4 +15,4 @@ widgets:
     parent: speedtest-merge
     _suppressHeader: true
     mode: rail
-    doc: ../../docs/speedtest/merge.md
+    doc: ../../docs/combinators/speedtest.md

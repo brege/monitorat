@@ -5,9 +5,6 @@ widgets:
     collapsible: true
     federation:
       nodes: [nas-1, nas-2]
-    features:
-      services:
-        merge: true
 
   wiki-services-merge:
     type: wiki
@@ -15,4 +12,4 @@ widgets:
     parent: services-merge
     _suppressHeader: true
     mode: rail
-    doc: ../../docs/services/merge.md
+    doc: ../../docs/combinators/services.md

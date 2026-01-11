@@ -124,16 +124,6 @@ class RemindersWidget {
     this.remindersConfig = results.flat()
   }
 
-  getDisplayStrategy () {
-    if (this.config.federation?.nodes) {
-      if (this.config.features?.reminders?.merge === true) {
-        return 'merge'
-      }
-      return this.config.columns === 1 ? 'sources' : 'columnate'
-    }
-    return 'merge'
-  }
-
   render () {
     this.features.alerts.render()
   }

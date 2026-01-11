@@ -18,4 +18,4 @@ widgets:
     parent: metrics-history-merge
     _suppressHeader: true
     mode: rail
-    doc: ../../../docs/metrics/history/merge.md
+    doc: ../../docs/combinators/metrics.history.md

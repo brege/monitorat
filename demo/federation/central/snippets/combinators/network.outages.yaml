@@ -10,9 +10,6 @@ widgets:
       mode: ipv4
     federation:
       nodes: [nas-1, nas-2]
-    features:
-      alerts:
-        merge: true
     metrics:
       show: false
     uptime:
@@ -25,6 +22,6 @@ widgets:
     type: wiki
     name: "Config: Outages Merged"
     parent: network-outages-merge
-    mode: rail
     _suppressHeader: true
-    doc: ../../../docs/network/outages/merge.md
+    mode: rail
+    doc: ../../docs/combinators/network.outages.md
