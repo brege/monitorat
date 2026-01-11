@@ -7,6 +7,14 @@
 class NetworkOutages {
   constructor (widget) {
     this.widget = widget
+    this.filters = {
+      type: 'all',
+      source: 'all'
+    }
+    this.elements = {
+      typeFilter: null,
+      sourceFilter: null
+    }
   }
 
   render () {
@@ -24,31 +32,92 @@ class NetworkOutages {
     const sourceStates = this.resolveSourceStates(sources)
     const isMultiSource = sources.length > 1
 
-    const allAlerts = this.collectAlerts(sources, sourceStates)
+    this.renderControls(sources, isMultiSource)
 
-    if (!allAlerts.length) {
+    const allAlerts = this.collectAlerts(sources, sourceStates)
+    const filteredAlerts = this.applyFilters(allAlerts)
+
+    if (!filteredAlerts.length) {
       const info = document.createElement('p')
       info.className = 'muted'
-      info.textContent = 'No missed intervals detected.'
+      info.textContent = allAlerts.length
+        ? 'No events match the current filters.'
+        : 'No events detected.'
       list.appendChild(info)
       if (toggle) toggle.style.display = 'none'
       return
     }
 
     const maxVisible = state.alertsExpanded
-      ? allAlerts.length
-      : Math.min(config.alerts.max, allAlerts.length)
+      ? filteredAlerts.length
+      : Math.min(config.alerts.max, filteredAlerts.length)
 
-    allAlerts.slice(0, maxVisible).forEach((alert) => {
+    filteredAlerts.slice(0, maxVisible).forEach((alert) => {
       const card = this.createAlertCard(alert, isMultiSource, helpers)
       list.appendChild(card)
     })
 
-    this.updateToggle(toggle, allAlerts.length, config.alerts.max, state.alertsExpanded)
+    this.updateToggle(toggle, filteredAlerts.length, config.alerts.max, state.alertsExpanded)
+  }
+
+  renderControls (sources, isMultiSource) {
+    const { elements } = this.widget
+    const actionsContainer = elements.alertList?.parentElement?.querySelector('.alerts-actions')
+    if (!actionsContainer) return
+
+    let controlsContainer = actionsContainer.querySelector('.outages-controls')
+    if (!controlsContainer) {
+      controlsContainer = document.createElement('div')
+      controlsContainer.className = 'outages-controls'
+      actionsContainer.insertBefore(controlsContainer, actionsContainer.firstChild)
+    }
+
+    if (!this.elements.typeFilter) {
+      const typeSelect = document.createElement('select')
+      typeSelect.className = 'outages-filter'
+      typeSelect.innerHTML = `
+        <option value="all">All Events</option>
+        <option value="outage">Missed Checks</option>
+        <option value="ipchange">IP Changes</option>
+        <option value="failure">Connection Failures</option>
+      `
+      typeSelect.value = this.filters.type
+      typeSelect.addEventListener('change', () => {
+        this.filters.type = typeSelect.value
+        this.render()
+      })
+      this.elements.typeFilter = typeSelect
+      controlsContainer.appendChild(typeSelect)
+    }
+
+    if (isMultiSource && !this.elements.sourceFilter) {
+      const sourceSelect = document.createElement('select')
+      sourceSelect.className = 'outages-filter'
+      sourceSelect.innerHTML = `<option value="all">All Nodes</option>`
+      sources.forEach((source) => {
+        const option = document.createElement('option')
+        option.value = source
+        option.textContent = source
+        sourceSelect.appendChild(option)
+      })
+      sourceSelect.value = this.filters.source
+      sourceSelect.addEventListener('change', () => {
+        this.filters.source = sourceSelect.value
+        this.render()
+      })
+      this.elements.sourceFilter = sourceSelect
+      controlsContainer.appendChild(sourceSelect)
+    }
+
+    if (!isMultiSource && this.elements.sourceFilter) {
+      this.elements.sourceFilter.remove()
+      this.elements.sourceFilter = null
+      this.filters.source = 'all'
+    }
   }
 
   resolveSources () {
-    const { config, state } = this.widget
+    const { config } = this.widget
     const federationNodes = config.federation?.nodes
 
     if (federationNodes && Array.isArray(federationNodes)) {
@@ -93,12 +162,31 @@ class NetworkOutages {
     }
 
     allAlerts.sort((a, b) => {
-      const aTime = a.type === 'ipchange' ? a.timestamp : a.start
-      const bTime = b.type === 'ipchange' ? b.timestamp : b.start
+      const aTime = this.getAlertTime(a)
+      const bTime = this.getAlertTime(b)
       return bTime - aTime
     })
 
     return allAlerts
+  }
+
+  getAlertTime (alert) {
+    if (alert.type === 'ipchange' || alert.type === 'failure') {
+      return alert.timestamp.getTime()
+    }
+    return alert.start.getTime()
+  }
+
+  applyFilters (alerts) {
+    return alerts.filter((alert) => {
+      if (this.filters.type !== 'all' && alert.type !== this.filters.type) {
+        return false
+      }
+      if (this.filters.source !== 'all' && alert._source !== this.filters.source) {
+        return false
+      }
+      return true
+    })
   }
 
   createAlertCard (alert, showBadge, helpers) {
