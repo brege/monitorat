@@ -9,7 +9,7 @@ widgets:
 
   wiki-metrics-tiles:
     type: wiki
-    name: "Config: Tiles"
+    name: null
     section: metrics
     mode: rail
     doc: ../../docs/metrics/tiles.md

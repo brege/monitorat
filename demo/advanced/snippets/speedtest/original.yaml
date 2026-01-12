@@ -16,7 +16,7 @@ widgets:
 
   wiki-speedtest-curve-unprocessed:
     type: wiki
-    name: "Config: Unprocessed"
+    name: null 
     section: speedtest
     mode: rail
     doc: ../../docs/speedtest/original.md

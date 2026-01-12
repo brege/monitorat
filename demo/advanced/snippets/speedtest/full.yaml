@@ -9,7 +9,7 @@ widgets:
 
   wiki-speedtest-single:
     type: wiki
-    name: "Config: Speedtest"
+    name: null 
     section: speedtest
     mode: rail
     doc: ../../docs/speedtest/full.md

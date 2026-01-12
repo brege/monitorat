@@ -16,7 +16,7 @@ widgets:
 
   wiki-metrics-curve-unprocessed:
     type: wiki
-    name: "Config: Unprocessed"
+    name: null
     section: metrics
     mode: rail
     doc: ../../docs/metrics/original.md

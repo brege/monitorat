@@ -8,7 +8,7 @@ widgets:
 
   wiki-services-compact:
     type: wiki
-    name: "Config: Services Compact"
+    name: null 
     section: services
     mode: rail
     doc: ../../docs/services/compact.md

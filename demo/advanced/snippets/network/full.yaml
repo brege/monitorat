@@ -21,7 +21,7 @@ widgets:
 
   wiki-network-single:
     type: wiki
-    name: "Config: Network"
+    name: null
     section: network
     mode: rail
     doc: ../../docs/network/full.md

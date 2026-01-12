@@ -20,7 +20,7 @@ widgets:
 
   wiki-network-uptime:
     type: wiki
-    name: "Config: Uptime"
+    name: null 
     section: network
     mode: rail
     doc: ../../docs/network/uptime.md

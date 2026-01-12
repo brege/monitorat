@@ -12,7 +12,7 @@ widgets:
 
   wiki-speedtest-history:
     type: wiki
-    name: "Config: History"
+    name: null 
     section: speedtest
     mode: rail
     doc: ../../docs/speedtest/history.md

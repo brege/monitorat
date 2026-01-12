@@ -9,7 +9,7 @@ widgets:
 
   wiki-speedtest-controls:
     type: wiki
-    name: "Config: Controls"
+    name: null
     section: speedtest
     mode: rail
     doc: ../../docs/speedtest/controls.md

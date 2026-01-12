@@ -9,7 +9,7 @@ widgets:
 
   wiki-metrics-single:
     type: wiki
-    name: "Config: Metrics"
+    name: null 
     section: metrics
     mode: rail
     doc: ../../docs/metrics/full.md

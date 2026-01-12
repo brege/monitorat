@@ -2,7 +2,7 @@
 widgets:
   wiki-mode-rail:
     type: wiki
-    name: "Wiki: Rail Mode"
+    name: "Rail Mode"
     section: wiki-modes
     mode: rail
     doc: ../../docs/wiki/rail.md

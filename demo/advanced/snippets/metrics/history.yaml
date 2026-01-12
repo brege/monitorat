@@ -16,7 +16,7 @@ widgets:
 
   wiki-metrics-history:
     type: wiki
-    name: "Config: Default Curve"
+    name: null 
     section: metrics
     mode: rail
     doc: ../../docs/metrics/history.md

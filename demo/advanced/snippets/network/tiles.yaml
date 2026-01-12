@@ -17,7 +17,7 @@ widgets:
 
   wiki-network-tiles:
     type: wiki
-    name: "Config: Tiles"
+    name: null
     section: network
     mode: rail
     doc: ../../docs/network/tiles.md

@@ -18,7 +18,7 @@ widgets:
 
   wiki-network-outages:
     type: wiki
-    name: "Config: Outages"
+    name: null 
     section: network
     mode: rail
     doc: ../../docs/network/outages.md
