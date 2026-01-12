@@ -47,7 +47,7 @@ See [confuse's docs](http://confuse.readthedocs.io/en/latest/usage.html) and [so
 pre-commit install
 ```
 
-This will install [pre-commit](https://pre-commit.com/) hooks for linting and formatting for Python and JavaScript via [**standard**](https://github.com/standard/standard) and [**ruff**](https://github.com/astral-sh/ruff), respectively.
+This will install [pre-commit](https://pre-commit.com/) hooks for linting and formatting via [**biome**](https://biomejs.dev/) (JS/CSS/JSON) and [**ruff**](https://github.com/astral-sh/ruff) (Python).
 
 See `pyproject.toml` for dependencies.
 
