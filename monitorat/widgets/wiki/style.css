@@ -1,3 +1,5 @@
+@import '../common.css';
+
 .notes { margin-top: 36px; background: var(--bg-notes); border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(67,79,92,0.08); position: relative; }
 .notes .markdown-body { background: transparent; padding: 16px 18px; }
 .notes .wiki-edit-btn { position: absolute; top: 10px; right: 10px; z-index: 2; }
