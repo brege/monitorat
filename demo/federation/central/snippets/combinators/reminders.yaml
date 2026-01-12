@@ -1,7 +1,8 @@
 widgets:
   reminders-merge:
     type: reminders
-    name: "Reminders: Interleaving"
+    name: null
+    section: reminders
     collapsible: true
     federation:
       nodes: [nas-1, nas-2]
@@ -9,8 +10,7 @@ widgets:
 
   wiki-reminders-merge:
     type: wiki
-    name: "Config: Reminders Merged"
-    parent: reminders-merge
-    _suppressHeader: true
+    name: null 
+    section: reminders
     mode: rail
     doc: ../../docs/combinators/reminders.md

@@ -1,7 +1,7 @@
 widgets:
   wiki-readme:
     type: wiki
-    name: "Advanced Demo"
-    _suppressHeader: true
+    name: null
+    section: overview
     mode: seamless
     doc: ../../README.md

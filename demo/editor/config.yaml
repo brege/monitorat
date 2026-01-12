@@ -11,6 +11,15 @@ paths:
   img: ../simple/img/
   favicon: ../simple/img/favicon.svg
   vendors: ../simple/vendors/
+sections:
+  editor-readme:
+    title: null
+    collapsible: false
+  dummy:
+    title: Dummy Document
+  wiki-footer:
+    title: Links
+
 widgets:
   enabled:
     - editor-readme
@@ -20,24 +29,25 @@ widgets:
 
   editor-readme:
     type: wiki
-    _suppressHeader: true
+    name: null
+    section: editor-readme
     doc: ./README.md
     mode: seamless
     edit: true
-    collapsible: false
     edit: false
 
   dummy:
     type: wiki
-    name: Dummy Document
+    name: null
+    section: dummy
     doc: docs/dummy.md
     mode: rail
-    collapsible: true
     edit: true
 
   wiki-footer:
     type: wiki
-    name: Links
+    name: null
+    section: wiki-footer
     hidden: true
     mode: seamless
     doc: ../simple/docs/footer.md

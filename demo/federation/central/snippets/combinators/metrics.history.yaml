@@ -1,8 +1,8 @@
 widgets:
   metrics-history-merge:
     type: metrics
-    name: "System Metrics: Chart Merging"
-    collapsible: true
+    name: null 
+    section: metrics
     federation:
       nodes: [nas-1, nas-2]
     show:
@@ -14,8 +14,7 @@ widgets:
 
   wiki-metrics-history-merge:
     type: wiki
-    name: "Config: History Merged"
-    parent: metrics-history-merge
-    _suppressHeader: true
+    name: null 
+    section: metrics
     mode: rail
     doc: ../../docs/combinators/metrics.history.md

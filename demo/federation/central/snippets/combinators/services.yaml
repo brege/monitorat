@@ -1,15 +1,15 @@
 widgets:
   services-merge:
     type: services
-    name: "Services: Status over all nodes"
+    name: null 
+    section: services
     collapsible: true
     federation:
       nodes: [nas-1, nas-2]
 
   wiki-services-merge:
     type: wiki
-    name: "Config: Services Merged"
-    parent: services-merge
-    _suppressHeader: true
+    name: null 
+    section: services
     mode: rail
     doc: ../../docs/combinators/services.md

@@ -1,7 +1,8 @@
 widgets:
   speedtest-merge:
     type: speedtest
-    name: "Speedtest: Chart Merging"
+    name: null 
+    section: speedtest
     collapsible: true
     default: chart
     federation:
@@ -11,8 +12,7 @@ widgets:
 
   wiki-speedtest-merge:
     type: wiki
-    name: "Config: Speedtest Merged"
-    parent: speedtest-merge
-    _suppressHeader: true
+    name: null 
+    section: speedtest
     mode: rail
     doc: ../../docs/combinators/speedtest.md

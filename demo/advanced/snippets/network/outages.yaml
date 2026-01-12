@@ -2,7 +2,7 @@ widgets:
   network-outages:
     type: network
     name: "Network: Outages"
-    collapsible: true
+    section: network
     log_file: network.log
     chirper:
       enabled: false
@@ -19,7 +19,6 @@ widgets:
   wiki-network-outages:
     type: wiki
     name: "Config: Outages"
-    parent: network-outages
-    _suppressHeader: true
+    section: network
     mode: rail
     doc: ../../docs/network/outages.md

@@ -74,7 +74,7 @@ class NetworkOutages {
 
     if (!this.elements.typeFilter) {
       const typeSelect = document.createElement('select')
-      typeSelect.className = 'outages-filter'
+      typeSelect.className = 'alerts-toggle'
       typeSelect.innerHTML = `
         <option value="all">All Events</option>
         <option value="outage">Missed Checks</option>
@@ -92,7 +92,7 @@ class NetworkOutages {
 
     if (isMultiSource && !this.elements.sourceFilter) {
       const sourceSelect = document.createElement('select')
-      sourceSelect.className = 'outages-filter'
+      sourceSelect.className = 'alerts-toggle'
       sourceSelect.innerHTML = '<option value="all">All Nodes</option>'
       sources.forEach((source) => {
         const option = document.createElement('option')

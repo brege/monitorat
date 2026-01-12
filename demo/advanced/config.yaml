@@ -43,15 +43,33 @@ paths:
   img: ../simple/img/
   favicon: ../simple/img/favicon.svg
 
+sections:
+  overview:
+    title: null
+    collapsible: false
+  wiki-modes:
+    title: Wiki Modes
+  metrics:
+    title: System Metrics
+  services:
+    title: Services
+  reminders:
+    title: Reminders
+  speedtest:
+    title: Speedtests
+  network:
+    title: Network Stability
+  footer:
+    title: Links
+
 widgets:
   enabled:
     - wiki-readme
+    
     ## Wiki modes
     - wiki-mode-rail
     - wiki-mode-featured
     - wiki-mode-seamless
-
-    # Feature & Option Variations
 
     ## Metrics
     - metrics-tiles

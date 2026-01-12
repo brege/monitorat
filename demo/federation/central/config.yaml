@@ -1,7 +1,6 @@
 # Central Head Node - Federation Demo
 #
 # Combinators: multi-source widgets that merge data across nodes
-# Layout demos moved to separate demo (TODO)
 
 includes:
   # Widget defaults
@@ -19,7 +18,7 @@ includes:
   - snippets/intro.yaml
 
   # Site footer
-  - snippets/wiki/footer.yaml
+  - snippets/footer.yaml
 
   # Combinators: true federation features
   - snippets/combinators/metrics.history.yaml
@@ -34,6 +33,23 @@ paths:
   data: data/
   img: ../../simple/img/
   favicon: ../../simple/img/favicon.svg
+
+sections:
+  overview:
+    title: null 
+    collapsible: false
+  metrics:
+    title: "System Metrics: Merging Charts"
+  services:
+    title: "Service Status over all nodes"
+  reminders:
+    title: "Interleaving Reminders"
+  speedtest:
+    title: "Comparing Speedtest results across nodes"
+  network:
+    title: "Network Outages: Alerts and Filtering"
+  footer:
+    title: Links
 
 widgets:
   enabled:

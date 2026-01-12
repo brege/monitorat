@@ -255,7 +255,7 @@ class WikiWidget {
   }
 
   addEditButton () {
-    const targetElement = this.container.querySelector('.feature-header') || this.container.querySelector('h2')
+    const targetElement = this.container.querySelector('.notes') || this.container.querySelector('.markdown-body')
 
     if (!targetElement) return
 

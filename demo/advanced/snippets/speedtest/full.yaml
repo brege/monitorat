@@ -2,7 +2,7 @@ widgets:
   speedtest-single:
     type: speedtest
     name: "Speedtest"
-    collapsible: true
+    section: speedtest
     default: chart
     chart:
       default_period: 1 month
@@ -10,7 +10,6 @@ widgets:
   wiki-speedtest-single:
     type: wiki
     name: "Config: Speedtest"
-    parent: speedtest-single
-    _suppressHeader: true
+    section: speedtest
     mode: rail
     doc: ../../docs/speedtest/full.md

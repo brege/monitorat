@@ -51,8 +51,14 @@
 .network-container .alerts-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+.network-container .alerts-actions > * {
+  flex-shrink: 0;
 }
 .network-container .alerts-actions .log-download {
   font-size: 0.85rem;
@@ -67,22 +73,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
-}
-.network-container .outages-filter {
-  padding: 4px 8px;
-  font-size: 0.85rem;
-  border: 1px solid var(--border-muted);
-  border-radius: 4px;
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  cursor: pointer;
-}
-.network-container .outages-filter:hover {
-  border-color: var(--accent);
-}
-.network-container .outages-filter:focus {
-  outline: none;
-  border-color: var(--accent);
+  flex-wrap: nowrap;
 }
 .network-container .alert { --alert-bg: var(--alert-bg-default); --alert-border: var(--alert-border-default); --alert-color: var(--alert-color-default); }
 .network-container .alert.open { --alert-bg: var(--alert-bg-open); --alert-border: var(--alert-border-open); --alert-color: var(--alert-color-open); }

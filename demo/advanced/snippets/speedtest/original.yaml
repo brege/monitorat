@@ -2,7 +2,7 @@ widgets:
   speedtest-curve-unprocessed:
     type: speedtest
     name: "Speedtest: History - Unprocessed"
-    collapsible: true
+    section: speedtest
     default: chart
     show:
       controls: false
@@ -17,7 +17,6 @@ widgets:
   wiki-speedtest-curve-unprocessed:
     type: wiki
     name: "Config: Unprocessed"
-    parent: speedtest-curve-unprocessed
-    _suppressHeader: true
+    section: speedtest
     mode: rail
     doc: ../../docs/speedtest/original.md

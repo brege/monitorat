@@ -1,7 +1,7 @@
 widgets:
   wiki-multi-intro:
     type: wiki
-    name: "Federation: Multi-Node Aggregation"
-    _suppressHeader: true
+    name: null
+    section: overview
     mode: seamless
     doc: ../../README.md

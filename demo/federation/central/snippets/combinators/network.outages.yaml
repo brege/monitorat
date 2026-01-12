@@ -1,7 +1,8 @@
 widgets:
   network-outages-merge:
     type: network
-    name: "Network: Outages and filtering"
+    name: null 
+    section: network
     collapsible: true
     log_file: network.log
     chirper:
@@ -20,8 +21,7 @@ widgets:
 
   wiki-network-outages-merge:
     type: wiki
-    name: "Config: Outages Merged"
-    parent: network-outages-merge
-    _suppressHeader: true
+    name: null 
+    section: network
     mode: rail
     doc: ../../docs/combinators/network.outages.md

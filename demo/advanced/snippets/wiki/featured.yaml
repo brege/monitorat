@@ -3,5 +3,6 @@ widgets:
   wiki-mode-featured:
     type: wiki
     name: "Wiki: Featured Mode"
+    section: wiki-modes
     mode: featured
     doc: ../../docs/wiki/featured.md

@@ -2,7 +2,7 @@ widgets:
   network-tiles:
     type: network
     name: "Network: Tiles"
-    collapsible: true
+    section: network
     log_file: network.log
     chirper:
       enabled: false
@@ -18,7 +18,6 @@ widgets:
   wiki-network-tiles:
     type: wiki
     name: "Config: Tiles"
-    parent: network-tiles
-    _suppressHeader: true
+    section: network
     mode: rail
     doc: ../../docs/network/tiles.md

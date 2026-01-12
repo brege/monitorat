@@ -2,7 +2,7 @@ widgets:
   wiki-column:
     type: wiki
     name: "Both Wikis: Columns"
-    collapsible: true
+    section: overview
     doc: true
     mode: featured
     columns: 2
@@ -12,7 +12,6 @@ widgets:
   wiki-column-doc:
     type: wiki
     name: "Config: Columnate"
-    parent: wiki-column
-    _suppressHeader: true
+    section: overview
     mode: rail
     doc: ../../docs/wiki/column.md

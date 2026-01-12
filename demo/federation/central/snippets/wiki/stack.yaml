@@ -2,7 +2,7 @@ widgets:
   wiki-stack:
     type: wiki
     name: "Both Wikis: Stacked"
-    collapsible: true
+    section: overview
     doc: true
     mode: featured
     federation:
@@ -11,7 +11,6 @@ widgets:
   wiki-stack-doc:
     type: wiki
     name: "Config: Stack"
-    parent: wiki-stack
-    _suppressHeader: true
+    section: overview
     mode: rail
     doc: ../../docs/wiki/stack.md
