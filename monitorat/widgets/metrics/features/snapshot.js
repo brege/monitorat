@@ -15,8 +15,8 @@ class MetricsSnapshot {
     const statsContainer = this.widget.container.querySelector('[data-metrics="snapshot-tiles"]')
     if (!statsContainer) return
 
-    const existingRows = statsContainer.querySelectorAll('.stats-row')
-    existingRows.forEach(row => { row.style.display = '' })
+    const baseTiles = statsContainer.querySelectorAll('.tyler-tile')
+    baseTiles.forEach(tile => { tile.style.display = '' })
 
     const mergedContainer = statsContainer.querySelector('.layout-merged-tiles')
     if (mergedContainer) {
@@ -51,8 +51,8 @@ class MetricsSnapshot {
     const statsContainer = this.widget.container.querySelector('[data-metrics="snapshot-tiles"]')
     if (!statsContainer) return
 
-    const existingRows = statsContainer.querySelectorAll('.stats-row')
-    existingRows.forEach(row => { row.style.display = 'none' })
+    const baseTiles = statsContainer.querySelectorAll('.tyler-tile')
+    baseTiles.forEach(tile => { tile.style.display = 'none' })
 
     let mergedContainer = statsContainer.querySelector('.layout-merged-tiles')
     if (!mergedContainer) {
