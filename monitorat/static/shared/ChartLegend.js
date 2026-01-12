@@ -1,94 +1,100 @@
-class ChartLegend {
-  static createMetricLegend (container, metrics, options = {}) {
-    if (!container) return
+const ChartLegend = {
+  createMetricLegend(container, metrics, options = {}) {
+    if (!container) return;
 
-    const { onToggle, activeMetric = 'all', activeMetrics = null } = options
-    container.innerHTML = ''
+    const { onToggle, activeMetric = 'all', activeMetrics = null } = options;
+    container.innerHTML = '';
 
-    metrics.forEach(metric => {
-      const item = document.createElement('button')
-      item.type = 'button'
-      item.className = 'chart-legend-item'
-      item.dataset.value = metric.field
+    metrics.forEach((metric) => {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'chart-legend-item';
+      item.dataset.value = metric.field;
       const isActive = Array.isArray(activeMetrics)
         ? activeMetrics.includes(metric.field)
-        : (activeMetric === 'all' || activeMetric === metric.field)
+        : activeMetric === 'all' || activeMetric === metric.field;
       if (isActive) {
-        item.classList.add('active')
+        item.classList.add('active');
       }
 
-      const swatch = document.createElement('span')
-      swatch.className = 'chart-legend-swatch'
-      swatch.style.backgroundColor = metric.color || 'currentColor'
+      const swatch = document.createElement('span');
+      swatch.className = 'chart-legend-swatch';
+      swatch.style.backgroundColor = metric.color || 'currentColor';
 
-      const label = document.createElement('span')
-      label.textContent = metric.label || metric.field
+      const label = document.createElement('span');
+      label.textContent = metric.label || metric.field;
 
-      item.appendChild(swatch)
-      item.appendChild(label)
+      item.appendChild(swatch);
+      item.appendChild(label);
 
       if (typeof onToggle === 'function') {
-        item.addEventListener('click', () => onToggle(metric.field))
-        item.classList.add('clickable')
+        item.addEventListener('click', () => onToggle(metric.field));
+        item.classList.add('clickable');
       }
 
-      container.appendChild(item)
-    })
-  }
+      container.appendChild(item);
+    });
+  },
 
-  static createNodeLegend (container, nodes, options = {}) {
-    if (!container) return
+  createNodeLegend(container, nodes, options = {}) {
+    if (!container) return;
 
-    const { lineStyles = [], activeNode = 'all', activeNodes = null, onToggle } = options
-    const defaultStyles = [[], [5, 5]]
-    const styles = lineStyles.length > 0 ? lineStyles : defaultStyles
+    const {
+      lineStyles = [],
+      activeNode = 'all',
+      activeNodes = null,
+      onToggle,
+    } = options;
+    const defaultStyles = [[], [5, 5]];
+    const styles = lineStyles.length > 0 ? lineStyles : defaultStyles;
 
-    container.innerHTML = ''
+    container.innerHTML = '';
 
     nodes.forEach((node, index) => {
-      const item = document.createElement('button')
-      item.type = 'button'
-      item.className = 'chart-legend-item'
-      item.dataset.value = node
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'chart-legend-item';
+      item.dataset.value = node;
       const isActive = Array.isArray(activeNodes)
         ? activeNodes.includes(node)
-        : (activeNode === 'all' || activeNode === node)
+        : activeNode === 'all' || activeNode === node;
       if (isActive) {
-        item.classList.add('active')
+        item.classList.add('active');
       }
 
-      const swatch = document.createElement('span')
-      swatch.className = 'chart-legend-swatch'
-      const dashPattern = styles[index % styles.length]
+      const swatch = document.createElement('span');
+      swatch.className = 'chart-legend-swatch';
+      const dashPattern = styles[index % styles.length];
       if (Array.isArray(dashPattern) && dashPattern.length) {
-        swatch.classList.add('dashed')
+        swatch.classList.add('dashed');
       }
 
-      const label = document.createElement('span')
-      label.textContent = node
+      const label = document.createElement('span');
+      label.textContent = node;
 
-      item.appendChild(swatch)
-      item.appendChild(label)
+      item.appendChild(swatch);
+      item.appendChild(label);
 
       if (typeof onToggle === 'function') {
-        item.addEventListener('click', () => onToggle(node))
-        item.classList.add('clickable')
+        item.addEventListener('click', () => onToggle(node));
+        item.classList.add('clickable');
       }
 
-      container.appendChild(item)
-    })
-  }
+      container.appendChild(item);
+    });
+  },
 
-  static updateActiveState (container, activeValue, allValue = 'all') {
-    if (!container) return
+  updateActiveState(container, activeValue, allValue = 'all') {
+    if (!container) return;
 
-    const items = container.querySelectorAll('.chart-legend-item')
-    items.forEach(item => {
-      const isActive = activeValue === allValue || item.dataset.value === activeValue
-      item.classList.toggle('active', isActive)
-    })
-  }
-}
+    const items = container.querySelectorAll('.chart-legend-item');
+    items.forEach((item) => {
+      const isActive =
+        activeValue === allValue || item.dataset.value === activeValue;
+      item.classList.toggle('active', isActive);
+    });
+  },
+};
 
-window.monitorShared = window.monitorShared || {}
-window.monitorShared.ChartLegend = ChartLegend
+window.monitorShared = window.monitorShared || {};
+window.monitorShared.ChartLegend = ChartLegend;

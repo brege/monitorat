@@ -1,0 +1,140 @@
+.service-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+.service-grid-inner {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+.service-grid.compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.service-grid-inner.compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.service-grid > .layout-columns,
+.service-grid > .feature-header,
+.service-grid > .service-grid-inner {
+  grid-column: 1 / -1;
+}
+.service-card {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 80px;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+  user-select: none;
+  position: relative;
+}
+.service-card * {
+  pointer-events: none;
+}
+.service-card {
+  pointer-events: auto;
+}
+.service-info-btn {
+  pointer-events: auto;
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0.5;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease;
+}
+.service-info-btn:hover {
+  opacity: 1;
+  color: var(--accent);
+  background: transparent;
+}
+.service-info-btn:focus-visible {
+  outline: 2px solid var(--border-muted);
+  outline-offset: 2px;
+}
+.service-info-btn svg {
+  width: 100%;
+  height: 100%;
+}
+.service-card:hover .service-info-btn {
+  opacity: 0.7;
+}
+.service-card.compact {
+  padding: var(--service-compact-padding);
+  width: var(--service-compact-card-size);
+  height: var(--service-compact-card-size);
+  min-height: 0;
+  justify-content: center;
+  background: transparent;
+  border-left: none;
+  position: relative;
+}
+.service-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  pointer-events: auto;
+}
+.service-card.compact .service-icon {
+  width: var(--service-compact-icon-size);
+  height: var(--service-compact-icon-size);
+}
+.service-info {
+  flex: 1;
+}
+.service-card.compact .service-info {
+  display: none;
+}
+.service-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.service-status {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.service-status-dot {
+  pointer-events: auto;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: var(--service-compact-dot-size);
+  height: var(--service-compact-dot-size);
+  border-radius: 999px;
+  position: absolute;
+  right: var(--service-compact-dot-offset);
+  bottom: var(--service-compact-dot-offset);
+  background: rgb(var(--status-unknown-rgb));
+}
+.service-card.status-ok .service-status-dot {
+  background: rgb(var(--status-ok-rgb));
+}
+.service-card.status-warning .service-status-dot,
+.service-card.status-warn .service-status-dot,
+.service-card.status-caution .service-status-dot {
+  background: rgb(var(--status-warn-rgb));
+}
+.service-card.status-down .service-status-dot,
+.service-card.status-expired .service-status-dot,
+.service-card.status-critical .service-status-dot {
+  background: rgb(var(--status-critical-rgb));
+}
+.service-card.status-unknown .service-status-dot,
+.service-card.status-never .service-status-dot {
+  background: rgb(var(--status-unknown-rgb));
+}

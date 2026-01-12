@@ -1,0 +1,129 @@
+.metrics {
+  --stat-stack-margin: 0;
+}
+.metrics-chart {
+  margin: 1rem 0;
+  overflow: hidden;
+}
+.metrics-chart canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+.metrics-view-toggle {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  align-items: center;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.25rem;
+}
+.metrics-view-toggle .alerts-toggle.active {
+  font-weight: 600;
+}
+.metrics-view-toggle .alerts-toggle {
+  flex-shrink: 0;
+}
+.metrics-view-toggle .view-toggle-spacer {
+  flex: 1;
+  min-width: 0.5rem;
+}
+
+/* Table and chart styling */
+.metrics .table-wrapper {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.metrics table {
+  width: 100%;
+  margin-top: 12px;
+  border-collapse: collapse;
+  min-width: max-content;
+}
+
+.metrics th,
+.metrics td {
+  padding: 9px 8px;
+  font-size: 0.9rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-muted);
+  white-space: nowrap;
+}
+
+.metrics th {
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-card);
+}
+
+.metrics tr:last-child td {
+  border-bottom: none;
+}
+
+.metrics .chart-legend {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+
+.metrics .chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  color: var(--text-muted);
+  border: none;
+  background: none;
+  padding: 4px 8px;
+  cursor: default;
+  white-space: nowrap;
+  text-transform: none;
+  letter-spacing: normal;
+  width: 100%;
+  justify-content: flex-start;
+  box-sizing: border-box;
+}
+
+.metrics .chart-legend-item.active {
+  color: var(--text-primary);
+}
+
+.metrics .chart-legend-swatch {
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.metrics .chart-legend-swatch.dashed {
+  background: none;
+  border-top: 3px dashed currentColor;
+  height: 0;
+}
+
+.metrics .chart-overlay {
+  position: absolute;
+  top: 10px;
+  left: 52px;
+  right: 44px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.metrics .chart-overlay .chart-legend {
+  background: color-mix(in srgb, var(--bg-surface) 92%, var(--text-primary) 8%);
+  border: 1px solid
+    color-mix(in srgb, var(--border-muted) 70%, var(--text-primary) 30%);
+  border-radius: 6px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  pointer-events: auto;
+}

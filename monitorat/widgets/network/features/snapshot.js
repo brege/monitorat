@@ -1,19 +1,20 @@
 class NetworkSnapshot {
-  constructor (widget) {
-    this.widget = widget
-    this.tiles = null
+  constructor(widget) {
+    this.widget = widget;
+    this.tiles = null;
   }
 
-  render () {
-    const { config, elements, state, helpers } = this.widget
+  render() {
+    const { config, elements, state, helpers } = this.widget;
     if (!config.metrics.show || !elements.summaryTiles) {
-      return
+      return;
     }
 
-    const analysis = state.analysis
-    const TileBuilder = window.monitorTiles?.TileBuilder || window.monitorShared?.TileBuilder
+    const analysis = state.analysis;
+    const TileBuilder =
+      window.monitorTiles?.TileBuilder || window.monitorShared?.TileBuilder;
     if (!TileBuilder) {
-      throw new Error('Tile builder not loaded')
+      throw new Error('Tile builder not loaded');
     }
 
     if (!this.tiles) {
@@ -26,18 +27,18 @@ class NetworkSnapshot {
               { key: 'uptime', label: 'Uptime', value: '–' },
               { key: 'total', label: 'Checks Logged', value: '–' },
               { key: 'expected', label: 'Checks Expected', value: '–' },
-              { key: 'missed', label: 'Missed Checks', value: '–' }
-            ]
+              { key: 'missed', label: 'Missed Checks', value: '–' },
+            ],
           },
           {
             className: 'stats-row dates',
             tiles: [
               { key: 'first', label: 'First Entry', value: '–' },
-              { key: 'last', label: 'Most Recent', value: '–' }
-            ]
-          }
-        ]
-      })
+              { key: 'last', label: 'Most Recent', value: '–' },
+            ],
+          },
+        ],
+      });
     }
 
     if (!analysis || !analysis.entries.length) {
@@ -47,9 +48,9 @@ class NetworkSnapshot {
         expected: '–',
         missed: '–',
         first: '–',
-        last: '–'
-      })
-      return
+        last: '–',
+      });
+      return;
     }
 
     TileBuilder.updateValues(this.tiles, {
@@ -58,9 +59,9 @@ class NetworkSnapshot {
       expected: helpers.formatNumber(analysis.expectedChecks),
       missed: helpers.formatNumber(analysis.missedChecks),
       first: helpers.formatDateTime(analysis.firstEntry),
-      last: helpers.formatDateTime(analysis.lastEntry)
-    })
+      last: helpers.formatDateTime(analysis.lastEntry),
+    });
   }
 }
 
-window.NetworkSnapshot = NetworkSnapshot
+window.NetworkSnapshot = NetworkSnapshot;

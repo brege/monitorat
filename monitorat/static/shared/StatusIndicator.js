@@ -8,40 +8,43 @@
  *   - unknown (gray): status not yet checked
  */
 
-window.StatusIndicator = (function () {
+window.StatusIndicator = (() => {
   const STATES = {
     ok: { color: 'var(--status-ok, #22c55e)', label: 'Online' },
     degraded: { color: 'var(--status-degraded, #eab308)', label: 'Degraded' },
     offline: { color: 'var(--status-offline, #ef4444)', label: 'Offline' },
-    unknown: { color: 'var(--status-unknown, #9ca3af)', label: 'Unknown' }
-  }
+    unknown: { color: 'var(--status-unknown, #9ca3af)', label: 'Unknown' },
+  };
 
-  const LATENCY_THRESHOLD_MS = 2000
+  const LATENCY_THRESHOLD_MS = 2000;
 
-  function determineState (healthResult) {
+  function determineState(healthResult) {
     if (!healthResult) {
-      return 'unknown'
+      return 'unknown';
     }
     if (healthResult.ok === true) {
-      if (healthResult.latency_ms && healthResult.latency_ms > LATENCY_THRESHOLD_MS) {
-        return 'degraded'
+      if (
+        healthResult.latency_ms &&
+        healthResult.latency_ms > LATENCY_THRESHOLD_MS
+      ) {
+        return 'degraded';
       }
-      return 'ok'
+      return 'ok';
     }
-    if (healthResult.error && healthResult.error.includes('Timeout')) {
-      return 'degraded'
+    if (healthResult.error?.includes('Timeout')) {
+      return 'degraded';
     }
-    return 'offline'
+    return 'offline';
   }
 
-  function create (remoteName, healthResult) {
-    const state = determineState(healthResult)
-    const config = STATES[state]
+  function create(remoteName, healthResult) {
+    const state = determineState(healthResult);
+    const config = STATES[state];
 
-    const indicator = document.createElement('span')
-    indicator.className = 'status-indicator'
-    indicator.dataset.remote = remoteName
-    indicator.dataset.state = state
+    const indicator = document.createElement('span');
+    indicator.className = 'status-indicator';
+    indicator.dataset.remote = remoteName;
+    indicator.dataset.state = state;
 
     indicator.style.cssText = `
       display: inline-block;
@@ -51,48 +54,50 @@ window.StatusIndicator = (function () {
       background-color: ${config.color};
       margin-left: 8px;
       vertical-align: middle;
-    `
+    `;
 
-    let title = `${remoteName}: ${config.label}`
+    let title = `${remoteName}: ${config.label}`;
     if (healthResult?.latency_ms) {
-      title += ` (${healthResult.latency_ms}ms)`
+      title += ` (${healthResult.latency_ms}ms)`;
     }
     if (healthResult?.error) {
-      title += ` - ${healthResult.error}`
+      title += ` - ${healthResult.error}`;
     }
-    indicator.setAttribute('title', title)
+    indicator.setAttribute('title', title);
 
-    return indicator
+    return indicator;
   }
 
-  function update (indicator, healthResult) {
-    const remoteName = indicator.dataset.remote
-    const state = determineState(healthResult)
-    const config = STATES[state]
+  function update(indicator, healthResult) {
+    const remoteName = indicator.dataset.remote;
+    const state = determineState(healthResult);
+    const config = STATES[state];
 
-    indicator.dataset.state = state
-    indicator.style.backgroundColor = config.color
+    indicator.dataset.state = state;
+    indicator.style.backgroundColor = config.color;
 
-    let title = `${remoteName}: ${config.label}`
+    let title = `${remoteName}: ${config.label}`;
     if (healthResult?.latency_ms) {
-      title += ` (${healthResult.latency_ms}ms)`
+      title += ` (${healthResult.latency_ms}ms)`;
     }
     if (healthResult?.error) {
-      title += ` - ${healthResult.error}`
+      title += ` - ${healthResult.error}`;
     }
-    indicator.setAttribute('title', title)
+    indicator.setAttribute('title', title);
   }
 
-  async function fetchStatus () {
+  async function fetchStatus() {
     try {
-      const response = await fetch('api/federation/status', { cache: 'no-store' })
+      const response = await fetch('api/federation/status', {
+        cache: 'no-store',
+      });
       if (!response.ok) {
-        return { enabled: false, remotes: {} }
+        return { enabled: false, remotes: {} };
       }
-      return await response.json()
+      return await response.json();
     } catch (error) {
-      console.error('Failed to fetch federation status:', error)
-      return { enabled: false, remotes: {} }
+      console.error('Failed to fetch federation status:', error);
+      return { enabled: false, remotes: {} };
     }
   }
 
@@ -101,6 +106,6 @@ window.StatusIndicator = (function () {
     update,
     fetchStatus,
     determineState,
-    STATES
-  }
-})()
+    STATES,
+  };
+})();

@@ -1,143 +1,144 @@
 const TileLayoutMath = (() => {
   const scoreRows = (rows, widths, containerWidth, gap) => {
-    let totalSlack = 0
-    let singletonCount = 0
+    let totalSlack = 0;
+    let singletonCount = 0;
 
     for (const row of rows) {
-      const tilesCount = row.length
-      const availableWidth = containerWidth - Math.max(0, (tilesCount - 1) * gap)
+      const tilesCount = row.length;
+      const availableWidth =
+        containerWidth - Math.max(0, (tilesCount - 1) * gap);
       if (availableWidth <= 0) {
-        return Number.POSITIVE_INFINITY
+        return Number.POSITIVE_INFINITY;
       }
 
-      const tileWidth = availableWidth / tilesCount
+      const tileWidth = availableWidth / tilesCount;
       for (const index of row) {
         if (widths[index] > tileWidth) {
-          return Number.POSITIVE_INFINITY
+          return Number.POSITIVE_INFINITY;
         }
-        totalSlack += (tileWidth - widths[index])
+        totalSlack += tileWidth - widths[index];
       }
 
       if (tilesCount === 1 && rows.length > 1) {
-        singletonCount += 1
+        singletonCount += 1;
       }
     }
 
-    const singletonPenalty = singletonCount * (containerWidth ** 2)
-    return totalSlack + singletonPenalty
-  }
+    const singletonPenalty = singletonCount * containerWidth ** 2;
+    return totalSlack + singletonPenalty;
+  };
 
   const getRowMinWidth = (row, widths, gap) => {
-    const tilesWidth = row.reduce((sum, index) => sum + widths[index], 0)
-    const gapWidth = Math.max(0, (row.length - 1) * gap)
-    return tilesWidth + gapWidth
-  }
+    const tilesWidth = row.reduce((sum, index) => sum + widths[index], 0);
+    const gapWidth = Math.max(0, (row.length - 1) * gap);
+    return tilesWidth + gapWidth;
+  };
 
   const compactRows = (rows, widths, containerWidth, gap) => {
-    if (rows.length <= 1) return rows
+    if (rows.length <= 1) return rows;
 
-    const compacted = []
-    let i = 0
+    const compacted = [];
+    let i = 0;
 
     while (i < rows.length) {
-      let currentMerged = [...rows[i]]
-      let j = i + 1
+      let currentMerged = [...rows[i]];
+      let j = i + 1;
 
       while (j < rows.length) {
-        const nextRow = rows[j]
-        const mergedWidth = getRowMinWidth(currentMerged, widths, gap) +
+        const nextRow = rows[j];
+        const mergedWidth =
+          getRowMinWidth(currentMerged, widths, gap) +
           getRowMinWidth(nextRow, widths, gap) +
-          gap
+          gap;
         if (mergedWidth <= containerWidth) {
-          currentMerged = [...currentMerged, ...nextRow]
-          j++
+          currentMerged = [...currentMerged, ...nextRow];
+          j++;
         } else {
-          break
+          break;
         }
       }
 
-      compacted.push(currentMerged)
-      i = j
+      compacted.push(currentMerged);
+      i = j;
     }
 
-    return compacted
-  }
+    return compacted;
+  };
 
   const packGreedy = (widths, containerWidth, gap) => {
-    const rows = []
-    let currentRow = []
-    let currentWidth = 0
+    const rows = [];
+    let currentRow = [];
+    let currentWidth = 0;
 
     widths.forEach((width, index) => {
-      const nextWidth = currentRow.length === 0
-        ? width
-        : currentWidth + gap + width
+      const nextWidth =
+        currentRow.length === 0 ? width : currentWidth + gap + width;
 
       if (currentRow.length === 0 || nextWidth <= containerWidth) {
-        currentRow.push(index)
-        currentWidth = nextWidth
+        currentRow.push(index);
+        currentWidth = nextWidth;
       } else {
-        rows.push(currentRow)
-        currentRow = [index]
-        currentWidth = width
+        rows.push(currentRow);
+        currentRow = [index];
+        currentWidth = width;
       }
-    })
+    });
 
     if (currentRow.length) {
-      rows.push(currentRow)
+      rows.push(currentRow);
     }
 
-    return rows
-  }
+    return rows;
+  };
 
   const findBestPartition = (widths, containerWidth, gap) => {
-    let bestRows = null
-    let bestScore = Number.POSITIVE_INFINITY
+    let bestRows = null;
+    let bestScore = Number.POSITIVE_INFINITY;
 
     const walk = (startIndex, currentRows) => {
       // Depth-first recursion explores ordered row partitions.
       if (startIndex >= widths.length) {
-        const score = scoreRows(currentRows, widths, containerWidth, gap)
+        const score = scoreRows(currentRows, widths, containerWidth, gap);
         if (score < bestScore) {
-          bestScore = score
-          bestRows = currentRows.map((row) => row.slice())
+          bestScore = score;
+          bestRows = currentRows.map((row) => row.slice());
         }
-        return
+        return;
       }
 
-      let rowMinWidth = 0
+      let rowMinWidth = 0;
       for (let endIndex = startIndex; endIndex < widths.length; endIndex++) {
-        rowMinWidth += widths[endIndex]
+        rowMinWidth += widths[endIndex];
         if (endIndex > startIndex) {
-          rowMinWidth += gap
+          rowMinWidth += gap;
         }
         if (rowMinWidth > containerWidth) {
-          break
+          break;
         }
 
-        const row = []
+        const row = [];
         for (let index = startIndex; index <= endIndex; index++) {
-          row.push(index)
+          row.push(index);
         }
-        currentRows.push(row)
-        walk(endIndex + 1, currentRows)
-        currentRows.pop()
+        currentRows.push(row);
+        walk(endIndex + 1, currentRows);
+        currentRows.pop();
       }
-    }
+    };
 
-    walk(0, [])
+    walk(0, []);
 
-    return bestRows
-  }
+    return bestRows;
+  };
 
   return {
     compactRows,
     findBestPartition,
     getRowMinWidth,
     packGreedy,
-    scoreRows
-  }
-})()
+    scoreRows,
+  };
+})();
 
-window.monitorTiles = window.monitorTiles || {}
-window.monitorTiles.LayoutMath = TileLayoutMath
+window.monitorTiles = window.monitorTiles || {};
+window.monitorTiles.LayoutMath = TileLayoutMath;

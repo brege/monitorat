@@ -1,0 +1,78 @@
+.notes {
+  margin-top: 36px;
+  background: var(--bg-notes);
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(67, 79, 92, 0.08);
+  position: relative;
+}
+.notes .markdown-body {
+  background: transparent;
+  padding: 16px 18px;
+}
+.notes .wiki-edit-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+}
+.notes[data-mode="seamless"],
+.notes[data-mode="rail"] {
+  margin-top: 12px;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+}
+.notes[data-mode="seamless"] .markdown-body,
+.notes[data-mode="rail"] .markdown-body {
+  padding: 0;
+}
+.notes[data-mode="rail"] {
+  border-left: 2px solid var(--border-muted);
+  padding-left: 16px;
+}
+.notes[data-mode="seamless"] .wiki-edit-btn,
+.notes[data-mode="rail"] .wiki-edit-btn {
+  top: 0;
+  right: 0;
+}
+.notes .markdown-body details {
+  margin-bottom: 1em;
+}
+.notes .markdown-body details summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.notes h2 {
+  margin-bottom: 12px;
+  padding: 0;
+}
+.notes .markdown-body .header-anchor {
+  opacity: 0;
+  text-decoration: none;
+  margin-left: 0.5em;
+  color: var(--accent);
+  transition: opacity 0.2s ease;
+}
+.notes .markdown-body h1:hover .header-anchor,
+.notes .markdown-body h2:hover .header-anchor,
+.notes .markdown-body h3:hover .header-anchor,
+.notes .markdown-body h4:hover .header-anchor {
+  opacity: 1;
+}
+@media (prefers-color-scheme: dark) {
+  .notes {
+    background: var(--bg-notes);
+    box-shadow: inset 0 0 0 1px rgba(215, 224, 240, 0.06);
+  }
+  .notes[data-mode="seamless"],
+  .notes[data-mode="rail"] {
+    background: transparent;
+    box-shadow: none;
+  }
+  .notes .markdown-body {
+    color-scheme: dark;
+  }
+  .notes .markdown-body .header-anchor {
+    color: var(--accent);
+  }
+}

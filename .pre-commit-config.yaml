@@ -1,12 +1,11 @@
 ---
 repos:
-  - repo: https://github.com/standard/standard
-    rev: v17.1.0
+  - repo: https://github.com/biomejs/pre-commit
+    rev: v2.3.10
     hooks:
-      - id: standard
-        args: [--fix]
+      - id: biome-check
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.4  # Check for latest version
+    rev: v0.14.11  # Check for latest version
     hooks:
       - id: ruff
         args: [--fix]

@@ -1,0 +1,312 @@
+.network-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0;
+}
+.network-header h2 {
+  margin: 0;
+}
+.log-download {
+  font-size: 0.85rem;
+  color: var(--accent);
+  text-decoration: none;
+  cursor: pointer;
+}
+.log-download:hover {
+  text-decoration: underline;
+}
+.network-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  --uptime-pill-base: var(--border-muted);
+  --uptime-pill-idle: rgba(var(--status-unknown-rgb), 0.6);
+  --uptime-pill-future: rgba(var(--status-unknown-rgb), 0.35);
+  --alert-bg-default: rgba(var(--status-critical-rgb), 0.18);
+  --alert-border-default: rgb(var(--status-critical-rgb));
+  --alert-color-default: var(--text-heading);
+  --alert-bg-open: rgba(var(--status-critical-rgb), 0.18);
+  --alert-border-open: rgb(var(--status-critical-rgb));
+  --alert-color-open: var(--text-heading);
+  --alert-bg-failure: rgba(var(--status-warn-rgb), 0.18);
+  --alert-border-failure: rgb(var(--status-warn-rgb));
+  --alert-color-failure: var(--text-heading);
+  --alert-bg-ipchange: rgba(var(--status-ok-rgb), 0.18);
+  --alert-border-ipchange: rgb(var(--status-ok-rgb));
+  --alert-color-ipchange: var(--text-heading);
+  --stat-stack-margin: 0;
+}
+.network-container .uptime-overview h2,
+.network-container .alerts h2 {
+  margin: 0 0 12px;
+  font-size: 1.2rem;
+}
+.network-container .uptime-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.network-container .uptime-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-muted);
+}
+.network-container .uptime-item:last-child {
+  border-bottom: none;
+}
+.network-container .uptime-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 72px;
+  align-items: center;
+  gap: 18px;
+}
+.network-container .uptime-label {
+  font-weight: 600;
+  color: var(--text-heading);
+}
+.network-container .uptime-value {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.network-container .uptime-pills {
+  display: grid;
+  gap: 4px;
+  align-items: stretch;
+  width: 100%;
+}
+.network-container .uptime-pill {
+  height: 14px;
+  border-radius: 999px;
+  background: var(--uptime-pill-base);
+  transition: opacity 0.15s ease;
+}
+.network-container .uptime-pill.ok {
+  background: rgb(var(--status-ok-rgb));
+}
+.network-container .uptime-pill.warn {
+  background: rgb(var(--status-warn-rgb));
+}
+.network-container .uptime-pill.bad {
+  background: rgb(var(--status-critical-rgb));
+}
+.network-container .uptime-pill.idle {
+  background: var(--uptime-pill-idle);
+}
+.network-container .uptime-pill.future {
+  background: var(--uptime-pill-future);
+}
+.network-container .uptime-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+  margin-left: 150px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.network-container .uptime-meta span {
+  white-space: nowrap;
+}
+.network-container .alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.network-container .alerts-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.network-container .alerts-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px;
+}
+.network-container .alerts-actions > * {
+  flex-shrink: 0;
+}
+.network-container .alerts-actions .log-download {
+  font-size: 0.85rem;
+  color: var(--accent);
+  text-decoration: none;
+  cursor: pointer;
+}
+.network-container .alerts-actions .log-download:hover {
+  text-decoration: underline;
+}
+.network-container .outages-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+.network-container .alert {
+  --alert-bg: var(--alert-bg-default);
+  --alert-border: var(--alert-border-default);
+  --alert-color: var(--alert-color-default);
+}
+.network-container .alert.open {
+  --alert-bg: var(--alert-bg-open);
+  --alert-border: var(--alert-border-open);
+  --alert-color: var(--alert-color-open);
+}
+.network-container .alert.failure {
+  --alert-bg: var(--alert-bg-failure);
+  --alert-border: var(--alert-border-failure);
+  --alert-color: var(--alert-color-failure);
+}
+.network-container .alert.ipchange {
+  --alert-bg: var(--alert-bg-ipchange);
+  --alert-border: var(--alert-border-ipchange);
+  --alert-color: var(--alert-color-ipchange);
+}
+.network-container .hidden {
+  display: none !important;
+}
+:root[data-theme="dark"] .network-container {
+  --uptime-pill-base: rgba(var(--status-unknown-rgb), 0.35);
+  --uptime-pill-idle: rgba(var(--status-unknown-rgb), 0.55);
+  --uptime-pill-future: rgba(var(--status-unknown-rgb), 0.25);
+  --alert-bg-default: rgba(var(--status-critical-rgb), 0.16);
+  --alert-border-default: rgb(var(--status-critical-rgb));
+  --alert-color-default: var(--text-primary);
+  --alert-bg-open: rgba(var(--status-critical-rgb), 0.16);
+  --alert-border-open: rgb(var(--status-critical-rgb));
+  --alert-color-open: var(--text-primary);
+  --alert-bg-failure: rgba(var(--status-warn-rgb), 0.16);
+  --alert-border-failure: rgb(var(--status-warn-rgb));
+  --alert-color-failure: var(--text-primary);
+  --alert-bg-ipchange: rgba(var(--status-ok-rgb), 0.16);
+  --alert-border-ipchange: rgb(var(--status-ok-rgb));
+  --alert-color-ipchange: var(--text-primary);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .network-container {
+    --uptime-pill-base: rgba(var(--status-unknown-rgb), 0.35);
+    --uptime-pill-idle: rgba(var(--status-unknown-rgb), 0.55);
+    --uptime-pill-future: rgba(var(--status-unknown-rgb), 0.25);
+    --alert-bg-default: rgba(var(--status-critical-rgb), 0.16);
+    --alert-border-default: rgb(var(--status-critical-rgb));
+    --alert-color-default: var(--text-primary);
+    --alert-bg-open: rgba(var(--status-critical-rgb), 0.16);
+    --alert-border-open: rgb(var(--status-critical-rgb));
+    --alert-color-open: var(--text-primary);
+    --alert-bg-failure: rgba(var(--status-warn-rgb), 0.16);
+    --alert-border-failure: rgb(var(--status-warn-rgb));
+    --alert-color-failure: var(--text-primary);
+    --alert-bg-ipchange: rgba(var(--status-ok-rgb), 0.16);
+    --alert-border-ipchange: rgb(var(--status-ok-rgb));
+    --alert-color-ipchange: var(--text-primary);
+  }
+}
+@media (max-width: 640px) {
+  .network-container .uptime-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .network-container .uptime-value {
+    text-align: left;
+  }
+  .network-container .uptime-meta {
+    margin-left: 0;
+  }
+}
+.network-tile-columns {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.network-tile-columns .layout-column {
+  flex: 1;
+  min-width: 200px;
+}
+.network-tile-columns .stats {
+  margin: 0;
+}
+.network-tile-columns .stats-row.primary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.network-tile-columns .stats-row.dates {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+.network-uptime-columns {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.network-uptime-columns .layout-column {
+  flex: 1;
+  min-width: 200px;
+}
+.uptime-period-label {
+  font-weight: 600;
+  color: var(--text-heading);
+  font-size: 0.9rem;
+}
+.uptime-column-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.source-label {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--bg-tertiary, rgba(128, 128, 128, 0.2));
+  color: var(--text-secondary);
+}
+.uptime-pill-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.uptime-pill-wrapper .uptime-pills {
+  flex: 1;
+}
+.uptime-pill-wrapper .uptime-value {
+  min-width: 60px;
+  text-align: right;
+  font-weight: 600;
+}
+.layout-uptime-period {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-muted);
+}
+.layout-uptime-period:last-child {
+  border-bottom: none;
+}
+.network-outages-columns {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.network-outages-columns .layout-column {
+  flex: 1;
+  min-width: 280px;
+}
+.network-outages-columns .alert-card {
+  margin-bottom: 8px;
+}
+@media (max-width: 640px) {
+  .network-tile-columns,
+  .network-uptime-columns,
+  .network-outages-columns {
+    flex-direction: column;
+  }
+  .network-tile-columns .layout-column,
+  .network-uptime-columns .layout-column,
+  .network-outages-columns .layout-column {
+    min-width: 100%;
+  }
+}
