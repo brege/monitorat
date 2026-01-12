@@ -31,7 +31,7 @@
 .service-card.status-critical .service-status-dot { background: rgb(var(--status-critical-rgb)); }
 .service-card.status-unknown .service-status-dot,
 .service-card.status-never .service-status-dot { background: rgb(var(--status-unknown-rgb)); }
-.widget-controls { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.widget-controls { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 0.25rem; }
 .sort-direction-select { min-width: 5.5rem; }
 </style>
 
@@ -47,6 +47,7 @@
       <option value="asc">asc</option>
       <option value="desc">desc</option>
     </select>
+    <select class="alerts-toggle services-source-filter" aria-label="Node source" style="display: none;"></select>
   </div>
   <div class="service-grid"></div>
 </section>

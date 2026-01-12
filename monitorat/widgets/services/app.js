@@ -6,6 +6,8 @@ class ServicesWidget {
     this.statusBySource = {}
     this.statusSchema = null
     this.config = config
+    this.selectedSource = 'all'
+    this.filteredServices = null
     this.features = {
       controls: null,
       snapshot: null
@@ -136,6 +138,7 @@ class ServicesWidget {
         await this.loadServices()
       }
 
+      this.updateSourceFilter()
       this.render()
 
       if (this.config.federation?.nodes) {
@@ -237,6 +240,7 @@ class ServicesWidget {
     )
 
     this.servicesData = results.flat()
+    this.updateSourceFilter()
   }
 
   async loadStatus () {
@@ -276,6 +280,7 @@ class ServicesWidget {
   }
 
   render () {
+    this.filteredServices = this.getFilteredServices()
     this.features.snapshot.render()
   }
 
@@ -305,6 +310,29 @@ class ServicesWidget {
     this.features.controls = new ControlsFeature(this)
     this.features.modal = new ModalFeature(this)
     this.features.snapshot = new SnapshotFeature(this)
+  }
+
+  getFilteredServices () {
+    const services = this.servicesData || []
+    if (this.selectedSource === 'all') {
+      return services
+    }
+    return services.filter(service => service._source === this.selectedSource)
+  }
+
+  resolveSources () {
+    const configSources = this.config.federation?.nodes
+    if (configSources && Array.isArray(configSources)) {
+      return configSources
+    }
+    const sources = new Set((this.servicesData || []).map(service => service._source).filter(Boolean))
+    return Array.from(sources)
+  }
+
+  updateSourceFilter () {
+    if (!this.features.controls?.updateSources) return
+    const sources = this.resolveSources()
+    this.features.controls.updateSources(sources, this.selectedSource)
   }
 }
 

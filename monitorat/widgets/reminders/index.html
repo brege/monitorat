@@ -7,7 +7,7 @@
 .reminder-alert-name { font-weight: 600; }
 .reminder-alert-stats { display: flex; gap: 16px; font-size: 0.85rem; color: var(--text-muted); }
 .reminder-alert-description { color: var(--text-muted) !important; }
-.widget-controls { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.widget-controls { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 0.25rem; }
 .widget-controls .spacer { flex: 1; }
 .sort-direction-select { min-width: 5.5rem; }
 @media (min-width: 641px) {
@@ -31,6 +31,7 @@
       <option value="asc">asc</option>
       <option value="desc">desc</option>
     </select>
+    <select class="alerts-toggle reminders-source-filter" aria-label="Node source" style="display: none;"></select>
     <span class="spacer"></span>
     <button type="button" class="alerts-toggle" onclick="testNotification()">Test Notification</button>
   </div>

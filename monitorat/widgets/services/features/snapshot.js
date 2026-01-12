@@ -23,8 +23,9 @@ class ServicesSnapshot {
       this.clearCompactSizing()
     }
 
-    const isMultiSource = this.hasMultipleSources()
-    const sorted = this.widget.sortServices(this.widget.servicesData)
+    const services = this.widget.filteredServices || this.widget.servicesData || []
+    const isMultiSource = this.hasMultipleSources(services)
+    const sorted = this.widget.sortServices(services)
 
     if (!sorted.length) {
       const info = document.createElement('p')
@@ -39,8 +40,7 @@ class ServicesSnapshot {
     })
   }
 
-  hasMultipleSources () {
-    const services = this.widget.servicesData || []
+  hasMultipleSources (services) {
     const sources = new Set(services.map(s => s._source).filter(Boolean))
     return sources.size > 1
   }

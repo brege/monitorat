@@ -15,8 +15,9 @@ class RemindersAlerts {
 
     alertsContainer.innerHTML = ''
 
-    const isMultiSource = this.hasMultipleSources()
-    const sortedReminders = this.widget.sortReminders(this.widget.remindersConfig)
+    const reminders = this.widget.filteredReminders || this.widget.remindersConfig || []
+    const isMultiSource = this.hasMultipleSources(reminders)
+    const sortedReminders = this.widget.sortReminders(reminders)
 
     if (!sortedReminders.length) {
       const info = document.createElement('p')
@@ -31,8 +32,7 @@ class RemindersAlerts {
     })
   }
 
-  hasMultipleSources () {
-    const reminders = this.widget.remindersConfig || []
+  hasMultipleSources (reminders) {
     const sources = new Set(reminders.map(r => r._source).filter(Boolean))
     return sources.size > 1
   }
