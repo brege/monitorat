@@ -233,7 +233,7 @@ def ensure_vendors():
         return
     vendors_path = Path(vendors_config) if vendors_config else Path("vendors/")
     if not vendors_path.is_absolute():
-        vendors_path = Path(__file__).parent / vendors_path
+        vendors_path = Path(config.config_dir()) / vendors_path
     vendors_path.mkdir(exist_ok=True, parents=True)
     for filename, url in VENDOR_URLS.items():
         filepath = vendors_path / filename
@@ -518,7 +518,7 @@ def vendor_files(filename):
         return jsonify({"error": f"Vendor '{filename}' not found"}), 404
     vendors_path = Path(vendors_config) if vendors_config else Path("vendors/")
     if not vendors_path.is_absolute():
-        vendors_path = Path(__file__).parent / vendors_path
+        vendors_path = Path(config.config_dir()) / vendors_path
     return send_from_directory(str(vendors_path), filename)
 
 
