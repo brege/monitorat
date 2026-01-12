@@ -10,7 +10,7 @@ paths:
   data: ../simple/data/
   img: ../simple/img/
   favicon: ../simple/img/favicon.svg
-  vendors: ../simple/vendors/
+  vendors: ../../vendors/
 sections:
   editor-readme:
     title: null
