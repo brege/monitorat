@@ -278,20 +278,40 @@ def readme():
 def api_config():
     try:
         widgets_merged = {}
+        sections_config = {}
+        default_columns = (
+            config["widgets"]["columns"].get(int)
+            if "columns" in config["widgets"].keys()
+            else 1
+        )
+        if "sections" in config.keys():
+            sections_config = config["sections"].flatten()
+            if sections_config is None:
+                sections_config = {}
+            if not isinstance(sections_config, dict):
+                raise ValueError("sections config must be a mapping")
         for key in config["widgets"].keys():
             # {widget}.enabled = list
             if key == "enabled":
                 enabled = config["widgets"][key].get()
                 widgets_merged[key] = enabled
                 continue
+            # skip widget-level defaults
+            if key == "columns":
+                continue
             # merge values from all sources
-            widgets_merged[key] = config["widgets"][key].flatten()
+            widget_config = config["widgets"][key].flatten()
+            # inject default columns if not set
+            if isinstance(widget_config, dict) and "columns" not in widget_config:
+                widget_config["columns"] = default_columns
+            widgets_merged[key] = widget_config
 
         payload = {
             "version": get_package_version(),
             "site": config["site"].flatten(),
             "privacy": config["privacy"].flatten(),
             "demo": is_demo_enabled(),
+            "sections": sections_config,
             "widgets": widgets_merged,
         }
         return jsonify(payload)

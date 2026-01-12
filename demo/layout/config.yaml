@@ -1,0 +1,49 @@
+# Layout Demo
+#
+# Mixed widget columns, stacks, and graceful responsive stacking
+# Uses group/columns/position config to arrange widgets
+
+includes:
+  # Widget defaults
+  - ../simple/snippets/metrics.yaml
+  - ../simple/snippets/network.yaml
+  - ../simple/snippets/services.yaml
+  - ../simple/snippets/reminders.yaml
+  - ../simple/snippets/speedtest.yaml
+
+  # Site
+  - snippets/site.yaml
+
+  # Layout examples
+  - snippets/section-1.yaml
+  - snippets/section-2.yaml
+  - snippets/section-3.yaml
+
+demo: true
+
+paths:
+  data: ../simple/data/
+  img: ../simple/img/
+  favicon: ../simple/img/favicon.svg
+
+sections:
+  section-1:
+    title: System Overview
+  section-2:
+    title: Status
+  section-3:
+    title: Performance
+
+widgets:
+  enabled:
+    # Tiles row: metrics + network tiles side by side
+    - metrics-tiles-left
+    - network-tiles-right
+
+    # Mixed columns: services + reminders
+    - services-col
+    - reminders-col
+
+    # Wiki sidebar: content + wiki
+    - speedtest-main
+    - wiki-sidebar

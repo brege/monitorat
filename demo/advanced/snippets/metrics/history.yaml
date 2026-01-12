@@ -2,7 +2,7 @@ widgets:
   metrics-history:
     type: metrics
     name: "Metrics: History - Default"
-    collapsible: true
+    section: metrics
     show:
       tiles: false
       history: true
@@ -17,7 +17,6 @@ widgets:
   wiki-metrics-history:
     type: wiki
     name: "Config: Default Curve"
-    parent: metrics-history
-    _suppressHeader: true
+    section: metrics
     mode: rail
     doc: ../../docs/metrics/history.md

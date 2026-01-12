@@ -1,8 +1,32 @@
-/* global localStorage */
+/* global localStorage ResizeObserver */
 const REMEMBER_EXPANSIONS_KEY = 'monitor-remember-expansions'
 const EXPANSIONS_STATE_KEY = 'monitor-expansions'
 
 const monitorAPI = window.monitor = window.monitor || {}
+
+const layoutGroups = new Map()
+const sectionHeaders = new Map()
+let layoutObserver = null
+
+function resolveSectionKey (widgetConfig) {
+  if (!widgetConfig || widgetConfig.section === undefined) {
+    return null
+  }
+  if (widgetConfig.section === null) {
+    return null
+  }
+  if (typeof widgetConfig.section !== 'string') {
+    throw new Error('section must be a string or null')
+  }
+  return widgetConfig.section
+}
+
+function getSectionConfig (sectionKey) {
+  if (!sectionKey) {
+    return null
+  }
+  return monitorAPI.sectionsConfig?.[sectionKey] || {}
+}
 
 monitorAPI.applyWidgetHeader = function applyWidgetHeader (container, options = {}) {
   if (!container) {
@@ -34,7 +58,14 @@ monitorAPI.applyWidgetHeader = function applyWidgetHeader (container, options = 
   })()
 
   if (suppressHeader) {
-    header.remove()
+    if (typeof name === 'string' && name.length > 0) {
+      const featureHeader = document.createElement('div')
+      featureHeader.className = 'feature-header'
+      featureHeader.textContent = name
+      header.replaceWith(featureHeader)
+    } else {
+      header.remove()
+    }
     return
   }
 
@@ -108,6 +139,186 @@ monitorAPI.applyWidgetHeader = function applyWidgetHeader (container, options = 
   }
 }
 
+function resolveLayoutGroupKey (widgetName, widgetConfig) {
+  const sectionKey = resolveSectionKey(widgetConfig)
+  if (!sectionKey) {
+    return `widget:${widgetName}`
+  }
+  const group = widgetConfig?.group
+  const groupKey = group && typeof group === 'string' ? group : 'default'
+  return `section:${sectionKey}:group:${groupKey}`
+}
+
+function resolveLayoutColumns (widgetConfig) {
+  const columns = Number(widgetConfig?.columns)
+  if (Number.isFinite(columns) && columns > 0) {
+    return Math.floor(columns)
+  }
+  return 1
+}
+
+function ensureLayoutObserver () {
+  if (layoutObserver) return
+  layoutObserver = new ResizeObserver((entries) => {
+    entries.forEach((entry) => {
+      updateLayoutGroup(entry.target)
+    })
+  })
+}
+
+function createLayoutGroup (groupKey, sectionKey, sectionConfig) {
+  const widgetStack = document.querySelector('.widget-stack')
+
+  if (sectionKey && !sectionHeaders.has(sectionKey)) {
+    const sectionTitle = sectionConfig && Object.prototype.hasOwnProperty.call(sectionConfig, 'title')
+      ? sectionConfig.title
+      : sectionKey
+    if (sectionTitle !== null) {
+      const section = document.createElement('div')
+      section.className = 'section-separator'
+      section.dataset.sectionKey = sectionKey
+      section.id = `section-${sectionKey}`
+
+      const collapsible = sectionConfig?.collapsible !== false
+      const headerClass = collapsible ? 'section-header section-header-collapsible' : 'section-header'
+      const chevronSvg = collapsible
+        ? '<svg class="section-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'
+        : ''
+
+      section.innerHTML = `
+        <div class="${headerClass}" data-section="${sectionKey}">
+          ${chevronSvg}
+          <h2 class="section-title">
+            ${sectionTitle}
+            <a class="header-anchor" href="#section-${sectionKey}">#</a>
+          </h2>
+        </div>
+      `
+
+      widgetStack.appendChild(section)
+      sectionHeaders.set(sectionKey, section)
+      if (collapsible) {
+        const header = section.querySelector('.section-header-collapsible')
+        const anchor = section.querySelector('.header-anchor')
+        header.addEventListener('click', (event) => {
+          if (event.target === anchor || anchor.contains(event.target)) {
+            return
+          }
+          toggleSection(sectionKey)
+        })
+      }
+    } else {
+      sectionHeaders.set(sectionKey, null)
+    }
+  }
+
+  const group = document.createElement('div')
+  group.className = 'layout-columns layout-group'
+  group.dataset.layoutGroup = groupKey
+  if (sectionKey) {
+    group.dataset.section = sectionKey
+  }
+  group.dataset.layoutColumns = '1'
+  group.style.setProperty('--layout-group-columns', '1')
+  const sectionContainer = sectionKey ? sectionHeaders.get(sectionKey) : null
+  const groupParent = sectionContainer || widgetStack
+  groupParent.appendChild(group)
+  ensureLayoutObserver()
+  layoutObserver.observe(group)
+  layoutGroups.set(groupKey, group)
+  return group
+}
+
+function getLayoutGroup (widgetName, widgetConfig) {
+  const groupKey = resolveLayoutGroupKey(widgetName, widgetConfig)
+  const columns = resolveLayoutColumns(widgetConfig)
+  const sectionKey = resolveSectionKey(widgetConfig)
+  const sectionConfig = getSectionConfig(sectionKey)
+  let group = layoutGroups.get(groupKey)
+  if (!group) {
+    group = createLayoutGroup(groupKey, sectionKey, sectionConfig)
+  }
+  const existingColumns = Number(group.dataset.layoutColumns || 1)
+  if (columns > existingColumns) {
+    group.dataset.layoutColumns = String(columns)
+  }
+  return group
+}
+
+function updateLayoutGroup (group) {
+  if (!group) return
+  const maxColumns = Math.max(1, Number(group.dataset.layoutColumns || 1))
+  const styles = window.getComputedStyle(group)
+  const gapValue = parseFloat(styles.columnGap || styles.gap) || 0
+  const containerWidth = group.clientWidth
+
+  const children = Array.from(group.children).filter((child) => {
+    return window.getComputedStyle(child).display !== 'none'
+  })
+
+  let minWidthValue = parseFloat(styles.getPropertyValue('--layout-group-min')) || 320
+  for (const child of children) {
+    const childMin = parseFloat(window.getComputedStyle(child).getPropertyValue('--widget-min-width'))
+    if (childMin && childMin > minWidthValue) {
+      minWidthValue = childMin
+    }
+  }
+
+  group.style.setProperty('--layout-group-min', `${minWidthValue}px`)
+  const availableColumns = Math.max(1, Math.min(maxColumns, Math.floor((containerWidth + gapValue) / (minWidthValue + gapValue))))
+  group.style.setProperty('--layout-group-columns', String(availableColumns))
+  applyLayoutSpan(group, availableColumns)
+}
+
+function updateLayoutGroups () {
+  layoutGroups.forEach((group) => updateLayoutGroup(group))
+}
+
+function applyLayoutSpan (group, columns) {
+  const items = Array.from(group.children).filter((item) => {
+    const display = window.getComputedStyle(item).display
+    return display !== 'none'
+  })
+  items.forEach((item) => {
+    item.style.gridColumn = ''
+  })
+  if (columns <= 1) return
+  const hasPosition = items.some((item) => item.dataset.position !== undefined)
+  if (hasPosition) return
+  if (items.length === 0) return
+  const remainder = items.length % columns
+  if (remainder === 1) {
+    const lastItem = items[items.length - 1]
+    lastItem.style.gridColumn = `span ${columns}`
+  }
+}
+
+function orderLayoutGroup (group) {
+  const items = Array.from(group.children)
+  const hasPosition = items.some((item) => item.dataset.position !== undefined)
+  if (!hasPosition) return
+  const ordered = items.sort((left, right) => {
+    const leftPos = left.dataset.position !== undefined ? Number(left.dataset.position) : null
+    const rightPos = right.dataset.position !== undefined ? Number(right.dataset.position) : null
+    if (leftPos === null && rightPos === null) {
+      return Number(left.dataset.order) - Number(right.dataset.order)
+    }
+    if (leftPos === null) return 1
+    if (rightPos === null) return -1
+    if (leftPos === rightPos) {
+      return Number(left.dataset.order) - Number(right.dataset.order)
+    }
+    return leftPos - rightPos
+  })
+  ordered.forEach((item) => {
+    group.appendChild(item)
+  })
+}
+
+function orderLayoutGroups () {
+  layoutGroups.forEach((group) => orderLayoutGroup(group))
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const config = await loadConfig()
   const federationStatus = window.StatusIndicator
@@ -116,6 +327,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   monitorAPI.demoEnabled = config.demo === true
   monitorAPI.federationStatus = federationStatus
+  monitorAPI.sectionsConfig = config.sections || {}
   initializeConfigReloadControl({ demoEnabled: monitorAPI.demoEnabled })
   if (!monitorAPI.demoEnabled) {
     fetch('api/snapshot', { method: 'POST', cache: 'no-store' })
@@ -131,14 +343,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const containersByWidget = new Map()
 
-  widgetOrder.forEach((widgetName) => {
+  widgetOrder.forEach((widgetName, index) => {
     const widgetConfig = config.widgets?.[widgetName]
     if (!widgetConfig) {
       return
     }
-    const container = document.getElementById(`${widgetName}-widget`) || createWidgetContainer(widgetName)
+    const container = createWidgetContainer(widgetName, widgetConfig, index)
     containersByWidget.set(widgetName, container)
   })
+  orderLayoutGroups()
+  updateLayoutGroups()
 
   await Promise.all(
     widgetOrder.map((widgetName) => {
@@ -260,33 +474,15 @@ async function initializeWidget (widgetName, widgetType, config, containerOverri
 
   let container = containerOverride || document.getElementById(`${widgetName}-widget`)
   if (!container) {
-    container = createWidgetContainer(widgetName)
+    container = createWidgetContainer(widgetName, config, 0)
   }
   if (!window.widgets || !window.widgets[widgetType]) {
     return
   }
 
-  if (config?.parent) {
-    container.dataset.parent = config.parent
-    const parentContainer = document.getElementById(`${config.parent}-widget`)
-    const parentContent = parentContainer?.querySelector('.widget-content')
-    if (parentContent && parentContent.style.display === 'none') {
-      container.style.display = 'none'
-    }
-  }
-
   try {
-    if (config?.collapsible === true) {
-      setupCollapsibleWidget(container, widgetName, config)
-    }
-
-    const contentContainer = config?.collapsible === true
-      ? container.querySelector('.widget-content')
-      : container
-
-    const widgetConfig = config?.collapsible === true
-      ? { ...config, _suppressHeader: true }
-      : { ...config }
+    const contentContainer = container
+    const widgetConfig = { ...config, _suppressHeader: true }
 
     if (config?.remote || config?.federation?.nodes) {
       widgetConfig._apiPrefix = widgetName
@@ -330,77 +526,54 @@ async function ensureWidgetScript (widgetType) {
   return promise
 }
 
-function createWidgetContainer (widgetName) {
-  const container = document.createElement('div')
-  container.id = `${widgetName}-widget`
-  document.querySelector('.widget-stack').appendChild(container)
+function createWidgetContainer (widgetName, widgetConfig, orderIndex) {
+  const group = getLayoutGroup(widgetName, widgetConfig)
+  let container = document.getElementById(`${widgetName}-widget`)
+  if (!container) {
+    container = document.createElement('div')
+    container.id = `${widgetName}-widget`
+  }
+  container.dataset.order = String(orderIndex)
+  if (widgetConfig?.position !== undefined) {
+    container.dataset.position = String(widgetConfig.position)
+  } else {
+    delete container.dataset.position
+  }
+  if (widgetConfig?.min_width !== undefined && widgetConfig?.min_width !== null) {
+    const minWidthValue = Number(widgetConfig.min_width)
+    if (!Number.isFinite(minWidthValue)) {
+      throw new Error(`${widgetName} min_width must be a number`)
+    }
+    container.style.setProperty('--widget-min-width', `${minWidthValue}px`)
+  } else {
+    container.style.removeProperty('--widget-min-width')
+  }
+  if (container.parentElement !== group) {
+    group.appendChild(container)
+  }
   return container
 }
 
-function setupCollapsibleWidget (container, widgetName, config) {
-  const widgetTitle = config?.name || widgetName
-  const isHidden = config?.hidden === true
-  const remoteName = config?.remote
-  const parentWidget = config?.parent
+function toggleSection (sectionKey, forceState) {
+  const header = document.querySelector(`.section-header-collapsible[data-section="${sectionKey}"]`)
+  const groups = document.querySelectorAll(`.layout-group[data-section="${sectionKey}"]`)
+  if (!groups.length) return
 
-  const chevronSvg = '<svg class="widget-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>'
-  const anchorId = `${widgetName}-widget`
-
-  container.innerHTML = `
-    <div class="widget-header widget-header-collapsible${isHidden ? ' collapsed' : ''}" data-widget="${widgetName}"${parentWidget ? ` data-parent="${parentWidget}"` : ''}>
-      ${chevronSvg}
-      <h2 class="widget-title">
-        ${widgetTitle}
-        <a class="header-anchor" href="#${anchorId}">#</a>
-      </h2>
-    </div>
-    <div class="widget-content" style="display: ${isHidden ? 'none' : 'block'}"></div>
-  `
-
-  const header = container.querySelector('.widget-header-collapsible')
-  const anchor = header.querySelector('.header-anchor')
-
-  header.addEventListener('click', (event) => {
-    if (event.target === anchor || anchor.contains(event.target)) {
-      return
-    }
-    toggleWidget(widgetName)
-  })
-
-  if (remoteName && window.StatusIndicator && monitorAPI.federationStatus?.enabled) {
-    const healthResult = monitorAPI.federationStatus.remotes?.[remoteName]
-    const indicator = window.StatusIndicator.create(remoteName, healthResult)
-    const titleElement = container.querySelector('.widget-title')
-    if (titleElement) {
-      titleElement.insertBefore(indicator, anchor)
-    }
-  }
-}
-
-function toggleWidget (widgetName, forceState) {
-  const container = document.getElementById(`${widgetName}-widget`)
-  if (!container) return
-
-  const content = container.querySelector('.widget-content')
-  const header = container.querySelector('.widget-header-collapsible')
-  if (!content) return
-
-  const isHidden = content.style.display === 'none'
+  const isHidden = Array.from(groups).every((group) => group.style.display === 'none')
   const shouldShow = forceState !== undefined ? forceState : isHidden
-  content.style.display = shouldShow ? 'block' : 'none'
+
+  groups.forEach((group) => {
+    group.style.display = shouldShow ? '' : 'none'
+  })
 
   if (header) {
     header.classList.toggle('collapsed', !shouldShow)
   }
 
-  const childWidgets = document.querySelectorAll(`[data-parent="${widgetName}"]`)
-  childWidgets.forEach((child) => {
-    child.style.display = shouldShow ? '' : 'none'
-  })
-
+  updateLayoutGroups()
   saveExpansionStates()
 }
-window.toggleWidget = toggleWidget
+window.toggleSection = toggleSection
 
 function isRememberExpansionsEnabled () {
   try {
@@ -433,10 +606,10 @@ function saveExpansionStates () {
   }
 
   const states = {}
-  document.querySelectorAll('.widget-header-collapsible').forEach((header) => {
-    const widgetName = header.dataset.widget
-    if (widgetName) {
-      states[widgetName] = !header.classList.contains('collapsed')
+  document.querySelectorAll('.section-header-collapsible').forEach((header) => {
+    const sectionKey = header.dataset.section
+    if (sectionKey) {
+      states[sectionKey] = !header.classList.contains('collapsed')
     }
   })
 
@@ -459,21 +632,16 @@ function restoreExpansionStates () {
     }
 
     const states = JSON.parse(stored)
-    Object.entries(states).forEach(([widgetName, expanded]) => {
-      const container = document.getElementById(`${widgetName}-widget`)
-      if (!container) return
-
-      const content = container.querySelector('.widget-content')
-      const header = container.querySelector('.widget-header-collapsible')
-      if (!content || !header) return
-
-      content.style.display = expanded ? 'block' : 'none'
-      header.classList.toggle('collapsed', !expanded)
-
-      const childWidgets = document.querySelectorAll(`[data-parent="${widgetName}"]`)
-      childWidgets.forEach((child) => {
-        child.style.display = expanded ? '' : 'none'
+    Object.entries(states).forEach(([sectionKey, expanded]) => {
+      const groups = document.querySelectorAll(`.layout-group[data-section="${sectionKey}"]`)
+      if (!groups.length) return
+      groups.forEach((group) => {
+        group.style.display = expanded ? '' : 'none'
       })
+      const header = document.querySelector(`.section-header-collapsible[data-section="${sectionKey}"]`)
+      if (header) {
+        header.classList.toggle('collapsed', !expanded)
+      }
     })
   } catch (_) {
     /* localStorage may be unavailable or corrupted */

@@ -1,9 +1,9 @@
 class FederationRenderer {
   static renderColumnated (sources, sourceStates, options = {}) {
     const {
-      containerClass = 'federation-columns',
-      columnClass = 'federation-column',
-      headerClass = 'federation-source-header',
+      containerClass = 'layout-columns',
+      columnClass = 'layout-column',
+      headerClass = 'feature-header',
       contentRenderer
     } = options
 
@@ -31,10 +31,9 @@ class FederationRenderer {
     return columns
   }
 
-  static renderStacked (sources, sourceStates, options = {}) {
+  static renderSources (sources, sourceStates, options = {}) {
     const {
-      sectionClass = 'federation-stack-section',
-      headerClass = 'federation-source-header',
+      headerClass = 'feature-header',
       contentRenderer
     } = options
 
@@ -42,33 +41,29 @@ class FederationRenderer {
 
     for (const source of sources) {
       const sourceState = sourceStates[source]
-      const section = document.createElement('div')
-      section.className = sectionClass
 
       const header = document.createElement('div')
       header.className = headerClass
       header.textContent = source
-      section.appendChild(header)
+      wrapper.appendChild(header)
 
       if (typeof contentRenderer === 'function') {
         const content = contentRenderer(source, sourceState)
-        if (content) section.appendChild(content)
+        if (content) wrapper.appendChild(content)
       }
-
-      wrapper.appendChild(section)
     }
 
     return wrapper
   }
 
-  static createSourceBadge (source, className = 'federation-source-badge') {
+  static createSourceBadge (source, className = 'source-badge') {
     const badge = document.createElement('span')
     badge.className = className
     badge.textContent = source
     return badge
   }
 
-  static createSourceLabel (source, className = 'federation-source-label') {
+  static createSourceLabel (source, className = 'source-label') {
     const label = document.createElement('span')
     label.className = className
     label.textContent = source

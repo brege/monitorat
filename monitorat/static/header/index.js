@@ -222,18 +222,18 @@ const MENU_ICONS = {
   expand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>'
 }
 
-function areAllWidgetsCollapsed () {
-  const headers = document.querySelectorAll('.widget-header-collapsible')
+function areAllSectionsCollapsed () {
+  const headers = document.querySelectorAll('.section-header-collapsible')
   if (headers.length === 0) return false
   return Array.from(headers).every((header) => header.classList.contains('collapsed'))
 }
 
 function toggleAllWidgets () {
-  const shouldExpand = areAllWidgetsCollapsed()
-  document.querySelectorAll('.widget-header-collapsible').forEach((header) => {
-    const widgetName = header.dataset.widget
-    if (widgetName) {
-      window.toggleWidget(widgetName, shouldExpand)
+  const shouldExpand = areAllSectionsCollapsed()
+  document.querySelectorAll('.section-header-collapsible').forEach((header) => {
+    const sectionKey = header.dataset.section
+    if (sectionKey) {
+      window.toggleSection(sectionKey, shouldExpand)
     }
   })
 }
@@ -244,7 +244,7 @@ async function showMenuModal () {
   const currentColorTheme = getStoredColorTheme()
   const currentTheme = document.documentElement.getAttribute('data-theme') || getPreferredTheme()
   const isDark = currentTheme === THEME_DARK
-  const allCollapsed = areAllWidgetsCollapsed()
+  const allCollapsed = areAllSectionsCollapsed()
   const rememberExpansions = window.isRememberExpansionsEnabled()
 
   const themesHtml = info.themes.map((theme) => {
@@ -367,20 +367,20 @@ function initializeMenuButton () {
 }
 
 function showTocModal () {
-  const headers = document.querySelectorAll('.widget-header-collapsible')
+  const headers = document.querySelectorAll('.section-header-collapsible')
   if (headers.length === 0) {
     return
   }
 
   const items = Array.from(headers).map((header) => {
-    const widgetName = header.dataset.widget
-    const titleElement = header.querySelector('.widget-title')
-    const title = titleElement ? titleElement.textContent.replace('#', '').trim() : widgetName
-    return { widgetName, title }
+    const sectionKey = header.dataset.section
+    const titleElement = header.querySelector('.section-title')
+    const title = titleElement ? titleElement.textContent.replace('#', '').trim() : sectionKey
+    return { sectionKey, title }
   })
 
-  const linksHtml = items.map(({ widgetName, title }) => {
-    return `<a href="#${widgetName}-widget" class="toc-modal-link" data-widget="${widgetName}">${title}</a>`
+  const linksHtml = items.map(({ sectionKey, title }) => {
+    return `<a href="#section-${sectionKey}" class="toc-modal-link" data-section="${sectionKey}">${title}</a>`
   }).join('')
 
   const content = `

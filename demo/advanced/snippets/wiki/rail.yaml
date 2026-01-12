@@ -3,5 +3,6 @@ widgets:
   wiki-mode-rail:
     type: wiki
     name: "Wiki: Rail Mode"
+    section: wiki-modes
     mode: rail
     doc: ../../docs/wiki/rail.md

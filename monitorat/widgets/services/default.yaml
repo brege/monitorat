@@ -3,6 +3,10 @@ widgets:
     name: Services
     collapsible: true
     hidden: false
+    min_width: 240
+    features:
+      services:
+        header: null
     mode: tiles  # tiles | compact
     compact_icon_scale: 1.33
     uid: 1000

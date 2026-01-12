@@ -1,7 +1,7 @@
 widgets:
   wiki-footer:
     type: wiki
-    name: Links
-    collapsible: true
+    name: null
+    section: footer
     mode: seamless
     doc: ../../../simple/docs/footer.md

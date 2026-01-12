@@ -1,0 +1,18 @@
+widgets:
+  speedtest-merge:
+    type: speedtest
+    name: null 
+    section: speedtest
+    collapsible: true
+    default: chart
+    federation:
+      nodes: [nas-1, nas-2]
+    chart:
+      default_period: 1 month
+
+  wiki-speedtest-merge:
+    type: wiki
+    name: null 
+    section: speedtest
+    mode: rail
+    doc: ../../docs/combinators/speedtest.md

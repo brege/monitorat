@@ -1,0 +1,7 @@
+widgets:
+  wiki-footer:
+    type: wiki
+    name: null 
+    mode: seamless
+    section: footer
+    doc: ../../../simple/docs/footer.md

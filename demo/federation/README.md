@@ -11,29 +11,16 @@ Federation aggregates data from multiple monitorat instances into a unified view
 
 Different widgets and widget features support different integrations.
 
-| widget | feature | stack | columnate | merge |
-| --- | --- | --- | --- | --- |
-| wiki | document | ✔ | ✔ | ✖ |
-| metrics | tiles | ✔ | ✔ | ✖ |
-| metrics | history | ~ | ✖ | ✔ |
-| services | cards  | ✔ | ✔ | ✔ |
-| reminders | cards | ✔ | ✔ | ✔ |
-| speedtest | chart/table | ~ | ✖ | ✔ |
-| network | tiles | ✔ | ✔ | ✖ |
-| network | uptime | ✔ | ✔ | ✖ |
-| network | outages | ✖ | ✔ | ✔ |
+| widget    | feature       | description |
+|:--------- |:------------- |:----------- |
+| wiki      | fragments     | pull markdown from multiple remotes |
+| metrics   | charts/tables | combine metrics data; multi-plot over time; filter by source |
+| services  | cards/compact | interleave status cards; sort by status |
+| reminders | cards         | interleave reminders; sort by severity, date, name, source |
+| speedtest | chart/table   | combine speedtest data; multi-plot over time; filter; run all |
+| network   | outages       | interleave ouages; sort by status type, date, source |
 
 Each federated widget declares its sources with, for example `federation.nodes: [nas-1, nas-2]`.
-
-## Display Strategies
-
-- **Stack** - Vertical sections
-- **Columnate** - Side-by-side columns
-- **Merge** - Combined or interleaved unified view
-
-**Stacking** can always be done by using consecutive widgets of the same type, perhaps broken down into features, stacking feature-by-feature.
-
-**Columnating** will only work on desktop. Mobile widgets and thin screens gracefully fall back to stacking when columnating is enabled.
 
 **Merging** is data-driven: it allows data from multiple hosts to be combined into a single chart.
 Merging can be used to interleave alerts and services cards, giving you a multi-sourced mix of apps and network failures, and reminders from a central command.
@@ -52,14 +39,4 @@ flowchart TB
 
 ## Configuration
 
-```yaml
-federation:
-  enabled: true
-  remotes:
-    - name: nas-1
-      url: http://localhost:6301
-      api_key: "secret"
-    - name: nas-2
-      url: http://localhost:6302
-      api_key: "secret"
-```
+{{ include:code path="snippets/federation.yaml" lang="yaml" }}

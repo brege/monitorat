@@ -1,3 +1,9 @@
+// ServicesSnapshot: Unified service renderer
+//
+// Handles both single-source and multi-source (federation) cases.
+// Single-source is the trivial case: one source, no badges.
+// Multi-source merges all services with source badges.
+
 class ServicesSnapshot {
   constructor (widget) {
     this.widget = widget
@@ -17,16 +23,26 @@ class ServicesSnapshot {
       this.clearCompactSizing()
     }
 
-    const strategy = this.widget.getDisplayStrategy()
-    const hasMergedSources = this.widget.config.federation?.nodes
+    const services = this.widget.filteredServices || this.widget.servicesData || []
+    const isMultiSource = this.hasMultipleSources(services)
+    const sorted = this.widget.sortServices(services)
 
-    if (hasMergedSources && strategy === 'stack') {
-      this.renderStacked(cardsContainer)
-    } else if (hasMergedSources && strategy === 'columnate') {
-      this.renderColumnate(cardsContainer)
-    } else {
-      this.renderMerged(cardsContainer)
+    if (!sorted.length) {
+      const info = document.createElement('p')
+      info.className = 'muted'
+      info.textContent = 'No services configured.'
+      cardsContainer.appendChild(info)
+      return
     }
+
+    sorted.forEach(service => {
+      cardsContainer.appendChild(this.createServiceCard(service, isMultiSource))
+    })
+  }
+
+  hasMultipleSources (services) {
+    const sources = new Set(services.map(s => s._source).filter(Boolean))
+    return sources.size > 1
   }
 
   applyCompactSizing () {
@@ -52,94 +68,20 @@ class ServicesSnapshot {
     container.style.removeProperty('--service-compact-dot-offset')
   }
 
-  renderMerged (container) {
-    const sorted = this.widget.sortServices(this.widget.servicesData)
-    sorted.forEach(service => {
-      container.appendChild(this.createServiceCard(service))
-    })
-  }
-
-  renderStacked (container) {
-    const sources = this.widget.config.federation?.nodes || []
-    const wrapper = document.createElement('div')
-    wrapper.className = 'federation-stacked'
-
-    sources.forEach(source => {
-      const sourceServices = this.widget.servicesData.filter(service => service._source === source)
-      if (sourceServices.length === 0) return
-
-      const section = document.createElement('div')
-      section.className = 'federation-stack-section'
-
-      const header = document.createElement('h4')
-      header.className = 'federation-source-header'
-      header.textContent = source
-      section.appendChild(header)
-
-      const grid = document.createElement('div')
-      grid.className = 'service-grid-inner'
-      if (this.widget.getDisplayMode() === 'compact') {
-        grid.classList.add('compact')
-      }
-      const sorted = this.widget.sortServices(sourceServices)
-      sorted.forEach(service => {
-        grid.appendChild(this.createServiceCard(service))
-      })
-      section.appendChild(grid)
-
-      wrapper.appendChild(section)
-    })
-
-    container.appendChild(wrapper)
-  }
-
-  renderColumnate (container) {
-    const sources = this.widget.config.federation?.nodes || []
-    const columns = document.createElement('div')
-    columns.className = 'federation-columns'
-
-    sources.forEach(source => {
-      const sourceServices = this.widget.servicesData.filter(service => service._source === source)
-      const column = document.createElement('div')
-      column.className = 'federation-column'
-
-      const header = document.createElement('h4')
-      header.className = 'federation-source-header'
-      header.textContent = source
-      column.appendChild(header)
-
-      const grid = document.createElement('div')
-      grid.className = 'service-grid-inner'
-      if (this.widget.getDisplayMode() === 'compact') {
-        grid.classList.add('compact')
-      }
-      const sorted = this.widget.sortServices(sourceServices)
-      sorted.forEach(service => {
-        grid.appendChild(this.createServiceCard(service))
-      })
-      column.appendChild(grid)
-
-      columns.appendChild(column)
-    })
-
-    container.appendChild(columns)
-  }
-
-  createServiceCard (service) {
+  createServiceCard (service, showBadge) {
     const card = document.createElement('div')
     const mode = this.widget.getDisplayMode()
-    const hasBadge = this.widget.config.remote || service._source
+    const hasBadge = showBadge && service._source
     const baseClass = mode === 'compact' ? 'service-card compact' : 'service-card card status-card hover-expand-parent'
     card.className = `${baseClass}${hasBadge ? ' has-badge' : ''}`
     card.setAttribute('data-service-key', service._key)
     card.setAttribute('data-service-source', service._source || '')
 
     if (hasBadge) {
-      const sourceName = service._source || this.widget.config.remote
       const badge = document.createElement('span')
-      badge.className = `federation-source-badge federation-source-${sourceName}`
-      badge.textContent = sourceName
-      badge.title = `Source: ${sourceName}`
+      badge.className = `source-badge source-${service._source}`
+      badge.textContent = service._source
+      badge.title = `Source: ${service._source}`
       card.appendChild(badge)
     }
 
@@ -169,8 +111,15 @@ class ServicesSnapshot {
     card.appendChild(info)
 
     if (mode === 'compact') {
-      const statusDot = document.createElement('span')
+      const statusDot = document.createElement('button')
+      statusDot.type = 'button'
       statusDot.className = 'service-status-dot'
+      statusDot.title = 'Service details'
+      statusDot.setAttribute('aria-label', `Service details for ${service.name}`)
+      statusDot.addEventListener('click', (event) => {
+        event.stopPropagation()
+        this.modal.open(service)
+      })
       card.appendChild(statusDot)
     } else {
       const infoBtn = document.createElement('button')
@@ -192,7 +141,7 @@ class ServicesSnapshot {
         longPressTriggered = false
         return
       }
-      if (event.target.closest('.service-info-btn')) {
+      if (event.target.closest('.service-info-btn') || event.target.closest('.service-status-dot')) {
         return
       }
       const useLocal = event.shiftKey && (event.ctrlKey || event.metaKey)

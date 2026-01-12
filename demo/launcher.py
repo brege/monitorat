@@ -43,6 +43,12 @@ NODES = {
         "port": 6400,
         "is_head": True,
     },
+    "layout": {
+        "name": "layout",
+        "config": DEMO_DIR / "layout" / "config.yaml",
+        "port": 6500,
+        "is_head": True,
+    },
     "central": {
         "name": "central",
         "config": DEMO_DIR / "federation" / "central" / "config.yaml",
@@ -67,6 +73,7 @@ MODES = {
     "simple": ["simple"],
     "advanced": ["advanced"],
     "editor": ["editor"],
+    "layout": ["layout"],
     "federation": ["nas-1", "nas-2", "central"],
 }
 

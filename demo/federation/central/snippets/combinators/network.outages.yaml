@@ -1,7 +1,8 @@
 widgets:
   network-outages-merge:
     type: network
-    name: "Network: Outages Merged"
+    name: null 
+    section: network
     collapsible: true
     log_file: network.log
     chirper:
@@ -10,8 +11,6 @@ widgets:
       mode: ipv4
     federation:
       nodes: [nas-1, nas-2]
-      display:
-        outages: merge
     metrics:
       show: false
     uptime:
@@ -22,8 +21,7 @@ widgets:
 
   wiki-network-outages-merge:
     type: wiki
-    name: "Config: Outages Merged"
-    parent: network-outages-merge
+    name: null 
+    section: network
     mode: rail
-    _suppressHeader: true
-    doc: ../../../docs/network/outages/merge.md
+    doc: ../../docs/combinators/network.outages.md

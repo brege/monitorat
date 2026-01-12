@@ -1,7 +1,8 @@
 ---
 widgets:
   services:
-    name: Services
+    section: services
+    name: null
     collapsible: true
     hidden: false
     items:

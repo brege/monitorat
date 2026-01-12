@@ -1,7 +1,8 @@
 ---
 widgets:
   speedtest:
-    name: Speedtests
+    section: speedtest
+    name: null
     periods: [1 year, 1 month, 1 week]
     default: chart
     table:

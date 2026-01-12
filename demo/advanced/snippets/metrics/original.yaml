@@ -2,7 +2,7 @@ widgets:
   metrics-curve-unprocessed:
     type: metrics
     name: "Metrics: History - Unprocessed"
-    collapsible: true
+    section: metrics
     show:
       tiles: false
       history: true
@@ -17,7 +17,6 @@ widgets:
   wiki-metrics-curve-unprocessed:
     type: wiki
     name: "Config: Unprocessed"
-    parent: metrics-curve-unprocessed
-    _suppressHeader: true
+    section: metrics
     mode: rail
     doc: ../../docs/metrics/original.md

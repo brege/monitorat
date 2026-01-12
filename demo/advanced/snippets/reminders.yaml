@@ -2,12 +2,11 @@ widgets:
   reminders-single:
     type: reminders
     name: "Reminders"
-    collapsible: true
+    section: reminders
 
   wiki-reminders-single:
     type: wiki
     name: "Config: Reminders"
-    parent: reminders-single
-    _suppressHeader: true
+    section: reminders
     mode: rail
     doc: ../docs/reminders/full.md

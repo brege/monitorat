@@ -29,6 +29,16 @@ class SpeedtestWidget {
     }
   }
 
+  initializeFeatureHeaders () {
+    const features = this.config.features || {}
+    for (const [featureId, featureConfig] of Object.entries(features)) {
+      const headerEl = this.container.querySelector(`[data-speedtest-section-header="${featureId}"]`)
+      if (headerEl && featureConfig.header) {
+        headerEl.textContent = featureConfig.header
+      }
+    }
+  }
+
   getApiBase () {
     return this.config._apiPrefix ? `api/${this.config._apiPrefix}` : 'api/speedtest'
   }
@@ -92,6 +102,7 @@ class SpeedtestWidget {
     container.innerHTML = html
 
     this.applyVisibilityConfig()
+    this.initializeFeatureHeaders()
     await this.loadFeatureScripts()
     this.initializeFeatures()
 

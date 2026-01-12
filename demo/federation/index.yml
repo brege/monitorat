@@ -15,67 +15,29 @@ documents:
     epilogue: |-
       Columnate mode displays wikis side-by-side. Columns fall back to
       stacking on mobile or very thin viewports.
-  - output: demo/federation/central/docs/metrics/each.md
-    include: snippets/metrics/each.yaml
-    epilogue: Per-remote widgets for independent display.
-  - output: demo/federation/central/docs/metrics/tiles/stack.md
-    include: snippets/metrics/tiles/stack.yaml
-    epilogue: Shows metrics tiles stacked by node.
-  - output: demo/federation/central/docs/metrics/tiles/column.md
-    include: snippets/metrics/tiles/column.yaml
-    epilogue: Shows metrics tiles in columns by node. Will fall back to stacking on mobile.
-  - output: demo/federation/central/docs/metrics/history/stack.md
-    include: snippets/metrics/history/stack.yaml
-    epilogue: Shows metrics history stacked by node.
-  - output: demo/federation/central/docs/metrics/history/merge.md
-    include: snippets/metrics/history/merge.yaml
+ 
+  - output: demo/federation/central/docs/combinators/network.outages.md
+    include: snippets/combinators/network.outages.yaml
+    epilogue: |- 
+      Network outages merged from multiple sources into a single timeline with
+      source badges and filter controls.
+  - output: demo/federation/central/docs/combinators/speedtest.md
+    include: snippets/combinators/speedtest.yaml
     epilogue: |-
-      Shows metrics history merged across nodes (just full widget calls
-      for each node).
-  - output: demo/federation/central/docs/network/combined.md
-    include: snippets/network/combined.yaml
+      Speedtest plots download and upload speed from multiple sources over time.
+  - output: demo/federation/central/docs/combinators/metrics.history.md
+    include: snippets/combinators/metrics.history.yaml
     epilogue: |-
-      Network has per-feature display control: `tiles`, `uptime`,
-      `outages`. This example shows all of them together.
-  - output: demo/federation/central/docs/network/tiles/stack.md
-    include: snippets/network/tiles/stack.yaml
-    epilogue: Shows network tiles stacked by node.
-  - output: demo/federation/central/docs/network/tiles/column.md
-    include: snippets/network/tiles/column.yaml
-    epilogue: Shows network tiles in columns by node. Will fall back to stacking on mobile.
-  - output: demo/federation/central/docs/network/uptime/stack.md
-    include: snippets/network/uptime/stack.yaml
-    epilogue: Shows network uptime pills stacked by node.
-  - output: demo/federation/central/docs/network/uptime/column.md
-    include: snippets/network/uptime/column.yaml
-    epilogue: Shows network uptime in columns by node. Will fall back to stacking on mobile.
-  - output: demo/federation/central/docs/network/outages/column.md
-    include: snippets/network/outages/column.yaml
-    epilogue: Shows network outages in columns by node. Will fall back to stacking on mobile.
-  - output: demo/federation/central/docs/network/outages/merge.md
-    include: snippets/network/outages/merge.yaml
+      Shows metrics history merged across nodes with multi-source chart
+      overlay.
+  - output: demo/federation/central/docs/combinators/services.md
+    include: snippets/combinators/services.yaml
+    epilogue: |- 
+      Shows services cards merged into a single grid with source badges. Allows
+      for filtering by status and name.
+  - output: demo/federation/central/docs/combinators/reminders.md
+    include: snippets/combinators/reminders.yaml
     epilogue: |-
-      Merged outages are sorted by time across all sources. This
-      example shows network outages from multiple sources merged into
-      a single list.
-  - output: demo/federation/central/docs/services/stack.md
-    include: snippets/services/stack.yaml
-    epilogue: Shows services stacked by node.
-  - output: demo/federation/central/docs/services/merge.md
-    include: snippets/services/merge.yaml
-    epilogue: Shows services merged into a single list.
-  - output: demo/federation/central/docs/services/column.md
-    include: snippets/services/column.yaml
-    epilogue: Shows services in columns by node. Will fall back to stacking on mobile.
-  - output: demo/federation/central/docs/reminders/stack.md
-    include: snippets/reminders/stack.yaml
-    epilogue: Shows reminders stacked by node.
-  - output: demo/federation/central/docs/reminders/merge.md
-    include: snippets/reminders/merge.yaml
-    epilogue: Shows reminders merged into a single list.
-  - output: demo/federation/central/docs/reminders/column.md
-    include: snippets/reminders/column.yaml
-    epilogue: Shows reminders in columns by node. Will fall back to stacking on mobile.
-  - output: demo/federation/central/docs/speedtest/merge.md
-    include: snippets/speedtest/merge.yaml
-    epilogue: Speedtest merges chart and table data; run buttons are stacked.
+      Interleaves reminders from multiple sources into a single timeline. Can
+      sort by due dae, last touched, name and can send notifications configured
+      from each source ([Apprise](https://github.com/caronc/apprise)).

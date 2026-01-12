@@ -1,0 +1,9 @@
+defaults:
+  summary: Show config
+  lang: yaml
+documents:
+  - output: demo/layout/docs/speedtest.md
+    preface: |-
+      Speedtest widget has `min_width: 500` which bumps this wikidocument down
+      if it doesn't fit in the viewport.
+    include: snippets/section-3.yaml

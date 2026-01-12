@@ -2,7 +2,7 @@ widgets:
   speedtest-controls:
     type: speedtest
     name: "Speedtest: Controls"
-    collapsible: true
+    section: speedtest
     show:
       controls: true
       history: false
@@ -10,7 +10,6 @@ widgets:
   wiki-speedtest-controls:
     type: wiki
     name: "Config: Controls"
-    parent: speedtest-controls
-    _suppressHeader: true
+    section: speedtest
     mode: rail
     doc: ../../docs/speedtest/controls.md

@@ -1,0 +1,31 @@
+# Tiles row: metrics tiles + network tiles side by side
+# Uses section: to create full-width header above the column group
+widgets:
+  metrics-tiles-left:
+    type: metrics
+    name: System Metrics
+    group: section-1
+    section: section-1
+    columns: 2
+    position: 1
+    show:
+      tiles: true
+      history: false
+
+  network-tiles-right:
+    type: network
+    name: Network Stats
+    group: section-1
+    section: section-1
+    columns: 2
+    position: 2
+    log_file: network.log
+    chirper:
+      enabled: false
+      interval_seconds: 600
+    metrics:
+      show: true
+    uptime:
+      show: false
+    alerts:
+      show: false

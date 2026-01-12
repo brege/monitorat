@@ -2,7 +2,7 @@ widgets:
   metrics-tiles:
     type: metrics
     name: "Metrics: Tiles"
-    collapsible: true
+    section: metrics
     show:
       tiles: true
       history: false
@@ -10,7 +10,6 @@ widgets:
   wiki-metrics-tiles:
     type: wiki
     name: "Config: Tiles"
-    parent: metrics-tiles
-    _suppressHeader: true
+    section: metrics
     mode: rail
     doc: ../../docs/metrics/tiles.md

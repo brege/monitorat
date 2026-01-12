@@ -1,6 +1,9 @@
 <section class="metrics">
 <h2>System Metrics</h2>
 <style>
+.metrics {
+  --stat-stack-margin: 0;
+}
 .metrics-chart {
   margin: 1rem 0;
   overflow: hidden;
@@ -31,38 +34,13 @@
 }
 </style>
 
-<div class="stats">
-  <div class="stats-row primary">
-    <div class="stat status-card">
-      <span class="label">Uptime</span>
-      <span class="value" id="uptime-value">–</span>
-    </div>
-    <div class="stat status-card">
-      <span class="label">Load Average</span>
-      <span class="value" id="load-value">–</span>
-    </div>
-    <div class="stat status-card">
-      <span class="label">Memory Usage</span>
-      <span class="value" id="memory-value">–</span>
-    </div>
-    <div class="stat status-card">
-      <span class="label">Temperature</span>
-      <span class="value" id="temp-value">–</span>
-    </div>
-  </div>
-  <div class="stats-row dates">
-    <div class="stat status-card">
-      <span class="label">Disk Usage</span>
-      <span class="value" id="disk-value">–</span>
-    </div>
-    <div class="stat status-card">
-      <span class="label">NFS Storage</span>
-      <span class="value" id="storage-value">–</span>
-    </div>
-  </div>
-</div>
+<div class="feature-header" data-metrics-section-header="snapshot"></div>
 
-  <div class="metrics-history">
+<div class="stats" data-metrics="snapshot-tiles"></div>
+
+<div class="feature-header" data-metrics-section-header="history"></div>
+
+<div class="metrics-history">
     <div class="metrics-view-toggle" data-metrics="view-toggle" style="display: none;">
       <select class="alerts-toggle" data-metrics="node-select" style="display: none;">
       </select>

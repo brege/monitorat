@@ -3,12 +3,20 @@ widgets:
     name: Network Outages
     collapsible: true
     hidden: false
+    min_width: 340
     log_file: network.log  # relative to data path, or absolute if external
     external: false  # overrides chirper.enabled
     chirper:
       enabled: true
       interval_seconds: 300  # check IP every 5 minutes
       mode: ipv4  # or ipv6
+    features:
+      metrics:
+        header: "Statistics"
+      uptime:
+        header: "Uptime"
+      alerts:
+        header: "Outages"
     metrics:
       show: true
     uptime:

@@ -1,0 +1,63 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\title{Tile Row Packing Algorithm}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section*{Algorithm}
+
+\subsection*{Inputs}
+\begin{itemize}
+  \item Tile minimum widths: $(w_1, w_2, \ldots, w_n)$
+  \item Container width: $W$
+  \item Gap between tiles: $g$
+\end{itemize}
+
+\subsection*{Row Width}
+
+For a row containing indices $R$, the minimum required width is:
+\[
+\text{rowWidth}(R) = \sum_{i \in R} w_i + g \cdot (|R| - 1)
+\]
+
+A row is feasible if $\text{rowWidth}(R) \le W$.
+
+\subsection*{Objective (Score)}
+
+For a partition into rows $\mathcal{R} = \{R_1, R_2, \ldots, R_k\}$:
+
+\subsubsection*{Total Slack}
+\[
+S(\mathcal{R}) = \sum_{j=1}^{k} \bigl(W - \text{rowWidth}(R_j)\bigr)
+\]
+
+\subsubsection*{Singleton Penalty}
+If any $R_j$ has $|R_j| = 1$ and $k > 1$, add a large penalty:
+\[
+P(\mathcal{R}) = \lambda \cdot (\#\text{singleton rows})
+\]
+where $\lambda = W^2$.
+
+\subsubsection*{Score}
+\[
+\text{score}(\mathcal{R}) = S(\mathcal{R}) + P(\mathcal{R})
+\]
+
+\subsection*{Search Strategy}
+\begin{enumerate}
+  \item Enumerate all ordered row partitions (preserving tile order) where every row is feasible.
+  \item Select the partition with minimal score.
+  \item If the tile count is large, use a greedy fallback.
+\end{enumerate}
+
+\subsection*{Compaction}
+
+After packing, merge adjacent rows whenever their combined minimum width (plus a gap between the merged rows' boundary tiles) still fits within $W$.
+
+\end{document}

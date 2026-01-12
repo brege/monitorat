@@ -3,8 +3,9 @@
 .service-grid-inner { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
 .service-grid.compact { display: flex; flex-wrap: wrap; gap: 12px; }
 .service-grid-inner.compact { display: flex; flex-wrap: wrap; gap: 12px; }
-.service-grid > .federation-stacked,
-.service-grid > .federation-columns { grid-column: 1 / -1; }
+.service-grid > .layout-columns,
+.service-grid > .feature-header,
+.service-grid > .service-grid-inner { grid-column: 1 / -1; }
 .service-card { padding: 16px; display: flex; align-items: center; gap: 12px; min-height: 80px; cursor: pointer; touch-action: manipulation; -webkit-touch-callout: none; user-select: none; position: relative; }
 .service-card * { pointer-events: none; }
 .service-card { pointer-events: auto; }
@@ -20,7 +21,7 @@
 .service-card.compact .service-info { display: none; }
 .service-name { font-weight: 600; margin-bottom: 4px; }
 .service-status { font-size: 0.9rem; color: var(--text-muted); }
-.service-status-dot { width: var(--service-compact-dot-size); height: var(--service-compact-dot-size); border-radius: 999px; position: absolute; right: var(--service-compact-dot-offset); bottom: var(--service-compact-dot-offset); background: rgb(var(--status-unknown-rgb)); }
+.service-status-dot { pointer-events: auto; border: none; padding: 0; cursor: pointer; width: var(--service-compact-dot-size); height: var(--service-compact-dot-size); border-radius: 999px; position: absolute; right: var(--service-compact-dot-offset); bottom: var(--service-compact-dot-offset); background: rgb(var(--status-unknown-rgb)); }
 .service-card.status-ok .service-status-dot { background: rgb(var(--status-ok-rgb)); }
 .service-card.status-warning .service-status-dot,
 .service-card.status-warn .service-status-dot,
@@ -30,12 +31,13 @@
 .service-card.status-critical .service-status-dot { background: rgb(var(--status-critical-rgb)); }
 .service-card.status-unknown .service-status-dot,
 .service-card.status-never .service-status-dot { background: rgb(var(--status-unknown-rgb)); }
-.widget-controls { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.widget-controls { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 0.25rem; }
 .sort-direction-select { min-width: 5.5rem; }
 </style>
 
 <section class="services">
   <h2>Services</h2>
+  <div class="feature-header" data-services-section-header="services"></div>
   <div class="widget-controls">
     <select class="alerts-toggle services-sort-field">
       <option value="name">Name</option>
@@ -45,6 +47,7 @@
       <option value="asc">asc</option>
       <option value="desc">desc</option>
     </select>
+    <select class="alerts-toggle services-source-filter" aria-label="Node source" style="display: none;"></select>
   </div>
   <div class="service-grid"></div>
 </section>

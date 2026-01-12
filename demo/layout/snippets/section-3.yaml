@@ -1,0 +1,20 @@
+# Wiki sidebar: speedtest content + wiki notes
+widgets:
+  speedtest-main:
+    type: speedtest
+    name: Speedtest
+    group: section-3
+    section: section-3
+    min_width: 500
+    columns: 2
+    position: 1
+
+  wiki-sidebar:
+    type: wiki
+    name: Notes
+    group: section-3
+    section: section-3
+    columns: 2
+    position: 2
+    mode: rail
+    doc: ../docs/speedtest.md

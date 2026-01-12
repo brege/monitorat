@@ -1,0 +1,16 @@
+widgets:
+  reminders-merge:
+    type: reminders
+    name: null
+    section: reminders
+    collapsible: true
+    federation:
+      nodes: [nas-1, nas-2]
+    sort_by: due.desc
+
+  wiki-reminders-merge:
+    type: wiki
+    name: null 
+    section: reminders
+    mode: rail
+    doc: ../../docs/combinators/reminders.md

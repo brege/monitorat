@@ -5,9 +5,21 @@ class RemindersWidget {
     this.container = null
     this.remindersConfig = null
     this.config = config
+    this.selectedSource = 'all'
+    this.filteredReminders = null
     this.features = {
       controls: null,
       alerts: null
+    }
+  }
+
+  initializeFeatureHeaders () {
+    const features = this.config.features || {}
+    for (const [featureId, featureConfig] of Object.entries(features)) {
+      const headerEl = this.container.querySelector(`[data-reminders-section-header="${featureId}"]`)
+      if (headerEl && featureConfig.header) {
+        headerEl.textContent = featureConfig.header
+      }
     }
   }
 
@@ -67,6 +79,7 @@ class RemindersWidget {
       })
     }
 
+    this.initializeFeatureHeaders()
     await this.loadFeatureScripts()
     this.initializeFeatures()
     this.features.controls.initialize()
@@ -86,6 +99,7 @@ class RemindersWidget {
         const reminders = await response.json()
         this.remindersConfig = reminders
       }
+      this.updateSourceFilter()
       this.render()
     } catch (error) {
       console.error('Unable to load reminders:', error.message)
@@ -111,13 +125,11 @@ class RemindersWidget {
     )
 
     this.remindersConfig = results.flat()
-  }
-
-  getDisplayStrategy () {
-    return this.config.federation?.display?.cards || 'merge'
+    this.updateSourceFilter()
   }
 
   render () {
+    this.filteredReminders = this.getFilteredReminders()
     this.features.alerts.render()
   }
 
@@ -140,6 +152,29 @@ class RemindersWidget {
 
     this.features.controls = new ControlsFeature(this)
     this.features.alerts = new AlertsFeature(this)
+  }
+
+  getFilteredReminders () {
+    const reminders = this.remindersConfig || []
+    if (this.selectedSource === 'all') {
+      return reminders
+    }
+    return reminders.filter(reminder => reminder._source === this.selectedSource)
+  }
+
+  resolveSources () {
+    const configSources = this.config.federation?.nodes
+    if (configSources && Array.isArray(configSources)) {
+      return configSources
+    }
+    const sources = new Set((this.remindersConfig || []).map(reminder => reminder._source).filter(Boolean))
+    return Array.from(sources)
+  }
+
+  updateSourceFilter () {
+    if (!this.features.controls?.updateSources) return
+    const sources = this.resolveSources()
+    this.features.controls.updateSources(sources, this.selectedSource)
   }
 }
 
