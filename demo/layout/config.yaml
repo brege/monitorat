@@ -15,9 +15,9 @@ includes:
   - snippets/site.yaml
 
   # Layout examples
-  - snippets/tiles-row.yaml
-  - snippets/mixed-columns.yaml
-  - snippets/wiki-sidebar.yaml
+  - snippets/section-1.yaml
+  - snippets/section-2.yaml
+  - snippets/section-3.yaml
 
 demo: true
 

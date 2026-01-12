@@ -3,7 +3,8 @@ widgets:
   speedtest-main:
     type: speedtest
     name: Speedtest
-    group: content-sidebar
+    collapsible: true
+    group: section-3
     section: Performance
     min_width: 500
     columns: 2
@@ -13,9 +14,10 @@ widgets:
   wiki-sidebar:
     type: wiki
     name: Notes
-    group: content-sidebar
+    collapsible: true
+    group: section-3
     columns: 2
     position: 2
     collapsible: true
     mode: rail
-    doc: ../simple/docs/speedtest.md
+    doc: ../docs/speedtest.md

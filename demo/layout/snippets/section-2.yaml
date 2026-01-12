@@ -3,7 +3,7 @@ widgets:
   services-col:
     type: services
     name: Services
-    group: mixed-row
+    group: section-2
     section: Status
     columns: 2
     position: 1
@@ -14,7 +14,7 @@ widgets:
   reminders-col:
     type: reminders
     name: Reminders
-    group: mixed-row
+    group: section-2
     columns: 2
     position: 2
     collapsible: true
