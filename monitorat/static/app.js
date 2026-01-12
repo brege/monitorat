@@ -500,6 +500,15 @@ function createWidgetContainer (widgetName, widgetConfig, orderIndex) {
   } else {
     delete container.dataset.position
   }
+  if (widgetConfig?.min_width !== undefined && widgetConfig?.min_width !== null) {
+    const minWidthValue = Number(widgetConfig.min_width)
+    if (!Number.isFinite(minWidthValue)) {
+      throw new Error(`${widgetName} min_width must be a number`)
+    }
+    container.style.setProperty('--widget-min-width', `${minWidthValue}px`)
+  } else {
+    container.style.removeProperty('--widget-min-width')
+  }
   if (container.parentElement !== group) {
     group.appendChild(container)
   }

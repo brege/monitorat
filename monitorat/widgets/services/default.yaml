@@ -3,6 +3,7 @@ widgets:
     name: Services
     collapsible: true
     hidden: false
+    min_width: 240
     features:
       services:
         header: null

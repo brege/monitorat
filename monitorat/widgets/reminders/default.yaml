@@ -3,6 +3,7 @@ widgets:
     name: Reminders
     collapsible: true
     hidden: false
+    min_width: 260
     features:
       reminders:
         header: null

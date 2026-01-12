@@ -3,6 +3,7 @@ widgets:
     name: Speedtests
     collapsible: true
     hidden: false
+    min_width: 400
     features:
       history:
         header: null
@@ -12,7 +13,7 @@ widgets:
       - upload
       - ping
       - server
-      #- ip_address
+    # - ip_address
     metadata:
       field: server
       label: Server

@@ -5,6 +5,7 @@ widgets:
     name: Speedtest
     group: content-sidebar
     section: Performance
+    min_width: 500
     columns: 2
     position: 1
     collapsible: true

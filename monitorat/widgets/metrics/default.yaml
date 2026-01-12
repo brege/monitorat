@@ -3,6 +3,7 @@ widgets:
     name: System Metrics
     collapsible: true  # show hide/show toggle (default: false)
     hidden: false  # start collapsed (default: false)
+    min_width: 400
     features:
       snapshot:
         header: "Current Status"
