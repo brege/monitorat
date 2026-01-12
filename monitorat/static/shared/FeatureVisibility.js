@@ -1,32 +1,33 @@
-class FeatureVisibility {
-  static apply (container, showConfig, featureMap) {
-    if (!container || !featureMap) return
+const FeatureVisibility = {
+  apply(container, showConfig, featureMap) {
+    if (!container || !featureMap) return;
 
-    const config = showConfig || {}
+    const config = showConfig || {};
 
     for (const [feature, selector] of Object.entries(featureMap)) {
-      const element = typeof selector === 'string'
-        ? container.querySelector(selector)
-        : selector
+      const element =
+        typeof selector === 'string'
+          ? container.querySelector(selector)
+          : selector;
 
-      if (!element) continue
+      if (!element) continue;
 
-      const isVisible = config[feature] !== false
+      const isVisible = config[feature] !== false;
       if (isVisible) {
-        element.classList.remove('hidden')
-        element.style.display = ''
+        element.classList.remove('hidden');
+        element.style.display = '';
       } else {
-        element.classList.add('hidden')
-        element.style.display = 'none'
+        element.classList.add('hidden');
+        element.style.display = 'none';
       }
     }
-  }
+  },
 
-  static isVisible (showConfig, feature, defaultValue = true) {
-    if (!showConfig) return defaultValue
-    return showConfig[feature] !== false
-  }
-}
+  isVisible(showConfig, feature, defaultValue = true) {
+    if (!showConfig) return defaultValue;
+    return showConfig[feature] !== false;
+  },
+};
 
-window.monitorShared = window.monitorShared || {}
-window.monitorShared.FeatureVisibility = FeatureVisibility
+window.monitorShared = window.monitorShared || {};
+window.monitorShared.FeatureVisibility = FeatureVisibility;

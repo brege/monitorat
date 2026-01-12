@@ -1,70 +1,70 @@
 /* global Chart, getComputedStyle */
 class ChartManager {
-  constructor (config) {
-    this.canvasElement = config.canvasElement
-    this.containerElement = config.containerElement
-    this.height = config.height || '400px'
-    this.chartOptions = config.chartOptions || {}
-    this.dataUrl = config.dataUrl
-    this.dataParams = config.dataParams || {}
+  constructor(config) {
+    this.canvasElement = config.canvasElement;
+    this.containerElement = config.containerElement;
+    this.height = config.height || '400px';
+    this.chartOptions = config.chartOptions || {};
+    this.dataUrl = config.dataUrl;
+    this.dataParams = config.dataParams || {};
 
-    this.chart = null
-    this.chartInitPromise = null
+    this.chart = null;
+    this.chartInitPromise = null;
   }
 
-  ensureChart () {
+  ensureChart() {
     if (this.chart) {
-      return Promise.resolve()
+      return Promise.resolve();
     }
     if (this.chartInitPromise) {
-      return this.chartInitPromise
+      return this.chartInitPromise;
     }
     this.chartInitPromise = new Promise((resolve) => {
       const initialize = () => {
         if (!this.canvasElement || !window.Chart) {
-          this.chartInitPromise = null
-          resolve()
-          return
+          this.chartInitPromise = null;
+          resolve();
+          return;
         }
-        this.initChart()
-        this.chartInitPromise = null
-        resolve()
-      }
+        this.initChart();
+        this.chartInitPromise = null;
+        resolve();
+      };
 
       if (window.Chart) {
-        initialize()
+        initialize();
       } else {
-        const script = document.createElement('script')
-        script.src = 'vendors/chart.min.js'
-        script.onload = initialize
+        const script = document.createElement('script');
+        script.src = 'vendors/chart.min.js';
+        script.onload = initialize;
         script.onerror = () => {
-          console.error('Failed to load Chart.js')
-          this.chartInitPromise = null
-          resolve()
-        }
-        document.head.appendChild(script)
+          console.error('Failed to load Chart.js');
+          this.chartInitPromise = null;
+          resolve();
+        };
+        document.head.appendChild(script);
       }
-    })
-    return this.chartInitPromise
+    });
+    return this.chartInitPromise;
   }
 
-  initChart () {
-    if (!this.canvasElement || !window.Chart) return
+  initChart() {
+    if (!this.canvasElement || !window.Chart) return;
 
-    const height = parseInt(this.height)
-    this.containerElement.style.height = `${height}px`
-    this.containerElement.style.position = 'relative'
+    const height = Number.parseInt(this.height, 10);
+    this.containerElement.style.height = `${height}px`;
+    this.containerElement.style.position = 'relative';
 
     const defaultOptions = {
       responsive: true,
       maintainAspectRatio: false,
       interaction: {
         intersect: false,
-        mode: 'index'
+        mode: 'index',
       },
       plugins: {
         legend: {
-          display: false
+          display: false,
         },
         tooltip: {
           enabled: true,
@@ -75,118 +75,127 @@ class ChartManager {
           boxHeight: 12,
           boxPadding: 4,
           callbacks: {
-            labelColor: function (context) {
-              const color = context.dataset.borderColor
+            labelColor: (context) => {
+              const color = context.dataset.borderColor;
               return {
                 borderColor: color,
                 backgroundColor: color,
-                borderWidth: 0
-              }
-            }
-          }
-        }
+                borderWidth: 0,
+              };
+            },
+          },
+        },
       },
       layout: {
-        padding: { top: 4, right: 4, bottom: 0, left: 0 }
-      }
-    }
+        padding: { top: 4, right: 4, bottom: 0, left: 0 },
+      },
+    };
 
-    const ctx = this.canvasElement.getContext('2d')
+    const ctx = this.canvasElement.getContext('2d');
     this.chart = new Chart(ctx, {
       type: 'line',
       data: {
         labels: [],
-        datasets: []
+        datasets: [],
       },
-      options: ChartManager.mergeObjects(defaultOptions, this.chartOptions)
-    })
+      options: ChartManager.mergeObjects(defaultOptions, this.chartOptions),
+    });
   }
 
-  async loadData () {
-    if (!this.chart || !this.dataUrl) return
+  async loadData() {
+    if (!this.chart || !this.dataUrl) return;
 
     try {
-      const params = new URLSearchParams()
+      const params = new URLSearchParams();
       Object.entries(this.dataParams).forEach(([key, value]) => {
-        params.set(key, value)
-      })
-      params.set('ts', Date.now())
+        params.set(key, value);
+      });
+      params.set('ts', Date.now());
 
-      const response = await fetch(`${this.dataUrl}?${params.toString()}`, { cache: 'no-store' })
-      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      const response = await fetch(`${this.dataUrl}?${params.toString()}`, {
+        cache: 'no-store',
+      });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-      const chartData = await response.json()
-      this.chart.data = chartData
-      this.chart.update()
+      const chartData = await response.json();
+      this.chart.data = chartData;
+      this.chart.update();
     } catch (error) {
-      console.error('Failed to load chart data:', error)
+      console.error('Failed to load chart data:', error);
     }
   }
 
-  updateChart (data, scales = null) {
-    if (!this.chart) return
+  updateChart(data, scales = null) {
+    if (!this.chart) return;
 
-    this.chart.data = data
+    this.chart.data = data;
     if (scales) {
-      this.chart.options.scales = { ...this.chart.options.scales, ...scales }
+      this.chart.options.scales = { ...this.chart.options.scales, ...scales };
     }
-    this.chart.update()
+    this.chart.update();
   }
 
-  hasChart () {
-    return !!this.chart
+  hasChart() {
+    return !!this.chart;
   }
 
-  static withAlpha (color, alpha) {
+  static withAlpha(color, alpha) {
     if (typeof color !== 'string') {
-      return color
+      return color;
     }
-    const match = color.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/i)
+    const match = color.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/i);
     if (!match) {
-      return color
+      return color;
     }
-    const [, r, g, b] = match
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+    const [, r, g, b] = match;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
 
-  static computeMovingAverage (values, windowSize = 3) {
+  static computeMovingAverage(values, windowSize = 3) {
     if (!Array.isArray(values) || values.length === 0) {
-      return []
+      return [];
     }
 
-    const halfWindow = Math.max(1, Math.floor(windowSize / 2))
+    const halfWindow = Math.max(1, Math.floor(windowSize / 2));
     return values.map((value, index) => {
       if (!Number.isFinite(value)) {
-        return value
+        return value;
       }
 
-      let sum = 0
-      let count = 0
+      let sum = 0;
+      let count = 0;
       for (let offset = -halfWindow; offset <= halfWindow; offset += 1) {
-        const sampleIndex = index + offset
+        const sampleIndex = index + offset;
         if (sampleIndex < 0 || sampleIndex >= values.length) {
-          continue
+          continue;
         }
-        const sample = values[sampleIndex]
+        const sample = values[sampleIndex];
         if (Number.isFinite(sample)) {
-          sum += sample
-          count += 1
+          sum += sample;
+          count += 1;
         }
       }
 
       if (count === 0) {
-        return value
+        return value;
       }
 
-      return sum / count
-    })
+      return sum / count;
+    });
   }
 
-  static buildGhostedDatasets ({ label, color, rawValues, windowSize = 3 }) {
-    const smoothedValues = this.computeMovingAverage(rawValues, windowSize)
-    const computedStyle = getComputedStyle(document.documentElement)
-    const ghostColor = computedStyle.getPropertyValue('--color-ghost').trim() || 'rgba(148, 163, 184, 0.35)'
-    const ghostLightColor = computedStyle.getPropertyValue('--color-ghost-light').trim() || 'rgba(148, 163, 184, 0.08)'
+  static buildGhostedDatasets({ label, color, rawValues, windowSize = 3 }) {
+    const smoothedValues = ChartManager.computeMovingAverage(
+      rawValues,
+      windowSize,
+    );
+    const computedStyle = getComputedStyle(document.documentElement);
+    const ghostColor =
+      computedStyle.getPropertyValue('--color-ghost').trim() ||
+      'rgba(148, 163, 184, 0.35)';
+    const ghostLightColor =
+      computedStyle.getPropertyValue('--color-ghost-light').trim() ||
+      'rgba(148, 163, 184, 0.08)';
 
     return [
       {
@@ -201,13 +210,13 @@ class ChartManager {
         fill: false,
         tension: 0.15,
         spanGaps: true,
-        order: 0
+        order: 0,
       },
       {
         label,
         data: smoothedValues,
         borderColor: color,
-        backgroundColor: this.withAlpha(color, 0.12),
+        backgroundColor: ChartManager.withAlpha(color, 0.12),
         borderWidth: 3,
         pointRadius: 0,
         pointHoverRadius: 5,
@@ -215,126 +224,139 @@ class ChartManager {
         fill: true,
         tension: 0.25,
         spanGaps: true,
-        order: 1
-      }
-    ]
+        order: 1,
+      },
+    ];
   }
 
-  static filterDataByPeriod (data, period) {
+  static filterDataByPeriod(data) {
     // Filtering is now done server-side, return data as-is
-    return data
+    return data;
   }
 
-  static setView (view, elements, currentView, chartManager, onChartReady) {
-    const targetView = view === 'table' ? 'table' : view === 'none' ? 'none' : 'chart'
+  static setView(view, elements, currentView, chartManager, onChartReady) {
+    const targetView =
+      view === 'table' ? 'table' : view === 'none' ? 'none' : 'chart';
     if (currentView === targetView) {
-      return targetView
+      return targetView;
     }
 
     if (targetView === 'none') {
-      if (elements.viewToggle) elements.viewToggle.style.display = 'none'
-      if (elements.chartContainer) elements.chartContainer.style.display = 'none'
-      if (elements.tableContainer) elements.tableContainer.style.display = 'none'
-      return targetView
+      if (elements.viewToggle) elements.viewToggle.style.display = 'none';
+      if (elements.chartContainer)
+        elements.chartContainer.style.display = 'none';
+      if (elements.tableContainer)
+        elements.tableContainer.style.display = 'none';
+      return targetView;
     }
 
-    if (elements.viewToggle) elements.viewToggle.style.display = ''
+    if (elements.viewToggle) elements.viewToggle.style.display = '';
 
     if (targetView === 'chart') {
-      if (elements.chartContainer) elements.chartContainer.style.display = ''
-      if (elements.tableContainer) elements.tableContainer.style.display = 'none'
-      if (elements.viewChart) elements.viewChart.classList.add('active')
-      if (elements.viewTable) elements.viewTable.classList.remove('active')
+      if (elements.chartContainer) elements.chartContainer.style.display = '';
+      if (elements.tableContainer)
+        elements.tableContainer.style.display = 'none';
+      if (elements.viewChart) elements.viewChart.classList.add('active');
+      if (elements.viewTable) elements.viewTable.classList.remove('active');
       if (chartManager) {
         chartManager.ensureChart().then(() => {
           if (chartManager.hasChart() && targetView === 'chart') {
             if (onChartReady) {
-              onChartReady()
+              onChartReady();
             } else {
-              chartManager.loadData()
+              chartManager.loadData();
             }
           }
-        })
+        });
       }
     } else {
-      if (elements.chartContainer) elements.chartContainer.style.display = 'none'
-      if (elements.tableContainer) elements.tableContainer.style.display = ''
-      if (elements.viewChart) elements.viewChart.classList.remove('active')
-      if (elements.viewTable) elements.viewTable.classList.add('active')
+      if (elements.chartContainer)
+        elements.chartContainer.style.display = 'none';
+      if (elements.tableContainer) elements.tableContainer.style.display = '';
+      if (elements.viewChart) elements.viewChart.classList.remove('active');
+      if (elements.viewTable) elements.viewTable.classList.add('active');
     }
 
-    return targetView
+    return targetView;
   }
 
-  static cloneObject (value) {
+  static cloneObject(value) {
     if (Array.isArray(value)) {
-      return value.map(entry => this.cloneObject(entry))
+      return value.map((entry) => ChartManager.cloneObject(entry));
     }
     if (!value || typeof value !== 'object') {
-      return value
+      return value;
     }
     if (value.constructor !== Object) {
-      return value
+      return value;
     }
-    const cloned = {}
+    const cloned = {};
     Object.entries(value).forEach(([key, entry]) => {
-      cloned[key] = this.cloneObject(entry)
-    })
-    return cloned
+      cloned[key] = ChartManager.cloneObject(entry);
+    });
+    return cloned;
   }
 
-  static mergeObjects (baseObject, overrideObject) {
-    const merged = this.cloneObject(baseObject)
+  static mergeObjects(baseObject, overrideObject) {
+    const merged = ChartManager.cloneObject(baseObject);
     Object.entries(overrideObject || {}).forEach(([key, value]) => {
-      if (value && typeof value === 'object' && !Array.isArray(value) && value.constructor === Object) {
-        merged[key] = this.mergeObjects(merged[key] || {}, value)
+      if (
+        value &&
+        typeof value === 'object' &&
+        !Array.isArray(value) &&
+        value.constructor === Object
+      ) {
+        merged[key] = ChartManager.mergeObjects(merged[key] || {}, value);
       } else {
-        merged[key] = value
+        merged[key] = value;
       }
-    })
-    return merged
+    });
+    return merged;
   }
 
-  static buildScalesFromSchema (axes = {}, overrides = {}) {
-    const scales = {}
+  static buildScalesFromSchema(axes = {}, overrides = {}) {
+    const scales = {};
 
     const minimalAxisDefaults = {
       ticks: {
         font: { size: 10, weight: '500' },
         maxTicksLimit: 4,
-        padding: 0
+        padding: 0,
       },
       title: {
         display: false,
         font: { size: 10, weight: '500' },
-        padding: { top: 0, bottom: 0 }
+        padding: { top: 0, bottom: 0 },
       },
       grid: {
-        drawTicks: true
-      }
-    }
+        drawTicks: true,
+      },
+    };
 
     const xAxisDefaults = {
       ...minimalAxisDefaults,
       ticks: {
         ...minimalAxisDefaults.ticks,
-        maxRotation: 0
-      }
-    }
+        maxRotation: 0,
+      },
+    };
 
     Object.entries(axes || {}).forEach(([scaleId, config]) => {
-      const cloned = this.cloneObject(config)
-      const defaults = scaleId === 'x' ? xAxisDefaults : minimalAxisDefaults
-      scales[scaleId] = this.mergeObjects(defaults, cloned)
-    })
+      const cloned = ChartManager.cloneObject(config);
+      const defaults = scaleId === 'x' ? xAxisDefaults : minimalAxisDefaults;
+      scales[scaleId] = ChartManager.mergeObjects(defaults, cloned);
+    });
 
     Object.entries(overrides || {}).forEach(([scaleId, overrideConfig]) => {
-      scales[scaleId] = this.mergeObjects(scales[scaleId] || {}, overrideConfig)
-    })
+      scales[scaleId] = ChartManager.mergeObjects(
+        scales[scaleId] || {},
+        overrideConfig,
+      );
+    });
 
-    return scales
+    return scales;
   }
 }
 
-window.monitorShared = window.monitorShared || {}
-window.monitorShared.ChartManager = ChartManager
+window.monitorShared = window.monitorShared || {};
+window.monitorShared.ChartManager = ChartManager;

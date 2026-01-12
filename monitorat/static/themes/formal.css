@@ -7,7 +7,8 @@
   --font-heading: "Georgia", "Times New Roman", serif;
   --font-body: var(--font-ui);
   --font-ui: system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-mono:
+    "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   --theme-bg-body-light: rgb(247, 241, 232);
   --theme-bg-surface-light: rgb(247, 241, 232);
@@ -68,7 +69,12 @@ body {
   letter-spacing: 0.01em;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-heading);
   font-weight: 400;
   letter-spacing: 0.02em;
@@ -361,7 +367,7 @@ summary {
 }
 
 .network-container .uptime-pills::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 0;
@@ -382,7 +388,6 @@ summary {
   position: relative;
   z-index: 1;
 }
-
 
 /* Remove top margin from first element in wiki columns */
 .layout-column .markdown-body :first-child,

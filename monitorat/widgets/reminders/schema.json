@@ -8,8 +8,16 @@
   "fields": [
     { "field": "id", "label": "ID" },
     { "field": "name", "label": "Name" },
-    { "field": "status", "label": "Status", "values": ["ok", "warning", "expired", "never"] },
-    { "field": "days_remaining", "label": "Days Remaining", "format": "number" },
+    {
+      "field": "status",
+      "label": "Status",
+      "values": ["ok", "warning", "expired", "never"]
+    },
+    {
+      "field": "days_remaining",
+      "label": "Days Remaining",
+      "format": "number"
+    },
     { "field": "last_touch", "label": "Last Touch", "format": "datetime" }
   ],
   "endpoints": {

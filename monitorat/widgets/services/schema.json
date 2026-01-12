@@ -37,14 +37,24 @@
         "1": { "status": "error" }
       },
       "stderrContains": {
-        "failed to connect": { "status": "error", "reason": "Failed to connect to bus" },
-        "no such file or directory": { "status": "error", "reason": "No such file or directory" }
+        "failed to connect": {
+          "status": "error",
+          "reason": "Failed to connect to bus"
+        },
+        "no such file or directory": {
+          "status": "error",
+          "reason": "No such file or directory"
+        }
       }
     }
   },
   "fields": [
     { "field": "name", "label": "Service Name" },
-    { "field": "status", "label": "Status", "values": ["online", "offline", "partial", "unknown"] },
+    {
+      "field": "status",
+      "label": "Status",
+      "values": ["online", "offline", "partial", "unknown"]
+    },
     { "field": "url", "label": "URL" },
     { "field": "local_url", "label": "Local URL" }
   ],

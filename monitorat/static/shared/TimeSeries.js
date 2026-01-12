@@ -1,205 +1,261 @@
-class DataFormatter {
-  static formatTimestamp (value) {
-    return this.formatDate(value, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit'
-    }, 'Unknown')
-  }
+const DataFormatter = {
+  formatTimestamp(value) {
+    return DataFormatter.formatDate(
+      value,
+      {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      },
+      'Unknown',
+    );
+  },
 
-  static formatMbps (value, decimals = 2) {
-    const num = Number(value)
-    if (!Number.isFinite(num)) return '–'
-    return (num / 1_000_000).toFixed(decimals)
-  }
+  formatMbps(value, decimals = 2) {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return '–';
+    return (num / 1_000_000).toFixed(decimals);
+  },
 
-  static formatPing (value, decimals = 1) {
-    const num = Number(value)
-    if (!Number.isFinite(num)) return '–'
-    const text = num.toFixed(decimals)
-    return decimals === 1 && text.endsWith('.0') ? text.slice(0, -2) : text
-  }
+  formatPing(value, decimals = 1) {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return '–';
+    const text = num.toFixed(decimals);
+    return decimals === 1 && text.endsWith('.0') ? text.slice(0, -2) : text;
+  },
 
-  static formatNumber (value, decimals = 1) {
-    const num = Number(value)
-    if (!Number.isFinite(num)) return '–'
-    const text = num.toFixed(decimals)
-    return decimals === 1 && text.endsWith('.0') ? text.slice(0, -2) : text
-  }
+  formatNumber(value, decimals = 1) {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return '–';
+    const text = num.toFixed(decimals);
+    return decimals === 1 && text.endsWith('.0') ? text.slice(0, -2) : text;
+  },
 
-  static formatTime (timestamp) {
-    return this.formatDate(timestamp, {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit'
-    }, 'Unknown')
-  }
+  formatTime(timestamp) {
+    return DataFormatter.formatDate(
+      timestamp,
+      {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      },
+      'Unknown',
+    );
+  },
 
-  static formatDate (value, options, fallback = 'Unknown') {
-    if (!value) return fallback
-    const date = new Date(value)
-    if (Number.isNaN(date.getTime())) return value
-    return date.toLocaleString(undefined, options)
-  }
+  formatDate(value, options, fallback = 'Unknown') {
+    if (!value) return fallback;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString(undefined, options);
+  },
 
-  static formatPeriodLabel (period) {
-    if (typeof period !== 'string') return period
-    const match = period.match(/^1\s+(hour|day|week|month|year)s?$/i)
+  formatPeriodLabel(period) {
+    if (typeof period !== 'string') return period;
+    const match = period.match(/^1\s+(hour|day|week|month|year)s?$/i);
     if (match) {
-      return match[1].toLowerCase()
+      return match[1].toLowerCase();
     }
-    return period
-  }
+    return period;
+  },
 
-  static selectByAttribute (container, attributeName, values) {
-    const result = {}
+  selectByAttribute(container, attributeName, values) {
+    const result = {};
     for (const value of values) {
-      result[value] = container.querySelector(`[${attributeName}="${value}"]`)
+      result[value] = container.querySelector(`[${attributeName}="${value}"]`);
     }
-    return result
-  }
+    return result;
+  },
 
-  static formatBySchema (value, metricSchema = {}) {
-    if (value === null || value === undefined) return '–'
+  formatBySchema(value, metricSchema = {}) {
+    if (value === null || value === undefined) return '–';
 
-    const unit = typeof metricSchema.unit === 'string' ? metricSchema.unit : ''
-    const formatType = metricSchema.format || 'number'
-    const decimals = Number.isFinite(metricSchema.decimals) ? metricSchema.decimals : 1
+    const unit = typeof metricSchema.unit === 'string' ? metricSchema.unit : '';
+    const formatType = metricSchema.format || 'number';
+    const decimals = Number.isFinite(metricSchema.decimals)
+      ? metricSchema.decimals
+      : 1;
 
     if (formatType === 'mbps') {
-      const formattedMbps = this.formatNumber(value / 1_000_000, Number.isFinite(metricSchema.decimals) ? metricSchema.decimals : 2)
-      return formattedMbps === '–' ? formattedMbps : `${formattedMbps}${unit}`
+      const formattedMbps = DataFormatter.formatNumber(
+        value / 1_000_000,
+        Number.isFinite(metricSchema.decimals) ? metricSchema.decimals : 2,
+      );
+      return formattedMbps === '–' ? formattedMbps : `${formattedMbps}${unit}`;
     }
 
     if (formatType === 'ping') {
-      const formattedPing = this.formatPing(value, decimals)
-      return formattedPing === '–' ? formattedPing : `${formattedPing}${unit}`
+      const formattedPing = DataFormatter.formatPing(value, decimals);
+      return formattedPing === '–' ? formattedPing : `${formattedPing}${unit}`;
     }
 
-    const formattedNumber = this.formatNumber(value, decimals)
-    return formattedNumber === '–' ? formattedNumber : `${formattedNumber}${unit}`
-  }
-}
+    const formattedNumber = DataFormatter.formatNumber(value, decimals);
+    return formattedNumber === '–'
+      ? formattedNumber
+      : `${formattedNumber}${unit}`;
+  },
+};
 
-class TimeSeriesHandler {
-  static buildConfig (defaults, widgetConfig = {}, overrides = {}) {
-    const merged = { ...defaults, ...widgetConfig, ...overrides }
-    const table = { ...defaults.table, ...(widgetConfig.table || {}), ...(overrides.table || {}) }
-    const chart = { ...defaults.chart, ...(widgetConfig.chart || {}), ...(overrides.chart || {}) }
-    const periods = Array.isArray(merged.periods) ? [...merged.periods] : Array.isArray(defaults.periods) ? [...defaults.periods] : []
+const TimeSeriesHandler = {
+  buildConfig(defaults, widgetConfig = {}, overrides = {}) {
+    const merged = { ...defaults, ...widgetConfig, ...overrides };
+    const table = {
+      ...defaults.table,
+      ...(widgetConfig.table || {}),
+      ...(overrides.table || {}),
+    };
+    const chart = {
+      ...defaults.chart,
+      ...(widgetConfig.chart || {}),
+      ...(overrides.chart || {}),
+    };
+    const periods = Array.isArray(merged.periods)
+      ? [...merged.periods]
+      : Array.isArray(defaults.periods)
+        ? [...defaults.periods]
+        : [];
 
     return {
       ...merged,
       name: typeof merged.name !== 'undefined' ? merged.name : defaults.name,
-      default: typeof merged.default === 'string' ? merged.default : defaults.default,
+      default:
+        typeof merged.default === 'string' ? merged.default : defaults.default,
       table,
       chart,
-      periods
-    }
-  }
+      periods,
+    };
+  },
 
-  static setupPeriodSelect (selectElement, periods, selectedPeriod, onChange) {
-    if (!selectElement) return
+  setupPeriodSelect(selectElement, periods, selectedPeriod, onChange) {
+    if (!selectElement) return;
 
-    selectElement.innerHTML = ''
-    const allOption = document.createElement('option')
-    allOption.value = 'all'
-    allOption.textContent = 'All'
-    selectElement.appendChild(allOption)
+    selectElement.innerHTML = '';
+    const allOption = document.createElement('option');
+    allOption.value = 'all';
+    allOption.textContent = 'All';
+    selectElement.appendChild(allOption);
 
     if (Array.isArray(periods)) {
       for (const period of periods) {
-        const option = document.createElement('option')
-        option.value = period
-        option.textContent = DataFormatter.formatPeriodLabel(period)
-        selectElement.appendChild(option)
+        const option = document.createElement('option');
+        option.value = period;
+        option.textContent = DataFormatter.formatPeriodLabel(period);
+        selectElement.appendChild(option);
       }
     }
 
-    selectElement.value = selectedPeriod
+    selectElement.value = selectedPeriod;
     if (typeof onChange === 'function') {
-      selectElement.addEventListener('change', (event) => onChange(event.target.value))
+      selectElement.addEventListener('change', (event) =>
+        onChange(event.target.value),
+      );
     }
-  }
+  },
 
-  static setView ({ view, currentView, container, attributeName, chartManager, onChartReady, controlsForChart = [] }) {
-    const q = (name) => container?.querySelector(`[${attributeName}="${name}"]`)
+  setView({
+    view,
+    currentView,
+    container,
+    attributeName,
+    chartManager,
+    onChartReady,
+    controlsForChart = [],
+  }) {
+    const q = (name) =>
+      container?.querySelector(`[${attributeName}="${name}"]`);
     const elements = {
       viewToggle: q('view-toggle'),
       chartContainer: q('chart-container'),
       tableContainer: q('table-container'),
       viewChart: q('view-chart'),
-      viewTable: q('view-table')
-    }
+      viewTable: q('view-table'),
+    };
 
-    const nextView = window.monitorShared.ChartManager.setView(view, {
-      viewToggle: elements.viewToggle,
-      chartContainer: elements.chartContainer,
-      tableContainer: elements.tableContainer,
-      viewChart: elements.viewChart,
-      viewTable: elements.viewTable
-    }, currentView, chartManager, onChartReady)
+    const nextView = window.monitorShared.ChartManager.setView(
+      view,
+      {
+        viewToggle: elements.viewToggle,
+        chartContainer: elements.chartContainer,
+        tableContainer: elements.tableContainer,
+        viewChart: elements.viewChart,
+        viewTable: elements.viewTable,
+      },
+      currentView,
+      chartManager,
+      onChartReady,
+    );
 
-    const showControls = nextView === 'chart'
+    const showControls = nextView === 'chart';
     controlsForChart.filter(Boolean).forEach((element) => {
-      element.style.display = showControls ? '' : 'none'
-    })
+      element.style.display = showControls ? '' : 'none';
+    });
 
-    return nextView
-  }
+    return nextView;
+  },
 
-  static updateViewToggle ({ container, attributeName, hasEntries, currentView, defaultViewSetter }) {
-    const toggle = container.querySelector(`[${attributeName}="view-toggle"]`)
-    if (!toggle) return currentView
+  updateViewToggle({
+    container,
+    attributeName,
+    hasEntries,
+    currentView,
+    defaultViewSetter,
+  }) {
+    const toggle = container.querySelector(`[${attributeName}="view-toggle"]`);
+    if (!toggle) return currentView;
 
     if (!hasEntries) {
-      toggle.style.display = 'none'
-      return currentView
+      toggle.style.display = 'none';
+      return currentView;
     }
 
-    toggle.style.display = ''
+    toggle.style.display = '';
     if (!currentView && typeof defaultViewSetter === 'function') {
-      return defaultViewSetter()
+      return defaultViewSetter();
     }
 
-    return currentView
-  }
+    return currentView;
+  },
 
-  static formatTableRow ({ entry, metricFields = [], metadataField, metadataFields = [] }) {
-    const row = [DataFormatter.formatTimestamp(entry.timestamp)]
+  formatTableRow({
+    entry,
+    metricFields = [],
+    metadataField,
+    metadataFields = [],
+  }) {
+    const row = [DataFormatter.formatTimestamp(entry.timestamp)];
 
     for (const metric of metricFields) {
-      row.push(DataFormatter.formatBySchema(entry[metric.field], metric))
+      row.push(DataFormatter.formatBySchema(entry[metric.field], metric));
     }
 
-    const metadataFieldName = metadataField || null
+    const metadataFieldName = metadataField || null;
     if (metadataFieldName) {
-      row.push(entry.source || entry[metadataFieldName] || '')
+      row.push(entry.source || entry[metadataFieldName] || '');
     }
 
     if (Array.isArray(metadataFields)) {
       for (const field of metadataFields) {
-        const fieldName = typeof field === 'string' ? field : field?.field
-        if (!fieldName) continue
-        if (fieldName === metadataFieldName) continue
-        row.push(entry[fieldName] || '')
+        const fieldName = typeof field === 'string' ? field : field?.field;
+        if (!fieldName) continue;
+        if (fieldName === metadataFieldName) continue;
+        row.push(entry[fieldName] || '');
       }
     }
 
-    return row
-  }
-}
+    return row;
+  },
+};
 
 const ChartTableWidgetMethods = {
-  getElement (name) {
-    return this.container?.querySelector(`[${this.attributeName}="${name}"]`)
+  getElement(name) {
+    return this.container?.querySelector(`[${this.attributeName}="${name}"]`);
   },
 
-  setView (view) {
-    const controls = this.getViewControls()
+  setView(view) {
+    const controls = this.getViewControls();
 
     this.currentView = TimeSeriesHandler.setView({
       view,
@@ -209,62 +265,73 @@ const ChartTableWidgetMethods = {
       chartManager: this.chartManager,
       onChartReady: () => {
         if (typeof this.updateChartView === 'function') {
-          this.updateChartView()
+          this.updateChartView();
         } else if (this.chartManager?.hasChart()) {
-          this.chartManager.loadData()
+          this.chartManager.loadData();
         }
       },
-      controlsForChart: controls
-    })
+      controlsForChart: controls,
+    });
 
-    if (this.tableManager) this.tableManager.updateToggleVisibility()
-    return this.currentView
+    if (this.tableManager) this.tableManager.updateToggleVisibility();
+    return this.currentView;
   },
 
-  updateViewToggle (hasEntries) {
+  updateViewToggle(hasEntries) {
     this.currentView = TimeSeriesHandler.updateViewToggle({
       container: this.container,
       attributeName: this.attributeName,
       hasEntries,
       currentView: this.currentView,
-      defaultViewSetter: () => this.setView(this.config.default || this.defaults.default)
-    })
+      defaultViewSetter: () =>
+        this.setView(this.config.default || this.defaults.default),
+    });
   },
 
-  getViewControls () {
-    return []
+  getViewControls() {
+    return [];
   },
 
-  wireViewToggles () {
-    const viewChart = this.getElement('view-chart')
-    const viewTable = this.getElement('view-table')
+  wireViewToggles() {
+    const viewChart = this.getElement('view-chart');
+    const viewTable = this.getElement('view-table');
 
-    if (viewChart) viewChart.addEventListener('click', () => this.setView('chart'))
+    if (viewChart)
+      viewChart.addEventListener('click', () => this.setView('chart'));
     if (viewTable) {
-      viewTable.addEventListener('click', () => this.setView('table'))
+      viewTable.addEventListener('click', () => this.setView('table'));
     }
   },
 
-  rebuildTableHeaders () {
-    const metadataLabel = this.schema?.metadata?.label || 'Source'
-    const metadataFields = Array.isArray(this.schema?.metadata?.fields) ? this.schema.metadata.fields : []
-    const TableManager = window.monitorShared.TableManager
-    TableManager.buildTableHeaders(this.container, this.metricFields, metadataLabel, metadataFields)
+  rebuildTableHeaders() {
+    const metadataLabel = this.schema?.metadata?.label || 'Source';
+    const metadataFields = Array.isArray(this.schema?.metadata?.fields)
+      ? this.schema.metadata.fields
+      : [];
+    const TableManager = window.monitorShared.TableManager;
+    TableManager.buildTableHeaders(
+      this.container,
+      this.metricFields,
+      metadataLabel,
+      metadataFields,
+    );
   },
 
-  formatTableRow (entry) {
-    const metadataField = this.schema?.metadata?.field
-    const metadataFields = Array.isArray(this.schema?.metadata?.fields) ? this.schema.metadata.fields : []
+  formatTableRow(entry) {
+    const metadataField = this.schema?.metadata?.field;
+    const metadataFields = Array.isArray(this.schema?.metadata?.fields)
+      ? this.schema.metadata.fields
+      : [];
     return TimeSeriesHandler.formatTableRow({
       entry,
       metricFields: this.metricFields,
       metadataField,
-      metadataFields
-    })
+      metadataFields,
+    });
   },
 
-  createTableManager () {
-    const TableManager = window.monitorShared?.TableManager
+  createTableManager() {
+    const TableManager = window.monitorShared?.TableManager;
 
     return new TableManager({
       statusElement: this.getElement('history-status'),
@@ -273,12 +340,12 @@ const ChartTableWidgetMethods = {
       previewCount: this.config.table.min,
       emptyMessage: this.schema?.metadata?.emptyMessage || 'No entries yet.',
       isTableViewActive: () => this.currentView === 'table',
-      rowFormatter: (entry) => this.formatTableRow(entry)
-    })
-  }
-}
+      rowFormatter: (entry) => this.formatTableRow(entry),
+    });
+  },
+};
 
-window.monitorShared = window.monitorShared || {}
-window.monitorShared.DataFormatter = DataFormatter
-window.monitorShared.TimeSeriesHandler = TimeSeriesHandler
-window.monitorShared.ChartTableWidgetMethods = ChartTableWidgetMethods
+window.monitorShared = window.monitorShared || {};
+window.monitorShared.DataFormatter = DataFormatter;
+window.monitorShared.TimeSeriesHandler = TimeSeriesHandler;
+window.monitorShared.ChartTableWidgetMethods = ChartTableWidgetMethods;

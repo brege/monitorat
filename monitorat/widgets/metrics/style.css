@@ -1,4 +1,4 @@
-@import '../common.css';
+@import "../common.css";
 
 .metrics {
   --stat-stack-margin: 0;
@@ -121,7 +121,8 @@
 
 .metrics .chart-overlay .chart-legend {
   background: color-mix(in srgb, var(--bg-surface) 92%, var(--text-primary) 8%);
-  border: 1px solid color-mix(in srgb, var(--border-muted) 70%, var(--text-primary) 30%);
+  border: 1px solid
+    color-mix(in srgb, var(--border-muted) 70%, var(--text-primary) 30%);
   border-radius: 6px;
   padding: 0;
   overflow: hidden;

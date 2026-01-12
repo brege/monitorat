@@ -7,7 +7,11 @@
   },
   "fields": [
     { "field": "timestamp", "label": "Timestamp", "format": "datetime" },
-    { "field": "status", "label": "Status", "values": ["good", "changed", "failure"] },
+    {
+      "field": "status",
+      "label": "Status",
+      "values": ["good", "changed", "failure"]
+    },
     { "field": "ip", "label": "IP Address" },
     { "field": "message", "label": "Message" }
   ],

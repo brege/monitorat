@@ -38,7 +38,9 @@
   inset: 0;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.25s ease, visibility 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease;
 }
 
 .editor-edit-pane.active,
@@ -54,7 +56,14 @@
   border: none;
   background: var(--bg-surface);
   color: var(--text-primary);
-  font-family: var(--font-mono, 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace);
+  font-family: var(
+    --font-mono,
+    "SF Mono",
+    "Monaco",
+    "Inconsolata",
+    "Fira Code",
+    monospace
+  );
   font-size: 0.9rem;
   line-height: 1.6;
   resize: none;
@@ -133,7 +142,9 @@
   border-radius: 4px;
   color: var(--text-muted);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
   margin-left: 8px;
 }
 

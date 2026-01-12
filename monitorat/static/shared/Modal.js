@@ -1,47 +1,47 @@
 /* global document */
 
-window.Modal = (function () {
-  let backdrop = null
-  let container = null
-  let closeCallback = null
+window.Modal = (() => {
+  let backdrop = null;
+  let container = null;
+  let closeCallback = null;
 
-  function create () {
+  function create() {
     if (backdrop) {
-      return
+      return;
     }
 
-    backdrop = document.createElement('div')
-    backdrop.className = 'modal-backdrop'
+    backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
     backdrop.addEventListener('click', (event) => {
       if (event.target === backdrop) {
-        hide()
+        hide();
       }
-    })
+    });
 
-    container = document.createElement('div')
-    container.className = 'modal-container'
-    container.setAttribute('role', 'dialog')
-    container.setAttribute('aria-modal', 'true')
+    container = document.createElement('div');
+    container.className = 'modal-container';
+    container.setAttribute('role', 'dialog');
+    container.setAttribute('aria-modal', 'true');
 
-    backdrop.appendChild(container)
-    document.body.appendChild(backdrop)
+    backdrop.appendChild(container);
+    document.body.appendChild(backdrop);
 
-    document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('keydown', handleKeyDown);
   }
 
-  function handleKeyDown (event) {
+  function handleKeyDown(event) {
     if (event.key === 'Escape' && isOpen()) {
-      hide()
+      hide();
     }
   }
 
-  function show (options = {}) {
-    const { title, content, actions, onClose } = options
+  function show(options = {}) {
+    const { title, content, actions, onClose } = options;
 
-    create()
-    closeCallback = onClose || null
+    create();
+    closeCallback = onClose || null;
 
-    let html = ''
+    let html = '';
 
     if (title) {
       html += `
@@ -49,70 +49,70 @@ window.Modal = (function () {
           <h2 class="modal-title">${title}</h2>
           <button type="button" class="modal-close" aria-label="Close">&times;</button>
         </div>
-      `
+      `;
     }
 
-    html += '<div class="modal-body">'
+    html += '<div class="modal-body">';
     if (typeof content === 'string') {
-      html += content
+      html += content;
     }
-    html += '</div>'
+    html += '</div>';
 
     if (actions && actions.length > 0) {
-      html += '<div class="modal-footer">'
+      html += '<div class="modal-footer">';
       actions.forEach((action, index) => {
-        const isPrimary = action.primary ? ' modal-action-primary' : ''
-        html += `<button type="button" class="modal-action${isPrimary}" data-action-index="${index}">${action.label}</button>`
-      })
-      html += '</div>'
+        const isPrimary = action.primary ? ' modal-action-primary' : '';
+        html += `<button type="button" class="modal-action${isPrimary}" data-action-index="${index}">${action.label}</button>`;
+      });
+      html += '</div>';
     }
 
-    container.innerHTML = html
+    container.innerHTML = html;
 
     if (content && typeof content === 'object' && content.nodeType === 1) {
-      container.querySelector('.modal-body').appendChild(content)
+      container.querySelector('.modal-body').appendChild(content);
     }
 
-    const closeButton = container.querySelector('.modal-close')
+    const closeButton = container.querySelector('.modal-close');
     if (closeButton) {
-      closeButton.addEventListener('click', hide)
+      closeButton.addEventListener('click', hide);
     }
 
     if (actions && actions.length > 0) {
       container.querySelectorAll('.modal-action').forEach((button) => {
         button.addEventListener('click', () => {
-          const index = parseInt(button.dataset.actionIndex, 10)
-          const action = actions[index]
+          const index = parseInt(button.dataset.actionIndex, 10);
+          const action = actions[index];
           if (action && typeof action.onClick === 'function') {
-            action.onClick()
+            action.onClick();
           }
           if (action && action.closeOnClick !== false) {
-            hide()
+            hide();
           }
-        })
-      })
+        });
+      });
     }
 
-    backdrop.classList.add('modal-visible')
-    container.querySelector('.modal-close')?.focus()
+    backdrop.classList.add('modal-visible');
+    container.querySelector('.modal-close')?.focus();
   }
 
-  function hide () {
+  function hide() {
     if (!backdrop) {
-      return
+      return;
     }
 
-    backdrop.classList.remove('modal-visible')
+    backdrop.classList.remove('modal-visible');
 
     if (typeof closeCallback === 'function') {
-      closeCallback()
-      closeCallback = null
+      closeCallback();
+      closeCallback = null;
     }
   }
 
-  function isOpen () {
-    return backdrop && backdrop.classList.contains('modal-visible')
+  function isOpen() {
+    return backdrop?.classList.contains('modal-visible');
   }
 
-  return { show, hide, isOpen }
-})()
+  return { show, hide, isOpen };
+})();
