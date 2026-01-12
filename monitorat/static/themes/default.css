@@ -4,22 +4,22 @@
  */
 
 :root {
-  --theme-bg-body-light: #eef1f5;
+  --theme-bg-body-light: #f3f4f6;
   --theme-bg-surface-light: #ffffff;
-  --theme-bg-card-light: #f5f7fb;
-  --theme-bg-notes-light: #f8fafc;
-  --theme-border-muted-light: #e1e6ed;
-  --theme-shadow-strong-light: 0 10px 40px rgba(31, 36, 43, 0.08);
-  --theme-text-primary-light: #1f242b;
-  --theme-text-muted-light: #5c6570;
-  --theme-text-label-light: #697585;
-  --theme-text-heading-light: #434f5c;
-  --theme-accent-light: #40bcf4;
-  --theme-accent-hover-light: #1084c7;
-  --theme-accent-disabled-light: #a0defa;
+  --theme-bg-card-light: #f9fafb;
+  --theme-bg-notes-light: #fafbfc;
+  --theme-border-muted-light: #d1d5db;
+  --theme-shadow-strong-light: 0 10px 40px rgba(31, 36, 43, 0.12);
+  --theme-text-primary-light: #111827;
+  --theme-text-muted-light: #4b5563;
+  --theme-text-label-light: #6b7280;
+  --theme-text-heading-light: #1f2937;
+  --theme-accent-light: #0ea5e9;
+  --theme-accent-hover-light: #0284c7;
+  --theme-accent-disabled-light: #7dd3fc;
   --theme-toggle-bg-light: #ffffff;
-  --theme-toggle-border-light: #e1e6ed;
-  --theme-toggle-hover-light: #f5f7fb;
+  --theme-toggle-border-light: #d1d5db;
+  --theme-toggle-hover-light: #f3f4f6;
 
   --theme-bg-body-dark: #0f1115;
   --theme-bg-surface-dark: #1a1d25;
@@ -43,14 +43,14 @@
   --theme-icon-privacy-on-dark: var(--theme-accent-dark);
   --theme-icon-privacy-off-dark: var(--theme-text-muted-dark);
   --theme-icon-sun-light: #f59e0b;
-  --theme-icon-moon-light: #3f83f8;
+  --theme-icon-moon-light: #2563eb;
   --theme-icon-sun-dark: #fbbf24;
   --theme-icon-moon-dark: #93c5fd;
 
-  --status-ok-rgb: 35, 178, 109;
-  --status-warn-rgb: 247, 183, 49;
-  --status-critical-rgb: 239, 99, 81;
-  --status-unknown-rgb: 197, 204, 213;
+  --status-ok-rgb: 16, 185, 129;
+  --status-warn-rgb: 245, 158, 11;
+  --status-critical-rgb: 239, 68, 68;
+  --status-unknown-rgb: 156, 163, 175;
   --status-ok: rgb(var(--status-ok-rgb));
   --status-warn: rgb(var(--status-warn-rgb));
   --status-critical: rgb(var(--status-critical-rgb));
@@ -58,12 +58,12 @@
   --status-degraded: var(--status-warn);
   --status-offline: var(--status-critical);
 
-  --chart-series-1: #3b82f6;
-  --chart-series-2: #22c55e;
-  --chart-series-3: #f59e0b;
-  --chart-series-4: #ef4444;
-  --chart-series-5: #8b5cf6;
-  --chart-series-6: #06b6d4;
+  --chart-series-1: #2563eb;
+  --chart-series-2: #16a34a;
+  --chart-series-3: #d97706;
+  --chart-series-4: #dc2626;
+  --chart-series-5: #7c3aed;
+  --chart-series-6: #0891b2;
 
   --chart-legend-bg-rgb: var(--color-ghost-rgb);
 
