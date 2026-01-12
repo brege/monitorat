@@ -1,7 +1,8 @@
 ---
 widgets:
   metrics:
-    name: System Metrics
+    section: metrics
+    name: null
     default: chart
     collapsible: true
     enabled:

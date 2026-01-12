@@ -75,8 +75,8 @@ to make new widgets for. It's a mix of wikipedia, journal articles, and a modula
 homelab.
 
 To me, we need to first solidified columnation for any widget with any other widget without
-dependency. A gap here is we need absolution in section headers <h2 "widget-title"> from the widget.
-We do this annoying _suppressHeader for widgets we /don't/ want to be first class, then use parent:
+dependency. A gap here is we need absolution in section headers `<h2 "widget-title">` from the widget.
+We do this annoying `_suppressHeader` for widgets we /don't/ want to be first class, then use parent:
 in some of these widgets to be include with the others. I thinkg that part is fine. The CSS
 disagrees.
 

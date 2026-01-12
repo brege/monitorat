@@ -5,10 +5,9 @@ widgets:
     type: metrics
     name: System Metrics
     group: section-1
-    section: System Overview
+    section: section-1
     columns: 2
     position: 1
-    collapsible: true
     show:
       tiles: true
       history: false
@@ -17,9 +16,9 @@ widgets:
     type: network
     name: Network Stats
     group: section-1
+    section: section-1
     columns: 2
     position: 2
-    collapsible: true
     log_file: network.log
     chirper:
       enabled: false

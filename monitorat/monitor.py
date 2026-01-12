@@ -278,11 +278,18 @@ def readme():
 def api_config():
     try:
         widgets_merged = {}
+        sections_config = {}
         default_columns = (
             config["widgets"]["columns"].get(int)
             if "columns" in config["widgets"].keys()
             else 1
         )
+        if "sections" in config.keys():
+            sections_config = config["sections"].flatten()
+            if sections_config is None:
+                sections_config = {}
+            if not isinstance(sections_config, dict):
+                raise ValueError("sections config must be a mapping")
         for key in config["widgets"].keys():
             # {widget}.enabled = list
             if key == "enabled":
@@ -304,6 +311,7 @@ def api_config():
             "site": config["site"].flatten(),
             "privacy": config["privacy"].flatten(),
             "demo": is_demo_enabled(),
+            "sections": sections_config,
             "widgets": widgets_merged,
         }
         return jsonify(payload)

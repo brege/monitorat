@@ -255,8 +255,7 @@ class WikiWidget {
   }
 
   addEditButton () {
-    const header = this.container.closest('[id$="-widget"]')?.querySelector('.widget-header-collapsible .widget-title')
-    const targetElement = header || this.container.querySelector('h2')
+    const targetElement = this.container.querySelector('.feature-header') || this.container.querySelector('h2')
 
     if (!targetElement) return
 

@@ -1,7 +1,8 @@
 ---
 widgets:
   network:
-    name: Network Stability
+    section: network
+    name: null
     external: false
     log_file: network.log
     collapsible: true

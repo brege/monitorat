@@ -26,6 +26,14 @@ paths:
   img: ../simple/img/
   favicon: ../simple/img/favicon.svg
 
+sections:
+  section-1:
+    title: System Overview
+  section-2:
+    title: Status
+  section-3:
+    title: Performance
+
 widgets:
   enabled:
     # Tiles row: metrics + network tiles side by side

@@ -98,14 +98,14 @@ h6 {
   font-size: 0.95rem;
 }
 
-.widget-title {
+.section-title {
   font-family: var(--font-heading);
   font-weight: 400;
   font-size: 1.9rem;
   letter-spacing: 0.02em;
 }
 
-.widget-header-collapsible {
+.section-header-collapsible {
   display: flex !important;
   align-items: center;
   justify-content: flex-start;

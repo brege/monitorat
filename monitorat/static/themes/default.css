@@ -530,14 +530,20 @@ select.alerts-toggle:disabled {
   gap: 32px;
 }
 
-.widget-header {
+.section-separator {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
 }
 
-.widget-header-collapsible {
+.section-header-collapsible {
   cursor: pointer;
   user-select: none;
   gap: 8px;
@@ -548,16 +554,12 @@ select.alerts-toggle:disabled {
   justify-content: flex-start;
 }
 
-.widget-header-collapsible.collapsed {
+.section-header-collapsible.collapsed {
   border-bottom-color: var(--border-muted);
   margin-bottom: 0;
 }
 
-.widget-stack > [id$="-widget"]:has(.widget-header-collapsible.collapsed) {
-  margin-bottom: -16px;
-}
-
-.widget-chevron {
+.section-chevron {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
@@ -565,11 +567,11 @@ select.alerts-toggle:disabled {
   transition: transform 0.2s ease;
 }
 
-.widget-header-collapsible:not(.collapsed) .widget-chevron {
+.section-header-collapsible:not(.collapsed) .section-chevron {
   transform: rotate(180deg);
 }
 
-.widget-title {
+.section-title {
   margin: 0;
   font-size: 1.4rem;
   color: var(--text-heading);
@@ -583,7 +585,7 @@ select.alerts-toggle:disabled {
   font-size: 1.15rem;
 }
 
-.widget-header .alerts-toggle {
+.section-header .alerts-toggle {
   color: var(--accent);
   background: none;
   border: none;
@@ -711,7 +713,7 @@ tr:last-child td {
 }
 
 .feature-header {
-  margin: 16px 0 0 0;
+  margin: 16px 0 8px 0;
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-secondary);
@@ -731,23 +733,6 @@ tr:last-child td {
   margin-left: 8px;
   text-transform: none;
   font-weight: 500;
-}
-
-.section-separator {
-  width: 100%;
-  margin-bottom: -20px;
-}
-
-.section-separator .section-title {
-  margin: 0;
-  font-size: 1.4rem;
-  color: var(--text-heading);
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border-muted);
-}
-
-.widget-stack > .section-separator + .layout-group {
-  margin-top: 0;
 }
 
 .layout-columns {

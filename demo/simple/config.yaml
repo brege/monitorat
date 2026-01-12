@@ -16,6 +16,22 @@ paths:
   img: img/
   favicon: img/favicon.svg
   vendors: vendors/ # use 'null' to use CDNs
+sections:
+  overview:
+    title: null
+    collapsible: false
+  metrics:
+    title: System Metrics
+  network:
+    title: Network Stability
+  services:
+    title: Services
+  speedtest:
+    title: Speedtests
+  reminders:
+    title: Reminders
+  footer:
+    title: Links
 widgets:
   enabled:
     - wiki
@@ -33,40 +49,30 @@ widgets:
   metrics-md:
     type: wiki
     mode: rail
-    name: Metrics Notes
     enabled: true
     doc: ./docs/metrics.md
-    _suppressHeader: true
-    parent: metrics
+    section: metrics
   network-md:
     type: wiki
     mode: rail
-    name: Network Notes
     enabled: true
     doc: ./docs/network.md
-    _suppressHeader: true
-    parent: network
+    section: network
   services-md:
     type: wiki
     mode: rail
-    name: Services Notes
     enabled: true
     doc: ./docs/services.md
-    _suppressHeader: true
-    parent: services
+    section: services
   speedtest-md:
     type: wiki
     mode: rail
-    name: Speedtest Notes
     enabled: true
     doc: ./docs/speedtest.md
-    _suppressHeader: true
-    parent: speedtest
+    section: speedtest
   reminders-md:
     type: wiki
     mode: rail
-    name: Reminders Notes
     enabled: true
     doc: ./docs/reminders.md
-    _suppressHeader: true
-    parent: reminders
+    section: reminders

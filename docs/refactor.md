@@ -6,7 +6,7 @@
   identify where auto-fit and `--layout-group-min` change row selection.
 - [x] Define a symmetric tile rule: once a row break is chosen, size tiles to
   consistent widths across the row and prevent text wrapping within tiles.
-- [ ] Legitimize Section Headers by migrating the legacy widget-header typography
+- [x] Legitimize Section Headers by migrating the legacy widget-header typography
   and spacing into the section header styles; remove top-level widget header
   rules from widgets while keeping `feature-header` for subwidgets, which are
   also used for federation node badges (acting like [tags]).

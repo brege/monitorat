@@ -1,8 +1,9 @@
 ---
 widgets:
   wiki:
-    name: Demo Guide
     mode: seamless
+    name: null
     doc: ../README.md
-    _suppressHeader: true
+    section: overview
+    group: overview-main
     collapsible: false
