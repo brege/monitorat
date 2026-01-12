@@ -111,8 +111,15 @@ class ServicesSnapshot {
     card.appendChild(info)
 
     if (mode === 'compact') {
-      const statusDot = document.createElement('span')
+      const statusDot = document.createElement('button')
+      statusDot.type = 'button'
       statusDot.className = 'service-status-dot'
+      statusDot.title = 'Service details'
+      statusDot.setAttribute('aria-label', `Service details for ${service.name}`)
+      statusDot.addEventListener('click', (event) => {
+        event.stopPropagation()
+        this.modal.open(service)
+      })
       card.appendChild(statusDot)
     } else {
       const infoBtn = document.createElement('button')
@@ -134,7 +141,7 @@ class ServicesSnapshot {
         longPressTriggered = false
         return
       }
-      if (event.target.closest('.service-info-btn')) {
+      if (event.target.closest('.service-info-btn') || event.target.closest('.service-status-dot')) {
         return
       }
       const useLocal = event.shiftKey && (event.ctrlKey || event.metaKey)

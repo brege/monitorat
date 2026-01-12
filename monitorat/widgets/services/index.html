@@ -21,7 +21,7 @@
 .service-card.compact .service-info { display: none; }
 .service-name { font-weight: 600; margin-bottom: 4px; }
 .service-status { font-size: 0.9rem; color: var(--text-muted); }
-.service-status-dot { width: var(--service-compact-dot-size); height: var(--service-compact-dot-size); border-radius: 999px; position: absolute; right: var(--service-compact-dot-offset); bottom: var(--service-compact-dot-offset); background: rgb(var(--status-unknown-rgb)); }
+.service-status-dot { pointer-events: auto; border: none; padding: 0; cursor: pointer; width: var(--service-compact-dot-size); height: var(--service-compact-dot-size); border-radius: 999px; position: absolute; right: var(--service-compact-dot-offset); bottom: var(--service-compact-dot-offset); background: rgb(var(--status-unknown-rgb)); }
 .service-card.status-ok .service-status-dot { background: rgb(var(--status-ok-rgb)); }
 .service-card.status-warning .service-status-dot,
 .service-card.status-warn .service-status-dot,
