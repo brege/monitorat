@@ -1,5 +1,15 @@
 # Roadmap
 
+
+## CSS
+
+- [ ] Move each widget's CSS from `widgets/*/index.html` to `widgets/*/style.css`
+- [ ] Move widget-specific CSS out of `themes/default.css` into each widget’s
+  `index.html` style section.
+- [ ] Consolidate duplicate CSS rules between `widgets/*/style.css` into shared
+  rules in `themes/default.css`.
+- [ ] Update `themes/formal.css` for any adaptions to the new paradigm.
+
 ## Reminders
 - [ ] [feature] Clicking a reminder opens a modal first (no navigation); modal is the entry point for confirmation/completion.
 - [ ] [editor] Modal markdown editor for reminders; save and sync to configured `docs/reminders/` path for checklist editing.
