@@ -1,37 +1,54 @@
 class MetricsSnapshot {
   constructor (widget) {
     this.widget = widget
+    this.tiles = null
   }
 
   render (data) {
     if (!data.metrics || !data.metric_statuses) return
 
-    const keys = data.keys || Object.keys(data.metrics).filter(key => key !== 'status' && key !== 'lastUpdated')
-    const valueElements = {}
-    const statElements = {}
-
-    for (const key of keys) {
-      const element = this.widget.container.querySelector(`#${key}-value`)
-      if (element) {
-        valueElements[key] = element
-        statElements[key] = element.closest('.stat')
-      }
+    const TileBuilder = window.monitorTiles?.TileBuilder || window.monitorShared?.TileBuilder
+    if (!TileBuilder) {
+      throw new Error('Tile builder not loaded')
     }
 
-    for (const key of keys) {
-      if (valueElements[key] && data.metrics[key]) {
-        valueElements[key].textContent = data.metrics[key]
+    const statsContainer = this.widget.container.querySelector('[data-metrics="snapshot-tiles"]')
+    if (!statsContainer) return
+
+    const existingRows = statsContainer.querySelectorAll('.stats-row')
+    existingRows.forEach(row => { row.style.display = '' })
+
+    const mergedContainer = statsContainer.querySelector('.layout-merged-tiles')
+    if (mergedContainer) {
+      mergedContainer.remove()
+    }
+
+    if (!this.tiles) {
+      this.tiles = TileBuilder.renderInto(statsContainer, this.getTileSpec())
+    }
+
+    TileBuilder.updateValues(this.tiles, {
+      uptime: data.metrics.uptime,
+      load: data.metrics.load,
+      memory: data.metrics.memory,
+      temp: data.metrics.temp,
+      disk: data.metrics.disk,
+      storage: data.metrics.storage
+    })
+
+    for (const [key, status] of Object.entries(data.metric_statuses)) {
+      const tile = this.tiles.tiles.get(key)
+      if (!tile) {
+        continue
       }
-      if (statElements[key] && data.metric_statuses[key]) {
-        const status = data.metric_statuses[key]
-        statElements[key].className = statElements[key].className.replace(/status-\w+/g, '')
-        statElements[key].classList.add(`status-${status}`)
-      }
+      // Regex strips any existing status- class before applying the current status.
+      tile.className = tile.className.replace(/status-\w+/g, '')
+      tile.classList.add(`status-${status}`)
     }
   }
 
   renderMerged (results, displayStrategy) {
-    const statsContainer = this.widget.container.querySelector('.stats')
+    const statsContainer = this.widget.container.querySelector('[data-metrics="snapshot-tiles"]')
     if (!statsContainer) return
 
     const existingRows = statsContainer.querySelectorAll('.stats-row')
@@ -101,7 +118,10 @@ class MetricsSnapshot {
   }
 
   createTilesForSource (data) {
-    const TileRenderer = window.monitorShared.TileRenderer
+    const TileBuilder = window.monitorTiles?.TileBuilder || window.monitorShared?.TileBuilder
+    if (!TileBuilder) {
+      throw new Error('Tile builder not loaded')
+    }
     const metrics = data.metrics || {}
     const statuses = data.metric_statuses || {}
 
@@ -110,7 +130,7 @@ class MetricsSnapshot {
       return `stat status-card status-${status}`
     }
 
-    return TileRenderer.createTilesFromSpec({
+    return TileBuilder.build({
       containerClass: 'stats',
       rows: [
         {
@@ -130,7 +150,31 @@ class MetricsSnapshot {
           ]
         }
       ]
-    })
+    }).container
+  }
+
+  getTileSpec () {
+    return {
+      containerClass: 'stats',
+      rows: [
+        {
+          className: 'stats-row primary',
+          tiles: [
+            { key: 'uptime', label: 'Uptime', value: '–', options: { tileClass: 'stat status-card' } },
+            { key: 'load', label: 'Load Average', value: '–', options: { tileClass: 'stat status-card' } },
+            { key: 'memory', label: 'Memory Usage', value: '–', options: { tileClass: 'stat status-card' } },
+            { key: 'temp', label: 'Temperature', value: '–', options: { tileClass: 'stat status-card' } }
+          ]
+        },
+        {
+          className: 'stats-row dates',
+          tiles: [
+            { key: 'disk', label: 'Disk Usage', value: '–', options: { tileClass: 'stat status-card' } },
+            { key: 'storage', label: 'NFS Storage', value: '–', options: { tileClass: 'stat status-card' } }
+          ]
+        }
+      ]
+    }
   }
 }
 

@@ -142,14 +142,7 @@ class NetworkWidget {
         uptime: this.container.querySelector('[data-network-section="uptime"]'),
         alerts: this.container.querySelector('[data-network-section="alerts"]')
       },
-      summary: {
-        uptime: this.container.querySelector('[data-network="summary-uptime"]'),
-        total: this.container.querySelector('[data-network="summary-total"]'),
-        expected: this.container.querySelector('[data-network="summary-expected"]'),
-        missed: this.container.querySelector('[data-network="summary-missed"]'),
-        first: this.container.querySelector('[data-network="summary-first"]'),
-        last: this.container.querySelector('[data-network="summary-last"]')
-      }
+      summaryTiles: this.container.querySelector('[data-network="summary-tiles"]')
     }
   }
 
