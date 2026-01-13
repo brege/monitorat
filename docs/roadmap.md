@@ -13,4 +13,4 @@
 
 ## Backend / API
 
-- [ ] Add a thin request-scoped resolver.. `flask.g.widget_config` set by a shared decorator
+- [ ] Add a thin request-scoped resolver.. `flask.g.widget_config` set by a shared decorator (/api/<widget_name>/...)

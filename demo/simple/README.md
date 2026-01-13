@@ -1,6 +1,6 @@
 ## About
 
-**Monitorat** is a federated dashboard and documentation system with an extensible widget framework.
+**Monitorat** is a federated dashboard and documentation system.
 
 Its philosophy is to make system monitoring and documentation continuous, much like the way tables and figures are integrated in journal or news articles.
 
@@ -45,14 +45,7 @@ On headless machines (Raspberry Pi, a NAS, NUC, or Beelink), monitorat becomes b
 - centralize my documentation and notes so I remember how I deployed them
 - periodically check on system health, performance, and network quality
 
-While an in-browser editor for Markdown files is in development, the current paradigm is:
-
-  1. edit Markdown documents in a text editor
-     - console: [neovim](https://neovim.io/), [emacs](https://www.gnu.org/software/emacs/), etc
-     - phone: [Markor](https://github.com/gsantner/markor) or [Obsidian](https://obsidian.md/)
-  2. synchronize changes to `docs/` directory ([Syncthing](https://syncthing.net/), [rsync](https://rsync.samba.org/), etc)
-
-Refresh the page after saving edits to immediately see the changes.
+Monitorat's text editor for Markdown files is in beta. If you make edits with an editor like [Neovim](https://neovim.io/) or [Obsidian](https://obsidian.md/), simply save refresh the page.
 
 Documentation is an integral part of monitorat's philosophy: **a dashboard that is both the gauges and the manual.**
 
