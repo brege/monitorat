@@ -1,5 +1,32 @@
 ## Changelog
 
+
+### 2026-01-12
+
+- Introduced tile-packing algorithm "Tyler" (see: `static/tiles/tyler.tex`)
+- Desktop/mobile can click/tap the status indicator Dot in in compact Service view
+- Fixed Docker installs from attempting to install vendors/ in the wheel
+- BREAKING: Deprecated widget-headers for section-headers (see: e083da4)
+- Add node-source filters for other widgets
+- CSS Refactor Procedure:
+  1. extract all common patterns from `widgets/*/index.html` into `common.css`
+  2. extract all `<style>` tags from `widgets/*/index.html` into `widgets/*/style.css`
+  3. remove widget-specific CSS from `default.css` in `widgets/*/style.css`
+  4. marry `common.css` into `default.css`
+- Switched from StandardJS to Biome linting and formatting (for CSS)
+- Updated all code to Biome's standard rules (js, css)
+- Made default color palette sharper, less pastel
+- Repaired broken href's, leading to client bugs when behind Nginx reverse proxy
+- Bumped version to v0.10.4
+
+### 2026-01-11
+
+- Orthogonalize Federation demos from Layout specification
+- Deprecate federation "stacked" and "columnated" mergers in favor of full integrations
+- Added true columnation: group by widgets as tables when needed
+- Added node-source filtering to the network.outages
+- Created Layout demo for testing new columnation+positioning scheme
+
 ### 2026-01-10
 
 - Introduced modal Markdown editing (esperimental) via textarea
@@ -10,6 +37,9 @@
   - styling
   - components  
   of each widget
+- Made app icons more expressive on hover
+- Divided the main demo/docs.yml into demo-specifc index.yml's
+- No longer differentiate widgets by stacking or columnated
 
 ### 2026-01-09
 
