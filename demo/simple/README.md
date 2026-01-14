@@ -2,16 +2,16 @@
 
 **Monitorat** is a federated dashboard and documentation system.
 
-Its philosophy is to make system monitoring and documentation continuous, much like the way tables and figures are integrated in journal or news articles.
+Its philosophy is to make system monitoring and documentation continuous, much like the way tables and figures are integrated in journal articles or [Wikipedia](https://wikipedia.org/).
 
 ### Quickstart
 ```bash
 uv tool install monitorat
 monitorat demo
 ```
-then open your browser at [http://localhost:6100](http://localhost:6100).
+then open your browser at [http://localhost:6100](http://localhost:6100).  Or checkout the [advanced](http://monitorat.brege.org/advanced) and [federation](http://monitorat.brege.org/federation) demos.
 
-This dashboard is a read-only instance of [**monitorat**](https://github.com/brege/monitorat), similar to the one you could be using on your machine. Being scroll-focused and continuous, dashboard putting documentation first, it aims to be a knowledge base and not a knowledge sink.
+This dashboard is a read-only instance of [**monitorat**](https://github.com/brege/monitorat). It's similar to the one you could be using on your machine, just with synthetic data. Being scroll-focused and continuous, monitorat aims to be a dashboard that's a knowledge base and not a knowledge sink.
 
 ### Demos
 
@@ -35,7 +35,7 @@ There are three demos.
 - [Speedtest](#speedtest-widget)
 - [Reminders](#reminders-widget)
 
-For this (simple) demo, each widget is chased by a corresponding ["Wiki" widget](/#wiki) that provides that widget's documentation.
+For this (simple) demo, each widget is chased by a corresponding ["Wiki" widget](/#wiki) that provides the documentation for that widget.
 
 On headless machines (Raspberry Pi, a NAS, NUC, or Beelink), monitorat becomes both a central dashboard and a system's bible.
 
@@ -45,9 +45,8 @@ On headless machines (Raspberry Pi, a NAS, NUC, or Beelink), monitorat becomes b
 - centralize my documentation and notes so I remember how I deployed them
 - periodically check on system health, performance, and network quality
 
-Monitorat's text editor for Markdown files is in beta. If you make edits with an editor like [Neovim](https://neovim.io/) or [Obsidian](https://obsidian.md/), simply save refresh the page.
+Monitorat's text editor for Markdown files is in beta. If you make edits with an editor like [Neovim](https://neovim.io/) or [Obsidian](https://obsidian.md/), simply save and refresh.
 
-Documentation is an integral part of monitorat's philosophy: **a dashboard that is both the gauges and the manual.**
 
 See the full project [README](https://github.com/brege/monitorat/#readme) for more information.
 
