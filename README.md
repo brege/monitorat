@@ -2,8 +2,9 @@
 
 # <div align=center> [ [demo](https://monitorat.brege.org) ] </div>
 
-Monitorat is a federated dashboard and documentation system with an extensible widget framework.
-Its philosophy is to make system monitoring and documentation continuous, much like the way tables and figures are integrated in journal or news articles.
+**Monitorat** is a federated dashboard and documentation system.
+
+Its philosophy is to make system monitoring and documentation continuous, much like the way tables and figures are integrated in journal articles or [Wikipedia](https://wikipedia.org/).
 
 Available widgets:
 - [metrics](#system-metrics)
@@ -23,9 +24,9 @@ Widgets have a general, self-contained structure where both API and UI are strai
     └── app.js
 ```
 
-Dashboard documentation is handled through the Wiki widget. Each document snippet added is a new widget instance. This document and any others you add to your wiki will be rendered in GitHub-flavored markdown via [markdown-it](https://github.com/markdown-it/markdown-it).
-
-### Gallery
+Documentation is handled through the Wiki widget. Each document snippet added is a new widget instance. This document and any others you add to your wiki will be rendered in GitHub-flavored markdown via [markdown-it](https://github.com/markdown-it/markdown-it).
+`
+## Gallery
 
 It's best to check out [**the demo**](https://monitorat.brege.org) which is a fully interactive version of the application you could be running on your machines. Screenshots of the demo are compiled below.
 
@@ -58,7 +59,7 @@ It's best to check out [**the demo**](https://monitorat.brege.org) which is a fu
   </tr>
 </table>
 
-### Features
+## Features
 
 - Beautiful documentation for your Homelab and media servers.
 - Completely headless and works offline.
@@ -75,69 +76,23 @@ It's best to check out [**the demo**](https://monitorat.brege.org) which is a fu
 
 ## Installation
 
-Both the pip and uv installation methods assume you are using a configuration file at `~/.config/monitorat/config.yaml`.
+### PyPI
 
-### Installing with Pip or uv
-
-##### **PyPI**
-
-**pip**: The simplest way is to install from PyPI:
+Try the demo in 3 seconds:
 ```bash
-pip install monitorat
-monitorat demo --mode simple
+uv tool install monitorat && monitorat demo
 ```
+Then open http://localhost:6100.
 
-I like [uv](https://github.com/astral-sh/uv):
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-uv tool install monitorat
-monitorat demo  # --mode [simple|advanced|federation]
-```
-Then open a browser at http://localhost:6100.
+See: **[Package Install](./docs/install/package.md)** for installing from PyPI with pip or uv.
 
-##### **From Source**
+### Docker
 
-Or install the package from source/development (use `-e` if you're developing widgets):
-```bash
-git clone https://github.com/brege/monitorat.git
-cd monitorat
-uv tool install -e .
-```
+See: **[Docker](./docs/install/docker.md)** for installation in a container.
 
-In either case, start the server:
-```bash
-monitorat -c path/to/config.yaml server --host 0.0.0.0 --port 6161
-```
+### Source Install
 
-or run the demos:
-```bash
-monitorat demo --mode simple      # single-instance dashboard
-monitorat demo --mode advanced    # single-instance, with feature config examples
-monitorat demo --mode federation  # multiple machines, and widget integration examples
-```
-
-which are also held on [monitorat.brege.org](https://monitorat.brege.org):
-- [simple](https://monitorat.brege.org/)
-- [advanced](https://monitorat.brege.org/advanced)
-- [federation](https://monitorat.brege.org/federation)
-
-Monitorat will resolve your config file either at the destination given by `-c|--config`, or the default location `~/.config/monitorat/config.yaml`.
-
-##### Daemonizing with Systemd
-
-Assuming you'd like to run monitorat as a systemd service with your normal user, group, and hostname:
-```bash
-bash <(curl -s https://raw.githubusercontent.com/brege/monitorat/refs/heads/main/scripts/install-systemd-uv.sh)
-```
-This pulls the uv-flavored systemd script from [scripts/install-systemd-uv.sh](./scripts/install-systemd-uv.sh), using sudo internally to install the systemd unit to `/etc/systemd/system/monitor@.service`.
-
-### Installing with Docker
-
-See: [Docker](./docs/docker.md) for running monitorat in a Docker container.
-
-### Alternate Installs
-
-See: [Alternate Installs](./docs/install.md) for traditional deployments at `/opt/monitorat`.
+See: **[Source Install](./docs/install/source.md)** for git-based installation or deployments to `/opt`.
 
 ---
 
@@ -246,7 +201,7 @@ It does not perform automated runs. [GitHub](./demo/simple/docs/speedtest.md) - 
 
   Reminders are facilitated by [Apprise](https://github.com/caronc/apprise) (see [below](#notifications)).
 
-
+`
 ### Privacy
 
 The privacy mask helps share your setup online without exposing personal information. Those are just string replacements; add as many as you like.
@@ -312,8 +267,6 @@ notifications:
 - [**contributing**](./docs/contributing.md)
 
 - [**changelog**](./docs/changelog.md)
-
-- [**installation index**](./docs/install.md)
 
 ## License
 

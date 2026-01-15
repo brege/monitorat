@@ -1,6 +1,6 @@
-### Docker
+# Installing with Docker
 
-#### Setup
+## Setup
 
 1. Copy and customize the compose file into your container path. Example:
 ```bash
@@ -21,9 +21,9 @@ docker compose -f compose.yml up --build --detach
 
 4. Access at `http://localhost:PORT` (default PORT=6161)
 
-#### Management
+## Management
 
-All configuration goes through `/config/config.yaml` on your host. You can use include snippets relative to `./config/` as well. See `../demo/simple` for an example.
+All configuration goes through `/config/config.yaml` on your host. You can use include snippets relative to `./config/` as well. See `demo/simple` for an example.
 
 - **Config**: Edit the file, then restart:
   ```bash
