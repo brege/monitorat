@@ -92,7 +92,7 @@ See: **[Docker](./docs/install/docker.md)** for installation in a container.
 
 ### Source Install
 
-See: **[Source Install](./docs/install/source.md)** for git-based installation or deployments to `/opt`.
+See: **[Source Install](./docs/install/source.md)** for git-based installations or deployments to `/opt`.
 
 ---
 
@@ -161,12 +161,12 @@ They are also quite easy to build. An example of a widget built with Codex in 12
 - [Agentic Archetype: Building Widgets with AI](docs/contributing.md#agentic-archetype)
 
 #### **Services**  
-  The **Service Status** widget is a simple display to show what systemd services, timers, and Docker containers are running or have failed. [GitHub](./demo/simple/docs/services.md) - [Demo](https://monitorat.brege.org/#services-widget)
+  The **Service Status** widget is a simple display to show what systemd services, timers, and Docker containers are running or have failed. [Demo](https://monitorat.brege.org/#section-services)
 
   You can configure the service tiles to have both your URL (or WAN IP) and a local address (or LAN IP) for use offline. **monitorat is completely encapsulated and works offline even when internet is down.**
 
 #### **Wiki**  
-  Some widgets you may want to use more than once. For two markdown documents ("wikis"), use **`type: wiki`**. **`wiki: <title>`** may only be used once. [GitHub](./demo/README.md) - [Demo](https://monitorat.brege.org/#wiki)
+  Some widgets you may want to use more than once. For two markdown documents ("wikis"), use **`type: wiki`**. **`wiki: <title>`** may only be used once. [Demo](https://monitorat.brege.org)
 
    Changing widget order or enabling/disabling widgets is rather straightforward.
 
@@ -185,19 +185,19 @@ They are also quite easy to build. An example of a widget built with Codex in 12
    **monitorat uses GitHub-flavored markdown**
 
 #### **System Metrics**  
-  Metrics provides an overview of system performance, including CPU, memory, disk and network usage, and temperature over time.  Data is logged to `metrics.csv`. [GitHub](./demo/simple/docs/metrics.md) - [Demo](https://monitorat.brege.org/#metrics-widget)
+  Metrics provides an overview of system performance, including CPU, memory, disk and network usage, and temperature over time.  Data is logged to `metrics.csv`. [Demo](https://monitorat.brege.org/#section-metrics)
 
 #### **Speedtest**  
   The **Speedtest** widget allows you to keep a record of your internet performance over time.
-It does not perform automated runs. [GitHub](./demo/simple/docs/speedtest.md) - [Demo](https://monitorat.brege.org/#speedtest-widget)
+It does not perform automated runs. [Demo](https://monitorat.brege.org/#section-speedtest)
 
 #### **Network**  
-  The **Network** widget may be the most specific. This example uses `ddclient`-style generated logs. [GitHub](./demo/simple/docs/network.md) - [Demo](https://monitorat.brege.org/#network-widget)
+  The **Network** widget may be the most specific. This example uses `ddclient`-style generated logs. [Demo](https://monitorat.brege.org/#section-network)
 
   The network widget is best used on machines with continuous uptime. You might even keep monitorat running on your pi-hole.
 
 #### **Reminders**  
-  The **Reminders** widget allows you to set reminders for system chores, login/key change reminders, and other one-off chirps. [GitHub](./demo/simple/docs/reminders.md) - [Demo](https://monitorat.brege.org/#reminders-widget)
+  The **Reminders** widget allows you to set reminders for system chores, login/key change reminders, and other one-off chirps. [Demo](https://monitorat.brege.org/#section-reminders)
 
   Reminders are facilitated by [Apprise](https://github.com/caronc/apprise) (see [below](#notifications)).
 
