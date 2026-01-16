@@ -58,13 +58,16 @@ class RemindersAlerts {
       alertElement.appendChild(badge);
     }
 
-    const icon = document.createElement('img');
-    icon.className = 'reminder-alert-icon hover-expand';
+    const iconContainer = document.createElement('div');
+    iconContainer.className = 'reminder-alert-icon hover-expand';
     const imgBase = reminder._source
       ? `api/proxy/${reminder._source}/img`
       : this.widget.getImgBase();
-    icon.src = `${imgBase}/${reminder.icon}`;
-    icon.alt = reminder.name;
+    IconHandler.renderIcon(
+      iconContainer,
+      `${imgBase}/${reminder.icon}`,
+      reminder.name,
+    );
 
     const content = document.createElement('div');
     content.className = 'reminder-alert-content';
@@ -110,7 +113,7 @@ class RemindersAlerts {
     content.appendChild(textDiv);
     content.appendChild(statsDiv);
 
-    alertElement.appendChild(icon);
+    alertElement.appendChild(iconContainer);
     alertElement.appendChild(content);
 
     alertElement.addEventListener('click', async () => {

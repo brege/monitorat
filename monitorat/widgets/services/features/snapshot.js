@@ -106,13 +106,17 @@ class ServicesSnapshot {
       card.appendChild(badge);
     }
 
-    const icon = document.createElement('img');
-    icon.className = 'service-icon hover-expand';
+    const iconContainer = document.createElement('div');
+    iconContainer.className = 'service-icon hover-expand';
     const imgBase = service._source
       ? `api/proxy/${service._source}/img`
       : this.widget.getImgBase();
-    icon.src = `${imgBase}/${service.icon}`;
-    icon.alt = service.name;
+    IconHandler.renderIcon(
+      iconContainer,
+      `${imgBase}/${service.icon}`,
+      service.name,
+      { chrome: Boolean(service.chrome) },
+    );
 
     const info = document.createElement('div');
     info.className = 'service-info';
@@ -128,7 +132,7 @@ class ServicesSnapshot {
     info.appendChild(name);
     info.appendChild(status);
 
-    card.appendChild(icon);
+    card.appendChild(iconContainer);
     card.appendChild(info);
 
     if (mode === 'compact') {

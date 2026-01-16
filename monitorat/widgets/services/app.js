@@ -307,6 +307,10 @@ class ServicesWidget {
   async loadFeatureScripts() {
     const featureScripts = [
       {
+        globalName: 'IconHandler',
+        source: 'shared/IconHandler.js',
+      },
+      {
         globalName: 'ServicesControls',
         source: 'widgets/services/features/controls.js',
       },

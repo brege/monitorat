@@ -9,6 +9,7 @@ widgets:
       monitor:
         name: monitorat
         icon: favicon.svg
+        chrome: true
         services: [monitor@demo.service]
         url: https://github.com/brege/monitorat
         local: http://demo-host:6161
@@ -43,6 +44,7 @@ widgets:
       plex:
         name: Plex
         icon: services/systemd/plex.svg
+        chrome: true
         services: [plexmediaserver.service]
         url: https://plex.tv
         local: http://demo-host:32400

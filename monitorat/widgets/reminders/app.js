@@ -145,6 +145,10 @@ class RemindersWidget {
   async loadFeatureScripts() {
     const featureScripts = [
       {
+        globalName: 'IconHandler',
+        source: 'shared/IconHandler.js',
+      },
+      {
         globalName: 'RemindersControls',
         source: 'widgets/reminders/features/controls.js',
       },
