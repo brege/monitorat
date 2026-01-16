@@ -230,7 +230,6 @@ class ChartManager {
   }
 
   static filterDataByPeriod(data) {
-    // Filtering is now done server-side, return data as-is
     return data;
   }
 

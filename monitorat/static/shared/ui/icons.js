@@ -5,7 +5,7 @@
  * PNG/WebP are rendered as standard img elements
  */
 
-window.IconHandler = (() => {
+const IconHandler = (() => {
   function getFileExtension(path) {
     return path?.split('.')?.pop()?.toLowerCase() || '';
   }
@@ -103,3 +103,7 @@ window.IconHandler = (() => {
     renderIcon,
   };
 })();
+
+window.IconHandler = IconHandler;
+window.monitorShared = window.monitorShared || {};
+window.monitorShared.IconHandler = IconHandler;

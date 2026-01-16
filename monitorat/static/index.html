@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>monitor@</title>
-  
+
   <link rel="icon" sizes="32x32" href="favicon.ico">
   <link rel="stylesheet" href="vendors/github-markdown.min.css">
   <link rel="stylesheet" href="themes/default.css">
@@ -70,20 +70,44 @@
   <script src="vendors/markdown-it-anchor.min.js"></script>
   <script src="vendors/markdown-it-toc-done-right.min.js"></script>
   <script src="vendors/mermaid.js"></script>
-  <script src="shared/ScriptLoader.js"></script>
-  <script src="shared/TimeSeries.js"></script>
-  <script src="shared/ChartManager.js"></script>
-  <script src="shared/ChartLegend.js"></script>
-  <script src="shared/TableManager.js"></script>
-  <script src="shared/StatusIndicator.js"></script>
-  <script src="shared/SortBy.js"></script>
-  <script src="shared/NotificationTester.js"></script>
-  <script src="shared/FeatureVisibility.js"></script>
-  <script src="shared/FederationRenderer.js"></script>
+
+  <!-- data -->
+  <script src="shared/data/formatters.js"></script>
+
+  <!-- charts -->
+  <script src="shared/charts/manager.js"></script>
+  <script src="shared/charts/legends.js"></script>
+  <script src="shared/charts/series.js"></script>
+
+  <!-- tables -->
+  <script src="shared/tables/manager.js"></script>
+
+  <!-- controls -->
+  <script src="shared/controls/sorting.js"></script>
+  <script src="shared/controls/notifications.js"></script>
+  <script src="shared/controls/reload.js"></script>
+
+  <!-- federation -->
+  <script src="shared/federation/indicators.js"></script>
+
+  <!-- ui -->
+  <script src="shared/ui/modals.js"></script>
+  <script src="shared/ui/icons.js"></script>
+  <script src="shared/ui/features.js"></script>
+
+  <!-- state -->
+  <script src="shared/state/expansion.js"></script>
+
+  <!-- tiles -->
   <script src="tiles/layoutMath.js"></script>
   <script src="tiles/tiles.js"></script>
-  <script src="shared/Modal.js"></script>
+
+  <!-- editor -->
   <script src="editor/index.js"></script>
+
+  <!-- app modules -->
+  <script src="sections.js"></script>
+  <script src="layout.js"></script>
   <script src="app.js"></script>
   <script src="header/index.js"></script>
 </body>

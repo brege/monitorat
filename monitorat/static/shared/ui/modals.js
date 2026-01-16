@@ -1,6 +1,6 @@
 /* global document */
 
-window.Modal = (() => {
+const Modal = (() => {
   let backdrop = null;
   let container = null;
   let closeCallback = null;
@@ -116,3 +116,7 @@ window.Modal = (() => {
 
   return { show, hide, isOpen };
 })();
+
+window.Modal = Modal;
+window.monitorShared = window.monitorShared || {};
+window.monitorShared.Modal = Modal;

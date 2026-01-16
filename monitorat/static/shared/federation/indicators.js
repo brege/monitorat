@@ -8,7 +8,7 @@
  *   - unknown (gray): status not yet checked
  */
 
-window.StatusIndicator = (() => {
+const StatusIndicator = (() => {
   const STATES = {
     ok: { color: 'var(--status-ok, #22c55e)', label: 'Online' },
     degraded: { color: 'var(--status-degraded, #eab308)', label: 'Degraded' },
@@ -109,3 +109,7 @@ window.StatusIndicator = (() => {
     STATES,
   };
 })();
+
+window.StatusIndicator = StatusIndicator;
+window.monitorShared = window.monitorShared || {};
+window.monitorShared.StatusIndicator = StatusIndicator;
