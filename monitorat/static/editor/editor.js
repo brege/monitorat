@@ -170,9 +170,10 @@ window.Editor = (() => {
         </div>
       </div>
       <div class="editor-footer">
-        <span class="editor-draft-indicator"></span>
         <div class="editor-actions">
-          <div class="editor-actions-left"></div>
+          <div class="editor-actions-left">
+            <span class="editor-draft-indicator"></span>
+          </div>
           <div class="editor-actions-right">
             <button type="button" class="icon-label editor-action-cancel">
               <span class="icon-label-icon">${ICON_CANCEL}</span>
@@ -234,7 +235,7 @@ window.Editor = (() => {
         <span class="icon-label-icon">${ICON_DELETE}</span>
         <span class="icon-label-text">Delete</span>
       `;
-      editorActionsLeft.appendChild(deleteBtn);
+      editorActionsLeft.insertBefore(deleteBtn, editorActionsLeft.firstChild);
 
       deleteBtn.addEventListener('click', async () => {
         if (confirm('Are you sure you want to delete this?')) {

@@ -134,6 +134,7 @@
 .editor-actions-left {
   display: flex;
   gap: 8px;
+  align-items: center;
 }
 
 .editor-actions-right {
