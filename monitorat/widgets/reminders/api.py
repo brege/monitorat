@@ -607,6 +607,33 @@ def register_routes(app):
 
         return jsonify({"status": "ok", "reminder": target_id})
 
+    @app.route("/api/reminders/source", methods=["DELETE"])
+    def api_reminders_source_delete():
+        from flask import jsonify, request
+
+        if not reminders_edit_enabled():
+            return jsonify({"error": "Reminders editing is disabled"}), 403
+
+        edit_path = get_reminders_edit_path()
+        if not edit_path:
+            return jsonify({"error": "Reminders edit_file not configured"}), 404
+
+        reminder_id = request.args.get("reminder")
+        if not reminder_id:
+            return jsonify({"error": "Missing reminder id"}), 400
+
+        existing_items = get_reminders_items()
+        if reminder_id not in existing_items:
+            return jsonify({"error": "Reminder not found"}), 404
+
+        updated_items = dict(existing_items)
+        del updated_items[reminder_id]
+
+        edit_path.parent.mkdir(parents=True, exist_ok=True)
+        edit_path.write_text(serialize_reminders_yaml(updated_items), encoding="utf-8")
+
+        return jsonify({"status": "ok", "reminder": reminder_id})
+
     @app.route("/api/reminders/preview", methods=["POST"])
     def api_reminders_preview():
         from flask import jsonify, request

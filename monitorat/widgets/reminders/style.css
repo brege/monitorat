@@ -60,6 +60,7 @@
   display: block;
 }
 .reminder-edit-button:hover {
+  background: transparent;
   color: var(--text-primary);
 }
 .reminder-editor-preview {

@@ -7,8 +7,8 @@ window.Editor = (() => {
   const CHEVRON_UP = '<polyline points="18 15 12 9 6 15"/>';
   const ICON_SAVE =
     '<svg aria-hidden="true" viewBox="0 0 448 512" fill="currentColor"><path d="M433.941 129.941l-83.882-83.882A48 48 0 0 0 316.118 32H48C21.49 32 0 53.49 0 80v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V163.882a48 48 0 0 0-14.059-33.941zM224 416c-35.346 0-64-28.654-64-64 0-35.346 28.654-64 64-64s64 28.654 64 64c0 35.346-28.654 64-64 64zm96-304.52V212c0 6.627-5.373 12-12 12H76c-6.627 0-12-5.373-12-12V108c0-6.627 5.373-12 12-12h228.52c3.183 0 6.235 1.264 8.485 3.515l3.48 3.48A11.996 11.996 0 0 1 320 111.48z"></path></svg>';
-  const ICON_RESTORE =
-    '<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path fill="none" d="M0 0h24v24H0V0z"></path><path d="M13 3a9 9 0 0 0-9 9H1l4 3.99L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.25 2.52.77-1.28-3.52-2.09V8z"></path></svg>';
+  const ICON_DELETE =
+    '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
   const ICON_CANCEL =
     '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M18.364 5.636l-12.728 12.728"></path></svg>';
 
@@ -17,6 +17,7 @@ window.Editor = (() => {
   let previewElement = null;
   let draftIndicator = null;
   let saveCallback = null;
+  let deleteCallback = null;
   let previewRenderer = null;
   let mode = 'edit';
 
@@ -134,6 +135,7 @@ window.Editor = (() => {
       file,
       content,
       onSave,
+      onDelete = null,
       readonly = false,
       previewRenderer: customRenderer = null,
       initialMode = 'edit',
@@ -141,6 +143,7 @@ window.Editor = (() => {
 
     currentFile = file || widget;
     saveCallback = onSave;
+    deleteCallback = onDelete;
     previewRenderer = customRenderer;
 
     const originalContent = content || '';
@@ -171,9 +174,9 @@ window.Editor = (() => {
             <span class="icon-label-icon">${ICON_CANCEL}</span>
             <span class="icon-label-text">Cancel</span>
           </button>
-          <button type="button" class="icon-label editor-action-restore"${readonly ? ' disabled' : ''}>
-            <span class="icon-label-icon">${ICON_RESTORE}</span>
-            <span class="icon-label-text">Restore</span>
+          <button type="button" class="icon-label status-critical editor-action-delete"${readonly ? ' disabled' : ''}>
+            <span class="icon-label-icon">${ICON_DELETE}</span>
+            <span class="icon-label-text">Delete</span>
           </button>
           <button type="button" class="icon-label icon-label-keep status-ok editor-action-save"${readonly ? ' disabled' : ''}>
             <span class="icon-label-icon">${ICON_SAVE}</span>
@@ -198,11 +201,14 @@ window.Editor = (() => {
         previewElement = null;
         draftIndicator = null;
         saveCallback = null;
+        deleteCallback = null;
         previewRenderer = null;
         mode = 'edit';
-        document
-          .querySelector('.modal-container')
-          ?.classList.remove('editor-modal');
+        setTimeout(() => {
+          document
+            .querySelector('.modal-container')
+            ?.classList.remove('editor-modal');
+        }, 300);
       },
     });
 
@@ -216,14 +222,21 @@ window.Editor = (() => {
       window.Modal.hide();
     });
 
-    const restoreBtn = modalContent.querySelector('.editor-action-restore');
-    if (restoreBtn && !readonly) {
-      restoreBtn.addEventListener('click', async () => {
-        editorElement.value = originalContent;
-        clearDraft(currentFile);
-        updateDraftIndicator();
-        if (mode === 'preview') {
-          await renderPreview();
+    const deleteBtn = modalContent.querySelector('.editor-action-delete');
+    if (deleteBtn && !readonly && deleteCallback) {
+      deleteBtn.addEventListener('click', async () => {
+        if (confirm('Are you sure you want to delete this?')) {
+          deleteBtn.disabled = true;
+          deleteBtn.querySelector('.icon-label-text').textContent =
+            'Deleting...';
+          try {
+            await deleteCallback();
+            window.Modal.hide();
+          } catch (error) {
+            deleteBtn.disabled = false;
+            deleteBtn.querySelector('.icon-label-text').textContent = 'Delete';
+            alert(`Delete failed: ${error.message}`);
+          }
         }
       });
     }

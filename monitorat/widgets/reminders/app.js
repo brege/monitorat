@@ -94,6 +94,23 @@ class RemindersWidget {
           }
           await this.loadData();
         },
+        onDelete: reminderId
+          ? async () => {
+              const deleteUrl = new URL(
+                `${this.getApiBase()}/source`,
+                window.location,
+              );
+              deleteUrl.searchParams.set('reminder', reminderId);
+              const deleteResponse = await fetch(deleteUrl, {
+                method: 'DELETE',
+              });
+              if (!deleteResponse.ok) {
+                const error = await deleteResponse.json();
+                throw new Error(error.error || `HTTP ${deleteResponse.status}`);
+              }
+              await this.loadData();
+            }
+          : null,
       });
     } catch (error) {
       alert(`Failed to load reminder editor: ${error.message}`);
