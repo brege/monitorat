@@ -247,28 +247,6 @@ def index():
     return send_from_directory(WWW / "static", "index.html")
 
 
-@app.route("/data/<path:filename>")
-def data_files(filename):
-    data_dir = get_data_path()
-    return send_from_directory(str(data_dir), filename)
-
-
-@app.route("/about.md")
-def about():
-    path = BASE / "about.md"
-    if not path.exists():
-        path = WWW / "about.md"
-    return send_from_directory(str(path.parent), path.name)
-
-
-@app.route("/README.md")
-def readme():
-    path = BASE / "README.md"
-    if not path.exists():
-        path = WWW / "README.md"
-    return send_from_directory(str(path.parent), path.name)
-
-
 @app.route("/api/config", methods=["GET"])
 def api_config():
     try:
@@ -493,14 +471,6 @@ def theme_css():
 def img_files(filename):
     img_dir = Path(config["paths"]["img"].as_filename())
     return send_from_directory(str(img_dir), filename)
-
-
-@app.route("/docs/<path:filename>")
-def docs_files(filename):
-    docs_dir = BASE / "docs"
-    if not docs_dir.exists():
-        docs_dir = WWW / "docs"
-    return send_from_directory(docs_dir, filename)
 
 
 @app.route("/vendors/<path:filename>")
