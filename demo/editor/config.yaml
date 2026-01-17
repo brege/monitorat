@@ -7,7 +7,7 @@ includes:
   - ../simple/snippets/wiki.yaml
   - ../simple/snippets/footer.yaml
 paths:
-  data: ../simple/data/
+  data: data/
   img: ../simple/img/
   favicon: ../simple/img/favicon.svg
   vendors: ../../vendors/
@@ -17,6 +17,8 @@ sections:
     collapsible: false
   dummy:
     title: Dummy Document
+  reminders:
+    title: Reminders
   wiki-footer:
     title: Links
 
@@ -24,8 +26,8 @@ widgets:
   enabled:
     - editor-readme
     - dummy
+    - reminders
     - wiki-footer
-  # - reminders
 
   editor-readme:
     type: wiki
@@ -34,8 +36,14 @@ widgets:
     doc: ./README.md
     mode: seamless
     edit: true
-    edit: false
 
+  reminders:
+    type: reminders
+    name: null
+    section: reminders
+    edit: true
+    edit_file: data/reminders.yml
+  
   dummy:
     type: wiki
     name: null

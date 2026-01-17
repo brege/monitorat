@@ -252,6 +252,29 @@ def bootstrap_demo_data():
     )
 
 
+def bootstrap_editor_reminders():
+    """Generate reminders.yml for editor demo."""
+    data_dir = DEMO_DIR / "editor" / "data"
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    reminders_yml = data_dir / "reminders.yml"
+    reminders_yml.write_text(
+        "protonmail:\n"
+        '  name: "ProtonMail Password"\n'
+        '  url: "https://protonmail.com"\n'
+        '  icon: "reminders/protonmail.png"\n'
+        "  expiry_days: 90\n"
+        '  reason: "Change your ProtonMail password"\n'
+        "github:\n"
+        '  name: "GitHub SSH Keys"\n'
+        '  url: "https://github.com/settings/keys"\n'
+        '  icon: "reminders/github.svg"\n'
+        "  expiry_days: 180\n"
+        '  reason: "Review and rotate SSH keys"\n'
+    )
+    print(f"  Generated {reminders_yml}")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Launcher for the monitorat demos",
@@ -291,8 +314,10 @@ def main():
     if manifest:
         generate_docs(manifest)
 
-    if args.mode in ("simple", "advanced", "editor"):
+    if args.mode in ("simple", "advanced"):
         bootstrap_demo_data()
+    elif args.mode == "editor":
+        bootstrap_editor_reminders()
 
     nodes_to_start = [NODES[name] for name in MODES[args.mode]]
 

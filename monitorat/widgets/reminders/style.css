@@ -37,6 +37,37 @@
 .reminder-alert-description {
   color: var(--text-muted) !important;
 }
+.reminder-alert {
+  position: relative;
+}
+.reminder-alert-content {
+  padding-right: 28px;
+}
+.reminder-edit-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  padding: 4px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.reminder-edit-button svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+.reminder-edit-button:hover {
+  color: var(--text-primary);
+}
+.reminder-editor-preview {
+  padding: 12px 0;
+}
+.reminder-editor-preview .reminder-alert {
+  cursor: default;
+}
 @media (min-width: 641px) {
   .reminder-alert {
     align-items: center;

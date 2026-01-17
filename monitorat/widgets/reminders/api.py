@@ -3,12 +3,14 @@
 import json
 import logging
 import schedule
+import tempfile
 import threading
 import time as time_module
 from datetime import datetime
 from pathlib import Path
 import sys
 
+import confuse
 from confuse import ConfigError
 
 sys.path.append(str(Path(__file__).parent.parent))
@@ -39,8 +41,165 @@ def reminders_enabled() -> bool:
         return False
 
 
+def get_reminders_view():
+    return config["widgets"]["reminders"]
+
+
+def reminders_edit_enabled() -> bool:
+    try:
+        edit_view = get_reminders_view()["edit"]
+        return edit_view.exists() and edit_view.get(bool)
+    except Exception:
+        return False
+
+
+def get_reminders_edit_path() -> Path | None:
+    view = get_reminders_view()
+    if not view["edit_file"].exists():
+        return None
+    edit_file_value = view["edit_file"].get()
+    if edit_file_value is None or edit_file_value == "":
+        return None
+    edit_path = Path(view["edit_file"].as_filename())
+    return edit_path if edit_path.exists() else None
+
+
+def parse_reminders_yaml(content: str) -> dict:
+    with tempfile.NamedTemporaryFile("w+", suffix=".yaml", delete=True) as handle:
+        handle.write(content)
+        handle.flush()
+        data = confuse.load_yaml(handle.name, loader=config.loader)
+    if data is None:
+        return {}
+    if not isinstance(data, dict):
+        raise ValueError("Reminders YAML must be a mapping.")
+    if "items" in data:
+        items = data["items"]
+        if not isinstance(items, dict):
+            raise ValueError("Reminders items must be a mapping.")
+        return items
+    return data
+
+
+def load_reminders_from_file(path: Path) -> dict:
+    data = confuse.load_yaml(str(path), loader=config.loader)
+    if data is None:
+        return {}
+    if not isinstance(data, dict):
+        raise ValueError("Reminders YAML must be a mapping.")
+    if "items" in data:
+        items = data["items"]
+        if not isinstance(items, dict):
+            raise ValueError("Reminders items must be a mapping.")
+        return items
+    return data
+
+
+def serialize_reminders_yaml(items: dict) -> str:
+    def serialize_value(value):
+        if isinstance(value, bool):
+            return "true" if value else "false"
+        if isinstance(value, (int, float)):
+            return str(value)
+        return json.dumps(str(value))
+
+    lines = []
+    for reminder_id, reminder in items.items():
+        lines.append(f"{reminder_id}:")
+        if not isinstance(reminder, dict):
+            lines.append(f"  value: {serialize_value(reminder)}")
+            continue
+        ordered_keys = ["name", "url", "icon", "expiry_days", "reason"]
+        remaining_keys = [key for key in reminder.keys() if key not in ordered_keys]
+        for key in ordered_keys + sorted(remaining_keys):
+            if key not in reminder:
+                continue
+            value = reminder[key]
+            lines.append(f"  {key}: {serialize_value(value)}")
+    return "\n".join(lines) + "\n"
+
+
+def get_reminders_items():
+    view = get_reminders_view()
+    edit_path = get_reminders_edit_path()
+    if edit_path and edit_path.exists():
+        return load_reminders_from_file(edit_path)
+    items = view["items"].get(dict)
+    return items or {}
+
+
+def normalize_reminder_entry(reminder_id, reminder):
+    if not isinstance(reminder_id, str) or not reminder_id.strip():
+        raise ValueError("Reminder id must be a non-empty string.")
+    if not isinstance(reminder, dict):
+        raise ValueError("Reminder entry must be a mapping.")
+
+    name = reminder.get("name") or reminder_id
+    url = reminder.get("url")
+    icon = reminder.get("icon")
+    reason = reminder.get("reason")
+    expiry_days = reminder.get("expiry_days")
+
+    if not isinstance(url, str) or not url.strip():
+        raise ValueError("Reminder url is required.")
+    if not isinstance(icon, str) or not icon.strip():
+        raise ValueError("Reminder icon is required.")
+    if not isinstance(reason, str) or not reason.strip():
+        raise ValueError("Reminder reason is required.")
+
+    if isinstance(expiry_days, str):
+        if not expiry_days.strip().isdigit():
+            raise ValueError("Reminder expiry_days must be a number.")
+        expiry_days = int(expiry_days.strip())
+    elif isinstance(expiry_days, (int, float)):
+        expiry_days = int(expiry_days)
+    else:
+        raise ValueError("Reminder expiry_days must be a number.")
+
+    if expiry_days <= 0:
+        raise ValueError("Reminder expiry_days must be greater than zero.")
+
+    normalized = dict(reminder)
+    normalized["name"] = name
+    normalized["url"] = url
+    normalized["icon"] = icon
+    normalized["reason"] = reason
+    normalized["expiry_days"] = expiry_days
+    return normalized
+
+
+def build_preview_entry(reminder_id, reminder):
+    normalized = normalize_reminder_entry(reminder_id, reminder)
+    expiry_days = normalized["expiry_days"]
+    return {
+        "id": reminder_id,
+        "name": normalized["name"],
+        "url": normalized["url"],
+        "icon": normalized["icon"],
+        "reason": normalized["reason"],
+        "last_touch": None,
+        "days_since": None,
+        "days_remaining": expiry_days,
+        "status": "ok",
+    }
+
+
+def build_reminder_template(reminder_id="new-reminder"):
+    return serialize_reminders_yaml(
+        {
+            reminder_id: {
+                "name": "New Reminder",
+                "url": "https://example.com",
+                "icon": "favicon.svg",
+                "expiry_days": 30,
+                "reason": "Describe why you need to check this.",
+            }
+        }
+    )
+
+
 def get_reminders_json_path() -> Path:
-    filename = config["widgets"]["reminders"]["state_file"].get(str)
+    filename = get_reminders_view()["state_file"].get(str)
     path = Path(filename)
     if not path.is_absolute():
         path = get_data_path() / path
@@ -78,7 +237,7 @@ def cleanup_orphaned_reminders():
     """Remove reminder data for entries no longer in config"""
     data = load_reminder_data()
 
-    reminders_items = config["widgets"]["reminders"]["items"].get(dict)
+    reminders_items = get_reminders_items()
     if not reminders_items:
         return
 
@@ -94,8 +253,8 @@ def cleanup_orphaned_reminders():
 
 
 def get_reminder_status():
-    reminders_view = config["widgets"]["reminders"]
-    reminder_items = reminders_view["items"].get(dict)
+    reminders_view = get_reminders_view()
+    reminder_items = get_reminders_items()
     if not reminder_items:
         return []
 
@@ -160,7 +319,7 @@ def _refresh_notification_schedule(log_prefix="[schedule] refreshed") -> None:
         logger.info(f"{log_prefix} - reminders disabled; no schedule created")
         return
 
-    check_time = config["widgets"]["reminders"]["time"].get(str)
+    check_time = get_reminders_view()["time"].get(str)
 
     schedule.every().day.at(check_time).do(scheduled_notification_check).tag(
         "reminders"
@@ -170,7 +329,7 @@ def _refresh_notification_schedule(log_prefix="[schedule] refreshed") -> None:
 
 
 def _get_apprise_urls():
-    reminders_view = config["widgets"]["reminders"]
+    reminders_view = get_reminders_view()
     try:
         urls = reminders_view["apprise_urls"].get(list)
         if urls:
@@ -190,8 +349,8 @@ def send_notifications():
     if not reminders_enabled():
         return False
 
-    reminders_view = config["widgets"]["reminders"]
-    reminder_items = reminders_view["items"].get(dict)
+    reminders_view = get_reminders_view()
+    reminder_items = get_reminders_items()
     if not reminder_items:
         return False
 
@@ -339,7 +498,7 @@ def register_routes(app):
 
         if is_demo_enabled():
             return jsonify({"error": "reminders disabled in demo mode"}), 403
-        reminders_items = config["widgets"]["reminders"]["items"].get(dict)
+        reminders_items = get_reminders_items()
         if reminder_id not in reminders_items:
             return jsonify({"error": "reminder not found"}), 404
 
@@ -366,5 +525,115 @@ def register_routes(app):
         from flask import jsonify
 
         return jsonify(schema)
+
+    @app.route("/api/reminders/source", methods=["GET"])
+    def api_reminders_source():
+        from flask import jsonify, request
+
+        if not reminders_edit_enabled():
+            return jsonify({"error": "Reminders editing is disabled"}), 403
+
+        edit_path = get_reminders_edit_path()
+        if not edit_path:
+            return jsonify({"error": "Reminders edit_file not configured"}), 404
+
+        reminder_id = request.args.get("reminder")
+        reminders_items = get_reminders_items()
+        if reminder_id:
+            reminder_entry = reminders_items.get(reminder_id)
+            if reminder_entry:
+                content = serialize_reminders_yaml({reminder_id: reminder_entry})
+            else:
+                content = build_reminder_template(reminder_id)
+        else:
+            content = build_reminder_template()
+
+        return jsonify(
+            {
+                "content": content,
+                "path": str(edit_path),
+                "reminder": reminder_id,
+            }
+        )
+
+    @app.route("/api/reminders/source", methods=["PUT"])
+    def api_reminders_source_put():
+        from flask import jsonify, request
+
+        if not reminders_edit_enabled():
+            return jsonify({"error": "Reminders editing is disabled"}), 403
+
+        edit_path = get_reminders_edit_path()
+        if not edit_path:
+            return jsonify({"error": "Reminders edit_file not configured"}), 404
+
+        payload = request.get_json()
+        if not payload or "content" not in payload:
+            return jsonify({"error": "Missing content"}), 400
+
+        content = payload["content"]
+        reminder_id = request.args.get("reminder")
+
+        try:
+            parsed_items = parse_reminders_yaml(content)
+        except ValueError as error:
+            return jsonify({"error": str(error)}), 400
+
+        if not parsed_items:
+            return jsonify({"error": "Reminder YAML is empty"}), 400
+
+        if reminder_id:
+            if reminder_id not in parsed_items or len(parsed_items) != 1:
+                return jsonify({"error": "Reminder id mismatch"}), 400
+            target_id = reminder_id
+            reminder_entry = parsed_items[reminder_id]
+        else:
+            if len(parsed_items) != 1:
+                return jsonify({"error": "Reminder YAML must contain one entry"}), 400
+            target_id = next(iter(parsed_items.keys()))
+            reminder_entry = parsed_items[target_id]
+
+        try:
+            normalized_entry = normalize_reminder_entry(target_id, reminder_entry)
+        except ValueError as error:
+            return jsonify({"error": str(error)}), 400
+
+        existing_items = get_reminders_items()
+        updated_items = dict(existing_items)
+        updated_items[target_id] = normalized_entry
+
+        edit_path.parent.mkdir(parents=True, exist_ok=True)
+        edit_path.write_text(serialize_reminders_yaml(updated_items), encoding="utf-8")
+
+        return jsonify({"status": "ok", "reminder": target_id})
+
+    @app.route("/api/reminders/preview", methods=["POST"])
+    def api_reminders_preview():
+        from flask import jsonify, request
+
+        if not reminders_edit_enabled():
+            return jsonify({"error": "Reminders editing is disabled"}), 403
+
+        payload = request.get_json()
+        if not payload or "content" not in payload:
+            return jsonify({"error": "Missing content"}), 400
+
+        content = payload["content"]
+        try:
+            parsed_items = parse_reminders_yaml(content)
+        except ValueError as error:
+            return jsonify({"error": str(error)}), 400
+
+        if len(parsed_items) != 1:
+            return jsonify({"error": "Reminder YAML must contain one entry"}), 400
+
+        reminder_id = next(iter(parsed_items.keys()))
+        reminder_entry = parsed_items[reminder_id]
+        try:
+            preview_entry = build_preview_entry(reminder_id, reminder_entry)
+        except ValueError as error:
+            return jsonify({"error": str(error)}), 400
+
+        return jsonify({"reminder": preview_entry})
 
     _ensure_scheduler_initialized()

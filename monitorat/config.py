@@ -103,6 +103,7 @@ class ConfigManager:
             self._discover_widget_default_paths(default_config_directory)
         )
         seen_paths = set()
+        base_for_paths = bool(self._project_config)
         for filepath in include_paths:
             resolved_path = filepath.resolve()
             if resolved_path in seen_paths:
@@ -114,6 +115,7 @@ class ConfigManager:
                 confuse.YamlSource(
                     str(filepath),
                     default=True,
+                    base_for_paths=base_for_paths,
                     loader=config_object.loader,
                 )
             )

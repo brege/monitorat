@@ -35,6 +35,109 @@ class RemindersWidget {
     return this.config.remote ? `api/proxy/${this.config.remote}/img` : 'img';
   }
 
+  canEditReminders() {
+    if (this.config._apiPrefix || this.config.remote) {
+      return false;
+    }
+    if (this.config.federation?.nodes) {
+      return false;
+    }
+    return this.config.edit === true;
+  }
+
+  async openReminderEditor(reminder = null) {
+    if (!this.canEditReminders()) {
+      return;
+    }
+
+    const reminderId = reminder?.id || null;
+    const requestUrl = new URL(`${this.getApiBase()}/source`, window.location);
+    if (reminderId) {
+      requestUrl.searchParams.set('reminder', reminderId);
+    }
+
+    try {
+      const response = await fetch(requestUrl, { cache: 'no-store' });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || `HTTP ${response.status}`);
+      }
+      const data = await response.json();
+
+      const editorKey = reminderId
+        ? `reminders:${reminderId}`
+        : 'reminders:new';
+
+      window.Editor.open({
+        widget: editorKey,
+        file: data.path,
+        content: data.content,
+        initialMode: 'edit',
+        previewRenderer: (content, previewElement) =>
+          this.renderReminderPreview(content, previewElement),
+        onSave: async (newContent) => {
+          const saveUrl = new URL(
+            `${this.getApiBase()}/source`,
+            window.location,
+          );
+          if (reminderId) {
+            saveUrl.searchParams.set('reminder', reminderId);
+          }
+          const saveResponse = await fetch(saveUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: newContent }),
+          });
+          if (!saveResponse.ok) {
+            const error = await saveResponse.json();
+            throw new Error(error.error || `HTTP ${saveResponse.status}`);
+          }
+          await this.loadData();
+        },
+      });
+    } catch (error) {
+      alert(`Failed to load reminder editor: ${error.message}`);
+    }
+  }
+
+  async renderReminderPreview(content, previewElement) {
+    if (!previewElement) return;
+    previewElement.innerHTML = '';
+    previewElement.classList.add('reminder-editor-preview');
+
+    if (!content.trim()) {
+      previewElement.textContent = 'Add reminder YAML to preview.';
+      return;
+    }
+
+    const requestUrl = new URL(`${this.getApiBase()}/preview`, window.location);
+    const response = await fetch(requestUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      previewElement.textContent = error.error || `HTTP ${response.status}`;
+      return;
+    }
+
+    const payload = await response.json();
+    const reminderData = payload.reminder;
+    if (!reminderData) {
+      previewElement.textContent = 'Preview unavailable.';
+      return;
+    }
+
+    const previewCard = this.features.alerts.createReminderCard(
+      reminderData,
+      false,
+      { disableActions: true },
+    );
+    previewElement.appendChild(previewCard);
+  }
+
   sortReminders(reminders) {
     const sortBy = this.config.sort_by || 'due.asc';
     const [field, direction] = sortBy.split('.');

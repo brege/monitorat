@@ -6,6 +6,7 @@ class RemindersControls {
   initialize() {
     this.initializeSortController();
     this.initializeSourceFilter();
+    this.initializeAddReminderButton();
     this.initializeTestNotification();
   }
 
@@ -65,6 +66,24 @@ class RemindersControls {
       this.widget.render();
     });
     this.sourceSelect = sourceSelect;
+  }
+
+  initializeAddReminderButton() {
+    if (!this.widget.canEditReminders()) {
+      return;
+    }
+
+    const controlsDiv = this.widget.container.querySelector('.widget-controls');
+    if (!controlsDiv) return;
+
+    const addButton = document.createElement('button');
+    addButton.type = 'button';
+    addButton.className = 'alerts-toggle';
+    addButton.textContent = 'Add Reminder';
+    addButton.addEventListener('click', () => {
+      this.widget.openReminderEditor();
+    });
+    controlsDiv.appendChild(addButton);
   }
 
   updateSources(sources, selectedSource) {

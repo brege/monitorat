@@ -17,6 +17,7 @@ window.Editor = (() => {
   let previewElement = null;
   let draftIndicator = null;
   let saveCallback = null;
+  let previewRenderer = null;
   let mode = 'edit';
 
   function getMarkdownRenderer() {
@@ -86,13 +87,17 @@ window.Editor = (() => {
     }
   }
 
-  function renderPreview() {
+  async function renderPreview() {
     if (!editorElement || !previewElement) return;
-    const md = getMarkdownRenderer();
-    previewElement.innerHTML = md.render(editorElement.value);
+    if (typeof previewRenderer === 'function') {
+      await previewRenderer(editorElement.value, previewElement);
+    } else {
+      const md = getMarkdownRenderer();
+      previewElement.innerHTML = md.render(editorElement.value);
+    }
   }
 
-  function setMode(newMode) {
+  async function setMode(newMode) {
     mode = newMode;
     const container = document.querySelector('.editor-modal-content');
     if (!container) return;
@@ -115,7 +120,7 @@ window.Editor = (() => {
       curtain.dataset.mode = 'preview';
       curtainLabel.textContent = 'Preview';
       curtainChevron.innerHTML = CHEVRON_UP;
-      renderPreview();
+      await renderPreview();
     }
   }
 
@@ -124,10 +129,19 @@ window.Editor = (() => {
   }
 
   async function open(options = {}) {
-    const { widget, file, content, onSave, readonly = false } = options;
+    const {
+      widget,
+      file,
+      content,
+      onSave,
+      readonly = false,
+      previewRenderer: customRenderer = null,
+      initialMode = 'edit',
+    } = options;
 
     currentFile = file || widget;
     saveCallback = onSave;
+    previewRenderer = customRenderer;
 
     const originalContent = content || '';
     const draft = loadDraft(currentFile);
@@ -184,6 +198,7 @@ window.Editor = (() => {
         previewElement = null;
         draftIndicator = null;
         saveCallback = null;
+        previewRenderer = null;
         mode = 'edit';
         document
           .querySelector('.modal-container')
@@ -203,12 +218,12 @@ window.Editor = (() => {
 
     const restoreBtn = modalContent.querySelector('.editor-action-restore');
     if (restoreBtn && !readonly) {
-      restoreBtn.addEventListener('click', () => {
+      restoreBtn.addEventListener('click', async () => {
         editorElement.value = originalContent;
         clearDraft(currentFile);
         updateDraftIndicator();
         if (mode === 'preview') {
-          renderPreview();
+          await renderPreview();
         }
       });
     }
@@ -243,8 +258,10 @@ window.Editor = (() => {
     });
 
     updateDraftIndicator();
-    setMode('edit');
-    editorElement.focus();
+    await setMode(initialMode);
+    if (initialMode === 'edit') {
+      editorElement.focus();
+    }
   }
 
   return {
