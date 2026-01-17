@@ -146,7 +146,7 @@ class RemindersWidget {
     const featureScripts = [
       {
         globalName: 'IconHandler',
-        source: 'shared/IconHandler.js',
+        source: 'ui/icons.js',
       },
       {
         globalName: 'RemindersControls',

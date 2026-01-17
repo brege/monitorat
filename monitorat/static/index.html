@@ -9,8 +9,8 @@
   <link rel="stylesheet" href="vendors/github-markdown.min.css">
   <link rel="stylesheet" href="themes/default.css">
   <link rel="stylesheet" href="tiles/tiles.css">
-  <link rel="stylesheet" href="header/style.css">
-  <link rel="stylesheet" href="editor/style.css">
+  <link rel="stylesheet" href="header/header.css">
+  <link rel="stylesheet" href="editor/editor.css">
   <link rel="stylesheet" href="theme-overlay.css" onerror="this.remove()">
   <link rel="stylesheet" href="theme.css" onerror="this.remove()">
   <script>
@@ -71,44 +71,34 @@
   <script src="vendors/markdown-it-toc-done-right.min.js"></script>
   <script src="vendors/mermaid.js"></script>
 
-  <!-- data -->
-  <script src="shared/data/formatters.js"></script>
-
-  <!-- charts -->
-  <script src="shared/charts/manager.js"></script>
-  <script src="shared/charts/legends.js"></script>
-  <script src="shared/charts/series.js"></script>
-
-  <!-- tables -->
-  <script src="shared/tables/manager.js"></script>
+  <!-- history -->
+  <script src="history/charts.js"></script>
+  <script src="history/legends.js"></script>
+  <script src="history/timeseries.js"></script>
+  <script src="history/tables.js"></script>
 
   <!-- controls -->
-  <script src="shared/controls/sorting.js"></script>
-  <script src="shared/controls/notifications.js"></script>
-  <script src="shared/controls/reload.js"></script>
-
-  <!-- federation -->
-  <script src="shared/federation/indicators.js"></script>
+  <script src="controls/sorting.js"></script>
+  <script src="controls/notifications.js"></script>
+  <script src="controls/reload.js"></script>
+  <script src="controls/expansion.js"></script>
 
   <!-- ui -->
-  <script src="shared/ui/modals.js"></script>
-  <script src="shared/ui/icons.js"></script>
-  <script src="shared/ui/features.js"></script>
-
-  <!-- state -->
-  <script src="shared/state/expansion.js"></script>
+  <script src="ui/modals.js"></script>
+  <script src="ui/icons.js"></script>
+  <script src="ui/features.js"></script>
+  <script src="ui/indicators.js"></script>
 
   <!-- tiles -->
-  <script src="tiles/layoutMath.js"></script>
   <script src="tiles/tiles.js"></script>
 
   <!-- editor -->
-  <script src="editor/index.js"></script>
+  <script src="editor/editor.js"></script>
 
   <!-- app modules -->
-  <script src="sections.js"></script>
-  <script src="layout.js"></script>
+  <script src="page/sections.js"></script>
+  <script src="page/layout.js"></script>
   <script src="app.js"></script>
-  <script src="header/index.js"></script>
+  <script src="header/header.js"></script>
 </body>
 </html>
