@@ -46,11 +46,6 @@ __all__ = [
 BASE = Path(__file__).parent.parent
 WWW = BASE / "monitorat"
 
-# Detect flat deployment - if monitorat/ doesn't exist, we're deployed flat
-if not WWW.exists():
-    BASE = Path(__file__).parent
-    WWW = BASE
-
 app = Flask(__name__)
 require_auth_for_api(app)
 
