@@ -82,7 +82,7 @@ const IconHandler = (() => {
     svg.style.display = 'block';
     svg.classList.add('icon-svg');
 
-    if (!options.chrome) {
+    if (options.chrome) {
       svg.setAttribute('fill', 'currentColor');
       svg.setAttribute('stroke', 'currentColor');
       svg.style.color = 'currentColor';

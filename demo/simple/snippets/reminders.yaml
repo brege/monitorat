@@ -12,6 +12,7 @@ widgets:
         name: GitHub SSH Key
         url: https://github.com/settings/keys
         icon: reminders/github.svg
+        chrome: true
         expiry_days: 365
         reason: Change your GitHub SSH key once a year
       beets:

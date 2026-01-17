@@ -9,13 +9,13 @@ widgets:
       monitor:
         name: monitorat
         icon: favicon.svg
-        chrome: true
         services: [monitor@demo.service]
         url: https://github.com/brege/monitorat
         local: http://demo-host:6161
       ollama:
         name: Ollama
         icon: services/systemd/ollama.svg
+        chrome: true
         services: [ollama.service]
         url: https://github.com/ollama/ollama
       plex_letterboxd:

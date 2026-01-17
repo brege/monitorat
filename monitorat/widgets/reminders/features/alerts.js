@@ -67,6 +67,7 @@ class RemindersAlerts {
       iconContainer,
       `${imgBase}/${reminder.icon}`,
       reminder.name,
+      { chrome: Boolean(reminder.chrome) },
     );
 
     const content = document.createElement('div');
