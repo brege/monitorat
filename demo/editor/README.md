@@ -1,12 +1,12 @@
 ## Editor Demo
 
-This is the **editor demo** for monitorat. In this mode, wiki widgets have editing enabled.
+This is the **editor demo** for monitorat. In this mode, wiki and reminders widgets have editing enabled.
 
 ### How to Edit
 
-Click the pencil icon next to any wiki widget header to open the editor.
+Click the pencil icon next to any wiki widget header or on a reminder to open the editor.
 
-- **Edit**: Write markdown in the textarea
+- **Edit**: Write markdown/yaml in the textarea
 - **Preview**: Click the chevron to see the rendered preview
 - **Save**: Click Save to persist changes
 - **Drafts**: Changes are auto-saved to localStorage every second

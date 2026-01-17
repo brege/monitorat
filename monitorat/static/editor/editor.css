@@ -110,7 +110,7 @@
 .editor-footer {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  gap: 16px;
   padding-top: 12px;
   margin-top: 8px;
   width: 100%;
@@ -119,15 +119,27 @@
 .editor-draft-indicator {
   font-size: 0.8rem;
   color: var(--text-muted);
-  flex: 1;
-  min-width: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .editor-actions {
   display: flex;
   gap: 8px;
+  flex: 1;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.editor-actions-left {
+  display: flex;
+  gap: 8px;
+}
+
+.editor-actions-right {
+  display: flex;
+  gap: 8px;
   margin-left: auto;
-  justify-content: flex-end;
 }
 
 .wiki-edit-btn {

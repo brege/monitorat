@@ -159,3 +159,54 @@ def register_routes(app, instance="wiki"):
         )
 
         return jsonify({"status": "ok", "path": str(doc_file)})
+
+    @app.route("/api/wiki/versions", endpoint=f"wiki_versions_{instance}")
+    def wiki_versions():
+        """List available backup versions for a document."""
+        from flask import request
+        from datetime import datetime
+
+        file_path = request.args.get("path")
+        if not file_path:
+            return jsonify({"error": "Missing path parameter"}), 400
+
+        doc_file = Path(file_path)
+        versions_dir = doc_file.parent / ".versions"
+
+        if not versions_dir.exists():
+            return jsonify({"versions": []})
+
+        versions = []
+        pattern = f"{doc_file.stem}_*{doc_file.suffix}"
+        for backup in sorted(versions_dir.glob(pattern), reverse=True):
+            timestamp_str = backup.stem.replace(doc_file.stem + "_", "")
+            try:
+                dt = datetime.strptime(timestamp_str, "%Y%m%d_%H%M%S")
+                label = dt.strftime("%Y-%m-%d %H:%M:%S")
+            except ValueError:
+                label = timestamp_str
+
+            versions.append({"filename": backup.name, "label": label})
+
+        return jsonify({"versions": versions})
+
+    @app.route("/api/wiki/restore", endpoint=f"wiki_restore_{instance}")
+    def wiki_restore():
+        """Restore a document from a backup version."""
+        from flask import request
+
+        file_path = request.args.get("path")
+        version = request.args.get("version")
+
+        if not file_path or not version:
+            return jsonify({"error": "Missing path or version parameter"}), 400
+
+        doc_file = Path(file_path)
+        versions_dir = doc_file.parent / ".versions"
+        backup_file = versions_dir / version
+
+        if not backup_file.exists():
+            return jsonify({"error": "Version not found"}), 404
+
+        content = backup_file.read_text(encoding="utf-8")
+        return jsonify({"content": content})
