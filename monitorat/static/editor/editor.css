@@ -10,7 +10,7 @@
 .modal-container.editor-modal .modal-body {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
   min-height: 0;
 }
 
@@ -30,6 +30,7 @@
   min-height: 0;
   min-height: 240px;
   margin-top: -1px;
+  max-height: 100%;
 }
 
 .editor-edit-pane,
@@ -114,6 +115,7 @@
   padding-top: 12px;
   margin-top: 8px;
   width: 100%;
+  flex-shrink: 0;
 }
 
 .editor-draft-indicator {
@@ -129,6 +131,7 @@
   flex: 1;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .editor-actions-left {
@@ -169,4 +172,21 @@
 .wiki-edit-btn svg {
   width: 16px;
   height: 16px;
+}
+
+@media (max-height: 600px) {
+  .editor-panes {
+    min-height: 120px;
+  }
+}
+
+@media (max-width: 768px) {
+  .editor-actions-right {
+    width: 100%;
+  }
+
+  .editor-actions-right button {
+    flex: 1;
+    justify-content: center;
+  }
 }

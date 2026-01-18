@@ -387,8 +387,13 @@ button:disabled {
   padding-bottom: 0.25rem;
 }
 
+.widget-controls > * {
+  flex-shrink: 0;
+}
+
 .widget-controls .spacer {
   flex: 1;
+  flex-shrink: 1;
 }
 
 /* Shared view toggle pattern */

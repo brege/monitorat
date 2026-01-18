@@ -372,8 +372,6 @@ class WikiWidget {
     const iconSpan = document.createElement('span');
     iconSpan.className = 'icon-label-icon';
     iconSpan.innerHTML = ICON_RESTORE;
-    iconSpan.style.width = '16px';
-    iconSpan.style.height = '16px';
 
     const textSpan = document.createElement('span');
     textSpan.className = 'icon-label-text';
