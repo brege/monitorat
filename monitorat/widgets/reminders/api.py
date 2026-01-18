@@ -109,12 +109,22 @@ def serialize_reminders_yaml(items: dict) -> str:
         if not isinstance(reminder, dict):
             lines.append(f"  value: {serialize_value(reminder)}")
             continue
-        ordered_keys = ["name", "url", "icon", "expiry_days", "reason"]
+        ordered_keys = [
+            "name",
+            "url",
+            "icon",
+            "expires_on",
+            "disabled",
+            "expiry_days",
+            "reason",
+        ]
         remaining_keys = [key for key in reminder.keys() if key not in ordered_keys]
         for key in ordered_keys + sorted(remaining_keys):
             if key not in reminder:
                 continue
             value = reminder[key]
+            if key == "disabled" and value is False:
+                continue
             lines.append(f"  {key}: {serialize_value(value)}")
     return "\n".join(lines) + "\n"
 
@@ -139,6 +149,16 @@ def normalize_reminder_entry(reminder_id, reminder):
     icon = reminder.get("icon")
     reason = reminder.get("reason")
     expiry_days = reminder.get("expiry_days")
+    disabled = reminder.get("disabled", False)
+
+    if isinstance(disabled, str):
+        lowered = disabled.strip().lower()
+        if lowered in ("true", "false"):
+            disabled = lowered == "true"
+        else:
+            raise ValueError("Reminder disabled must be true or false.")
+    elif not isinstance(disabled, bool):
+        raise ValueError("Reminder disabled must be true or false.")
 
     if not isinstance(url, str) or not url.strip():
         raise ValueError("Reminder url is required.")
@@ -165,6 +185,7 @@ def normalize_reminder_entry(reminder_id, reminder):
     normalized["icon"] = icon
     normalized["reason"] = reason
     normalized["expiry_days"] = expiry_days
+    normalized["disabled"] = disabled
     return normalized
 
 
@@ -177,10 +198,11 @@ def build_preview_entry(reminder_id, reminder):
         "url": normalized["url"],
         "icon": normalized["icon"],
         "reason": normalized["reason"],
+        "disabled": normalized["disabled"],
         "last_touch": None,
         "days_since": None,
-        "days_remaining": expiry_days,
-        "status": "ok",
+        "days_remaining": expiry_days if not normalized["disabled"] else None,
+        "status": "disabled" if normalized["disabled"] else "ok",
     }
 
 
@@ -233,6 +255,14 @@ def touch_reminder(reminder_id):
     return True
 
 
+def reset_reminder(reminder_id):
+    data = load_reminder_data()
+    if reminder_id in data:
+        del data[reminder_id]
+        save_reminder_data(data)
+    return True
+
+
 def cleanup_orphaned_reminders():
     """Remove reminder data for entries no longer in config"""
     data = load_reminder_data()
@@ -273,6 +303,23 @@ def get_reminder_status():
 
     results = []
     for reminder_id, reminder_config in reminder_items.items():
+        if reminder_config.get("disabled") is True:
+            results.append(
+                {
+                    "id": reminder_id,
+                    "name": reminder_config.get("name") or reminder_id,
+                    "url": reminder_config["url"],
+                    "icon": reminder_config["icon"],
+                    "reason": reminder_config["reason"],
+                    "disabled": True,
+                    "last_touch": None,
+                    "days_since": None,
+                    "days_remaining": None,
+                    "status": "disabled",
+                }
+            )
+            continue
+
         last_touch = data.get(reminder_id)
         if last_touch:
             last_touch_dt = datetime.fromisoformat(last_touch)
@@ -301,6 +348,7 @@ def get_reminder_status():
                 "url": reminder_config["url"],
                 "icon": reminder_config["icon"],
                 "reason": reminder_config["reason"],
+                "disabled": False,
                 "last_touch": last_touch,
                 "days_since": days_since,
                 "days_remaining": days_remaining,
@@ -505,6 +553,20 @@ def register_routes(app):
         touch_reminder(reminder_id)
         reminder_url = reminders_items[reminder_id]["url"] or "/"
         return redirect(reminder_url)
+
+    @app.route("/api/reminders/<reminder_id>/reset", methods=["POST"])
+    def api_reminder_reset(reminder_id):
+        from flask import jsonify
+
+        if is_demo_enabled():
+            return jsonify({"error": "reminders disabled in demo mode"}), 403
+
+        reminders_items = get_reminders_items()
+        if reminder_id not in reminders_items:
+            return jsonify({"error": "reminder not found"}), 404
+
+        reset_reminder(reminder_id)
+        return jsonify({"status": "ok"})
 
     @app.route("/api/reminders/test-notification", methods=["POST"])
     def api_reminder_test_notification():

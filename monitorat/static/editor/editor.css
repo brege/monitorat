@@ -39,6 +39,7 @@
   inset: 0;
   opacity: 0;
   visibility: hidden;
+  overflow: auto;
   transition:
     opacity 0.25s ease,
     visibility 0.25s ease;

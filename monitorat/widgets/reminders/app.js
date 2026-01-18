@@ -68,53 +68,89 @@ class RemindersWidget {
         ? `reminders:${reminderId}`
         : 'reminders:new';
 
-      window.Editor.open({
-        widget: editorKey,
-        file: data.path,
+      const saveReminderContent = async (newContent) => {
+        const saveUrl = new URL(`${this.getApiBase()}/source`, window.location);
+        if (reminderId) {
+          saveUrl.searchParams.set('reminder', reminderId);
+        }
+        const saveResponse = await fetch(saveUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: newContent }),
+        });
+        if (!saveResponse.ok) {
+          const error = await saveResponse.json();
+          throw new Error(error.error || `HTTP ${saveResponse.status}`);
+        }
+        await this.loadData();
+      };
+
+      const deleteReminder = reminderId
+        ? async () => {
+            const deleteUrl = new URL(
+              `${this.getApiBase()}/source`,
+              window.location,
+            );
+            deleteUrl.searchParams.set('reminder', reminderId);
+            const deleteResponse = await fetch(deleteUrl, {
+              method: 'DELETE',
+            });
+            if (!deleteResponse.ok) {
+              const error = await deleteResponse.json();
+              throw new Error(error.error || `HTTP ${deleteResponse.status}`);
+            }
+            await this.loadData();
+          }
+        : null;
+
+      if (!window.RemindersEditor) {
+        throw new Error('Reminders editor unavailable');
+      }
+
+      await window.RemindersEditor.open({
+        editorKey,
+        reminderId,
         content: data.content,
-        initialMode: 'edit',
+        path: data.path,
         previewRenderer: (content, previewElement) =>
           this.renderReminderPreview(content, previewElement),
-        onSave: async (newContent) => {
-          const saveUrl = new URL(
-            `${this.getApiBase()}/source`,
-            window.location,
-          );
-          if (reminderId) {
-            saveUrl.searchParams.set('reminder', reminderId);
-          }
-          const saveResponse = await fetch(saveUrl, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content: newContent }),
-          });
-          if (!saveResponse.ok) {
-            const error = await saveResponse.json();
-            throw new Error(error.error || `HTTP ${saveResponse.status}`);
-          }
-          await this.loadData();
-        },
-        onDelete: reminderId
-          ? async () => {
-              const deleteUrl = new URL(
-                `${this.getApiBase()}/source`,
-                window.location,
-              );
-              deleteUrl.searchParams.set('reminder', reminderId);
-              const deleteResponse = await fetch(deleteUrl, {
-                method: 'DELETE',
-              });
-              if (!deleteResponse.ok) {
-                const error = await deleteResponse.json();
-                throw new Error(error.error || `HTTP ${deleteResponse.status}`);
-              }
-              await this.loadData();
-            }
-          : null,
+        onSave: saveReminderContent,
+        onDelete: deleteReminder,
       });
     } catch (error) {
       alert(`Failed to load reminder editor: ${error.message}`);
     }
+  }
+
+  async openReminderModal(reminder) {
+    if (!reminder || !window.RemindersModal) {
+      return;
+    }
+
+    const imgBase = reminder._source
+      ? `api/proxy/${reminder._source}/img`
+      : this.getImgBase();
+    const touchBase = reminder._source
+      ? `api/reminders-${reminder._source}`
+      : this.getApiBase();
+
+    window.RemindersModal.open({
+      reminder,
+      imgBase,
+      onConfirm: async () => {
+        if (reminder.url) {
+          await fetch(`${touchBase}/${reminder.id}/touch`, {
+            method: 'POST',
+          });
+          setTimeout(() => this.loadData(), 500);
+          window.open(reminder.url, '_blank');
+        }
+      },
+      onReset: async () => {
+        await fetch(`${touchBase}/${reminder.id}/reset`, { method: 'POST' });
+        setTimeout(() => this.loadData(), 500);
+      },
+    });
   }
 
   async renderReminderPreview(content, previewElement) {
@@ -267,6 +303,14 @@ class RemindersWidget {
       {
         globalName: 'IconHandler',
         source: 'ui/icons.js',
+      },
+      {
+        globalName: 'RemindersEditor',
+        source: 'widgets/reminders/editor.js',
+      },
+      {
+        globalName: 'RemindersModal',
+        source: 'widgets/reminders/modal.js',
       },
       {
         globalName: 'RemindersControls',

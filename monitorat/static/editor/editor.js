@@ -22,6 +22,7 @@ window.Editor = (() => {
   let deleteCallback = null;
   let previewRenderer = null;
   let mode = 'edit';
+  let labels = { edit: 'Editor', preview: 'Preview' };
 
   function getMarkdownRenderer() {
     return window.markdownit({ html: true }).use(window.markdownItAnchor, {
@@ -115,13 +116,13 @@ window.Editor = (() => {
       editPane.classList.add('active');
       previewPane.classList.remove('active');
       curtain.dataset.mode = 'edit';
-      curtainLabel.textContent = 'Editor';
+      curtainLabel.textContent = labels.edit;
       curtainChevron.innerHTML = CHEVRON_DOWN;
     } else {
       editPane.classList.remove('active');
       previewPane.classList.add('active');
       curtain.dataset.mode = 'preview';
-      curtainLabel.textContent = 'Preview';
+      curtainLabel.textContent = labels.preview;
       curtainChevron.innerHTML = CHEVRON_UP;
       await renderPreview();
     }
@@ -141,12 +142,18 @@ window.Editor = (() => {
       readonly = false,
       previewRenderer: customRenderer = null,
       initialMode = 'edit',
+      labels: customLabels = null,
+      title: customTitle = null,
     } = options;
 
     currentFile = file || widget;
     saveCallback = onSave;
     deleteCallback = onDelete;
     previewRenderer = customRenderer;
+    labels = {
+      edit: customLabels?.edit || 'Editor',
+      preview: customLabels?.preview || 'Preview',
+    };
 
     const originalContent = content || '';
     const draft = loadDraft(currentFile);
@@ -195,7 +202,7 @@ window.Editor = (() => {
     editorElement.value = initialContent;
 
     window.Modal.show({
-      title: `Edit: ${widget}`,
+      title: customTitle || `Edit: ${widget}`,
       content: modalContent,
       onClose: () => {
         currentFile = null;

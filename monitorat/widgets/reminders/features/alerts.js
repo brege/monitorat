@@ -45,8 +45,10 @@ class RemindersAlerts {
     const { disableActions = false } = options;
     const alertElement = document.createElement('div');
     const hasBadge = showBadge && reminder._source;
-    alertElement.className = `reminder-alert alert-card status-card status-${reminder.status} hover-expand-parent${hasBadge ? ' has-badge' : ''}`;
-    if (reminder.url && !disableActions) {
+    const isDisabled = reminder.disabled === true;
+    const statusClass = isDisabled ? 'disabled' : reminder.status;
+    alertElement.className = `reminder-alert alert-card status-card status-${statusClass} hover-expand-parent${hasBadge ? ' has-badge' : ''}${isDisabled ? ' is-disabled' : ''}`;
+    if (reminder.url && !disableActions && !isDisabled) {
       alertElement.title = reminder.url;
       alertElement.style.cursor = 'pointer';
     }
@@ -94,7 +96,9 @@ class RemindersAlerts {
     statsDiv.className = 'reminder-alert-stats';
 
     const daysSpan = document.createElement('span');
-    if (reminder.status === 'never') {
+    if (isDisabled) {
+      daysSpan.textContent = 'Disabled';
+    } else if (reminder.status === 'never') {
       daysSpan.textContent = 'Never';
     } else if (reminder.status === 'expired') {
       daysSpan.textContent = `${Math.abs(reminder.days_remaining)}d overdue`;
@@ -103,7 +107,9 @@ class RemindersAlerts {
     }
 
     const lastTouchSpan = document.createElement('span');
-    if (reminder.days_since !== null) {
+    if (isDisabled) {
+      lastTouchSpan.textContent = '';
+    } else if (reminder.days_since !== null) {
       lastTouchSpan.textContent = `${reminder.days_since}d ago`;
     } else {
       lastTouchSpan.textContent = 'Never';
@@ -140,36 +146,9 @@ class RemindersAlerts {
       alertElement.appendChild(editButton);
     }
 
-    if (!disableActions) {
-      alertElement.addEventListener('click', async () => {
-        if (reminder.url) {
-          alertElement.className = alertElement.className.replace(
-            /status-\w+/,
-            'status-ok',
-          );
-
-          const stats = alertElement.querySelector('.reminder-alert-stats');
-          if (stats) {
-            const spans = stats.querySelectorAll('span');
-            if (spans.length >= 2) {
-              spans[1].textContent = '0d ago';
-            }
-          }
-
-          try {
-            const touchBase = reminder._source
-              ? `api/reminders-${reminder._source}`
-              : this.widget.getApiBase();
-            await fetch(`${touchBase}/${reminder.id}/touch`, {
-              method: 'POST',
-            });
-            setTimeout(() => this.widget.loadData(), 500);
-          } catch (error) {
-            console.error('Failed to touch reminder:', error);
-          }
-
-          window.open(reminder.url, '_blank');
-        }
+    if (!disableActions && !isDisabled) {
+      alertElement.addEventListener('click', () => {
+        this.widget.openReminderModal(reminder);
       });
     }
 
