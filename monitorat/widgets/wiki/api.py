@@ -49,6 +49,26 @@ def render_markdown_with_includes(markdown_text: str, documentation_root: Path) 
     return "".join(output_parts)
 
 
+def resolve_display_path(doc_file: Path) -> str:
+    doc_resolved = doc_file.resolve()
+    roots = []
+    config_root = get_project_config_dir()
+    if config_root:
+        roots.append(config_root.resolve())
+    try:
+        config_root = Path(config.config_dir()).resolve()
+        if config_root not in roots:
+            roots.append(config_root)
+    except Exception:
+        pass
+    roots.append(BASE.resolve())
+
+    for root in roots:
+        if doc_resolved.is_relative_to(root):
+            return str(doc_resolved.relative_to(root))
+    return str(doc_file)
+
+
 def register_routes(app, instance="wiki"):
     """Register wiki widget API routes with Flask app.
 
@@ -114,7 +134,12 @@ def register_routes(app, instance="wiki"):
 
         content = doc_file.read_text(encoding="utf-8")
         return jsonify(
-            {"content": content, "path": str(doc_file), "widget": widget_name}
+            {
+                "content": content,
+                "path": str(doc_file),
+                "display_path": resolve_display_path(doc_file),
+                "widget": widget_name,
+            }
         )
 
     @app.route(

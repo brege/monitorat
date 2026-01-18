@@ -201,8 +201,11 @@ window.Editor = (() => {
 
     editorElement.value = initialContent;
 
+    const defaultTitle = file
+      ? `Edit: <span class="editor-title-path">${file}</span>`
+      : `Edit: ${widget}`;
     window.Modal.show({
-      title: customTitle || `Edit: ${widget}`,
+      title: customTitle || defaultTitle,
       content: modalContent,
       onClose: () => {
         currentFile = null;

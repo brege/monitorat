@@ -30,11 +30,14 @@ class WikiEditor {
       }
 
       const data = await response.json();
+      const displayPath = data.display_path || data.path;
+      const titlePath = this.escapeTitle(displayPath);
 
       window.Editor.open({
         widget: widgetName,
         file: data.path,
         content: data.content,
+        title: `Edit: <span class="editor-title-path">${titlePath}</span>`,
         onSave: async (newContent) => {
           const saveResponse = await fetch(
             `api/wiki/source?widget=${widgetName}`,
@@ -58,6 +61,15 @@ class WikiEditor {
     } catch (error) {
       alert(`Failed to load source: ${error.message}`);
     }
+  }
+
+  escapeTitle(value) {
+    return String(value)
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
   }
 
   async addRestoreDropdown(filePath) {

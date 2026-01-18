@@ -147,6 +147,19 @@
   margin-left: auto;
 }
 
+.editor-title-path {
+  font-family: var(
+    --font-mono,
+    "SF Mono",
+    "Monaco",
+    "Inconsolata",
+    "Fira Code",
+    monospace
+  );
+  font-size: 0.85em;
+  font-weight: 500;
+}
+
 .editor-edit-btn {
   display: inline-flex;
   align-items: center;
