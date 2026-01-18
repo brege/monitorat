@@ -3,7 +3,6 @@
 import json
 import logging
 import schedule
-import tempfile
 import threading
 import time as time_module
 from datetime import datetime
@@ -63,23 +62,6 @@ def get_reminders_edit_path() -> Path | None:
         return None
     edit_path = Path(view["edit_file"].as_filename())
     return edit_path if edit_path.exists() else None
-
-
-def parse_reminders_yaml(content: str) -> dict:
-    with tempfile.NamedTemporaryFile("w+", suffix=".yaml", delete=True) as handle:
-        handle.write(content)
-        handle.flush()
-        data = confuse.load_yaml(handle.name, loader=config.loader)
-    if data is None:
-        return {}
-    if not isinstance(data, dict):
-        raise ValueError("Reminders YAML must be a mapping.")
-    if "items" in data:
-        items = data["items"]
-        if not isinstance(items, dict):
-            raise ValueError("Reminders items must be a mapping.")
-        return items
-    return data
 
 
 def load_reminders_from_file(path: Path) -> dict:
@@ -216,13 +198,24 @@ def build_reminder_template(reminder_id="new-reminder"):
         {
             reminder_id: {
                 "name": "New Reminder",
-                "url": "https://example.com",
+                "url": "",
                 "icon": "",
                 "expiry_days": 30,
                 "reason": "Describe why you need to check this.",
             }
         }
     )
+
+
+def build_reminder_item(reminder_id="new-reminder"):
+    return {
+        "name": "New Reminder",
+        "url": "",
+        "icon": "",
+        "expiry_days": 30,
+        "reason": "Describe why you need to check this.",
+        "disabled": False,
+    }
 
 
 def get_reminders_json_path() -> Path:
@@ -615,17 +608,15 @@ def register_routes(app):
         reminders_items = get_reminders_items()
         if reminder_id:
             reminder_entry = reminders_items.get(reminder_id)
-            if reminder_entry:
-                content = serialize_reminders_yaml({reminder_id: reminder_entry})
-            else:
-                content = build_reminder_template(reminder_id)
+            item = reminder_entry or build_reminder_item(reminder_id)
         else:
-            content = build_reminder_template()
+            reminder_id = "new-reminder"
+            item = build_reminder_item(reminder_id)
 
         img_root = Path(config["paths"]["img"].as_filename())
         return jsonify(
             {
-                "content": content,
+                "item": item,
                 "path": str(edit_path),
                 "reminder": reminder_id,
                 "img_root": str(img_root),
@@ -644,30 +635,15 @@ def register_routes(app):
             return jsonify({"error": "Reminders edit_file not configured"}), 404
 
         payload = request.get_json()
-        if not payload or "content" not in payload:
-            return jsonify({"error": "Missing content"}), 400
+        if not payload or "item" not in payload:
+            return jsonify({"error": "Missing reminder item"}), 400
 
-        content = payload["content"]
         reminder_id = request.args.get("reminder")
+        target_id = payload.get("id") or reminder_id
+        if not target_id:
+            return jsonify({"error": "Missing reminder id"}), 400
 
-        try:
-            parsed_items = parse_reminders_yaml(content)
-        except ValueError as error:
-            return jsonify({"error": str(error)}), 400
-
-        if not parsed_items:
-            return jsonify({"error": "Reminder YAML is empty"}), 400
-
-        if reminder_id:
-            if reminder_id not in parsed_items or len(parsed_items) != 1:
-                return jsonify({"error": "Reminder id mismatch"}), 400
-            target_id = reminder_id
-            reminder_entry = parsed_items[reminder_id]
-        else:
-            if len(parsed_items) != 1:
-                return jsonify({"error": "Reminder YAML must contain one entry"}), 400
-            target_id = next(iter(parsed_items.keys()))
-            reminder_entry = parsed_items[target_id]
+        reminder_entry = payload["item"]
 
         try:
             normalized_entry = normalize_reminder_entry(target_id, reminder_entry)
@@ -757,20 +733,14 @@ def register_routes(app):
             return jsonify({"error": "Reminders editing is disabled"}), 403
 
         payload = request.get_json()
-        if not payload or "content" not in payload:
-            return jsonify({"error": "Missing content"}), 400
+        if not payload or "item" not in payload:
+            return jsonify({"error": "Missing reminder item"}), 400
 
-        content = payload["content"]
-        try:
-            parsed_items = parse_reminders_yaml(content)
-        except ValueError as error:
-            return jsonify({"error": str(error)}), 400
+        reminder_id = payload.get("id")
+        if not reminder_id:
+            return jsonify({"error": "Missing reminder id"}), 400
 
-        if len(parsed_items) != 1:
-            return jsonify({"error": "Reminder YAML must contain one entry"}), 400
-
-        reminder_id = next(iter(parsed_items.keys()))
-        reminder_entry = parsed_items[reminder_id]
+        reminder_entry = payload["item"]
         try:
             preview_entry = build_preview_entry(reminder_id, reminder_entry)
         except ValueError as error:

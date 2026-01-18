@@ -47,6 +47,19 @@ def generate_services():
     print(f"Generated {services_yml}")
 
 
+def copy_snapshot_data():
+    data_dir = DEMO_DIR / "data"
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    source_dir = DEMO_DIR.parent / "simple" / "data"
+    for filename in ["reminders.json", "snapshot.jsonl"]:
+        source = source_dir / filename
+        if source.exists():
+            dest = data_dir / filename
+            shutil.copy2(source, dest)
+            print(f"Copied {source} → {dest}")
+
+
 def reset_editor_images():
     img_dir = DEMO_DIR / "img"
     if img_dir.exists():
@@ -68,6 +81,7 @@ def main():
     reset_editor_images()
     generate_reminders()
     generate_services()
+    copy_snapshot_data()
     generate_dummy_doc()
 
 

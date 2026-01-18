@@ -4,7 +4,6 @@ import json
 import logging
 import os
 import re
-import tempfile
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
@@ -53,23 +52,6 @@ def get_services_edit_path() -> Path | None:
 
 def load_services_from_file(path: Path) -> dict:
     data = confuse.load_yaml(str(path), loader=config.loader)
-    if data is None:
-        return {}
-    if not isinstance(data, dict):
-        raise ValueError("Services YAML must be a mapping.")
-    if "items" in data:
-        items = data["items"]
-        if not isinstance(items, dict):
-            raise ValueError("Services items must be a mapping.")
-        return items
-    return data
-
-
-def parse_services_yaml(content: str) -> dict:
-    with tempfile.NamedTemporaryFile("w+", suffix=".yaml", delete=True) as handle:
-        handle.write(content)
-        handle.flush()
-        data = confuse.load_yaml(handle.name, loader=config.loader)
     if data is None:
         return {}
     if not isinstance(data, dict):
@@ -219,11 +201,25 @@ def build_service_template(service_id="new-service"):
         {
             service_id: {
                 "name": "New Service",
-                "url": "https://example.com",
+                "url": "",
                 "icon": "",
             }
         }
     )
+
+
+def build_service_item(service_id="new-service"):
+    return {
+        "name": "New Service",
+        "url": "",
+        "local": "",
+        "icon": "",
+        "containers": [],
+        "services": [],
+        "timers": [],
+        "user": False,
+        "chrome": False,
+    }
 
 
 def sanitize_icon_filename(filename: str) -> str:
@@ -495,17 +491,15 @@ def register_routes(app):
         all_services = services_items()
         if service_key:
             service_entry = all_services.get(service_key)
-            if service_entry:
-                content = serialize_services_yaml({service_key: service_entry})
-            else:
-                content = build_service_template(service_key)
+            item = service_entry or build_service_item(service_key)
         else:
-            content = build_service_template()
+            service_key = "new-service"
+            item = build_service_item(service_key)
 
         img_root = Path(config["paths"]["img"].as_filename())
         return jsonify(
             {
-                "content": content,
+                "item": item,
                 "path": str(edit_path),
                 "service": service_key,
                 "img_root": str(img_root),
@@ -524,30 +518,15 @@ def register_routes(app):
             return jsonify({"error": "Services edit_file not configured"}), 404
 
         payload = request.get_json()
-        if not payload or "content" not in payload:
-            return jsonify({"error": "Missing content"}), 400
+        if not payload or "item" not in payload:
+            return jsonify({"error": "Missing service item"}), 400
 
-        content = payload["content"]
         service_key = request.args.get("service")
+        target_key = payload.get("id") or service_key
+        if not target_key:
+            return jsonify({"error": "Missing service id"}), 400
 
-        try:
-            parsed_items = parse_services_yaml(content)
-        except ValueError as error:
-            return jsonify({"error": str(error)}), 400
-
-        if not parsed_items:
-            return jsonify({"error": "Service YAML is empty"}), 400
-
-        if service_key:
-            if service_key not in parsed_items or len(parsed_items) != 1:
-                return jsonify({"error": "Service key mismatch"}), 400
-            target_key = service_key
-            service_entry = parsed_items[service_key]
-        else:
-            if len(parsed_items) != 1:
-                return jsonify({"error": "Service YAML must contain one entry"}), 400
-            target_key = next(iter(parsed_items.keys()))
-            service_entry = parsed_items[target_key]
+        service_entry = payload["item"]
 
         try:
             normalized_entry = normalize_service_entry(target_key, service_entry)

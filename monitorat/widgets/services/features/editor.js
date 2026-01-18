@@ -1,106 +1,17 @@
 /* global alert */
 const ServicesEditor = (() => {
-  function parseValue(rawValue) {
-    if (rawValue === 'true') {
-      return true;
-    }
-    if (rawValue === 'false') {
-      return false;
-    }
-    if (rawValue.startsWith('"')) {
-      try {
-        return JSON.parse(rawValue);
-      } catch (error) {
-        return rawValue.replaceAll('"', '');
-      }
-    }
-    const numberValue = Number(rawValue);
-    if (!Number.isNaN(numberValue) && rawValue !== '') {
-      return numberValue;
-    }
-    return rawValue;
-  }
-
-  function serializeValue(value) {
-    if (typeof value === 'boolean') {
-      return value ? 'true' : 'false';
-    }
-    if (typeof value === 'number' && Number.isFinite(value)) {
-      return value.toString();
-    }
-    return JSON.stringify(String(value ?? ''));
-  }
-
-  function parseServiceContent(content) {
-    const lines = content.split('\n');
-    let serviceKey = '';
-    const service = {};
-
-    lines.forEach((line) => {
-      const cleaned = line.replace('\r', '');
-      const trimmed = cleaned.trim();
-      if (!trimmed || trimmed.startsWith('#')) {
-        return;
-      }
-      if (!cleaned.startsWith(' ')) {
-        const colonIndex = cleaned.indexOf(':');
-        if (colonIndex === -1) {
-          return;
-        }
-        serviceKey = cleaned.slice(0, colonIndex).trim();
-        return;
-      }
-      if (!serviceKey) {
-        return;
-      }
-      const fieldLine = cleaned.trim();
-      const colonIndex = fieldLine.indexOf(':');
-      if (colonIndex === -1) {
-        return;
-      }
-      const key = fieldLine.slice(0, colonIndex).trim();
-      const rawValue = fieldLine.slice(colonIndex + 1).trim();
-      if (!key) {
-        return;
-      }
-      service[key] = parseValue(rawValue);
-    });
-
-    return { serviceKey, service };
-  }
-
-  function serializeServiceContent(state) {
-    const serialize = serializeValue;
-    const lines = [];
-    lines.push(`${state.id}:`);
-    lines.push(`  name: ${serialize(state.name)}`);
-    lines.push(`  url: ${serialize(state.url)}`);
-    if (state.local && state.local !== state.url) {
-      lines.push(`  local: ${serialize(state.local)}`);
-    }
-    lines.push(`  icon: ${serialize(state.icon)}`);
-    if (state.containers && state.containers.length > 0) {
-      lines.push(
-        `  containers: [${state.containers.map((c) => serialize(c)).join(', ')}]`,
-      );
-    }
-    if (state.services && state.services.length > 0) {
-      lines.push(
-        `  services: [${state.services.map((s) => serialize(s)).join(', ')}]`,
-      );
-    }
-    if (state.timers && state.timers.length > 0) {
-      lines.push(
-        `  timers: [${state.timers.map((t) => serialize(t)).join(', ')}]`,
-      );
-    }
-    if (state.user) {
-      lines.push('  user: true');
-    }
-    if (state.chrome) {
-      lines.push('  chrome: true');
-    }
-    return `${lines.join('\n')}\n`;
+  function buildServicePayload(state) {
+    return {
+      name: state.name ?? '',
+      url: state.url ?? '',
+      local: state.local ?? '',
+      icon: state.icon ?? '',
+      containers: state.containers || [],
+      services: state.services || [],
+      timers: state.timers || [],
+      user: state.user === true,
+      chrome: state.chrome === true,
+    };
   }
 
   function parseArrayValue(value) {
@@ -203,7 +114,7 @@ const ServicesEditor = (() => {
   }
 
   async function open(options) {
-    const { editorKey, serviceKey, content, path, imgRoot, onSave, onDelete } =
+    const { editorKey, serviceKey, item, path, imgRoot, onSave, onDelete } =
       options;
 
     if (!window.Editor) {
@@ -215,11 +126,12 @@ const ServicesEditor = (() => {
     await window.Editor.open({
       widget: editorKey,
       file: path,
-      content,
+      content: '',
       initialMode: 'edit',
       title: 'Service Editor',
       labels: { edit: 'Edit', preview: 'Preview' },
       previewRenderer: null,
+      useForm: true,
       onSave: async () => handleSave(),
       onDelete,
     });
@@ -230,22 +142,19 @@ const ServicesEditor = (() => {
     }
 
     const editPane = modalContent.querySelector('.editor-edit-pane');
-    const textarea = modalContent.querySelector('.editor-textarea');
-    if (!editPane || !textarea) {
+    if (!editPane) {
       return;
     }
-
-    textarea.classList.add('service-editor-textarea-hidden');
 
     const curtain = modalContent.querySelector('.editor-curtain');
     if (curtain) {
       curtain.style.display = 'none';
     }
 
-    const { serviceKey: parsedKey, service } = parseServiceContent(content);
+    const service = item || {};
     const initialState = {
-      id: parsedKey || serviceKey || 'new-service',
-      name: service.name || parsedKey || serviceKey || '',
+      id: serviceKey || 'new-service',
+      name: service.name || serviceKey || '',
       url: service.url || '',
       local: service.local || '',
       icon: service.icon || '',
@@ -263,19 +172,6 @@ const ServicesEditor = (() => {
     scrollContainer.appendChild(form);
     editPane.appendChild(scrollContainer);
 
-    const updateTextarea = () => {
-      const state = getServiceFormState(form);
-      if (!state.id) {
-        return;
-      }
-      try {
-        textarea.value = serializeServiceContent(state);
-      } catch (error) {
-        textarea.value = '';
-      }
-      textarea.dispatchEvent(new Event('input', { bubbles: true }));
-    };
-
     window.FormFields.setupIconField({
       form,
       triggerSelector: '.form-icon-trigger',
@@ -286,18 +182,13 @@ const ServicesEditor = (() => {
       apiEndpoint: 'api/services/icon',
       imgPrefix: 'img/',
       imgRoot,
-      onUpdate: () => {
-        updateTextarea();
-      },
+      onUpdate: () => {},
     });
-
-    form.addEventListener('input', updateTextarea);
-    updateTextarea();
 
     handleSave = async () => {
       const state = getServiceFormState(form);
-      const serialized = serializeServiceContent(state);
-      await onSave(serialized);
+      const payload = buildServicePayload(state);
+      await onSave({ id: state.id, item: payload });
     };
   }
 

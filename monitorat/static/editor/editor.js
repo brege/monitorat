@@ -21,6 +21,7 @@ window.Editor = (() => {
   let saveCallback = null;
   let deleteCallback = null;
   let previewRenderer = null;
+  let previewDataProvider = null;
   let mode = 'edit';
   let labels = { edit: 'Editor', preview: 'Preview' };
 
@@ -92,10 +93,17 @@ window.Editor = (() => {
   }
 
   async function renderPreview() {
-    if (!editorElement || !previewElement) return;
+    if (!previewElement) return;
     if (typeof previewRenderer === 'function') {
-      await previewRenderer(editorElement.value, previewElement);
+      const previewData = previewDataProvider
+        ? previewDataProvider()
+        : editorElement?.value;
+      await previewRenderer(previewData, previewElement);
     } else {
+      if (!editorElement) {
+        previewElement.innerHTML = '';
+        return;
+      }
       const md = getMarkdownRenderer();
       previewElement.innerHTML = md.render(editorElement.value);
     }
@@ -141,22 +149,25 @@ window.Editor = (() => {
       onDelete = null,
       readonly = false,
       previewRenderer: customRenderer = null,
+      previewDataProvider: customPreviewDataProvider = null,
       initialMode = 'edit',
       labels: customLabels = null,
       title: customTitle = null,
+      useForm = false,
     } = options;
 
     currentFile = file || widget;
     saveCallback = onSave;
     deleteCallback = onDelete;
     previewRenderer = customRenderer;
+    previewDataProvider = customPreviewDataProvider;
     labels = {
       edit: customLabels?.edit || 'Editor',
       preview: customLabels?.preview || 'Preview',
     };
 
     const originalContent = content || '';
-    const draft = loadDraft(currentFile);
+    const draft = useForm ? null : loadDraft(currentFile);
     const initialContent = draft || originalContent;
 
     const modalContent = document.createElement('div');
@@ -170,7 +181,13 @@ window.Editor = (() => {
       </div>
       <div class="editor-panes">
         <div class="editor-edit-pane active">
-          <textarea class="editor-textarea" spellcheck="false"${readonly ? ' readonly' : ''}></textarea>
+          ${
+            useForm
+              ? '<div class="editor-form-pane"></div>'
+              : `<textarea class="editor-textarea" spellcheck="false"${
+                  readonly ? ' readonly' : ''
+                }></textarea>`
+          }
         </div>
         <div class="editor-preview-pane">
           <div class="editor-preview markdown-body"></div>
@@ -199,7 +216,12 @@ window.Editor = (() => {
     previewElement = modalContent.querySelector('.editor-preview');
     draftIndicator = modalContent.querySelector('.editor-draft-indicator');
 
-    editorElement.value = initialContent;
+    if (editorElement) {
+      editorElement.value = initialContent;
+    }
+    if (useForm && draftIndicator) {
+      draftIndicator.style.display = 'none';
+    }
 
     const defaultTitle = file
       ? `Edit: <span class="editor-title-path">${file}</span>`
@@ -215,6 +237,7 @@ window.Editor = (() => {
         saveCallback = null;
         deleteCallback = null;
         previewRenderer = null;
+        previewDataProvider = null;
         mode = 'edit';
         setTimeout(() => {
           document
@@ -267,13 +290,15 @@ window.Editor = (() => {
     const saveBtn = modalContent.querySelector('.editor-action-save');
     if (!readonly) {
       saveBtn.addEventListener('click', async () => {
-        const newContent = editorElement.value;
+        const newContent = editorElement ? editorElement.value : null;
         if (typeof saveCallback === 'function') {
           saveBtn.disabled = true;
           saveBtn.querySelector('.icon-label-text').textContent = 'Saving...';
           try {
             await saveCallback(newContent);
-            clearDraft(currentFile);
+            if (!useForm) {
+              clearDraft(currentFile);
+            }
             window.Modal.hide();
           } catch (error) {
             saveBtn.disabled = false;
@@ -285,17 +310,19 @@ window.Editor = (() => {
     }
 
     let debounceTimer = null;
-    editorElement.addEventListener('input', () => {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        saveDraft(currentFile, editorElement.value);
-        updateDraftIndicator();
-      }, 1000);
-    });
+    if (editorElement) {
+      editorElement.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          saveDraft(currentFile, editorElement.value);
+          updateDraftIndicator();
+        }, 1000);
+      });
+    }
 
     updateDraftIndicator();
     await setMode(initialMode);
-    if (initialMode === 'edit') {
+    if (initialMode === 'edit' && editorElement) {
       editorElement.focus();
     }
   }

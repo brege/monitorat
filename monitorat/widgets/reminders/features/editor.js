@@ -2,76 +2,7 @@
 const RemindersEditor = (() => {
   const DEFAULT_EXPIRY_DAYS = 30;
 
-  function parseValue(rawValue) {
-    if (rawValue === 'true') {
-      return true;
-    }
-    if (rawValue === 'false') {
-      return false;
-    }
-    if (rawValue.startsWith('"')) {
-      try {
-        return JSON.parse(rawValue);
-      } catch (error) {
-        return rawValue.replaceAll('"', '');
-      }
-    }
-    const numberValue = Number(rawValue);
-    if (!Number.isNaN(numberValue) && rawValue !== '') {
-      return numberValue;
-    }
-    return rawValue;
-  }
-
-  function serializeValue(value) {
-    if (typeof value === 'boolean') {
-      return value ? 'true' : 'false';
-    }
-    if (typeof value === 'number' && Number.isFinite(value)) {
-      return value.toString();
-    }
-    return JSON.stringify(String(value ?? ''));
-  }
-
-  function parseReminderContent(content) {
-    const lines = content.split('\n');
-    let reminderId = '';
-    const reminder = {};
-
-    lines.forEach((line) => {
-      const cleaned = line.replace('\r', '');
-      const trimmed = cleaned.trim();
-      if (!trimmed || trimmed.startsWith('#')) {
-        return;
-      }
-      if (!cleaned.startsWith(' ')) {
-        const colonIndex = cleaned.indexOf(':');
-        if (colonIndex === -1) {
-          return;
-        }
-        reminderId = cleaned.slice(0, colonIndex).trim();
-        return;
-      }
-      if (!reminderId) {
-        return;
-      }
-      const fieldLine = cleaned.trim();
-      const colonIndex = fieldLine.indexOf(':');
-      if (colonIndex === -1) {
-        return;
-      }
-      const key = fieldLine.slice(0, colonIndex).trim();
-      const rawValue = fieldLine.slice(colonIndex + 1).trim();
-      if (!key) {
-        return;
-      }
-      reminder[key] = parseValue(rawValue);
-    });
-
-    return { reminderId, reminder };
-  }
-
-  function serializeReminderContent(state, { strict }) {
+  function buildReminderPayload(state, { strict }) {
     let expiryDays = state.expiry_days;
     if (state.expires_on) {
       const computedDays = window.FormFields.calculateDaysUntil(
@@ -90,21 +21,15 @@ const RemindersEditor = (() => {
       expiryDays = numericExpiry;
     }
 
-    const serialize = serializeValue;
-    const lines = [];
-    lines.push(`${state.id}:`);
-    lines.push(`  name: ${serialize(state.name)}`);
-    lines.push(`  url: ${serialize(state.url)}`);
-    lines.push(`  icon: ${serialize(state.icon)}`);
-    if (state.expires_on) {
-      lines.push(`  expires_on: ${serialize(state.expires_on)}`);
-    }
-    if (!state.enabled) {
-      lines.push('  disabled: true');
-    }
-    lines.push(`  expiry_days: ${serialize(expiryDays)}`);
-    lines.push(`  reason: ${serialize(state.reason)}`);
-    return `${lines.join('\n')}\n`;
+    return {
+      name: state.name ?? '',
+      url: state.url ?? '',
+      icon: state.icon ?? '',
+      expires_on: state.expires_on || '',
+      expiry_days: expiryDays,
+      reason: state.reason ?? '',
+      disabled: !state.enabled,
+    };
   }
 
   function buildReminderEditorForm(isEditing) {
@@ -191,7 +116,7 @@ const RemindersEditor = (() => {
     const {
       editorKey,
       reminderId,
-      content,
+      item,
       path,
       imgRoot,
       previewRenderer,
@@ -204,16 +129,19 @@ const RemindersEditor = (() => {
     }
 
     let handleSave = async () => {};
+    let previewDataProvider = () => null;
 
     await window.Editor.open({
       widget: editorKey,
       file: path,
-      content,
+      content: '',
       initialMode: 'edit',
       title: 'Reminder Editor',
       labels: { edit: 'Edit', preview: 'Preview' },
       previewRenderer: (value, previewElement) =>
         previewRenderer(value, previewElement),
+      previewDataProvider: () => previewDataProvider(),
+      useForm: true,
       onSave: async () => handleSave(),
       onDelete,
     });
@@ -224,18 +152,14 @@ const RemindersEditor = (() => {
     }
 
     const editPane = modalContent.querySelector('.editor-edit-pane');
-    const previewElement = modalContent.querySelector('.editor-preview');
-    const textarea = modalContent.querySelector('.editor-textarea');
-    if (!editPane || !previewElement || !textarea) {
+    if (!editPane) {
       return;
     }
 
-    textarea.classList.add('reminder-editor-textarea-hidden');
-
-    const { reminderId: parsedId, reminder } = parseReminderContent(content);
+    const reminder = item || {};
     const initialState = {
-      id: parsedId || reminderId || 'new-reminder',
-      name: reminder.name || parsedId || reminderId || '',
+      id: reminderId || 'new-reminder',
+      name: reminder.name || reminderId || '',
       url: reminder.url || '',
       icon: reminder.icon || '',
       expiry_days:
@@ -254,19 +178,6 @@ const RemindersEditor = (() => {
     scrollContainer.appendChild(form);
     editPane.appendChild(scrollContainer);
 
-    const updateTextarea = () => {
-      const state = getReminderFormState(form);
-      if (!state.id) {
-        return;
-      }
-      try {
-        textarea.value = serializeReminderContent(state, { strict: false });
-      } catch (error) {
-        textarea.value = '';
-      }
-      textarea.dispatchEvent(new Event('input', { bubbles: true }));
-    };
-
     window.FormFields.setupIconField({
       form,
       triggerSelector: '.form-icon-trigger',
@@ -277,9 +188,7 @@ const RemindersEditor = (() => {
       apiEndpoint: 'api/reminders/icon',
       imgPrefix: 'img/',
       imgRoot,
-      onUpdate: () => {
-        updateTextarea();
-      },
+      onUpdate: () => {},
     });
 
     const expiresInput = form.querySelector('[name="expires_on"]');
@@ -304,18 +213,26 @@ const RemindersEditor = (() => {
     if (enabledInput) {
       enabledInput.addEventListener('change', () => {
         applyEnabledState(form, enabledInput.checked);
-        updateTextarea();
       });
     }
 
-    form.addEventListener('input', updateTextarea);
-    updateTextarea();
+    previewDataProvider = () => {
+      const state = getReminderFormState(form);
+      try {
+        return {
+          id: state.id,
+          item: buildReminderPayload(state, { strict: false }),
+        };
+      } catch (error) {
+        return null;
+      }
+    };
     applyEnabledState(form, initialState.enabled);
 
     handleSave = async () => {
       const state = getReminderFormState(form);
-      const serialized = serializeReminderContent(state, { strict: true });
-      await onSave(serialized);
+      const payload = buildReminderPayload(state, { strict: true });
+      await onSave({ id: state.id, item: payload });
     };
   }
 

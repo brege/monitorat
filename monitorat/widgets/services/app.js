@@ -67,7 +67,7 @@ class ServicesWidget {
 
       const editorKey = serviceKey ? `services:${serviceKey}` : 'services:new';
 
-      const saveServiceContent = async (newContent) => {
+      const saveServiceContent = async (payload) => {
         const saveUrl = new URL(`${this.getApiBase()}/source`, window.location);
         if (serviceKey) {
           saveUrl.searchParams.set('service', serviceKey);
@@ -75,7 +75,7 @@ class ServicesWidget {
         const saveResponse = await fetch(saveUrl, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: newContent }),
+          body: JSON.stringify(payload),
         });
         if (!saveResponse.ok) {
           const error = await saveResponse.json();
@@ -109,7 +109,7 @@ class ServicesWidget {
       await window.ServicesEditor.open({
         editorKey,
         serviceKey,
-        content: data.content,
+        item: data.item,
         path: data.path,
         imgRoot: data.img_root,
         onSave: saveServiceContent,

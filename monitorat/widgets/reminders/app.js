@@ -68,7 +68,7 @@ class RemindersWidget {
         ? `reminders:${reminderId}`
         : 'reminders:new';
 
-      const saveReminderContent = async (newContent) => {
+      const saveReminderContent = async (payload) => {
         const saveUrl = new URL(`${this.getApiBase()}/source`, window.location);
         if (reminderId) {
           saveUrl.searchParams.set('reminder', reminderId);
@@ -76,7 +76,7 @@ class RemindersWidget {
         const saveResponse = await fetch(saveUrl, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: newContent }),
+          body: JSON.stringify(payload),
         });
         if (!saveResponse.ok) {
           const error = await saveResponse.json();
@@ -110,11 +110,11 @@ class RemindersWidget {
       await window.RemindersEditor.open({
         editorKey,
         reminderId,
-        content: data.content,
+        item: data.item,
         path: data.path,
         imgRoot: data.img_root,
-        previewRenderer: (content, previewElement) =>
-          this.renderReminderPreview(content, previewElement),
+        previewRenderer: (item, previewElement) =>
+          this.renderReminderPreview(item, previewElement),
         onSave: saveReminderContent,
         onDelete: deleteReminder,
       });
@@ -154,13 +154,13 @@ class RemindersWidget {
     });
   }
 
-  async renderReminderPreview(content, previewElement) {
+  async renderReminderPreview(payload, previewElement) {
     if (!previewElement) return;
     previewElement.innerHTML = '';
     previewElement.classList.add('reminder-editor-preview');
 
-    if (!content.trim()) {
-      previewElement.textContent = 'Add reminder YAML to preview.';
+    if (!payload || !payload.item) {
+      previewElement.textContent = 'Reminder preview unavailable.';
       return;
     }
 
@@ -168,7 +168,7 @@ class RemindersWidget {
     const response = await fetch(requestUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -177,8 +177,8 @@ class RemindersWidget {
       return;
     }
 
-    const payload = await response.json();
-    const reminderData = payload.reminder;
+    const responsePayload = await response.json();
+    const reminderData = responsePayload.reminder;
     if (!reminderData) {
       previewElement.textContent = 'Preview unavailable.';
       return;
