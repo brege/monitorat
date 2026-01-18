@@ -43,7 +43,7 @@ class ServicesWidget {
     if (this.config.federation?.nodes) {
       return false;
     }
-    return this.config.edit === true;
+    return window.monitorShared?.isEditModeEnabled?.() === true;
   }
 
   async openServiceEditor(service = null) {

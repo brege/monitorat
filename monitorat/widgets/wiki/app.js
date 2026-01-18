@@ -39,7 +39,7 @@ class WikiWidget {
 
     this.initializeFeatureHeaders();
 
-    if (this.config.edit === true) {
+    if (window.monitorShared?.isEditModeEnabled?.() === true) {
       if (!window.WikiEditor && window.monitorShared?.loadScript) {
         await window.monitorShared.loadScript(
           'widgets/wiki/features/editor.js',

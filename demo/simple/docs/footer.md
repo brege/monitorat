@@ -1,5 +1,5 @@
 ### Demos
-- **Simple** - [monitorat.brege.org/](https://monitorat.brege.org)
+- **Simple** - [monitorat.brege.org](https://monitorat.brege.org)
 - **Widget Features and Modes** - [monitorat.brege.org/advanced](https://monitorat.brege.org/advanced)
 - **Federation** - [monitorat.brege.org/federation](https://monitorat.brege.org/federation)
 
@@ -11,4 +11,4 @@
 - **Monitorat** - [monitorat.brege.org](https://monitorat.brege.org) (c) 2025-2026 GPL-3.0
 - **Wyatt Brege** - [brege.org](https://brege.org)
 - **GitHub** - [github.com/brege](https://github.com/brege)
-- **Mastodon** - [mastodon.social/@brege](https://mastodon.social/@brege)
+- **Mastodon** - [@brege@mastodon.social](https://mastodon.social/@brege)

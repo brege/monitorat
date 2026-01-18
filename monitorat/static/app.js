@@ -4,6 +4,30 @@ window.monitorShared = window.monitorShared || {};
 window.monitorShared._scriptPromises =
   window.monitorShared._scriptPromises || {};
 
+const EDIT_MODE_KEY = 'monitor-edit-mode';
+
+window.monitorShared.isEditModeEnabled = () => {
+  try {
+    return localStorage.getItem(EDIT_MODE_KEY) === 'true';
+  } catch (_) {
+    return false;
+  }
+};
+
+window.monitorShared.setEditModeEnabled = (enabled) => {
+  try {
+    localStorage.setItem(EDIT_MODE_KEY, enabled ? 'true' : 'false');
+  } catch (_) {
+    /* localStorage unavailable */
+  }
+};
+
+window.monitorShared.toggleEditMode = () => {
+  const enabled = !window.monitorShared.isEditModeEnabled();
+  window.monitorShared.setEditModeEnabled(enabled);
+  return enabled;
+};
+
 window.monitorShared.loadScript = (source, globalName) => {
   const cache = window.monitorShared._scriptPromises;
 

@@ -12,6 +12,6 @@ documents:
       ```bash
       uv tool install monitorat
       ```
-    epilogue: See https://github.com/brege/monitorat for more information.
+    epilogue: See [github.com/brege/monitorat](https://github.com/brege/monitorat) for more information.
     include: demo/editor/config.yaml
     show_config: false
