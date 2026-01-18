@@ -82,6 +82,9 @@ window.Editor = (() => {
 
   function updateDraftIndicator() {
     if (!draftIndicator || !currentFile) return;
+    if (draftIndicator.dataset.form === 'true') {
+      return;
+    }
     const time = getDraftTime(currentFile);
     if (time) {
       draftIndicator.textContent = `Draft saved ${formatDraftTime(time)}`;
@@ -220,7 +223,10 @@ window.Editor = (() => {
       editorElement.value = initialContent;
     }
     if (useForm && draftIndicator) {
+      draftIndicator.dataset.form = 'true';
+      draftIndicator.textContent = '';
       draftIndicator.style.display = 'none';
+      draftIndicator.style.visibility = 'hidden';
     }
 
     const defaultTitle = file

@@ -151,7 +151,9 @@ const RemindersEditor = (() => {
       return;
     }
 
-    const editPane = modalContent.querySelector('.editor-edit-pane');
+    const editPane =
+      modalContent.querySelector('.editor-form-pane') ||
+      modalContent.querySelector('.editor-edit-pane');
     if (!editPane) {
       return;
     }

@@ -53,7 +53,7 @@ const ServicesEditor = (() => {
         <input class="form-input" type="text" name="name">
       </label>
       <label class="form-field">
-        <span class="form-label">URL</span>
+        <span class="form-label">External URL</span>
         <input class="form-input" type="url" name="url">
       </label>
       <label class="form-field">
@@ -62,15 +62,21 @@ const ServicesEditor = (() => {
       </label>
       <label class="form-field">
         <span class="form-label">Icon</span>
-        <div class="form-icon-row">
-          <input class="form-input" type="text" name="icon" placeholder="services/icon.png">
-          <button type="button" class="form-icon-trigger" aria-label="Upload icon">
-            <span class="form-icon-preview hover-expand"></span>
-          </button>
-          <button type="button" class="form-icon-info info-button" aria-label="Copy icon path">
-            <span class="form-icon-info-icon">${window.FormFields.INFO_ICON}</span>
-          </button>
-          <input class="form-file-input" type="file" accept=".png,.jpg,.jpeg,.svg,.webp">
+        <div class="form-inline-row">
+          <div class="form-icon-row">
+            <input class="form-input" type="text" name="icon" placeholder="services/icon.png">
+            <button type="button" class="form-icon-trigger" aria-label="Upload icon">
+              <span class="form-icon-preview hover-expand"></span>
+            </button>
+            <button type="button" class="form-icon-info info-button" aria-label="Copy icon path">
+              <span class="form-icon-info-icon">${window.FormFields.INFO_ICON}</span>
+            </button>
+            <input class="form-file-input" type="file" accept=".png,.jpg,.jpeg,.svg,.webp">
+          </div>
+          <label class="form-checkbox">
+            <input type="checkbox" name="chrome">
+            <span>Monochrome</span>
+          </label>
         </div>
       </label>
       <label class="form-field">
@@ -79,22 +85,18 @@ const ServicesEditor = (() => {
       </label>
       <label class="form-field">
         <span class="form-label">Systemd Services</span>
-        <input class="form-input" type="text" name="services" placeholder="service1, service2">
+        <div class="form-inline-row">
+          <input class="form-input" type="text" name="services" placeholder="service1, service2">
+          <label class="form-checkbox">
+            <input type="checkbox" name="user">
+            <span>User-level systemd</span>
+          </label>
+        </div>
       </label>
       <label class="form-field">
         <span class="form-label">Systemd Timers</span>
         <input class="form-input" type="text" name="timers" placeholder="timer1, timer2">
       </label>
-      <div class="form-field form-inline">
-        <label class="form-checkbox">
-          <input type="checkbox" name="user">
-          <span>User-level systemd</span>
-        </label>
-        <label class="form-checkbox">
-          <input type="checkbox" name="chrome">
-          <span>Chrome icon</span>
-        </label>
-      </div>
     `;
     return form;
   }
@@ -141,7 +143,9 @@ const ServicesEditor = (() => {
       return;
     }
 
-    const editPane = modalContent.querySelector('.editor-edit-pane');
+    const editPane =
+      modalContent.querySelector('.editor-form-pane') ||
+      modalContent.querySelector('.editor-edit-pane');
     if (!editPane) {
       return;
     }

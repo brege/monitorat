@@ -171,7 +171,7 @@ class ServicesSnapshot {
       if (this.widget.canEditServices()) {
         const editBtn = document.createElement('button');
         editBtn.type = 'button';
-        editBtn.className = 'service-edit-btn edit-button hover-expand';
+        editBtn.className = 'service-edit-btn editor-edit-btn hover-expand';
         editBtn.innerHTML = this.getEditIcon();
         editBtn.title = 'Edit service';
         editBtn.addEventListener('click', (event) => {

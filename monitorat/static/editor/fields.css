@@ -89,6 +89,20 @@
   align-items: center;
   gap: 10px;
 }
+.form-inline-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.form-inline-row .form-input {
+  flex: 1;
+  min-width: 0;
+}
+.form-inline-row .form-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
 .form-icon-trigger {
   display: inline-flex;
   align-items: center;
