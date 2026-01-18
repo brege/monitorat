@@ -152,7 +152,7 @@ class ServicesSnapshot {
     } else {
       const infoBtn = document.createElement('button');
       infoBtn.type = 'button';
-      infoBtn.className = 'service-info-btn hover-expand';
+      infoBtn.className = 'service-info-btn info-button hover-expand';
       infoBtn.innerHTML = this.modal.getInfoIcon();
       infoBtn.title = 'Service details';
       infoBtn.addEventListener('click', (event) => {

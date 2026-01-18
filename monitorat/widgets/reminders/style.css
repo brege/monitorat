@@ -151,28 +151,16 @@
 .reminder-editor-icon-button:disabled {
   cursor: not-allowed;
   opacity: 0.6;
+  background: var(--bg-surface);
 }
 .reminder-editor-icon-info {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  padding: 0;
-  cursor: pointer;
-  transition: color 0.15s ease;
-}
-.reminder-editor-icon-info:hover {
-  color: var(--text-primary);
-  background: transparent;
+  width: 24px;
+  height: 24px;
 }
 .reminder-editor-icon-info-icon {
-  width: 16px;
-  height: 16px;
+  width: 100%;
+  height: 100%;
   display: inline-flex;
 }
 .reminder-editor-icon-preview {

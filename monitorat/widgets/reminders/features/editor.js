@@ -150,7 +150,7 @@ const RemindersEditor = (() => {
           <button type="button" class="reminder-editor-icon-button" aria-label="Upload icon">
             <span class="reminder-editor-icon-preview"></span>
           </button>
-          <button type="button" class="reminder-editor-icon-info" aria-label="Copy icon path">
+          <button type="button" class="reminder-editor-icon-info info-button" aria-label="Copy icon path">
             <span class="reminder-editor-icon-info-icon">${INFO_ICON}</span>
           </button>
           <input class="reminder-editor-icon-input" type="file" accept=".png,.jpg,.jpeg,.svg,.webp">

@@ -268,7 +268,7 @@ notifications:
 
 - [**changelog**](./docs/changelog.md)
 
-= [**roadmap**](./docs/roadmap.md)
+- [**roadmap**](./docs/roadmap.md)
 
 ## License
 
