@@ -28,6 +28,16 @@ window.monitorShared.toggleEditMode = () => {
   return enabled;
 };
 
+window.monitorShared.ensureEditMode = (enabled) => {
+  try {
+    if (localStorage.getItem(EDIT_MODE_KEY) === null) {
+      window.monitorShared.setEditModeEnabled(enabled === true);
+    }
+  } catch (_) {
+    /* localStorage unavailable */
+  }
+};
+
 window.monitorShared.loadScript = (source, globalName) => {
   const cache = window.monitorShared._scriptPromises;
 
@@ -207,6 +217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.monitor.demoEnabled = config.demo === true;
   window.monitor.federationStatus = federationStatus;
   window.monitor.sectionsConfig = config.sections || {};
+  window.monitorShared.ensureEditMode(config.site?.edit_mode);
 
   const { initializeConfigReloadControl } = window.monitorShared;
   initializeConfigReloadControl({ demoEnabled: window.monitor.demoEnabled });
