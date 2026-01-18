@@ -112,6 +112,7 @@ class RemindersWidget {
         reminderId,
         content: data.content,
         path: data.path,
+        imgRoot: data.img_root,
         previewRenderer: (content, previewElement) =>
           this.renderReminderPreview(content, previewElement),
         onSave: saveReminderContent,
@@ -138,11 +139,11 @@ class RemindersWidget {
       reminder,
       imgBase,
       onConfirm: async () => {
+        await fetch(`${touchBase}/${reminder.id}/touch`, {
+          method: 'POST',
+        });
+        setTimeout(() => this.loadData(), 500);
         if (reminder.url) {
-          await fetch(`${touchBase}/${reminder.id}/touch`, {
-            method: 'POST',
-          });
-          setTimeout(() => this.loadData(), 500);
           window.open(reminder.url, '_blank');
         }
       },

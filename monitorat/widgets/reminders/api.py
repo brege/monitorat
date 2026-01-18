@@ -9,6 +9,7 @@ import time as time_module
 from datetime import datetime
 from pathlib import Path
 import sys
+import re
 
 import confuse
 from confuse import ConfigError
@@ -160,10 +161,14 @@ def normalize_reminder_entry(reminder_id, reminder):
     elif not isinstance(disabled, bool):
         raise ValueError("Reminder disabled must be true or false.")
 
-    if not isinstance(url, str) or not url.strip():
-        raise ValueError("Reminder url is required.")
-    if not isinstance(icon, str) or not icon.strip():
-        raise ValueError("Reminder icon is required.")
+    if url is None:
+        url = ""
+    if not isinstance(url, str):
+        raise ValueError("Reminder url must be a string.")
+    if icon is None:
+        icon = ""
+    if not isinstance(icon, str):
+        raise ValueError("Reminder icon must be a string.")
     if not isinstance(reason, str) or not reason.strip():
         raise ValueError("Reminder reason is required.")
 
@@ -181,8 +186,8 @@ def normalize_reminder_entry(reminder_id, reminder):
 
     normalized = dict(reminder)
     normalized["name"] = name
-    normalized["url"] = url
-    normalized["icon"] = icon
+    normalized["url"] = url.strip()
+    normalized["icon"] = icon.strip()
     normalized["reason"] = reason
     normalized["expiry_days"] = expiry_days
     normalized["disabled"] = disabled
@@ -212,7 +217,7 @@ def build_reminder_template(reminder_id="new-reminder"):
             reminder_id: {
                 "name": "New Reminder",
                 "url": "https://example.com",
-                "icon": "favicon.svg",
+                "icon": "",
                 "expiry_days": 30,
                 "reason": "Describe why you need to check this.",
             }
@@ -261,6 +266,13 @@ def reset_reminder(reminder_id):
         del data[reminder_id]
         save_reminder_data(data)
     return True
+
+
+def sanitize_icon_filename(filename: str) -> str:
+    # Allow only alphanumerics, dash, underscore, and dot in filenames.
+    safe_name = re.sub(r"[^a-zA-Z0-9._-]+", "-", filename)
+    safe_name = safe_name.strip("-._")
+    return safe_name
 
 
 def cleanup_orphaned_reminders():
@@ -610,11 +622,13 @@ def register_routes(app):
         else:
             content = build_reminder_template()
 
+        img_root = Path(config["paths"]["img"].as_filename())
         return jsonify(
             {
                 "content": content,
                 "path": str(edit_path),
                 "reminder": reminder_id,
+                "img_root": str(img_root),
             }
         )
 
@@ -695,6 +709,45 @@ def register_routes(app):
         edit_path.write_text(serialize_reminders_yaml(updated_items), encoding="utf-8")
 
         return jsonify({"status": "ok", "reminder": reminder_id})
+
+    @app.route("/api/reminders/icon", methods=["POST"])
+    def api_reminders_icon_upload():
+        from flask import jsonify, request
+
+        if not reminders_edit_enabled():
+            return jsonify({"error": "Reminders editing is disabled"}), 403
+
+        if "file" not in request.files:
+            return jsonify({"error": "Missing file"}), 400
+
+        upload = request.files["file"]
+        if not upload or not upload.filename:
+            return jsonify({"error": "Missing filename"}), 400
+
+        allowed_extensions = {".png", ".jpg", ".jpeg", ".svg", ".webp"}
+        original_name = Path(upload.filename).name
+        extension = Path(original_name).suffix.lower()
+        if extension not in allowed_extensions:
+            return jsonify({"error": "Unsupported file type"}), 400
+
+        filename = sanitize_icon_filename(Path(original_name).stem)
+        if not filename:
+            filename = f"reminder-{int(datetime.now().timestamp())}"
+        filename = f"{filename}{extension}"
+
+        img_root = Path(config["paths"]["img"].as_filename())
+        upload_dir = img_root / "reminders"
+        upload_dir.mkdir(parents=True, exist_ok=True)
+
+        target_path = upload_dir / filename
+        if target_path.exists():
+            filename = (
+                f"{target_path.stem}-{int(datetime.now().timestamp())}{extension}"
+            )
+            target_path = upload_dir / filename
+
+        upload.save(target_path)
+        return jsonify({"path": f"reminders/{filename}", "full_path": str(target_path)})
 
     @app.route("/api/reminders/preview", methods=["POST"])
     def api_reminders_preview():

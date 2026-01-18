@@ -2,6 +2,7 @@
 """Generate fixtures for editor demo."""
 
 from pathlib import Path
+import shutil
 
 DEMO_DIR = Path(__file__).parent
 
@@ -51,7 +52,21 @@ def generate_dummy_doc():
     print(f"Generated {dummy_md}")
 
 
+def reset_editor_images():
+    img_dir = DEMO_DIR / "img"
+    if img_dir.exists():
+        shutil.rmtree(img_dir)
+    (img_dir / "reminders").mkdir(parents=True, exist_ok=True)
+    print(f"Reset {img_dir}")
+
+    source_icons = DEMO_DIR.parent / "simple" / "img" / "reminders"
+    if source_icons.exists():
+        shutil.copytree(source_icons, img_dir / "reminders", dirs_exist_ok=True)
+        print(f"Copied {source_icons} -> {img_dir / 'reminders'}")
+
+
 def main():
+    reset_editor_images()
     generate_reminders()
     generate_dummy_doc()
 

@@ -8,7 +8,7 @@ includes:
   - ../simple/snippets/footer.yaml
 paths:
   data: data/
-  img: ../simple/img/
+  img: img/
   favicon: ../simple/img/favicon.svg
   vendors: ../../vendors/
 sections:

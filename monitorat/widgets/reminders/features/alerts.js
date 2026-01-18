@@ -9,6 +9,10 @@ class RemindersAlerts {
     this.widget = widget;
   }
 
+  getIconPlaceholder() {
+    return '<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M368.5 240H272v-96.5c0-8.8-7.2-16-16-16s-16 7.2-16 16V240h-96.5c-8.8 0-16 7.2-16 16 0 4.4 1.8 8.4 4.7 11.3 2.9 2.9 6.9 4.7 11.3 4.7H240v96.5c0 4.4 1.8 8.4 4.7 11.3 2.9 2.9 6.9 4.7 11.3 4.7 8.8 0 16-7.2 16-16V272h96.5c8.8 0 16-7.2 16-16s-7.2-16-16-16z"></path></svg>';
+  }
+
   render() {
     const alertsContainer =
       this.widget.container.querySelector('.reminder-alerts');
@@ -66,12 +70,16 @@ class RemindersAlerts {
     const imgBase = reminder._source
       ? `api/proxy/${reminder._source}/img`
       : this.widget.getImgBase();
-    IconHandler.renderIcon(
-      iconContainer,
-      `${imgBase}/${reminder.icon}`,
-      reminder.name,
-      { chrome: Boolean(reminder.chrome) },
-    );
+    if (reminder.icon) {
+      IconHandler.renderIcon(
+        iconContainer,
+        `${imgBase}/${reminder.icon}`,
+        reminder.name,
+        { chrome: Boolean(reminder.chrome) },
+      );
+    } else {
+      iconContainer.innerHTML = this.getIconPlaceholder();
+    }
 
     const content = document.createElement('div');
     content.className = 'reminder-alert-content';

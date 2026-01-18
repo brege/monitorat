@@ -8,3 +8,4 @@ network.log
 speedtest.csv
 monitor.log
 editor/data/*
+editor/img/*
