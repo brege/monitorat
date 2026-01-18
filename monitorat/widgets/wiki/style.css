@@ -9,7 +9,7 @@
   background: transparent;
   padding: 16px 18px;
 }
-.notes .wiki-edit-btn {
+.notes .editor-edit-btn {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -30,8 +30,8 @@
   border-left: 2px solid var(--border-muted);
   padding-left: 16px;
 }
-.notes[data-mode="seamless"] .wiki-edit-btn,
-.notes[data-mode="rail"] .wiki-edit-btn {
+.notes[data-mode="seamless"] .editor-edit-btn,
+.notes[data-mode="rail"] .editor-edit-btn {
   top: 0;
   right: 0;
 }

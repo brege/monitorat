@@ -306,11 +306,11 @@ class RemindersWidget {
       },
       {
         globalName: 'RemindersEditor',
-        source: 'widgets/reminders/editor.js',
+        source: 'widgets/reminders/features/editor.js',
       },
       {
         globalName: 'RemindersModal',
-        source: 'widgets/reminders/modal.js',
+        source: 'widgets/reminders/features/confirm.js',
       },
       {
         globalName: 'RemindersControls',

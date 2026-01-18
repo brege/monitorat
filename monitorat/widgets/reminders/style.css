@@ -57,24 +57,10 @@
 }
 .reminder-edit-button {
   position: absolute;
-  top: 50%;
+  top: 0;
+  bottom: 0;
   right: 10px;
-  transform: translateY(-50%);
-  border: 0;
-  background: transparent;
-  color: var(--text-muted);
-  padding: 4px;
-  border-radius: 999px;
-  cursor: pointer;
-}
-.reminder-edit-button svg {
-  width: 16px;
-  height: 16px;
-  display: block;
-}
-.reminder-edit-button:hover {
-  background: transparent;
-  color: var(--text-primary);
+  margin: auto;
 }
 .reminder-editor-preview {
   padding: 12px 0;

@@ -130,7 +130,8 @@ class RemindersAlerts {
     if (canEdit) {
       const editButton = document.createElement('button');
       editButton.type = 'button';
-      editButton.className = 'reminder-edit-button';
+      editButton.className =
+        'reminder-edit-button editor-edit-btn hover-expand';
       editButton.title = 'Edit reminder';
       editButton.setAttribute('aria-label', 'Edit reminder');
       editButton.innerHTML = `
