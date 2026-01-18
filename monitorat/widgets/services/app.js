@@ -36,6 +36,90 @@ class ServicesWidget {
     return this.config.remote ? `api/proxy/${this.config.remote}/img` : 'img';
   }
 
+  canEditServices() {
+    if (this.config._apiPrefix || this.config.remote) {
+      return false;
+    }
+    if (this.config.federation?.nodes) {
+      return false;
+    }
+    return this.config.edit === true;
+  }
+
+  async openServiceEditor(service = null) {
+    if (!this.canEditServices()) {
+      return;
+    }
+
+    const serviceKey = service?._key || null;
+    const requestUrl = new URL(`${this.getApiBase()}/source`, window.location);
+    if (serviceKey) {
+      requestUrl.searchParams.set('service', serviceKey);
+    }
+
+    try {
+      const response = await fetch(requestUrl, { cache: 'no-store' });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || `HTTP ${response.status}`);
+      }
+      const data = await response.json();
+
+      const editorKey = serviceKey ? `services:${serviceKey}` : 'services:new';
+
+      const saveServiceContent = async (newContent) => {
+        const saveUrl = new URL(`${this.getApiBase()}/source`, window.location);
+        if (serviceKey) {
+          saveUrl.searchParams.set('service', serviceKey);
+        }
+        const saveResponse = await fetch(saveUrl, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: newContent }),
+        });
+        if (!saveResponse.ok) {
+          const error = await saveResponse.json();
+          throw new Error(error.error || `HTTP ${saveResponse.status}`);
+        }
+        await this.loadData();
+      };
+
+      const deleteService = serviceKey
+        ? async () => {
+            const deleteUrl = new URL(
+              `${this.getApiBase()}/source`,
+              window.location,
+            );
+            deleteUrl.searchParams.set('service', serviceKey);
+            const deleteResponse = await fetch(deleteUrl, {
+              method: 'DELETE',
+            });
+            if (!deleteResponse.ok) {
+              const error = await deleteResponse.json();
+              throw new Error(error.error || `HTTP ${deleteResponse.status}`);
+            }
+            await this.loadData();
+          }
+        : null;
+
+      if (!window.ServicesEditor) {
+        throw new Error('Services editor unavailable');
+      }
+
+      await window.ServicesEditor.open({
+        editorKey,
+        serviceKey,
+        content: data.content,
+        path: data.path,
+        imgRoot: data.img_root,
+        onSave: saveServiceContent,
+        onDelete: deleteService,
+      });
+    } catch (error) {
+      alert(`Failed to load service editor: ${error.message}`);
+    }
+  }
+
   getDisplayMode() {
     return this.config.mode || 'tiles';
   }
@@ -311,12 +395,20 @@ class ServicesWidget {
         source: 'ui/icons.js',
       },
       {
+        globalName: 'FormFields',
+        source: 'editor/fields.js',
+      },
+      {
+        globalName: 'ServicesEditor',
+        source: 'widgets/services/features/editor.js',
+      },
+      {
         globalName: 'ServicesControls',
         source: 'widgets/services/features/controls.js',
       },
       {
-        globalName: 'ServicesModal',
-        source: 'widgets/services/features/modal.js',
+        globalName: 'ServicesInfo',
+        source: 'widgets/services/features/info.js',
       },
       {
         globalName: 'ServicesSnapshot',
@@ -329,15 +421,15 @@ class ServicesWidget {
 
   initializeFeatures() {
     const ControlsFeature = window.ServicesControls;
-    const ModalFeature = window.ServicesModal;
+    const InfoFeature = window.ServicesInfo;
     const SnapshotFeature = window.ServicesSnapshot;
 
-    if (!ControlsFeature || !ModalFeature || !SnapshotFeature) {
+    if (!ControlsFeature || !InfoFeature || !SnapshotFeature) {
       throw new Error('Services feature scripts not loaded');
     }
 
     this.features.controls = new ControlsFeature(this);
-    this.features.modal = new ModalFeature(this);
+    this.features.info = new InfoFeature(this);
     this.features.snapshot = new SnapshotFeature(this);
   }
 

@@ -4,10 +4,17 @@
 // Single-source is the trivial case: one source, no badges.
 // Multi-source merges all services with source badges.
 
+const EDIT_ICON =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>';
+
 class ServicesSnapshot {
   constructor(widget) {
     this.widget = widget;
-    this.modal = widget.features.modal;
+    this.info = widget.features.info;
+  }
+
+  getEditIcon() {
+    return EDIT_ICON;
   }
 
   render() {
@@ -146,20 +153,33 @@ class ServicesSnapshot {
       );
       statusDot.addEventListener('click', (event) => {
         event.stopPropagation();
-        this.modal.open(service);
+        this.info.open(service);
       });
       card.appendChild(statusDot);
     } else {
       const infoBtn = document.createElement('button');
       infoBtn.type = 'button';
       infoBtn.className = 'service-info-btn info-button hover-expand';
-      infoBtn.innerHTML = this.modal.getInfoIcon();
+      infoBtn.innerHTML = this.info.getInfoIcon();
       infoBtn.title = 'Service details';
       infoBtn.addEventListener('click', (event) => {
         event.stopPropagation();
-        this.modal.open(service);
+        this.info.open(service);
       });
       card.appendChild(infoBtn);
+
+      if (this.widget.canEditServices()) {
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'service-edit-btn edit-button hover-expand';
+        editBtn.innerHTML = this.getEditIcon();
+        editBtn.title = 'Edit service';
+        editBtn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          this.widget.openServiceEditor(service);
+        });
+        card.appendChild(editBtn);
+      }
     }
 
     let longPressTriggered = false;
@@ -171,7 +191,8 @@ class ServicesSnapshot {
       }
       if (
         event.target.closest('.service-info-btn') ||
-        event.target.closest('.service-status-dot')
+        event.target.closest('.service-status-dot') ||
+        event.target.closest('.service-edit-btn')
       ) {
         return;
       }
@@ -198,7 +219,7 @@ class ServicesSnapshot {
         longPressTriggered = false;
         longPressTimer = setTimeout(() => {
           longPressTriggered = true;
-          this.modal.open(service);
+          this.info.open(service);
         }, longPressDelay);
       },
       { passive: true },

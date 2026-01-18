@@ -1,12 +1,8 @@
 /* global alert */
 const RemindersEditor = (() => {
   const DEFAULT_EXPIRY_DAYS = 30;
-  const ICON_PLACEHOLDER =
-    '<svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M368.5 240H272v-96.5c0-8.8-7.2-16-16-16s-16 7.2-16 16V240h-96.5c-8.8 0-16 7.2-16 16 0 4.4 1.8 8.4 4.7 11.3 2.9 2.9 6.9 4.7 11.3 4.7H240v96.5c0 4.4 1.8 8.4 4.7 11.3 2.9 2.9 6.9 4.7 11.3 4.7 8.8 0 16-7.2 16-16V272h96.5c8.8 0 16-7.2 16-16s-7.2-16-16-16z"></path></svg>';
-  const INFO_ICON =
-    '<svg aria-hidden="true" viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"><circle cx="256" cy="256" r="184" style="stroke-miterlimit:10"/><polyline points="220 220 252 220 252 336"/><line x1="208" y1="340" x2="296" y2="340" style="stroke-miterlimit:10"/><circle cx="256" cy="156" r="26" fill="currentColor" stroke="none"/></svg>';
 
-  function parseReminderValue(rawValue) {
+  function parseValue(rawValue) {
     if (rawValue === 'true') {
       return true;
     }
@@ -27,7 +23,7 @@ const RemindersEditor = (() => {
     return rawValue;
   }
 
-  function serializeReminderValue(value) {
+  function serializeValue(value) {
     if (typeof value === 'boolean') {
       return value ? 'true' : 'false';
     }
@@ -38,7 +34,6 @@ const RemindersEditor = (() => {
   }
 
   function parseReminderContent(content) {
-    // Parse the single-entry reminder YAML produced by the editor.
     const lines = content.split('\n');
     let reminderId = '';
     const reminder = {};
@@ -70,28 +65,18 @@ const RemindersEditor = (() => {
       if (!key) {
         return;
       }
-      reminder[key] = parseReminderValue(rawValue);
+      reminder[key] = parseValue(rawValue);
     });
 
     return { reminderId, reminder };
   }
 
-  function calculateExpiryDays(expiresOn) {
-    // Convert YYYY-MM-DD into remaining days.
-    const dateValue = new Date(`${expiresOn}T00:00:00`);
-    if (Number.isNaN(dateValue.getTime())) {
-      throw new Error('Expires on must be a valid YYYY-MM-DD date.');
-    }
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const diffMs = dateValue.getTime() - today.getTime();
-    return Math.ceil(diffMs / 86400000);
-  }
-
   function serializeReminderContent(state, { strict }) {
     let expiryDays = state.expiry_days;
     if (state.expires_on) {
-      const computedDays = calculateExpiryDays(state.expires_on);
+      const computedDays = window.FormFields.calculateDaysUntil(
+        state.expires_on,
+      );
       if (computedDays <= 0) {
         throw new Error('Expires on must be in the future.');
       }
@@ -105,108 +90,81 @@ const RemindersEditor = (() => {
       expiryDays = numericExpiry;
     }
 
+    const serialize = serializeValue;
     const lines = [];
     lines.push(`${state.id}:`);
-    lines.push(`  name: ${serializeReminderValue(state.name)}`);
-    lines.push(`  url: ${serializeReminderValue(state.url)}`);
-    lines.push(`  icon: ${serializeReminderValue(state.icon)}`);
+    lines.push(`  name: ${serialize(state.name)}`);
+    lines.push(`  url: ${serialize(state.url)}`);
+    lines.push(`  icon: ${serialize(state.icon)}`);
     if (state.expires_on) {
-      lines.push(`  expires_on: ${serializeReminderValue(state.expires_on)}`);
+      lines.push(`  expires_on: ${serialize(state.expires_on)}`);
     }
     if (!state.enabled) {
       lines.push('  disabled: true');
     }
-    lines.push(`  expiry_days: ${serializeReminderValue(expiryDays)}`);
-    lines.push(`  reason: ${serializeReminderValue(state.reason)}`);
+    lines.push(`  expiry_days: ${serialize(expiryDays)}`);
+    lines.push(`  reason: ${serialize(state.reason)}`);
     return `${lines.join('\n')}\n`;
   }
 
   function buildReminderEditorForm(isEditing) {
     const form = document.createElement('div');
-    form.className = 'reminder-editor-form';
+    form.className = 'form-container';
     form.innerHTML = `
-      <div class="reminder-editor-field reminder-editor-id-row">
-        <span class="reminder-editor-label">ID</span>
-        <div class="reminder-editor-id-controls">
-          <input class="reminder-editor-input" type="text" name="id" ${isEditing ? 'readonly' : ''}>
-          <label class="reminder-editor-inline reminder-editor-checkbox">
+      <div class="form-field form-id-row">
+        <span class="form-label">ID</span>
+        <div class="form-id-controls">
+          <input class="form-input" type="text" name="id" ${isEditing ? 'readonly' : ''}>
+          <label class="form-inline form-checkbox">
             <input type="checkbox" name="enabled">
             <span>Enabled</span>
           </label>
         </div>
       </div>
-      <label class="reminder-editor-field">
-        <span class="reminder-editor-label">Name</span>
-        <input class="reminder-editor-input" type="text" name="name">
+      <label class="form-field">
+        <span class="form-label">Name</span>
+        <input class="form-input" type="text" name="name">
       </label>
-      <label class="reminder-editor-field">
-        <span class="reminder-editor-label">On click URL</span>
-        <input class="reminder-editor-input" type="url" name="url">
+      <label class="form-field">
+        <span class="form-label">On click URL</span>
+        <input class="form-input" type="url" name="url">
       </label>
-      <label class="reminder-editor-field">
-        <span class="reminder-editor-label">Icon</span>
-        <div class="reminder-editor-icon-row">
-          <input class="reminder-editor-input" type="text" name="icon" placeholder="reminders/icon.png">
-          <button type="button" class="reminder-editor-icon-trigger" aria-label="Upload icon">
-            <span class="reminder-editor-icon-preview hover-expand"></span>
+      <label class="form-field">
+        <span class="form-label">Icon</span>
+        <div class="form-icon-row">
+          <input class="form-input" type="text" name="icon" placeholder="reminders/icon.png">
+          <button type="button" class="form-icon-trigger" aria-label="Upload icon">
+            <span class="form-icon-preview hover-expand"></span>
           </button>
-          <button type="button" class="reminder-editor-icon-info info-button" aria-label="Copy icon path">
-            <span class="reminder-editor-icon-info-icon">${INFO_ICON}</span>
+          <button type="button" class="form-icon-info info-button" aria-label="Copy icon path">
+            <span class="form-icon-info-icon">${window.FormFields.INFO_ICON}</span>
           </button>
-          <input class="reminder-editor-icon-input" type="file" accept=".png,.jpg,.jpeg,.svg,.webp">
+          <input class="form-file-input" type="file" accept=".png,.jpg,.jpeg,.svg,.webp">
         </div>
       </label>
-      <label class="reminder-editor-field">
-        <span class="reminder-editor-label">Expiry</span>
-        <div class="reminder-editor-inline">
-          <input class="reminder-editor-input" type="number" name="expiry_days" min="1">
-          <span class="reminder-editor-suffix">days</span>
-          <span class="reminder-editor-or">or</span>
-          <input class="reminder-editor-input" type="date" name="expires_on">
+      <label class="form-field">
+        <span class="form-label">Expiry</span>
+        <div class="form-inline">
+          <input class="form-input" type="number" name="expiry_days" min="1">
+          <span class="form-suffix">days</span>
+          <span class="form-or">or</span>
+          <input class="form-input" type="date" name="expires_on">
         </div>
       </label>
-      <label class="reminder-editor-field">
-        <span class="reminder-editor-label">Reason</span>
-        <textarea class="reminder-editor-textarea" name="reason"></textarea>
+      <label class="form-field">
+        <span class="form-label">Reason</span>
+        <textarea class="form-textarea" name="reason"></textarea>
       </label>
     `;
     return form;
   }
 
   function setReminderFormState(form, state) {
-    const setValue = (name, value) => {
-      const input = form.querySelector(`[name="${name}"]`);
-      if (input) {
-        input.value = value ?? '';
-      }
-    };
-    setValue('id', state.id);
-    setValue('name', state.name);
-    setValue('url', state.url);
-    setValue('icon', state.icon);
-    setValue('expiry_days', state.expiry_days);
-    setValue('expires_on', state.expires_on);
-    setValue('reason', state.reason);
-    const enabledInput = form.querySelector('[name="enabled"]');
-    if (enabledInput) {
-      enabledInput.checked = state.enabled;
-    }
-    applyEnabledState(form, state.enabled);
+    window.FormFields.setFormState(form, state, {});
   }
 
   function getReminderFormState(form) {
-    const getValue = (name) =>
-      form.querySelector(`[name="${name}"]`)?.value ?? '';
-    return {
-      id: getValue('id').trim(),
-      name: getValue('name').trim(),
-      url: getValue('url').trim(),
-      icon: getValue('icon').trim(),
-      expiry_days: getValue('expiry_days').trim(),
-      expires_on: getValue('expires_on').trim(),
-      reason: getValue('reason').trim(),
-      enabled: form.querySelector('[name="enabled"]')?.checked !== false,
-    };
+    return window.FormFields.getFormState(form, {});
   }
 
   function applyEnabledState(form, enabled) {
@@ -218,14 +176,9 @@ const RemindersEditor = (() => {
       'expires_on',
       'reason',
     ];
-    fieldNames.forEach((name) => {
-      const input = form.querySelector(`[name="${name}"]`);
-      if (input) {
-        input.disabled = !enabled;
-      }
-    });
-    const iconButton = form.querySelector('.reminder-editor-icon-trigger');
-    const iconInput = form.querySelector('.reminder-editor-icon-input');
+    window.FormFields.setFieldsDisabled(form, fieldNames, !enabled);
+    const iconButton = form.querySelector('.form-icon-trigger');
+    const iconInput = form.querySelector('.form-file-input');
     if (iconButton) {
       iconButton.disabled = !enabled;
     }
@@ -297,7 +250,7 @@ const RemindersEditor = (() => {
     const form = buildReminderEditorForm(Boolean(reminderId));
     setReminderFormState(form, initialState);
     const scrollContainer = document.createElement('div');
-    scrollContainer.className = 'reminder-editor-scroll';
+    scrollContainer.className = 'form-scroll';
     scrollContainer.appendChild(form);
     editPane.appendChild(scrollContainer);
 
@@ -314,96 +267,20 @@ const RemindersEditor = (() => {
       textarea.dispatchEvent(new Event('input', { bubbles: true }));
     };
 
-    const iconInput = form.querySelector('.reminder-editor-icon-input');
-    const iconButton = form.querySelector('.reminder-editor-icon-trigger');
-    const iconPreview = form.querySelector('.reminder-editor-icon-preview');
-    const iconField = form.querySelector('[name="icon"]');
-    const iconInfo = form.querySelector('.reminder-editor-icon-info');
-    const iconInfoIcon = form.querySelector('.reminder-editor-icon-info-icon');
-    let lastUploadedPath = '';
-
-    const renderIconPreview = () => {
-      if (!iconPreview) {
-        return;
-      }
-      iconPreview.innerHTML = '';
-      const iconValue = iconField?.value?.trim();
-      if (iconValue && window.IconHandler) {
-        const temp = document.createElement('span');
-        window.IconHandler.renderIcon(temp, `img/${iconValue}`, 'Icon');
-        iconPreview.appendChild(temp);
-      } else {
-        iconPreview.innerHTML = ICON_PLACEHOLDER;
-      }
-    };
-
-    const resolveFullPath = () => {
-      if (lastUploadedPath) {
-        return lastUploadedPath;
-      }
-      const iconValue = iconField?.value?.trim();
-      if (iconValue && imgRoot) {
-        // Trim trailing slashes/backslashes from imgRoot.
-        return `${imgRoot.replace(/[\\/]+$/g, '')}/${iconValue}`;
-      }
-      return '';
-    };
-
-    const updateIconInfo = () => {
-      if (!iconInfo) {
-        return;
-      }
-      const fullPath = resolveFullPath();
-      iconInfo.title = fullPath || 'Icon path will appear here after upload';
-    };
-
-    if (iconButton && iconInput) {
-      iconButton.addEventListener('click', () => {
-        iconInput.click();
-      });
-      iconInput.addEventListener('change', async () => {
-        if (!iconInput.files || !iconInput.files[0]) {
-          return;
-        }
-        const formData = new FormData();
-        formData.append('file', iconInput.files[0]);
-        try {
-          const response = await fetch('api/reminders/icon', {
-            method: 'POST',
-            body: formData,
-          });
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || `HTTP ${response.status}`);
-          }
-          const payload = await response.json();
-          lastUploadedPath = payload.full_path || '';
-          if (iconField) {
-            iconField.value = payload.path || '';
-            iconField.dispatchEvent(new Event('input', { bubbles: true }));
-          }
-          iconInput.value = '';
-          renderIconPreview();
-          updateIconInfo();
-        } catch (error) {
-          alert(`Icon upload failed: ${error.message}`);
-        }
-      });
-    }
-
-    if (iconInfo && iconInfoIcon) {
-      iconInfo.addEventListener('click', async () => {
-        const fullPath = resolveFullPath();
-        if (!fullPath) {
-          return;
-        }
-        try {
-          await navigator.clipboard.writeText(fullPath);
-        } catch (error) {
-          alert('Failed to copy icon path.');
-        }
-      });
-    }
+    window.FormFields.setupIconField({
+      form,
+      triggerSelector: '.form-icon-trigger',
+      previewSelector: '.form-icon-preview',
+      inputSelector: '[name="icon"]',
+      fileInputSelector: '.form-file-input',
+      infoSelector: '.form-icon-info',
+      apiEndpoint: 'api/reminders/icon',
+      imgPrefix: 'img/',
+      imgRoot,
+      onUpdate: () => {
+        updateTextarea();
+      },
+    });
 
     const expiresInput = form.querySelector('[name="expires_on"]');
     const expiryInput = form.querySelector('[name="expiry_days"]');
@@ -413,7 +290,9 @@ const RemindersEditor = (() => {
           return;
         }
         try {
-          const computedDays = calculateExpiryDays(expiresInput.value);
+          const computedDays = window.FormFields.calculateDaysUntil(
+            expiresInput.value,
+          );
           expiryInput.value = computedDays > 0 ? computedDays : '';
         } catch (error) {
           expiryInput.value = '';
@@ -430,13 +309,8 @@ const RemindersEditor = (() => {
     }
 
     form.addEventListener('input', updateTextarea);
-    iconField?.addEventListener('input', () => {
-      renderIconPreview();
-      updateIconInfo();
-    });
     updateTextarea();
-    renderIconPreview();
-    updateIconInfo();
+    applyEnabledState(form, initialState.enabled);
 
     handleSave = async () => {
       const state = getReminderFormState(form);

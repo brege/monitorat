@@ -306,6 +306,10 @@ class RemindersWidget {
         source: 'ui/icons.js',
       },
       {
+        globalName: 'FormFields',
+        source: 'editor/fields.js',
+      },
+      {
         globalName: 'RemindersEditor',
         source: 'widgets/reminders/features/editor.js',
       },

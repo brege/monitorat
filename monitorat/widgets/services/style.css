@@ -114,3 +114,15 @@
 .service-card:hover .service-info-btn {
   opacity: 0.7;
 }
+.service-edit-btn {
+  position: absolute;
+  right: 36px;
+  bottom: 8px;
+  pointer-events: auto;
+}
+.service-card:hover .service-edit-btn {
+  opacity: 0.7;
+}
+.service-editor-textarea-hidden {
+  display: none;
+}

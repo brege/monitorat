@@ -5,6 +5,7 @@ site:
   title: monitor@editor
 includes:
   - ../simple/snippets/wiki.yaml
+  - ../simple/snippets/services.yaml
   - ../simple/snippets/footer.yaml
 paths:
   data: data/
@@ -19,6 +20,8 @@ sections:
     title: Dummy Document
   reminders:
     title: Reminders
+  services:
+    title: Services
   wiki-footer:
     title: Links
 
@@ -27,6 +30,7 @@ widgets:
     - editor-readme
     - dummy
     - reminders
+    - services
     - wiki-footer
 
   editor-readme:
@@ -43,6 +47,10 @@ widgets:
     section: reminders
     edit: true
     edit_file: data/reminders.yml
+
+  services:
+    edit: true
+    edit_file: data/services.yml
   
   dummy:
     type: wiki

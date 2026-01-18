@@ -3,10 +3,15 @@
 import json
 import logging
 import os
+import re
+import tempfile
+from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 import shutil
 import subprocess
+
+import confuse
 
 from monitor import config, register_snapshot_provider, get_data_path, is_demo_enabled
 
@@ -15,8 +20,216 @@ logger = logging.getLogger(__name__)
 BASE = Path(__file__).parent.parent.parent.parent
 
 
+def get_services_view():
+    return config["widgets"]["services"]
+
+
 def services_items():
-    return config["widgets"]["services"]["items"].get(dict)
+    view = get_services_view()
+    edit_path = get_services_edit_path()
+    if edit_path and edit_path.exists():
+        return load_services_from_file(edit_path)
+    return view["items"].get(dict)
+
+
+def services_edit_enabled() -> bool:
+    try:
+        edit_view = get_services_view()["edit"]
+        return edit_view.exists() and edit_view.get(bool)
+    except Exception:
+        return False
+
+
+def get_services_edit_path() -> Path | None:
+    view = get_services_view()
+    if not view["edit_file"].exists():
+        return None
+    edit_file_value = view["edit_file"].get()
+    if edit_file_value is None or edit_file_value == "":
+        return None
+    edit_path = Path(view["edit_file"].as_filename())
+    return edit_path if edit_path.exists() else None
+
+
+def load_services_from_file(path: Path) -> dict:
+    data = confuse.load_yaml(str(path), loader=config.loader)
+    if data is None:
+        return {}
+    if not isinstance(data, dict):
+        raise ValueError("Services YAML must be a mapping.")
+    if "items" in data:
+        items = data["items"]
+        if not isinstance(items, dict):
+            raise ValueError("Services items must be a mapping.")
+        return items
+    return data
+
+
+def parse_services_yaml(content: str) -> dict:
+    with tempfile.NamedTemporaryFile("w+", suffix=".yaml", delete=True) as handle:
+        handle.write(content)
+        handle.flush()
+        data = confuse.load_yaml(handle.name, loader=config.loader)
+    if data is None:
+        return {}
+    if not isinstance(data, dict):
+        raise ValueError("Services YAML must be a mapping.")
+    if "items" in data:
+        items = data["items"]
+        if not isinstance(items, dict):
+            raise ValueError("Services items must be a mapping.")
+        return items
+    return data
+
+
+def serialize_service_value(value):
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        return str(value)
+    if isinstance(value, list):
+        if not value:
+            return "[]"
+        return "[" + ", ".join(json.dumps(str(item)) for item in value) + "]"
+    return json.dumps(str(value))
+
+
+def serialize_services_yaml(items: dict) -> str:
+    lines = []
+    for service_id, service in items.items():
+        lines.append(f"{service_id}:")
+        if not isinstance(service, dict):
+            lines.append(f"  value: {serialize_service_value(service)}")
+            continue
+        ordered_keys = [
+            "name",
+            "url",
+            "local",
+            "icon",
+            "containers",
+            "services",
+            "timers",
+            "user",
+            "chrome",
+        ]
+        remaining_keys = [key for key in service.keys() if key not in ordered_keys]
+        for key in ordered_keys + sorted(remaining_keys):
+            if key not in service:
+                continue
+            value = service[key]
+            if key == "user" and value is False:
+                continue
+            if key == "chrome" and value is False:
+                continue
+            if key == "local" and (not value or value == service.get("url")):
+                continue
+            if key in ("containers", "services", "timers") and not value:
+                continue
+            lines.append(f"  {key}: {serialize_service_value(value)}")
+    return "\n".join(lines) + "\n"
+
+
+def normalize_service_entry(service_id: str, service: dict) -> dict:
+    if not isinstance(service_id, str) or not service_id.strip():
+        raise ValueError("Service id must be a non-empty string.")
+    if not isinstance(service, dict):
+        raise ValueError("Service entry must be a mapping.")
+
+    name = service.get("name") or service_id
+    url = service.get("url")
+    local = service.get("local")
+    icon = service.get("icon")
+    containers = service.get("containers")
+    services = service.get("services")
+    timers = service.get("timers")
+    user = service.get("user", False)
+    chrome = service.get("chrome", False)
+
+    if url is None:
+        url = ""
+    if not isinstance(url, str):
+        raise ValueError("Service url must be a string.")
+    url = url.strip()
+
+    if local is not None:
+        if not isinstance(local, str):
+            raise ValueError("Service local must be a string.")
+        local = local.strip() or None
+
+    if icon is None:
+        icon = ""
+    if not isinstance(icon, str):
+        raise ValueError("Service icon must be a string.")
+    icon = icon.strip()
+
+    def normalize_list(value, field_name):
+        if value is None:
+            return []
+        if isinstance(value, str):
+            return [item.strip() for item in value.split(",") if item.strip()]
+        if isinstance(value, list):
+            result = []
+            for item in value:
+                if not isinstance(item, str):
+                    raise ValueError(f"Service {field_name} items must be strings.")
+                if item.strip():
+                    result.append(item.strip())
+            return result
+        raise ValueError(
+            f"Service {field_name} must be a list or comma-separated string."
+        )
+
+    containers = normalize_list(containers, "containers")
+    services = normalize_list(services, "services")
+    timers = normalize_list(timers, "timers")
+
+    if isinstance(user, str):
+        lowered = user.strip().lower()
+        if lowered in ("true", "false"):
+            user = lowered == "true"
+        else:
+            raise ValueError("Service user must be true or false.")
+    elif not isinstance(user, bool):
+        raise ValueError("Service user must be true or false.")
+
+    if isinstance(chrome, str):
+        lowered = chrome.strip().lower()
+        if lowered in ("true", "false"):
+            chrome = lowered == "true"
+        else:
+            raise ValueError("Service chrome must be true or false.")
+    elif not isinstance(chrome, bool):
+        raise ValueError("Service chrome must be true or false.")
+
+    normalized = dict(service)
+    normalized["name"] = name
+    normalized["url"] = url
+    normalized["local"] = local
+    normalized["icon"] = icon
+    normalized["containers"] = containers
+    normalized["services"] = services
+    normalized["timers"] = timers
+    normalized["user"] = user
+    normalized["chrome"] = chrome
+    return normalized
+
+
+def build_service_template(service_id="new-service"):
+    return serialize_services_yaml(
+        {
+            service_id: {
+                "name": "New Service",
+                "url": "https://example.com",
+                "icon": "",
+            }
+        }
+    )
+
+
+def sanitize_icon_filename(filename: str) -> str:
+    safe_name = re.sub(r"[^a-zA-Z0-9._-]+", "-", filename)
+    safe_name = safe_name.strip("-._")
+    return safe_name
 
 
 @lru_cache(maxsize=1)
@@ -246,12 +459,10 @@ def register_routes(app):
 
     @app.route("/api/services", methods=["GET"])
     def api_services():
-        view = config["widgets"]["services"]
-        return app.response_class(
-            response=json.dumps({"services": view["items"].get(dict)}),
-            status=200,
-            mimetype="application/json",
-        )
+        from flask import jsonify
+
+        items = services_items()
+        return jsonify({"services": items})
 
     @app.route("/api/services/status", methods=["GET"])
     def api_services_status():
@@ -268,3 +479,152 @@ def register_routes(app):
         return app.response_class(
             response=json.dumps(schema), status=200, mimetype="application/json"
         )
+
+    @app.route("/api/services/source", methods=["GET"])
+    def api_services_source():
+        from flask import jsonify, request
+
+        if not services_edit_enabled():
+            return jsonify({"error": "Services editing is disabled"}), 403
+
+        edit_path = get_services_edit_path()
+        if not edit_path:
+            return jsonify({"error": "Services edit_file not configured"}), 404
+
+        service_key = request.args.get("service")
+        all_services = services_items()
+        if service_key:
+            service_entry = all_services.get(service_key)
+            if service_entry:
+                content = serialize_services_yaml({service_key: service_entry})
+            else:
+                content = build_service_template(service_key)
+        else:
+            content = build_service_template()
+
+        img_root = Path(config["paths"]["img"].as_filename())
+        return jsonify(
+            {
+                "content": content,
+                "path": str(edit_path),
+                "service": service_key,
+                "img_root": str(img_root),
+            }
+        )
+
+    @app.route("/api/services/source", methods=["PUT"])
+    def api_services_source_put():
+        from flask import jsonify, request
+
+        if not services_edit_enabled():
+            return jsonify({"error": "Services editing is disabled"}), 403
+
+        edit_path = get_services_edit_path()
+        if not edit_path:
+            return jsonify({"error": "Services edit_file not configured"}), 404
+
+        payload = request.get_json()
+        if not payload or "content" not in payload:
+            return jsonify({"error": "Missing content"}), 400
+
+        content = payload["content"]
+        service_key = request.args.get("service")
+
+        try:
+            parsed_items = parse_services_yaml(content)
+        except ValueError as error:
+            return jsonify({"error": str(error)}), 400
+
+        if not parsed_items:
+            return jsonify({"error": "Service YAML is empty"}), 400
+
+        if service_key:
+            if service_key not in parsed_items or len(parsed_items) != 1:
+                return jsonify({"error": "Service key mismatch"}), 400
+            target_key = service_key
+            service_entry = parsed_items[service_key]
+        else:
+            if len(parsed_items) != 1:
+                return jsonify({"error": "Service YAML must contain one entry"}), 400
+            target_key = next(iter(parsed_items.keys()))
+            service_entry = parsed_items[target_key]
+
+        try:
+            normalized_entry = normalize_service_entry(target_key, service_entry)
+        except ValueError as error:
+            return jsonify({"error": str(error)}), 400
+
+        existing_items = services_items()
+        updated_items = dict(existing_items)
+        updated_items[target_key] = normalized_entry
+
+        edit_path.parent.mkdir(parents=True, exist_ok=True)
+        edit_path.write_text(serialize_services_yaml(updated_items), encoding="utf-8")
+
+        return jsonify({"status": "ok", "service": target_key})
+
+    @app.route("/api/services/source", methods=["DELETE"])
+    def api_services_source_delete():
+        from flask import jsonify, request
+
+        if not services_edit_enabled():
+            return jsonify({"error": "Services editing is disabled"}), 403
+
+        edit_path = get_services_edit_path()
+        if not edit_path:
+            return jsonify({"error": "Services edit_file not configured"}), 404
+
+        service_key = request.args.get("service")
+        if not service_key:
+            return jsonify({"error": "Missing service key"}), 400
+
+        existing_items = services_items()
+        if service_key not in existing_items:
+            return jsonify({"error": "Service not found"}), 404
+
+        updated_items = dict(existing_items)
+        del updated_items[service_key]
+
+        edit_path.parent.mkdir(parents=True, exist_ok=True)
+        edit_path.write_text(serialize_services_yaml(updated_items), encoding="utf-8")
+
+        return jsonify({"status": "ok", "service": service_key})
+
+    @app.route("/api/services/icon", methods=["POST"])
+    def api_services_icon_upload():
+        from flask import jsonify, request
+
+        if not services_edit_enabled():
+            return jsonify({"error": "Services editing is disabled"}), 403
+
+        if "file" not in request.files:
+            return jsonify({"error": "Missing file"}), 400
+
+        upload = request.files["file"]
+        if not upload or not upload.filename:
+            return jsonify({"error": "Missing filename"}), 400
+
+        allowed_extensions = {".png", ".jpg", ".jpeg", ".svg", ".webp"}
+        original_name = Path(upload.filename).name
+        extension = Path(original_name).suffix.lower()
+        if extension not in allowed_extensions:
+            return jsonify({"error": "Unsupported file type"}), 400
+
+        filename = sanitize_icon_filename(Path(original_name).stem)
+        if not filename:
+            filename = f"service-{int(datetime.now().timestamp())}"
+        filename = f"{filename}{extension}"
+
+        img_root = Path(config["paths"]["img"].as_filename())
+        upload_dir = img_root / "services"
+        upload_dir.mkdir(parents=True, exist_ok=True)
+
+        target_path = upload_dir / filename
+        if target_path.exists():
+            filename = (
+                f"{target_path.stem}-{int(datetime.now().timestamp())}{extension}"
+            )
+            target_path = upload_dir / filename
+
+        upload.save(target_path)
+        return jsonify({"path": f"services/{filename}", "full_path": str(target_path)})
