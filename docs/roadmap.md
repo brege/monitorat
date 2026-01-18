@@ -2,8 +2,6 @@
 
 ## Features
 
-- [x] Add reminders modal for completion confirmation
-- [x] Add Wiki widget's Markdown editor to reminders modal and provide a YAML archetype
 - [ ] Add an alerts subwidget for System Metrics events (alternative to Apprise)
 
 ## Onboarding

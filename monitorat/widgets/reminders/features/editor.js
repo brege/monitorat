@@ -126,7 +126,7 @@ const RemindersEditor = (() => {
     form.className = 'reminder-editor-form';
     form.innerHTML = `
       <div class="reminder-editor-field reminder-editor-id-row">
-        <span class="reminder-editor-label">Id</span>
+        <span class="reminder-editor-label">ID</span>
         <div class="reminder-editor-id-controls">
           <input class="reminder-editor-input" type="text" name="id" ${isEditing ? 'readonly' : ''}>
           <label class="reminder-editor-inline reminder-editor-checkbox">
@@ -140,15 +140,15 @@ const RemindersEditor = (() => {
         <input class="reminder-editor-input" type="text" name="name">
       </label>
       <label class="reminder-editor-field">
-        <span class="reminder-editor-label">URL</span>
+        <span class="reminder-editor-label">On click URL</span>
         <input class="reminder-editor-input" type="url" name="url">
       </label>
       <label class="reminder-editor-field">
         <span class="reminder-editor-label">Icon</span>
         <div class="reminder-editor-icon-row">
           <input class="reminder-editor-input" type="text" name="icon" placeholder="reminders/icon.png">
-          <button type="button" class="reminder-editor-icon-button" aria-label="Upload icon">
-            <span class="reminder-editor-icon-preview"></span>
+          <button type="button" class="reminder-editor-icon-trigger" aria-label="Upload icon">
+            <span class="reminder-editor-icon-preview hover-expand"></span>
           </button>
           <button type="button" class="reminder-editor-icon-info info-button" aria-label="Copy icon path">
             <span class="reminder-editor-icon-info-icon">${INFO_ICON}</span>
@@ -224,7 +224,7 @@ const RemindersEditor = (() => {
         input.disabled = !enabled;
       }
     });
-    const iconButton = form.querySelector('.reminder-editor-icon-button');
+    const iconButton = form.querySelector('.reminder-editor-icon-trigger');
     const iconInput = form.querySelector('.reminder-editor-icon-input');
     if (iconButton) {
       iconButton.disabled = !enabled;
@@ -315,7 +315,7 @@ const RemindersEditor = (() => {
     };
 
     const iconInput = form.querySelector('.reminder-editor-icon-input');
-    const iconButton = form.querySelector('.reminder-editor-icon-button');
+    const iconButton = form.querySelector('.reminder-editor-icon-trigger');
     const iconPreview = form.querySelector('.reminder-editor-icon-preview');
     const iconField = form.querySelector('[name="icon"]');
     const iconInfo = form.querySelector('.reminder-editor-icon-info');
