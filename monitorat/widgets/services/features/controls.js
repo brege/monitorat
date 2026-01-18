@@ -9,6 +9,7 @@ class ServicesControls {
     );
     const directionSelect =
       this.widget.container.querySelector('.services-sort-dir');
+    const addButton = this.widget.container.querySelector('.services-add');
     if (!fieldSelect || !directionSelect) return;
 
     const SortByController = window.monitorShared.SortByController;
@@ -32,6 +33,13 @@ class ServicesControls {
     this.sortController.initialize();
 
     this.initializeSourceFilter();
+    if (addButton && this.widget.canEditServices()) {
+      addButton.addEventListener('click', () => {
+        this.widget.openServiceEditor(null);
+      });
+    } else if (addButton) {
+      addButton.remove();
+    }
   }
 
   initializeSourceFilter() {
