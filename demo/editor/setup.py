@@ -4,47 +4,13 @@
 import shutil
 from pathlib import Path
 
-import yaml
-
 from demo.docs import generate_docs
 
 DEMO_DIR = Path(__file__).parent
 
 
-def generate_reminders():
-    data_dir = DEMO_DIR / "data"
-    data_dir.mkdir(parents=True, exist_ok=True)
-
-    reminders_yml = data_dir / "reminders.yml"
-    snippet_path = DEMO_DIR.parent / "simple" / "snippets" / "reminders.yaml"
-    payload = yaml.safe_load(snippet_path.read_text(encoding="utf-8")) or {}
-    items = payload["widgets"]["reminders"]["items"]
-
-    reminders_yml.write_text(
-        yaml.safe_dump(items, sort_keys=False, default_flow_style=False),
-        encoding="utf-8",
-    )
-    print(f"Generated {reminders_yml}")
-
-
 def generate_dummy_doc():
     generate_docs(DEMO_DIR / "index.yml")
-
-
-def generate_services():
-    data_dir = DEMO_DIR / "data"
-    data_dir.mkdir(parents=True, exist_ok=True)
-
-    services_yml = data_dir / "services.yml"
-    snippet_path = DEMO_DIR.parent / "simple" / "snippets" / "services.yaml"
-    payload = yaml.safe_load(snippet_path.read_text(encoding="utf-8")) or {}
-    items = payload["widgets"]["services"]["items"]
-
-    services_yml.write_text(
-        yaml.safe_dump(items, sort_keys=False, default_flow_style=False),
-        encoding="utf-8",
-    )
-    print(f"Generated {services_yml}")
 
 
 def copy_snapshot_data():
@@ -79,8 +45,6 @@ def reset_editor_images():
 
 def main():
     reset_editor_images()
-    generate_reminders()
-    generate_services()
     copy_snapshot_data()
     generate_dummy_doc()
 

@@ -10,9 +10,16 @@ from pathlib import Path
 import shutil
 import subprocess
 
-import confuse
-
-from monitor import config, register_snapshot_provider, get_data_path, is_demo_enabled
+from monitor import (
+    config,
+    register_snapshot_provider,
+    get_data_path,
+    is_demo_enabled,
+    reload_config,
+    find_widget_items_source,
+    load_widget_items_from_file,
+    write_widget_items_to_file,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +32,6 @@ def get_services_view():
 
 def services_items():
     view = get_services_view()
-    edit_path = get_services_edit_path()
-    if edit_path and edit_path.exists():
-        return load_services_from_file(edit_path)
     return view["items"].get(dict)
 
 
@@ -36,31 +40,6 @@ def services_edit_enabled() -> bool:
         return config["site"]["edit_mode"].get(bool)
     except Exception:
         return False
-
-
-def get_services_edit_path() -> Path | None:
-    view = get_services_view()
-    if not view["edit_file"].exists():
-        return None
-    edit_file_value = view["edit_file"].get()
-    if edit_file_value is None or edit_file_value == "":
-        return None
-    edit_path = Path(view["edit_file"].as_filename())
-    return edit_path if edit_path.exists() else None
-
-
-def load_services_from_file(path: Path) -> dict:
-    data = confuse.load_yaml(str(path), loader=config.loader)
-    if data is None:
-        return {}
-    if not isinstance(data, dict):
-        raise ValueError("Services YAML must be a mapping.")
-    if "items" in data:
-        items = data["items"]
-        if not isinstance(items, dict):
-            raise ValueError("Services items must be a mapping.")
-        return items
-    return data
 
 
 def serialize_service_value(value):
@@ -482,9 +461,10 @@ def register_routes(app):
         if not services_edit_enabled():
             return jsonify({"error": "Services editing is disabled"}), 403
 
-        edit_path = get_services_edit_path()
-        if not edit_path:
-            return jsonify({"error": "Services edit_file not configured"}), 404
+        try:
+            edit_path = find_widget_items_source("services")
+        except Exception as error:
+            return jsonify({"error": str(error)}), 500
 
         service_key = request.args.get("service")
         all_services = services_items()
@@ -512,9 +492,10 @@ def register_routes(app):
         if not services_edit_enabled():
             return jsonify({"error": "Services editing is disabled"}), 403
 
-        edit_path = get_services_edit_path()
-        if not edit_path:
-            return jsonify({"error": "Services edit_file not configured"}), 404
+        try:
+            edit_path = find_widget_items_source("services")
+        except Exception as error:
+            return jsonify({"error": str(error)}), 500
 
         payload = request.get_json()
         if not payload or "item" not in payload:
@@ -532,12 +513,12 @@ def register_routes(app):
         except ValueError as error:
             return jsonify({"error": str(error)}), 400
 
-        existing_items = services_items()
+        existing_items = load_widget_items_from_file(edit_path, "services")
         updated_items = dict(existing_items)
         updated_items[target_key] = normalized_entry
 
-        edit_path.parent.mkdir(parents=True, exist_ok=True)
-        edit_path.write_text(serialize_services_yaml(updated_items), encoding="utf-8")
+        write_widget_items_to_file(edit_path, "services", updated_items)
+        reload_config()
 
         return jsonify({"status": "ok", "service": target_key})
 
@@ -548,23 +529,24 @@ def register_routes(app):
         if not services_edit_enabled():
             return jsonify({"error": "Services editing is disabled"}), 403
 
-        edit_path = get_services_edit_path()
-        if not edit_path:
-            return jsonify({"error": "Services edit_file not configured"}), 404
+        try:
+            edit_path = find_widget_items_source("services")
+        except Exception as error:
+            return jsonify({"error": str(error)}), 500
 
         service_key = request.args.get("service")
         if not service_key:
             return jsonify({"error": "Missing service key"}), 400
 
-        existing_items = services_items()
+        existing_items = load_widget_items_from_file(edit_path, "services")
         if service_key not in existing_items:
             return jsonify({"error": "Service not found"}), 404
 
         updated_items = dict(existing_items)
         del updated_items[service_key]
 
-        edit_path.parent.mkdir(parents=True, exist_ok=True)
-        edit_path.write_text(serialize_services_yaml(updated_items), encoding="utf-8")
+        write_widget_items_to_file(edit_path, "services", updated_items)
+        reload_config()
 
         return jsonify({"status": "ok", "service": service_key})
 

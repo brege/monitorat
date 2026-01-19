@@ -139,7 +139,11 @@ class RemindersWidget {
       reminder,
       imgBase,
       onConfirm: async () => {
-        await fetch(`${touchBase}/${reminder.id}/touch`, {
+        const touchUrl = new URL(
+          `${touchBase}/${reminder.id}/touch`,
+          window.location,
+        );
+        await fetch(touchUrl, {
           method: 'POST',
         });
         setTimeout(() => this.loadData(), 500);
@@ -148,7 +152,11 @@ class RemindersWidget {
         }
       },
       onReset: async () => {
-        await fetch(`${touchBase}/${reminder.id}/reset`, { method: 'POST' });
+        const resetUrl = new URL(
+          `${touchBase}/${reminder.id}/reset`,
+          window.location,
+        );
+        await fetch(resetUrl, { method: 'POST' });
         setTimeout(() => this.loadData(), 500);
       },
     });

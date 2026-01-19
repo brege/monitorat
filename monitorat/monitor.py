@@ -17,6 +17,9 @@ try:
         reload_config,
         register_config_listener,
         get_project_config_dir,
+        find_widget_items_source,
+        load_widget_items_from_file,
+        write_widget_items_to_file,
     )
     from .alerts import NotificationHandler, setup_alert_handler
     from .auth import require_auth_for_api
@@ -27,6 +30,9 @@ except ImportError:
         reload_config,
         register_config_listener,
         get_project_config_dir,
+        find_widget_items_source,
+        load_widget_items_from_file,
+        write_widget_items_to_file,
     )
     from alerts import NotificationHandler, setup_alert_handler
     from auth import require_auth_for_api
@@ -36,6 +42,9 @@ __all__ = [
     "config",
     "reload_config",
     "register_config_listener",
+    "find_widget_items_source",
+    "load_widget_items_from_file",
+    "write_widget_items_to_file",
     "NotificationHandler",
     "CSVHandler",
     "is_demo_enabled",

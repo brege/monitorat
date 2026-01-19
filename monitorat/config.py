@@ -3,6 +3,7 @@ from pathlib import Path
 import threading
 import confuse
 from typing import Callable, List, Optional
+import yaml
 
 __all__ = [
     "ConfigManager",
@@ -13,8 +14,13 @@ __all__ = [
     "reload_config",
     "register_config_listener",
     "get_widgets_paths",
+    "get_primary_config_path",
+    "find_widget_items_source",
+    "load_widget_items_from_file",
+    "write_widget_items_to_file",
     "set_project_config_path",
     "get_project_config_dir",
+    "get_project_config_path",
 ]
 
 
@@ -268,6 +274,11 @@ class ConfigManager:
             return None
         return self._project_config.expanduser().parent
 
+    def get_project_config_path(self) -> Optional[Path]:
+        if self._project_config is None:
+            return None
+        return self._project_config.expanduser()
+
 
 class ConfigProxy:
     """Lightweight proxy so existing code can keep using `config[...]`."""
@@ -310,6 +321,151 @@ def set_project_config_path(config_path: Path) -> confuse.Configuration:
 
 def get_project_config_dir() -> Optional[Path]:
     return config_manager.get_project_config_dir()
+
+
+def get_project_config_path() -> Optional[Path]:
+    return config_manager.get_project_config_path()
+
+
+def get_primary_config_path() -> Optional[Path]:
+    project_path = get_project_config_path()
+    if project_path:
+        return project_path
+    return Path(config.user_config_path())
+
+
+def _load_yaml_mapping(path: Path) -> dict:
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if data is None:
+        return {}
+    if not isinstance(data, dict):
+        raise ValueError(f"Config file must be a mapping: {path}")
+    return data
+
+
+def _resolve_include_path(
+    include: str,
+    config_directory: Path,
+    default_config_directory: Optional[Path],
+    allow_default: bool,
+) -> Path:
+    include_path = Path(include)
+    if include_path.is_absolute():
+        return include_path
+    candidate = config_directory / include
+    if candidate.exists():
+        return candidate
+    if allow_default and default_config_directory is not None:
+        fallback = default_config_directory / include
+        if fallback.exists():
+            return fallback
+    raise FileNotFoundError(f"Include file not found: {include}")
+
+
+def _collect_config_sources(
+    config_path: Path,
+    default_config_directory: Path,
+    seen: set[Path],
+    allow_default: bool,
+) -> list[Path]:
+    resolved = config_path.resolve()
+    if resolved in seen:
+        raise ValueError(f"Include cycle detected at {config_path}")
+    seen.add(resolved)
+    data = _load_yaml_mapping(config_path)
+    sources = [config_path]
+    includes = data.get("includes")
+    if includes is None:
+        seen.remove(resolved)
+        return sources
+    if not isinstance(includes, list):
+        raise ValueError(f"Includes must be a list in {config_path}")
+    for include in includes:
+        if not isinstance(include, str):
+            raise ValueError(f"Includes must be a list of file paths in {config_path}")
+        include_path = _resolve_include_path(
+            include,
+            config_path.parent,
+            default_config_directory,
+            allow_default,
+        )
+        sources.extend(
+            _collect_config_sources(
+                include_path,
+                default_config_directory,
+                seen,
+                allow_default=False,
+            )
+        )
+    seen.remove(resolved)
+    return sources
+
+
+def find_widget_items_source(widget_name: str) -> Path:
+    config_path = get_primary_config_path()
+    if not config_path or not config_path.exists():
+        raise FileNotFoundError("Config file not found.")
+    default_config_directory = Path(__file__).resolve().parent
+    sources = _collect_config_sources(
+        config_path,
+        default_config_directory,
+        seen=set(),
+        allow_default=True,
+    )
+    for source in sources:
+        data = _load_yaml_mapping(source)
+        widgets = data.get("widgets")
+        if not isinstance(widgets, dict):
+            continue
+        widget_config = widgets.get(widget_name)
+        if not isinstance(widget_config, dict):
+            continue
+        if "items" in widget_config:
+            return source
+    return config_path
+
+
+def load_widget_items_from_file(path: Path, widget_name: str) -> dict:
+    data = _load_yaml_mapping(path)
+    widgets = data.get("widgets", {})
+    if not isinstance(widgets, dict):
+        raise ValueError(f"widgets must be a mapping in {path}")
+    widget_config = widgets.get(widget_name)
+    if widget_config is None:
+        return {}
+    if not isinstance(widget_config, dict):
+        raise ValueError(f"widgets.{widget_name} must be a mapping in {path}")
+    items = widget_config.get("items")
+    if items is None:
+        return {}
+    if not isinstance(items, dict):
+        raise ValueError(f"widgets.{widget_name}.items must be a mapping in {path}")
+    return dict(items)
+
+
+def write_widget_items_to_file(
+    path: Path,
+    widget_name: str,
+    items: dict,
+) -> None:
+    data = _load_yaml_mapping(path)
+    widgets = data.get("widgets")
+    if widgets is None:
+        widgets = {}
+        data["widgets"] = widgets
+    if not isinstance(widgets, dict):
+        raise ValueError(f"widgets must be a mapping in {path}")
+    widget_config = widgets.get(widget_name)
+    if widget_config is None:
+        widget_config = {}
+        widgets[widget_name] = widget_config
+    if not isinstance(widget_config, dict):
+        raise ValueError(f"widgets.{widget_name} must be a mapping in {path}")
+    widget_config["items"] = items
+    path.write_text(
+        yaml.safe_dump(data, sort_keys=False, default_flow_style=False),
+        encoding="utf-8",
+    )
 
 
 def get_widgets_paths() -> List[Path]:

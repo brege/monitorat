@@ -10,7 +10,6 @@ from pathlib import Path
 import sys
 import re
 
-import confuse
 from confuse import ConfigError
 
 sys.path.append(str(Path(__file__).parent.parent))
@@ -20,6 +19,10 @@ from monitor import (  # noqa: E402
     get_data_path,
     is_demo_enabled,
     register_config_listener,
+    reload_config,
+    find_widget_items_source,
+    load_widget_items_from_file,
+    write_widget_items_to_file,
 )
 
 _scheduler_thread = None
@@ -50,31 +53,6 @@ def reminders_edit_enabled() -> bool:
         return config["site"]["edit_mode"].get(bool)
     except Exception:
         return False
-
-
-def get_reminders_edit_path() -> Path | None:
-    view = get_reminders_view()
-    if not view["edit_file"].exists():
-        return None
-    edit_file_value = view["edit_file"].get()
-    if edit_file_value is None or edit_file_value == "":
-        return None
-    edit_path = Path(view["edit_file"].as_filename())
-    return edit_path if edit_path.exists() else None
-
-
-def load_reminders_from_file(path: Path) -> dict:
-    data = confuse.load_yaml(str(path), loader=config.loader)
-    if data is None:
-        return {}
-    if not isinstance(data, dict):
-        raise ValueError("Reminders YAML must be a mapping.")
-    if "items" in data:
-        items = data["items"]
-        if not isinstance(items, dict):
-            raise ValueError("Reminders items must be a mapping.")
-        return items
-    return data
 
 
 def serialize_reminders_yaml(items: dict) -> str:
@@ -113,9 +91,6 @@ def serialize_reminders_yaml(items: dict) -> str:
 
 def get_reminders_items():
     view = get_reminders_view()
-    edit_path = get_reminders_edit_path()
-    if edit_path and edit_path.exists():
-        return load_reminders_from_file(edit_path)
     items = view["items"].get(dict)
     return items or {}
 
@@ -546,7 +521,7 @@ def register_routes(app):
 
     @app.route("/api/reminders/<reminder_id>/touch", methods=["GET", "POST"])
     def api_reminder_touch(reminder_id):
-        from flask import jsonify, redirect
+        from flask import jsonify, redirect, request
 
         if is_demo_enabled():
             return jsonify({"error": "reminders disabled in demo mode"}), 403
@@ -556,7 +531,9 @@ def register_routes(app):
 
         touch_reminder(reminder_id)
         reminder_url = reminders_items[reminder_id]["url"] or "/"
-        return redirect(reminder_url)
+        if request.method == "GET":
+            return redirect(reminder_url)
+        return jsonify({"status": "ok"})
 
     @app.route("/api/reminders/<reminder_id>/reset", methods=["POST"])
     def api_reminder_reset(reminder_id):
@@ -599,9 +576,10 @@ def register_routes(app):
         if not reminders_edit_enabled():
             return jsonify({"error": "Reminders editing is disabled"}), 403
 
-        edit_path = get_reminders_edit_path()
-        if not edit_path:
-            return jsonify({"error": "Reminders edit_file not configured"}), 404
+        try:
+            edit_path = find_widget_items_source("reminders")
+        except Exception as error:
+            return jsonify({"error": str(error)}), 500
 
         reminder_id = request.args.get("reminder")
         reminders_items = get_reminders_items()
@@ -629,9 +607,10 @@ def register_routes(app):
         if not reminders_edit_enabled():
             return jsonify({"error": "Reminders editing is disabled"}), 403
 
-        edit_path = get_reminders_edit_path()
-        if not edit_path:
-            return jsonify({"error": "Reminders edit_file not configured"}), 404
+        try:
+            edit_path = find_widget_items_source("reminders")
+        except Exception as error:
+            return jsonify({"error": str(error)}), 500
 
         payload = request.get_json()
         if not payload or "item" not in payload:
@@ -649,12 +628,12 @@ def register_routes(app):
         except ValueError as error:
             return jsonify({"error": str(error)}), 400
 
-        existing_items = get_reminders_items()
+        existing_items = load_widget_items_from_file(edit_path, "reminders")
         updated_items = dict(existing_items)
         updated_items[target_id] = normalized_entry
 
-        edit_path.parent.mkdir(parents=True, exist_ok=True)
-        edit_path.write_text(serialize_reminders_yaml(updated_items), encoding="utf-8")
+        write_widget_items_to_file(edit_path, "reminders", updated_items)
+        reload_config()
 
         return jsonify({"status": "ok", "reminder": target_id})
 
@@ -665,23 +644,24 @@ def register_routes(app):
         if not reminders_edit_enabled():
             return jsonify({"error": "Reminders editing is disabled"}), 403
 
-        edit_path = get_reminders_edit_path()
-        if not edit_path:
-            return jsonify({"error": "Reminders edit_file not configured"}), 404
+        try:
+            edit_path = find_widget_items_source("reminders")
+        except Exception as error:
+            return jsonify({"error": str(error)}), 500
 
         reminder_id = request.args.get("reminder")
         if not reminder_id:
             return jsonify({"error": "Missing reminder id"}), 400
 
-        existing_items = get_reminders_items()
+        existing_items = load_widget_items_from_file(edit_path, "reminders")
         if reminder_id not in existing_items:
             return jsonify({"error": "Reminder not found"}), 404
 
         updated_items = dict(existing_items)
         del updated_items[reminder_id]
 
-        edit_path.parent.mkdir(parents=True, exist_ok=True)
-        edit_path.write_text(serialize_reminders_yaml(updated_items), encoding="utf-8")
+        write_widget_items_to_file(edit_path, "reminders", updated_items)
+        reload_config()
 
         return jsonify({"status": "ok", "reminder": reminder_id})
 
