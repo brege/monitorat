@@ -272,20 +272,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     }),
   );
 
-  for (const widgetName of widgetOrder) {
-    const widgetConfig = config.widgets?.[widgetName];
-    if (!widgetConfig) {
-      continue;
-    }
+  const [firstWidget, ...remainingWidgets] = widgetOrder;
 
-    const widgetType = widgetConfig?.type || widgetName;
-    const container = containersByWidget.get(widgetName);
-    if (!container) {
-      continue;
+  if (firstWidget) {
+    const widgetConfig = config.widgets?.[firstWidget];
+    if (widgetConfig) {
+      const widgetType = widgetConfig?.type || firstWidget;
+      const container = containersByWidget.get(firstWidget);
+      if (container) {
+        await initializeWidget(
+          firstWidget,
+          widgetType,
+          widgetConfig,
+          container,
+        );
+      }
     }
-
-    await initializeWidget(widgetName, widgetType, widgetConfig, container);
   }
+
+  await Promise.all(
+    remainingWidgets.map((widgetName) => {
+      const widgetConfig = config.widgets?.[widgetName];
+      if (!widgetConfig) {
+        return Promise.resolve();
+      }
+
+      const widgetType = widgetConfig?.type || widgetName;
+      const container = containersByWidget.get(widgetName);
+      if (!container) {
+        return Promise.resolve();
+      }
+
+      return initializeWidget(widgetName, widgetType, widgetConfig, container);
+    }),
+  );
 
   const { expansion } = window.monitorShared;
   expansion.restoreExpansionStates();
