@@ -40,16 +40,13 @@ widgets:
     section: editor-readme
     doc: ./README.md
     mode: seamless
-    edit: true
 
   reminders:
     type: reminders
     name: null
     section: reminders
-    edit: true
   
   services:
-    edit: true
   
   dummy:
     type: wiki
@@ -57,7 +54,6 @@ widgets:
     section: dummy
     doc: docs/dummy.md
     mode: rail
-    edit: true
 
   wiki-footer:
     type: wiki
@@ -66,4 +62,3 @@ widgets:
     hidden: true
     mode: seamless
     doc: ../simple/docs/footer.md
-    edit: false

@@ -4,7 +4,6 @@ widgets:
     collapsible: true
     hidden: false
     min_width: 260
-    edit: false
     edit_file: null  # relative to config dir, or absolute
     features:
       reminders:

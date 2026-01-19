@@ -280,6 +280,8 @@ async function showMenuModal() {
   const allCollapsed = areAllSectionsCollapsed();
   const rememberExpansions = window.isRememberExpansionsEnabled();
   const editModeEnabled = window.monitorShared?.isEditModeEnabled?.() === true;
+  const editingAvailable =
+    window.monitorShared?.isEditingAvailable?.() === true;
 
   const themesHtml = info.themes
     .map((theme) => {
@@ -304,10 +306,14 @@ async function showMenuModal() {
         <span class="menu-modal-icon">${allCollapsed ? MENU_ICONS.expand : MENU_ICONS.collapse}</span>
         <span class="menu-modal-label">${allCollapsed ? 'Expand All' : 'Collapse All'}</span>
       </button>
-      <button type="button" class="menu-modal-control" id="menu-edit-toggle">
-        <span class="menu-modal-icon">${editModeEnabled ? MENU_ICONS.readOnly : MENU_ICONS.edit}</span>
-        <span class="menu-modal-label">${editModeEnabled ? 'Read Only' : 'Use Editor'}</span>
-      </button>
+      ${
+        editingAvailable
+          ? `<button type="button" class="menu-modal-control" id="menu-edit-toggle">
+            <span class="menu-modal-icon">${editModeEnabled ? MENU_ICONS.readOnly : MENU_ICONS.edit}</span>
+            <span class="menu-modal-label">${editModeEnabled ? 'Read Only' : 'Use Editor'}</span>
+          </button>`
+          : ''
+      }
       <button type="button" class="menu-modal-control" id="menu-reload">
         <span class="menu-modal-icon">${MENU_ICONS.reload}</span>
         <span class="menu-modal-label">Reload Page</span>

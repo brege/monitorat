@@ -121,7 +121,7 @@ def register_routes(app, instance="wiki"):
         widget_name = request.args.get("widget", instance)
         widget_config = config["widgets"][widget_name]
 
-        if not config["site"]["edit_mode"].get(bool):
+        if not config["site"]["editing"].get(bool):
             return jsonify({"error": "Editing not enabled for this widget"}), 403
 
         doc_view = widget_config["doc"]
@@ -150,7 +150,7 @@ def register_routes(app, instance="wiki"):
         widget_name = request.args.get("widget", instance)
         widget_config = config["widgets"][widget_name]
 
-        if not config["site"]["edit_mode"].get(bool):
+        if not config["site"]["editing"].get(bool):
             return jsonify({"error": "Editing not enabled for this widget"}), 403
 
         doc_view = widget_config["doc"]

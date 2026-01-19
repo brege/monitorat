@@ -38,6 +38,13 @@ window.monitorShared.ensureEditMode = (enabled) => {
   }
 };
 
+window.monitorShared.setEditingAvailable = (enabled) => {
+  window.monitorShared._editingAvailable = enabled === true;
+};
+
+window.monitorShared.isEditingAvailable = () =>
+  window.monitorShared._editingAvailable === true;
+
 window.monitorShared.loadScript = (source, globalName) => {
   const cache = window.monitorShared._scriptPromises;
 
@@ -217,7 +224,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.monitor.demoEnabled = config.demo === true;
   window.monitor.federationStatus = federationStatus;
   window.monitor.sectionsConfig = config.sections || {};
-  window.monitorShared.ensureEditMode(config.site?.edit_mode);
+  const editingAvailable = config.site?.editing === true;
+  window.monitorShared.setEditingAvailable(editingAvailable);
+  if (editingAvailable) {
+    window.monitorShared.ensureEditMode(true);
+  } else {
+    window.monitorShared.setEditModeEnabled(false);
+  }
 
   const { initializeConfigReloadControl } = window.monitorShared;
   initializeConfigReloadControl({ demoEnabled: window.monitor.demoEnabled });

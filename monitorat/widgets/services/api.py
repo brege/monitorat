@@ -37,7 +37,7 @@ def services_items():
 
 def services_edit_enabled() -> bool:
     try:
-        return config["site"]["edit_mode"].get(bool)
+        return config["site"]["editing"].get(bool)
     except Exception:
         return False
 

@@ -6,7 +6,7 @@ site:
   title: System Monitor
   base_url: http://localhost:6161
   theme: default # default | formal
-  edit_mode: false
+  editing: false
 # all paths relative to monitorat config dir (~/.config/monitorat/)
 # absolute paths also supported
 paths:

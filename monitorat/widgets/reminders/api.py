@@ -50,7 +50,7 @@ def get_reminders_view():
 
 def reminders_edit_enabled() -> bool:
     try:
-        return config["site"]["edit_mode"].get(bool)
+        return config["site"]["editing"].get(bool)
     except Exception:
         return False
 
