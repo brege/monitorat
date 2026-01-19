@@ -1,5 +1,34 @@
 ## Changelog
 
+### 2026-01-18 -- [b05081d..cb23046](https://github.com/brege/monitorat/compare/b05081d..cb23046)
+
+- Fixed regressed Privacy Mask and changed icon to Incognito Man
+- Make editing global only through the Main Menu modal
+- Added "Add Service"/"Add Reminder" buttons
+- Various centralizations into main OR component FROM per-widget features
+- Added support for uploading icons to reminders and services
+- Add to wiki editing the relative path of the document the user is editing
+- Change reminders editor from textarea to well-structured and bounded form
+- Create central card editor for both services and reminders
+- Edits now happen directly on the config file (or snippet) for reminders/services
+- Added support for editing services (copying reminders method)
+
+### 2026-01-17 -- [66cb41d..b4778d0](https://github.com/brege/monitorat/compare/66cb41d..b4778d0)
+
+- Bump version to v0.10.5
+- Restructured main JS directory
+- Major improvements to editing Wiki's, ability to restore via dropdown
+- Various CSS and UI tweaks for polish and consistency
+- Introduce reminders editing (experimental)
+
+### 2026-01-16 -- [338fc1d..66fe520](https://github.com/brege/monitorat/compare/338fc1d..66fe520)
+
+- Added support for monochromatic icon handling via config flag
+
+### 2026-01-13 -- [f155e23..73800ec](https://github.com/brege/monitorat/compare/f155e23..73800ec)
+
+- Readying project to share with the public: many documentation edits
+- NB. This stretches to 2026-01-16
 
 ### 2026-01-12 -- [7f8d8c7..e2251c7](https://github.com/brege/monitorat/compare/7f8d8c7..e2251c7)
 
