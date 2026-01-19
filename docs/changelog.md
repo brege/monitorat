@@ -1,5 +1,11 @@
 ## Changelog
 
+### 2026-01-19
+
+- Bump version to v0.11
+- Refactored README and update all non-install docs (sans screenshots)
+- Made editing a single-key and single-menu-item toggle
+
 ### 2026-01-18 -- [b05081d..cb23046](https://github.com/brege/monitorat/compare/b05081d..cb23046)
 
 - Fixed regressed Privacy Mask and changed icon to Incognito Man
@@ -304,85 +310,59 @@
 
 ---
 
-# TODO: finish backfilling changelog from git-changelog
-
----
-
 ### 2025-11-06 -- [e4ce686..8a8a753](https://github.com/brege/monitorat/compare/e4ce686..8a8a753)
 
-* refactor(3): add logging to metrics widget
-* refactor(2): add logging to monitor.py and reminders' api.py
-* refactor(1): extract notification handler from reminders
-* add key for default metric
-* fix: period duration option for speedtest chart
-* Merge linting setup
-* update README
-* chore: enforce basic code quality standards
-* Merge branch 'devel'
-* chore(yaml): code quality/linting
-* feat: add duration default view option for charts
-* feat: ghost raw data on spiky plots; add smooth avg
-* refactor: centralize widget headers and de-dupe timestamp helpers
+- Universalized logging for all widgets
+- Extracted notification handler from reminders into top-level handler
+- Applied new code-quality standards/linting
+- Added duration defaults to chart view options
+- Make spiky plots smoother
+- Refactored to centralize widget headers and de-dupe timestamp helpers
 
 ### 2025-11-05 -- [9e7759d..776ea43](https://github.com/brege/monitorat/compare/9e7759d..776ea43)
 
-* chore: remove legacy config shims, console noise, and wrappers
-* feat: add charts for system metrics
-* extract data handling from speedtest widget
-* enhance metrics widget o make historical CSV
+- Add charts for System Metrics widget
+- Extracted data handling from Speedtest widget
+- Enhanced metrics widget to provide an historical CSV download
 
 ### 2025-11-03 -- [c90cfcd..c90cfcd](https://github.com/brege/monitorat/compare/c90cfcd..c90cfcd)
 
-* feat: add app reload for changes made in config.yaml
+- Added a deeper app reload toggle for refreshing off changes to config.yaml
 
 ### 2025-11-02 -- [61fba0a..61fba0a](https://github.com/brege/monitorat/compare/61fba0a..61fba0a)
 
-* fix: add Daylight Savings Time change handling
+- Added Daylight Savings Time change handling
 
 ### 2025-11-01 -- [b852022..0eb8c8f](https://github.com/brege/monitorat/compare/b852022..0eb8c8f)
 
-* favicon: add pipeline for new icon
-* performance: fix dupe chart fetch and improve speedtest graph loading
-* preformance: cache network pills so refresh doesn't repaint
-* update README
-* fix: provide api for ddns log, not using data/
-* chore: linting for whitespac, unused vars, etc
-* remove legacy pushover support
-* feat: support general apprise urls
-* fix broken notification handler
+- Added pipeline for new favicon
+- Fixed dupe chart fetch and improve speedtest graph loading
+- Cache network pills so refresh doesn't repaint each one
+- Network widget now provides an API for the DDNS log (no longer assumes it's in data/)
+- Replace direct Pushover notification with general Apprise URLs
 
 ### 2025-10-31 -- [5aeeff0..5aeeff0](https://github.com/brege/monitorat/compare/5aeeff0..5aeeff0)
 
-* fix: load widgets in parallel to improve performance
+- Load widgets in parallel to improve performance
 
 ### 2025-10-30 -- [5d47fb1..880c46c](https://github.com/brege/monitorat/compare/5d47fb1..880c46c)
 
-* fix: network widget hardcoded darks and edge cases
-* fix(styles): light mode, add toggle, better svg
-* docs: add README screenshots, with 'sample' text
-* fix: click behavior and hover text on service widget boxes
-* fix: run speedtest and cpu temps on old hw
+- Removed hardcoded dark mode stranded in Network widget
+- Improved light mode and SVG icon usage
+- Fixed spotty click behavior and hover text on service widget boxes
+- Extended Metrics widget to measure quantities on old hardware
 
 ### 2025-10-29 -- [8467262..2021ca7](https://github.com/brege/monitorat/compare/8467262..2021ca7)
 
-* Merge branch 'speedtest-chart'
-* refactor: extract speedtest api from monitor and improve its config
-* feat: add a speedtest plotting method
-* docs: update README, add screenshots, remove ddns log dummy
-* fix: pushover level
-* feat: improve network log ticker usefulness
-* fix: move run speedtest button into section matter
-* refactor: move pushover keys into reminders
-* fix: widget api harness, revert non-.md anchors, widget ordering
+- Added speedtest plotting via Chart.js
+- Extracted the speedtest API code from main into its own widget
+- Improve pushover notifications
 
 ### 2025-10-28 -- [747e82a..4b6c5eb](https://github.com/brege/monitorat/compare/747e82a..4b6c5eb)
 
-* feat: allow collapsing widgets to anchored headers
-* feat: support multiple of same widgets
-* better confuse implementation
+- Added ability to collapse widgets to anchored headers
+- Now supporting multiple of same widget via `type` key
 
-### 2025-10-27 -- [7bede9b..811390a](https://github.com/brege/monitorat/compare/7bede9b..811390a)
+### 2025-10-27
 
-* wrong vendor error strikes again
-* css makeover
-* initial commit
+- Initial Commit

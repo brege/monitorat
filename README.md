@@ -4,7 +4,7 @@
 
 **Monitorat** is a federated dashboard and documentation system.
 
-Its philosophy is to make system monitoring and documentation continuous, much like the way tables and figures are integrated in journal articles or [Wikipedia](https://wikipedia.org/).
+Its philosophy is to make system monitoring and documentation continuous, much like the way tables and figures are integrated within journal articles or [Wikipedia](https://wikipedia.org/).
 
 Available widgets:
 - [metrics](#system-metrics)
@@ -20,15 +20,16 @@ Widgets have a general, self-contained structure where both API and UI are strai
 ~/.config/monitorat/widgets/
 └── my-widget
     ├── api.py
+    ├── default.yaml
     ├── index.html
     └── app.js
 ```
 
-Documentation is handled through the Wiki widget. Each document snippet added is a new widget instance. This document and any others you add to your wiki will be rendered in GitHub-flavored markdown via [markdown-it](https://github.com/markdown-it/markdown-it).
-`
+Documentation is editable in-browser and handled by proliferating Wiki widgets across your dashboard. Each document snippet added is a new widget instance. All documents you add to your wiki will be rendered in GitHub-flavored Markdown via [markdown-it](https://github.com/markdown-it/markdown-it).
+
 ## Gallery
 
-It's best to check out [**the demo**](https://monitorat.brege.org) which is a fully interactive version of the application you could be running on your machines. Screenshots of the demo are compiled below.
+[**The Demo**](https://monitorat.brege.org) is a fully interactive version of the application and provides complete resource parity between widget layouts and their YAML config snippets. In that sense, *the demo is the documentation*.
 
 <table>
   <tr>
@@ -88,9 +89,9 @@ See: **[Package Install](./docs/install/package.md)** for installing from PyPI w
 
 ### Docker
 
-See: **[Docker](./docs/install/docker.md)** for installation in a container.
+See: **[Docker Install](./docs/install/docker.md)** for installation in a container.
 
-### Source Install
+### Source
 
 See: **[Source Install](./docs/install/source.md)** for git-based installations or deployments to `/opt`.
 
@@ -102,12 +103,13 @@ Open `http://localhost:6161`, or your specified port, or configure through a rev
 
 ### Configuration
 
-These are the basic monitorat settings for your system, assuming you want to put all icons, data and the config file in `~/.config/monitorat/` which is the default location.
+These are the basic monitorat settings for your system, assuming you want to keep all icons and data close to your config file (usually `~/.config/monitorat/`):
 
 ```yaml
 site:
   name: "@my-nas"
   title: "Dashboard @my-nas"
+  editing: true
 
 paths:
   data: data/
@@ -120,24 +122,27 @@ widgets: { ... }
 # notifications: { ... }
 ```
 
-### Widgets
+## Widgets
 
-**monitorat** has an extensible widget system. You can add any number of widgets to your dashboard multiple times over, re-order them, and enable/disable any you don't need. You can add more widgets from others in `~/.config/monitorat/widgets/`.
+**Monitorat** has an extensible widget system. You can add any number of widgets to your dashboard multiple times over, re-order them, and enable/disable any you don't need. 
+
+### Configuration
+
+You can add more widgets of other origin in `~/.config/monitorat/widgets/`.
 
 ```yaml
 widgets:
   enabled:             # dashboard positions: from top to bottom
+    - my-server-notes  # type: wiki
     - services
-    - services-wiki    # type: wiki
     - metrics
-    - metrics-wiki     # type: wiki
     - # reminders      # '#' disables this widget
     - network
     - speedtest
     - my-widget        # in ~/.config/monitorat/widgets/
 ```
 
-Each widget can be configured in its own YAML block. To configure a widget in its own file,
+Each widget can be configured in its own YAML block. To configure a widget in its own file:
 ```yaml
 includes:
   - "/home/user/.config/monitorat/widgets/my-widget.yaml"
@@ -145,88 +150,37 @@ includes:
 or do this for every widget through config snippets:
 ```yaml
 includes:
-  - include/services.yaml
-  - include/metrics.yaml
-  - include/reminders.yaml
-  - include/network.yaml
-  - include/speedtest.yaml
-  - include/my-widget.yaml
+  - snippets/services.yaml
+  - snippets/metrics.yaml
   - # ... wikis, user widgets, etc
 ```
 
 ##### Making your own
 
-They are also quite easy to build. An example of a widget built with Codex in 12 minutes:
+Widgets are also quite easy to build with AI. Widget built with Codex in 12 minutes:
+> [Agentic Archetype: Building Widgets with AI](docs/contributing.md#agentic-archetype)
 
-- [Agentic Archetype: Building Widgets with AI](docs/contributing.md#agentic-archetype)
+## Available Widgets
 
-#### **Services**  
-  The **Service Status** widget is a simple display to show what systemd services, timers, and Docker containers are running or have failed. [Demo](https://monitorat.brege.org/#section-services)
+### **Services**  
+- monitor systemd services, timers, and Docker containers in real time
+- can be used as *homelab bookmarks* in compact cards layout
+- simultaneously provides both your URL (or WAN IP) and local address (or LAN IP) for use offline
+- **monitorat is completely encapsulated and works offline even when internet is down**
 
-  You can configure the service tiles to have both your URL (or WAN IP) and a local address (or LAN IP) for use offline. **monitorat is completely encapsulated and works offline even when internet is down.**
+### **Wiki**  
+- uses [markdown-it](https://github.com/markdown-it/markdown-it) and GitHub-flavored markdown
+- can columnate multiple documents/Markdown fragments
+- editor can be used to spruce up system docs in the browser
+- supports [Mermaid](https://mermaid-js.github.io/mermaid/#/) diagrams
 
-#### **Wiki**  
-  Some widgets you may want to use more than once. For two markdown documents ("wikis"), use **`type: wiki`**. **`wiki: <title>`** may only be used once. [Demo](https://monitorat.brege.org)
-
-   Changing widget order or enabling/disabling widgets is rather straightforward.
-
-   ```yaml
-   widgets:
-     enabled: 
-       - network
-       - network-wiki
-       - services
-       - services-wiki
-       - metrics
-       - speedtest
-       - ...
-   ```
-
-   **monitorat uses GitHub-flavored markdown**
-
-#### **System Metrics**  
-  Metrics provides an overview of system performance, including CPU, memory, disk and network usage, and temperature over time.  Data is logged to `metrics.csv`. [Demo](https://monitorat.brege.org/#section-metrics)
-
-#### **Speedtest**  
-  The **Speedtest** widget allows you to keep a record of your internet performance over time.
-It does not perform automated runs. [Demo](https://monitorat.brege.org/#section-speedtest)
-
-#### **Network**  
-  The **Network** widget may be the most specific. This example uses `ddclient`-style generated logs. [Demo](https://monitorat.brege.org/#section-network)
-
-  The network widget is best used on machines with continuous uptime. You might even keep monitorat running on your pi-hole.
-
-#### **Reminders**  
-  The **Reminders** widget allows you to set reminders for system chores, login/key change reminders, and other one-off chirps. [Demo](https://monitorat.brege.org/#section-reminders)
-
-  Reminders are facilitated by [Apprise](https://github.com/caronc/apprise) (see [below](#notifications)).
-
-`
-### Privacy
-
-The privacy mask helps share your setup online without exposing personal information. Those are just string replacements; add as many as you like.
-
-```yaml
-privacy:
-  replacements:
-    my-site.org: example.com
-    my-hostname: masked-hostname
-    ...
-  mask_ips: true
-```
-
-Running
-```bash
-monitorat config
-```
-will print the runtime config with these masks applied.
-
-### Alerts
-
-Alerts are tied to system metrics, where you set a threshold and a message for each event.
+### **System Metrics**  
+- provides an overview of system performance over time in `metrics.csv`
+- measures CPU, memory, disk and network usage, temperature, etc.
+- get notified when system metrics exceed configured thresholds:
 
 <details>
-<summary><b>Alerts</b> example configuration</summary>
+<summary><b>Configuring Alerts</b></summary>
 
 ```yaml
 alerts:
@@ -248,9 +202,111 @@ alerts:
 
 </details>
 
+### **Speedtest**  
+- keep a record of your internet performance over time
+- currently does not perform automated runs
+
+### **Network**  
+The network widget is best used on machines with continuous uptime. Two options:
+- (a) using a `ddclient`-style log, or
+- (b) use the built-in chirper
+
+### **Reminders**  
+- facilitated by [Apprise URLs](https://github.com/caronc/apprise) (see [below](#notifications)).
+- ping yourself for system chores, key changes, etc.
+
+### Summary of Widget Features
+
+<table>
+  <thead>
+    <tr>
+      <th>Widget</th>
+      <th>Chart</th>
+      <th>Filters</th>
+      <th>Snapshot</th>
+      <th>Recording</th>
+      <th>Editing</th>
+      <th>Federation Merge</th>
+      <th>Notify</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>S. Metrics</td>
+      <td><a href="https://monitorat.brege.org/#section-metrics">Y</a></td>
+      <td>-</td>
+      <td>Y (tiles)</td>
+      <td>Y</td>
+      <td>N</td>
+      <td><a href="https://monitorat.brege.org/federation/#section-metrics">Y (chart)</a></td>
+      <td>Y (alert)</td>
+    </tr>
+    <tr>
+      <td>Network</td>
+      <td><a href="https://monitorat.brege.org/#section-network">Y (pips)</a></td>
+      <td>Y (outages)</td>
+      <td>Y (tiles)</td>
+      <td>Y</td>
+      <td>N</td>
+      <td><a href="https://monitorat.brege.org/federation/#section-network">Y (interleave)</a></td>
+      <td>N</td>
+    </tr>
+    <tr>
+      <td>Speedtest</td>
+      <td><a href="https://monitorat.brege.org/#section-speedtest">Y</a></td>
+      <td>-</td>
+      <td>-</td>
+      <td>N</td>
+      <td>-</td>
+      <td><a href="https://monitorat.brege.org/federation/#section-speedtest">Y (chart)</a></td>
+      <td>N</td>
+    </tr>
+    <tr>
+      <td>Services</td>
+      <td>-</td>
+      <td><a href="https://monitorat.brege.org/#section-services">Y</a></td>
+      <td>Y (cards)</td>
+      <td>N</td>
+      <td>Y</td>
+      <td><a href="https://monitorat.brege.org/federation/#section-services">Y (interleave)</a></td>
+      <td>N</td>
+    </tr>
+    <tr>
+      <td>Reminders</td>
+      <td>-</td>
+      <td><a href="https://monitorat.brege.org/#section-reminders">Y</a></td>
+      <td>-</td>
+      <td>-</td>
+      <td>Y</td>
+      <td><a href="https://monitorat.brege.org/federation/#section-reminders">Y (interleave)</a></td>
+      <td>Y</td>
+    </tr>
+    <tr>
+      <td>Wiki</td>
+      <td><a href="https://monitorat.brege.org/#about">Y</a></td>
+      <td>-</td>
+      <td>-</td>
+      <td>-</td>
+      <td>Y</td>
+      <td>Y (continuous)</td>
+      <td>-</td>
+    </tr>
+  </tbody>
+</table>
+
+> Y = supported | N = planned / potential feature | \- = not applicable
+
+## General Features
+
+### Editing
+
+- built-in Markdown editor and previewer
+- configure new reminders and services directly through the web interface
+- Web UI configuration seamlessly updates the YAML config file or downstream snippets
+
 ### Notifications
 
-The notifications system uses [Apprise](https://github.com/caronc/apprise) to notify through practically any service, via apprise URLs.
+The notifications system uses [Apprise](https://github.com/caronc/apprise) to notify through practically any service via apprise URLs.
 
 ```yaml
 notifications:
@@ -260,14 +316,35 @@ notifications:
     - # more apprise urls if needed...
 ```
 
+### Federation
+
+Yes, you can even federate multiple instances of monitorat:
+- compare and plot metrics data across multiple machines
+- see service statuses for your entire homelab/network from a central node
+- especially useful for filtering and sorting events network-wide
+
+> [!NOTE]
+> To simultaneously use federation of remotes AND local monitoring, you must setup a client monitorat instance and a separate monitorat server to federate locals and remotes in the same pane.
+
+### Privacy
+
+The privacy mask helps share your setup online without exposing personal information.
+```yaml
+privacy:
+  replacements:
+    my-site.org: example.com
+    replace-me: with-this
+    ...
+  mask_ips: true
+```
+Running `monitorat config` will print the runtime config with these masks applied as well.
+
 ---
 
-## Contributors
+## Development
 
 - [**contributing**](./docs/contributing.md)
-
 - [**changelog**](./docs/changelog.md)
-
 - [**roadmap**](./docs/roadmap.md)
 
 ## License

@@ -2,15 +2,13 @@
 
 ### Developing widgets
 
-See [install.md](install.md) for initializing a development server and running an alternative deployment.
+See [install/source.md](./install/source.md) for initializing a development server and running an alternative deployment.
 
 ### Agentic Archetype
 
-An external repository for a widget created by AI is provided. This widget displays the number of system packages installed on a Fedora Workstation.
+An external repository for a widget created by AI is provided. This widget displays the number of system packages installed on a Fedora Workstation ([github.com/brege/monitorat-widget-packages](https://github.com/brege/monitorat-widget-packages)).
 
-https://github.com/brege/monitorat-widget-packages
-
-The AI agent (codex) created this widget in 12 minutes from this exact context.
+The AI agent (codex-5.2) created this widget in 12 minutes from this exact context.
 
 1. dropped in monitorat's project directory
 2. providing `prompt.md` with a description of the widget the user wants to create
@@ -34,14 +32,24 @@ Promise.
 
 ### Important dependencies
 
-The `vendors/` are for plotting and especially rendering and styling markdown documents (via [markdown-it](https://github.com/markdown-it/markdown-it)) like `README.md` in HTML. These libraries are automatically downloaded locally by `monitor.py` only once.
+The `vendors/` are for plotting and especially rendering and styling markdown documents (via [markdown-it](https://github.com/markdown-it/markdown-it)) like `README.md` in HTML. These libraries are automatically downloaded locally by `monitor.py` only once. You can disable the local download to use the CDN's permanently too (to save my bandwidth, the public-facing demos at [monitorat.brege.org](https://monitorat.brege.org/) use the CDN configuration).
 
-This project uses [confuse](https://confuse.readthedocs.io/en/latest/) for configuration management,
-and as such uses a common-sense config hierarchy. Parameters are set in `monitorat/config_default.yaml` and may be overridden in `~/.config/monitorat/config.yaml`.
+This project uses [confuse](https://confuse.readthedocs.io/en/latest/) for configuration management, which boasts a common-sense config hierarchy. Parameters are set in `monitorat/config_default.yaml` and may be overridden in `~/.config/monitorat/config.yaml`.
 
-See [confuse's docs](http://confuse.readthedocs.io/en/latest/usage.html) and [source](https://github.com/beetbox/confuse) for a deeper reference.
+See `pyproject.toml` for dependencies.
 
 ### Code quality
+
+#### Config files and parameter presets
+
+>[!IMPORTANT]
+>**Do NOT use fallbacks for user-configurable values in the code.** If a parameter is user-facing, it must go in `config_default.yaml` (or `default.yaml` for your widget) and **NOT** have an initialized value in the code. See [confuse's docs](http://confuse.readthedocs.io/en/latest/usage.html) and [source](https://github.com/beetbox/confuse) for a deeper reference.
+
+#### Schema
+
+For repetitive, non-user-facing parameters, please create a `schema.json` for your widget.
+
+#### Linting and formatting
 
 ```bash
 pre-commit install
@@ -49,10 +57,36 @@ pre-commit install
 
 This will install [pre-commit](https://pre-commit.com/) hooks for linting and formatting via [**biome**](https://biomejs.dev/) (JS/CSS/JSON) and [**ruff**](https://github.com/astral-sh/ruff) (Python).
 
-See `pyproject.toml` for dependencies.
-
 ### Adding widgets
 
-Widgets follow the three-file structure shown at the top of this document: `api.py`, `widget.html`, and `widget.js` in `monitorat/widgets/your-widget/`, or, users can drop custom widgets into the directory referenced by `paths.widgets` (default: `~/.config/monitorat/widgets/`) and reference them in `widgets.enabled`.
+Structure:
+
+```
+~/.config/monitorat/widgets/
+└── my-widget
+    ├── api.py              # backend and routing
+    ├── default.yaml        # preset user-configurable parameters
+    ├── schema.json         # repetitive parameters
+    ├── index.html          # main layout
+    ├── style.css           # only widget-specifc CSS
+    ├── features/*.js       # (optional) if using app.js as an index/orchestrator of <features>.js
+    └── app.js              # main client-side JS
+```
 
 Monitorat will automatically load the matching backend `api.py` and its presets (a *local* `default.yaml`) and serve the widget's HTML/JS from that directory.
+
+### CSS and JS rules: a constant battle
+
+There are three CSS scopes:
+
+1. app/site wide CSS (buttons, typography, theme: `default.css`)
+2. component-specific CSS (header/menu, tiles, charts, etc.: `tiles/tiles.css`)
+3. widget-specific CSS (pips, modals, etc.: `my-widget/style.css`)
+
+Do not use `default.css` as a catch-all and do not create redundant styling in `styles.css` that `default.css` already supplies. Once a feature becomes common to multiple widgets, extract it into either a component or make it site-wide.
+
+The `formal.css` theme assumes the `default.css` theme loads first. All theming is relative to `default.css`. Users can deposit themes in their XDG-Config-Home's `themes/` directory.
+
+All JS functions the same way.
+
+See `tree monitorat/static/` and `tree --gitignore monitorat/widgets/` to illustrate this structure.
