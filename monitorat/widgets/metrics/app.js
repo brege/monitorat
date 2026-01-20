@@ -180,6 +180,7 @@ class MetricsWidget {
 
     this.setupNodeSelect();
     this.setupDownloadControl(downloadButton);
+    this.setupLegendToggle();
     this.updateControlStates();
   }
 
@@ -260,6 +261,36 @@ class MetricsWidget {
         return;
       }
       this.downloadCsv();
+    });
+  }
+
+  setupLegendToggle() {
+    const toggle = this.getElement('legend-toggle');
+    const chartContainer = this.getElement('chart-container');
+    const overlay = chartContainer?.querySelector('.chart-overlay');
+    if (!toggle || !chartContainer || !overlay) return;
+
+    this.legendVisible = true;
+    const applyState = () => {
+      chartContainer.classList.toggle('legend-hidden', !this.legendVisible);
+      overlay.style.display = this.legendVisible ? '' : 'none';
+      toggle.classList.toggle('active', this.legendVisible);
+      toggle.setAttribute(
+        'aria-pressed',
+        this.legendVisible ? 'true' : 'false',
+      );
+      if (this.legendVisible) {
+        const ChartManager = window.monitorShared?.ChartManager;
+        if (ChartManager) {
+          ChartManager.applyLegendDock(chartContainer);
+        }
+      }
+    };
+
+    applyState();
+    toggle.addEventListener('click', () => {
+      this.legendVisible = !this.legendVisible;
+      applyState();
     });
   }
 

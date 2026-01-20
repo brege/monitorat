@@ -156,6 +156,7 @@ class SpeedtestWidget {
       this.features.table.rebuildHeaders();
       this.setupNodeSelect();
       this.setupDownloadControl();
+      this.setupLegendToggle();
       this.initManagers();
       this.setView(this.config.default);
       await this.features.table.loadHistory();
@@ -293,6 +294,39 @@ class SpeedtestWidget {
     });
   }
 
+  setupLegendToggle() {
+    const toggle = this.getElement('legend-toggle');
+    const chartContainer = this.getElement('chart-container');
+    const overlay = chartContainer?.querySelector('.chart-overlay');
+    if (!toggle || !chartContainer || !overlay) {
+      return;
+    }
+
+    this.legendVisible = true;
+    const applyState = () => {
+      chartContainer.classList.toggle('legend-hidden', !this.legendVisible);
+      overlay.style.display = this.legendVisible ? '' : 'none';
+      toggle.classList.toggle('active', this.legendVisible);
+      toggle.setAttribute(
+        'aria-pressed',
+        this.legendVisible ? 'true' : 'false',
+      );
+      if (this.legendVisible) {
+        const ChartManager = window.monitorShared?.ChartManager;
+        if (ChartManager) {
+          ChartManager.applyLegendDock(chartContainer);
+        }
+      }
+    };
+
+    applyState();
+    toggle.addEventListener('click', () => {
+      this.legendVisible = !this.legendVisible;
+      applyState();
+      this.updateLegendVisibility();
+    });
+  }
+
   downloadCsv() {
     const url = `${this.getApiBase()}/csv?${Date.now()}`;
     const link = document.createElement('a');
@@ -342,10 +376,11 @@ SpeedtestWidget.prototype.updateControlStates = function () {
 SpeedtestWidget.prototype.updateLegendVisibility = function () {
   const metricLegend = this.getElement('metric-legend');
   const nodeLegend = this.getElement('node-legend');
+  const chartContainer = this.getElement('chart-container');
   if (!metricLegend && !nodeLegend) {
     return;
   }
-  const show = this.currentView === 'chart';
+  const show = this.currentView === 'chart' && this.legendVisible !== false;
   if (metricLegend) {
     metricLegend.style.display =
       show && metricLegend.childElementCount ? '' : 'none';
@@ -353,6 +388,9 @@ SpeedtestWidget.prototype.updateLegendVisibility = function () {
   if (nodeLegend) {
     nodeLegend.style.display =
       show && nodeLegend.childElementCount ? '' : 'none';
+  }
+  if (chartContainer) {
+    chartContainer.classList.toggle('legend-hidden', !show);
   }
 };
 

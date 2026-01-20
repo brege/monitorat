@@ -1358,6 +1358,8 @@ tr:last-child td {
   flex-direction: column;
   align-items: stretch;
   gap: 0;
+  transform: scale(0.86);
+  transform-origin: top left;
 }
 
 .chart-legend-item {
@@ -1442,6 +1444,7 @@ tr:last-child td {
 
 .chart-overlay .chart-legend.right {
   align-items: stretch;
+  transform-origin: top right;
 }
 
 .chart-overlay .chart-legend.right .chart-legend-item {
@@ -1458,9 +1461,35 @@ tr:last-child td {
   border-top-style: dashed;
 }
 
+.chart-legend-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.chart-legend-controls .alerts-toggle {
+  padding: 4px 10px;
+  font-size: 0.72rem;
+}
+
+.legend-hidden .chart-overlay {
+  display: none;
+}
+
 @media (max-width: 640px) {
+  [data-metrics="legend-toggle"],
+  [data-speedtest="legend-toggle"] {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .chart-legend {
+    transform: scale(0.82);
+  }
   .chart-legend-item {
-    font-size: 0.68rem;
+    padding: 3px 6px;
+    font-size: 0.62rem;
   }
   .chart-legend-swatch {
     width: 12px;
@@ -1471,7 +1500,18 @@ tr:last-child td {
   }
   .chart-overlay {
     top: 8px;
-    left: 56px;
-    right: 48px;
+    left: 8px;
+    right: 8px;
+  }
+  .chart-overlay.dock-bottom {
+    top: auto;
+    bottom: 10px;
+  }
+  .chart-legend-controls {
+    margin-top: 4px;
+  }
+  .chart-legend-controls .alerts-toggle {
+    padding: 3px 8px;
+    font-size: 0.162rem;
   }
 }

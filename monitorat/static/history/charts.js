@@ -1,5 +1,11 @@
 /* global Chart, getComputedStyle */
 class ChartManager {
+  static mobileQuery = window.matchMedia('(max-width: 640px)');
+
+  static isMobile() {
+    return ChartManager.mobileQuery.matches;
+  }
+
   constructor(config) {
     this.canvasElement = config.canvasElement;
     this.containerElement = config.containerElement;
@@ -55,6 +61,11 @@ class ChartManager {
     this.containerElement.style.height = `${height}px`;
     this.containerElement.style.position = 'relative';
 
+    const isMobile = ChartManager.isMobile();
+    const layoutPadding = isMobile
+      ? { top: 16, right: 4, bottom: 16, left: 4 }
+      : { top: 4, right: 4, bottom: 0, left: 0 };
+
     const defaultOptions = {
       responsive: true,
       maintainAspectRatio: false,
@@ -87,11 +98,36 @@ class ChartManager {
         },
       },
       layout: {
-        padding: { top: 4, right: 4, bottom: 0, left: 0 },
+        padding: layoutPadding,
       },
     };
 
+    if (isMobile) {
+      defaultOptions.scales = {
+        x: {
+          ticks: { display: false },
+          grid: { drawTicks: false },
+          afterFit(scale) {
+            scale.height = 0;
+          },
+        },
+        y: {
+          ticks: { display: false },
+          grid: { drawTicks: false },
+          afterFit(scale) {
+            scale.width = 0;
+          },
+        },
+      };
+    }
+
     const ctx = this.canvasElement.getContext('2d');
+
+    const CornerLabelsPlugin = window.monitorShared?.CornerLabelsPlugin;
+    if (CornerLabelsPlugin && !Chart.registry.plugins.get('cornerLabels')) {
+      Chart.register(CornerLabelsPlugin);
+    }
+
     this.chart = new Chart(ctx, {
       type: 'line',
       data: {
@@ -133,6 +169,10 @@ class ChartManager {
       this.chart.options.scales = { ...this.chart.options.scales, ...scales };
     }
     this.chart.update();
+
+    if (this.containerElement) {
+      ChartManager.applyLegendDock(this.containerElement);
+    }
   }
 
   hasChart() {
@@ -340,6 +380,11 @@ class ChartManager {
     });
 
     chart.update();
+
+    const container = chart.canvas?.parentElement;
+    if (container) {
+      ChartManager.applyLegendDock(container);
+    }
   }
 
   static getActiveDatasetFields(chart, fieldKey, predicate = null) {
@@ -438,6 +483,7 @@ class ChartManager {
 
   static buildScalesFromSchema(axes = {}, overrides = {}) {
     const scales = {};
+    const isMobile = ChartManager.isMobile();
 
     const minimalAxisDefaults = {
       ticks: {
@@ -476,7 +522,78 @@ class ChartManager {
       );
     });
 
+    if (isMobile) {
+      Object.entries(scales).forEach(([scaleId, scaleConfig]) => {
+        scaleConfig.ticks = scaleConfig.ticks || {};
+        scaleConfig.ticks.display = false;
+        scaleConfig.grid = scaleConfig.grid || {};
+        scaleConfig.grid.drawTicks = false;
+        if (scaleId === 'x') {
+          scaleConfig.afterFit = (scale) => {
+            scale.height = 0;
+          };
+        } else {
+          scaleConfig.afterFit = (scale) => {
+            scale.width = 0;
+          };
+        }
+      });
+    }
+
     return scales;
+  }
+
+  static detectSparsestRegion(chart) {
+    if (!chart || !chart.data || !chart.data.datasets) return 'top';
+
+    const datasets = chart.data.datasets || [];
+    const chartArea = chart.chartArea;
+    if (!chartArea) return 'top';
+
+    const height = chartArea.bottom - chartArea.top;
+    if (height <= 0) return 'top';
+
+    const topThreshold = chartArea.top + height * 0.3;
+    const bottomThreshold = chartArea.bottom - height * 0.3;
+
+    let topCount = 0;
+    let bottomCount = 0;
+
+    datasets.forEach((dataset, index) => {
+      if (!chart.isDatasetVisible(index)) return;
+      const meta = chart.getDatasetMeta(index);
+      const points = meta?.data || [];
+      points.forEach((point) => {
+        const y = point?.y;
+        if (!Number.isFinite(y)) return;
+        if (y <= topThreshold) topCount += 1;
+        if (y >= bottomThreshold) bottomCount += 1;
+      });
+    });
+
+    return topCount <= bottomCount ? 'top' : 'bottom';
+  }
+
+  static applyLegendDock(container) {
+    if (!container) return;
+    if (!window.Chart) return;
+
+    const overlay = container.querySelector('.chart-overlay');
+    if (!overlay) return;
+
+    if (!ChartManager.isMobile()) {
+      overlay.classList.remove('dock-bottom');
+      return;
+    }
+
+    const canvas = container.querySelector('canvas');
+    if (!canvas) return;
+
+    const chart = Chart.getChart(canvas);
+    if (!chart) return;
+
+    const region = ChartManager.detectSparsestRegion(chart);
+    overlay.classList.toggle('dock-bottom', region === 'bottom');
   }
 }
 

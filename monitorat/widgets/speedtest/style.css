@@ -177,3 +177,26 @@
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
   pointer-events: auto;
 }
+
+@media (max-width: 640px) {
+  .speedtests .speedtest-chart {
+    display: flex;
+    flex-direction: column;
+  }
+  .speedtests .speedtest-chart canvas {
+    order: 1;
+  }
+  .speedtests .chart-overlay {
+    position: static;
+    order: 2;
+    margin-top: 6px;
+  }
+  .speedtests .chart-legend-item {
+    padding: 2px 6px;
+    font-size: 0.56rem;
+  }
+  .speedtests .chart-legend-swatch {
+    width: 10px;
+    height: 3px;
+  }
+}

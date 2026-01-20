@@ -127,3 +127,26 @@
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
   pointer-events: auto;
 }
+
+@media (max-width: 640px) {
+  .metrics .metrics-chart {
+    display: flex;
+    flex-direction: column;
+  }
+  .metrics .metrics-chart canvas {
+    order: 1;
+  }
+  .metrics .chart-overlay {
+    position: static;
+    order: 2;
+    margin-top: 6px;
+  }
+  .metrics .chart-legend-item {
+    padding: 2px 6px;
+    font-size: 0.56rem;
+  }
+  .metrics .chart-legend-swatch {
+    width: 10px;
+    height: 3px;
+  }
+}
