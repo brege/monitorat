@@ -246,7 +246,8 @@ class SpeedtestWidget {
         ? this.entries
         : this.entries.filter((entry) => entry._source === this.selectedNode);
 
-    this.tableManager.setEntries(filtered);
+    const limit = this.config.table.max;
+    this.tableManager.setEntries(filtered.slice(0, limit));
     this.features.chart.update();
   }
 }

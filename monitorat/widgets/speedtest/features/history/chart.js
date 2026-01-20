@@ -1,6 +1,6 @@
-class SpeedtestChart {
+class SpeedtestChart extends window.monitorShared.HistoryChartBase {
   constructor(widget) {
-    this.widget = widget;
+    super(widget);
     this.lineStyles = [[], [5, 5], [2, 2], [10, 5, 2, 5]];
     this.legendState = null;
   }
@@ -14,12 +14,7 @@ class SpeedtestChart {
         : {};
     const scales = ChartManager.buildScalesFromSchema(axes);
 
-    this.widget.chartManager = new ChartManager({
-      canvasElement: this.widget.getElement('chart'),
-      containerElement: this.widget.getElement('chart-container'),
-      height: this.widget.config.chart.height,
-      dataUrl: null,
-      dataParams: null,
+    super.initializeManager({
       chartOptions: {
         scales,
         plugins: {
@@ -47,7 +42,7 @@ class SpeedtestChart {
       searchParameters.set('period', this.widget.selectedPeriod);
       searchParameters.set('ts', Date.now());
       const response = await fetch(
-        `${this.widget.getApiBase()}/chart?${searchParameters.toString()}`,
+        `${this.widget.getEndpoint('chart')}?${searchParameters.toString()}`,
         { cache: 'no-store' },
       );
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -68,7 +63,7 @@ class SpeedtestChart {
             searchParameters.set('period', this.widget.selectedPeriod);
             searchParameters.set('ts', Date.now());
             const response = await fetch(
-              `api/speedtest-${source}/chart?${searchParameters.toString()}`,
+              `${this.widget.getEndpoint('chart', source)}?${searchParameters.toString()}`,
               { cache: 'no-store' },
             );
             if (!response.ok) {
@@ -96,18 +91,34 @@ class SpeedtestChart {
       this.widget.chartEntries.sort(
         (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
       );
-      this.updateMerged(sources);
+      this.update();
     } catch (error) {
       console.error('Speedtest merged chart load failed:', error);
     }
   }
 
-  getMetricsToUse() {
+  getEntries() {
+    return this.widget.chartEntries || [];
+  }
+
+  getSources() {
+    return this.widget.config.federation?.nodes || null;
+  }
+
+  shouldUseMergedMode(sources) {
+    return Array.isArray(sources) && sources.length > 0;
+  }
+
+  getMetricsToChart() {
     return this.widget.selectedMetric === 'all'
       ? this.widget.metricFields
       : this.widget.metricFields.filter(
           (metric) => metric.field === this.widget.selectedMetric,
         );
+  }
+
+  getMetricValue(entry, metric) {
+    return this.formatMetricValue(entry[metric.field], metric);
   }
 
   formatMetricValue(raw, metric) {
@@ -123,124 +134,47 @@ class SpeedtestChart {
     return numeric;
   }
 
-  update() {
-    if (!this.widget.chartManager?.hasChart()) return;
+  buildDatasets({
+    metric,
+    values,
+    label,
+    curve,
+    isMerged,
+    source,
+    sourceIndex,
+  }) {
+    const color = metric.color;
+    const backgroundColor = curve.fill ? `${color}33` : undefined;
 
-    const ChartManager = window.monitorShared.ChartManager;
-    const mergeSources = this.widget.config.federation?.nodes;
-    if (mergeSources && Array.isArray(mergeSources)) {
-      const filteredSources = ChartManager.filterSources(
-        mergeSources,
-        this.widget.selectedNode,
-      );
-      this.updateMerged(filteredSources);
-      return;
-    }
-
-    const DataFormatter = window.monitorShared?.DataFormatter;
-    const filteredEntries = ChartManager.filterEntries(
-      this.widget.chartEntries,
-      this.widget.selectedNode,
-    );
-    const labels = filteredEntries.map((entry) =>
-      DataFormatter.formatTime(entry.timestamp),
-    );
-    const datasets = [];
-    const metricsToUse = this.getMetricsToUse();
-    const curve = this.widget.config?.chart?.curve || {
-      fill: false,
-      interpolation: 0.3,
-      ghosts: false,
+    return {
+      label,
+      data: values,
+      borderColor: color,
+      backgroundColor,
+      borderWidth: 2,
+      pointRadius: 0,
+      borderDash: isMerged
+        ? this.lineStyles[sourceIndex % this.lineStyles.length]
+        : undefined,
+      tension: curve.interpolation,
+      yAxisID: metric.yAxisID,
+      spanGaps: isMerged,
+      _metricField: metric.field,
+      _source: source || null,
     };
-
-    for (const metric of metricsToUse) {
-      const values = filteredEntries.map((entry) =>
-        this.formatMetricValue(entry[metric.field], metric),
-      );
-
-      const color = metric.color;
-      const backgroundColor = curve.fill ? `${color}33` : undefined;
-
-      datasets.push({
-        label: metric.label || metric.field,
-        data: values,
-        borderColor: color,
-        backgroundColor,
-        borderWidth: 2,
-        pointRadius: 0,
-        tension: curve.interpolation,
-        yAxisID: metric.yAxisID,
-        _metricField: metric.field,
-        _source: null,
-      });
-    }
-
-    this.widget.chartManager.updateChart({ labels, datasets });
-    ChartManager.updateAxisBounds(this.widget.chartManager.chart);
-    this.renderLegends(metricsToUse, []);
   }
 
-  updateMerged(sources) {
-    if (!this.widget.chartManager?.hasChart()) return;
-
-    const ChartManager = window.monitorShared.ChartManager;
-    const DataFormatter = window.monitorShared?.DataFormatter;
-    const filteredEntries = ChartManager.filterEntries(
-      this.widget.chartEntries,
-      this.widget.selectedNode,
-    );
-
-    const { entriesBySource, sortedTimestamps, labels } =
-      ChartManager.buildMergedTimeline(filteredEntries, (ts) =>
-        DataFormatter.formatTime(ts),
-      );
-
-    const metricsToUse = this.getMetricsToUse();
-    const datasets = [];
-    const curve = this.widget.config?.chart?.curve || {
-      fill: false,
-      interpolation: 0.3,
-      ghosts: false,
-    };
-
-    sources.forEach((source, sourceIndex) => {
-      const sourceEntries = entriesBySource[source] || [];
-      const timestampMap = {};
-      for (const entry of sourceEntries) {
-        timestampMap[entry.timestamp] = entry;
-      }
-
-      for (const metric of metricsToUse) {
-        const values = sortedTimestamps.map((timestamp) => {
-          const entry = timestampMap[timestamp];
-          if (!entry) return null;
-          return this.formatMetricValue(entry[metric.field], metric);
-        });
-
-        const label = `${source}: ${metric.label || metric.field}`;
-        const color = metric.color;
-        const backgroundColor = curve.fill ? `${color}33` : undefined;
-
-        datasets.push({
-          label,
-          data: values,
-          borderColor: color,
-          backgroundColor,
-          borderWidth: 2,
-          pointRadius: 0,
-          borderDash: this.lineStyles[sourceIndex % this.lineStyles.length],
-          tension: curve.interpolation,
-          yAxisID: metric.yAxisID,
-          spanGaps: true,
-          _metricField: metric.field,
-          _source: source,
-        });
-      }
+  applyChartData(chartData) {
+    this.widget.chartManager.updateChart({
+      labels: chartData.labels,
+      datasets: chartData.datasets,
     });
+  }
 
-    this.widget.chartManager.updateChart({ labels, datasets });
+  afterUpdateChart(chartData) {
+    const ChartManager = window.monitorShared.ChartManager;
     ChartManager.updateAxisBounds(this.widget.chartManager.chart);
-    this.renderLegends(metricsToUse, sources);
+    this.renderLegends(chartData.metrics, chartData.sources);
   }
 
   updateView() {

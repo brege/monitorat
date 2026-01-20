@@ -96,5 +96,60 @@ const ChartLegend = {
   },
 };
 
+const LegendControls = {
+  getLegendElements(widget) {
+    const legendNames = ['chart-legend', 'metric-legend', 'node-legend'];
+    return legendNames.map((name) => widget.getElement(name)).filter(Boolean);
+  },
+
+  updateVisibility(widget) {
+    const chartContainer = widget.getElement('chart-container');
+    const overlay = chartContainer.querySelector('.chart-overlay');
+    const legends = LegendControls.getLegendElements(widget);
+    const hasLegendItems = legends.some(
+      (legend) => legend.childElementCount > 0,
+    );
+    const show =
+      widget.currentView === 'chart' && widget.legendVisible !== false;
+
+    legends.forEach((legend) => {
+      legend.style.display = show && legend.childElementCount ? '' : 'none';
+    });
+
+    chartContainer.classList.toggle('legend-hidden', !show);
+    overlay.style.display = show && hasLegendItems ? '' : 'none';
+
+    if (show && hasLegendItems) {
+      const ChartManager = window.monitorShared.ChartManager;
+      ChartManager.applyLegendDock(chartContainer);
+    }
+  },
+
+  setupToggle(widget) {
+    const toggle = widget.getElement('legend-toggle');
+    const chartContainer = widget.getElement('chart-container');
+    const overlay = chartContainer.querySelector('.chart-overlay');
+    if (!toggle || !chartContainer || !overlay) return;
+
+    widget.legendVisible = true;
+    const applyState = () => {
+      chartContainer.classList.toggle('legend-hidden', !widget.legendVisible);
+      toggle.classList.toggle('active', widget.legendVisible);
+      toggle.setAttribute(
+        'aria-pressed',
+        widget.legendVisible ? 'true' : 'false',
+      );
+      LegendControls.updateVisibility(widget);
+    };
+
+    applyState();
+    toggle.addEventListener('click', () => {
+      widget.legendVisible = !widget.legendVisible;
+      applyState();
+    });
+  },
+};
+
 window.monitorShared = window.monitorShared || {};
 window.monitorShared.ChartLegend = ChartLegend;
+window.monitorShared.LegendControls = LegendControls;

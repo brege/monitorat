@@ -597,5 +597,195 @@ class ChartManager {
   }
 }
 
+class HistoryChartBase {
+  constructor(widget) {
+    this.widget = widget;
+  }
+
+  initializeManager({ chartOptions = {}, dataUrl = null, dataParams = null }) {
+    const ChartManager = window.monitorShared?.ChartManager;
+    this.widget.chartManager = new ChartManager({
+      canvasElement: this.widget.getElement('chart'),
+      containerElement: this.widget.getElement('chart-container'),
+      height: this.widget.config.chart.height,
+      dataUrl,
+      dataParams,
+      chartOptions,
+    });
+  }
+
+  getEntries() {
+    return [];
+  }
+
+  getSources() {
+    return null;
+  }
+
+  getMetricsToChart() {
+    return [];
+  }
+
+  getCurveDefaults() {
+    return {
+      fill: false,
+      interpolation: 0.3,
+      ghosts: false,
+    };
+  }
+
+  getCurveConfig() {
+    return this.widget.config?.chart?.curve || this.getCurveDefaults();
+  }
+
+  getMetricValue(entry, metric) {
+    return entry?.[metric.field];
+  }
+
+  getDatasetLabel(metric, source) {
+    const baseLabel = metric.label || metric.field;
+    return source ? `${source}: ${baseLabel}` : baseLabel;
+  }
+
+  shouldUseMergedMode(sources, filteredSources) {
+    return Array.isArray(filteredSources) && filteredSources.length > 1;
+  }
+
+  buildDatasets() {
+    return [];
+  }
+
+  buildSingleChartData(entries, metrics) {
+    const DataFormatter = window.monitorShared.DataFormatter;
+    const labels = entries.map((row) =>
+      DataFormatter.formatTime(row.timestamp),
+    );
+    const datasets = [];
+    const allValues = [];
+    const curve = this.getCurveConfig();
+
+    metrics.forEach((metric) => {
+      const values = entries.map((entry) => this.getMetricValue(entry, metric));
+      allValues.push(...values.filter((value) => Number.isFinite(value)));
+      const label = this.getDatasetLabel(metric, null);
+      const nextDatasets = this.buildDatasets({
+        metric,
+        values,
+        label,
+        curve,
+        isMerged: false,
+        source: null,
+        sourceIndex: 0,
+      });
+      if (Array.isArray(nextDatasets)) {
+        datasets.push(...nextDatasets);
+      } else if (nextDatasets) {
+        datasets.push(nextDatasets);
+      }
+    });
+
+    return { labels, datasets, allValues, metrics, sources: [] };
+  }
+
+  buildMergedChartData(entries, metrics, sources) {
+    const ChartManager = window.monitorShared.ChartManager;
+    const DataFormatter = window.monitorShared.DataFormatter;
+    const { entriesBySource, sortedTimestamps, labels } =
+      ChartManager.buildMergedTimeline(entries, (ts) =>
+        DataFormatter.formatTime(ts),
+      );
+
+    const datasets = [];
+    const allValues = [];
+    const curve = this.getCurveConfig();
+
+    sources.forEach((source, sourceIndex) => {
+      const sourceEntries = entriesBySource[source] || [];
+      const timestampMap = {};
+      for (const entry of sourceEntries) {
+        timestampMap[entry.timestamp] = entry;
+      }
+
+      metrics.forEach((metric) => {
+        const values = sortedTimestamps.map((timestamp) => {
+          const entry = timestampMap[timestamp];
+          if (!entry) return null;
+          return this.getMetricValue(entry, metric);
+        });
+        allValues.push(...values.filter((value) => Number.isFinite(value)));
+
+        const label = this.getDatasetLabel(metric, source);
+        const nextDatasets = this.buildDatasets({
+          metric,
+          values,
+          label,
+          curve,
+          isMerged: true,
+          source,
+          sourceIndex,
+        });
+        if (Array.isArray(nextDatasets)) {
+          datasets.push(...nextDatasets);
+        } else if (nextDatasets) {
+          datasets.push(nextDatasets);
+        }
+      });
+    });
+
+    return { labels, datasets, allValues, metrics, sources };
+  }
+
+  buildChartData() {
+    const ChartManager = window.monitorShared.ChartManager;
+    const entries = this.getEntries() || [];
+    const metrics = this.getMetricsToChart() || [];
+    const sources = this.getSources();
+    const filteredEntries = ChartManager.filterEntries(
+      entries,
+      this.widget.selectedNode,
+    );
+
+    if (Array.isArray(sources) && sources.length > 0) {
+      const filteredSources = ChartManager.filterSources(
+        sources,
+        this.widget.selectedNode,
+      );
+      if (this.shouldUseMergedMode(sources, filteredSources)) {
+        return this.buildMergedChartData(
+          filteredEntries,
+          metrics,
+          filteredSources,
+        );
+      }
+    }
+
+    return this.buildSingleChartData(filteredEntries, metrics);
+  }
+
+  applyChartData(chartData) {
+    this.widget.chartManager.updateChart({
+      labels: chartData.labels,
+      datasets: chartData.datasets,
+    });
+  }
+
+  afterUpdateChart() {}
+
+  update() {
+    if (!this.widget.chartManager?.hasChart()) return;
+    const chartData = this.buildChartData();
+    if (!chartData.datasets.length) return;
+    this.applyChartData(chartData);
+    this.afterUpdateChart(chartData);
+  }
+
+  updateView() {
+    if (this.widget.chartManager?.hasChart()) {
+      this.update();
+    }
+  }
+}
+
 window.monitorShared = window.monitorShared || {};
 window.monitorShared.ChartManager = ChartManager;
+window.monitorShared.HistoryChartBase = HistoryChartBase;

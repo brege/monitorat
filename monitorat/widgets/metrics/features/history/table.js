@@ -1,10 +1,6 @@
-class MetricsTable {
+class MetricsTable extends window.monitorShared.HistoryTableBase {
   constructor(widget) {
-    this.widget = widget;
-  }
-
-  initializeManager() {
-    this.widget.tableManager = this.widget.createTableManager();
+    super(widget);
   }
 
   rebuildHeaders() {
@@ -17,128 +13,65 @@ class MetricsTable {
     );
   }
 
-  async loadHistory() {
-    const mergeSources = this.widget.widgetConfig.federation?.nodes;
-    if (mergeSources && Array.isArray(mergeSources)) {
-      await this.loadMergedHistory(mergeSources);
-    } else {
-      await this.loadSingleHistory();
+  getRequestParams() {
+    if (this.widget.selectedPeriod && this.widget.selectedPeriod !== 'all') {
+      return { period: this.widget.selectedPeriod };
     }
+    return {};
   }
 
-  async loadSingleHistory() {
-    this.widget.tableManager.setEntries([]);
-    this.widget.tableManager.setStatus('Loading metrics history…');
-
-    try {
-      const requestAddress = new URL(
-        `api/${this.widget.apiPrefix}/history`,
-        window.location,
-      );
-      if (this.widget.selectedPeriod && this.widget.selectedPeriod !== 'all') {
-        requestAddress.searchParams.set('period', this.widget.selectedPeriod);
-      }
-      requestAddress.searchParams.set('ts', Date.now());
-
-      const response = await fetch(requestAddress, { cache: 'no-store' });
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      const payload = await response.json();
-      const data = payload.data || [];
-      this.widget.sources = payload.sources || null;
-      this.widget.entries = data;
-      this.widget.transformedEntries = this.calculateTableDeltas(
-        this.widget.entries,
-      );
-
-      const tableLimit = Number.isFinite(this.widget.config.table?.max)
-        ? this.widget.config.table.max
-        : this.widget.defaults.table.max;
-      const tableEntries = this.widget.transformedEntries
-        .slice(-tableLimit)
-        .reverse();
-      this.widget.tableManager.setEntries(tableEntries);
-      this.widget.updateViewToggle(tableEntries.length > 0);
-
-      if (this.widget.chartManager?.hasChart()) this.widget.updateChart();
-    } catch (error) {
-      console.error('Metrics history API call failed:', error);
-      this.widget.tableManager.setStatus(
-        `Unable to load metrics history: ${error.message}`,
-      );
-    }
+  getSingleUrl() {
+    return this.widget.getEndpoint('history');
   }
 
-  async loadMergedHistory(sources) {
-    this.widget.tableManager.setEntries([]);
-    this.widget.tableManager.setStatus('Loading metrics history…');
+  getMergedUrl(source) {
+    return this.widget.getEndpoint('history', source);
+  }
 
-    try {
-      const results = await Promise.all(
-        sources.map(async (source) => {
-          try {
-            const requestAddress = new URL(
-              `api/metrics-${source}/history`,
-              window.location,
-            );
-            if (
-              this.widget.selectedPeriod &&
-              this.widget.selectedPeriod !== 'all'
-            ) {
-              requestAddress.searchParams.set(
-                'period',
-                this.widget.selectedPeriod,
-              );
-            }
-            requestAddress.searchParams.set('ts', Date.now());
+  parsePayload(payload) {
+    return Array.isArray(payload?.data) ? payload.data : [];
+  }
 
-            const response = await fetch(requestAddress, { cache: 'no-store' });
-            if (!response.ok) {
-              console.warn(
-                `Failed to fetch metrics from ${source}: HTTP ${response.status}`,
-              );
-              return [];
-            }
-            const payload = await response.json();
-            return (payload.data || []).map((row) => ({
-              ...row,
-              _source: source,
-            }));
-          } catch (error) {
-            console.warn(
-              `Failed to fetch metrics from ${source}:`,
-              error.message,
-            );
-            return [];
-          }
-        }),
-      );
+  getLoadingMessage() {
+    return 'Loading metrics history…';
+  }
 
-      const allData = results.flat();
-      allData.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  getErrorMessage(error) {
+    return `Unable to load metrics history: ${error.message}`;
+  }
 
-      this.widget.sources = sources;
-      this.widget.entries = allData;
-      this.widget.transformedEntries = this.calculateTableDeltas(
-        this.widget.entries,
-      );
+  logSingleError(error) {
+    console.error('Metrics history API call failed:', error);
+  }
 
-      const tableLimit = Number.isFinite(this.widget.config.table?.max)
-        ? this.widget.config.table.max
-        : this.widget.defaults.table.max;
-      const tableEntries = this.widget.transformedEntries
-        .slice(-tableLimit)
-        .reverse();
-      this.widget.tableManager.setEntries(tableEntries);
-      this.widget.updateViewToggle(tableEntries.length > 0);
+  logMergedError(error) {
+    console.error('Metrics merged history API call failed:', error);
+  }
 
-      if (this.widget.chartManager?.hasChart()) this.widget.updateChart();
-    } catch (error) {
-      console.error('Metrics merged history API call failed:', error);
-      this.widget.tableManager.setStatus(
-        `Unable to load metrics history: ${error.message}`,
-      );
+  logSourceError(source, errorMessage) {
+    console.warn(`Failed to fetch metrics from ${source}: ${errorMessage}`);
+  }
+
+  sortMergedEntries(entries) {
+    return entries.sort(
+      (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
+    );
+  }
+
+  selectTableEntries(entries) {
+    const tableLimit = Number.isFinite(this.widget.config.table?.max)
+      ? this.widget.config.table.max
+      : this.widget.defaults.table.max;
+    return entries.slice(-tableLimit).reverse();
+  }
+
+  transformEntries(entries) {
+    return this.calculateTableDeltas(entries);
+  }
+
+  async afterEntriesApplied() {
+    if (this.widget.chartManager?.hasChart()) {
+      this.widget.updateChart();
     }
   }
 

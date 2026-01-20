@@ -1,42 +1,93 @@
-class MetricsChart {
+class MetricsChart extends window.monitorShared.HistoryChartBase {
   constructor(widget) {
-    this.widget = widget;
+    super(widget);
   }
 
   initializeManager() {
-    const ChartManager = window.monitorShared?.ChartManager;
-
-    this.widget.chartManager = new ChartManager({
-      canvasElement: this.widget.getElement('chart'),
-      containerElement: this.widget.getElement('chart-container'),
-      height: this.widget.config.chart.height,
-      dataUrl: null,
-      chartOptions: {},
-    });
+    super.initializeManager({ chartOptions: {} });
   }
 
-  update() {
-    if (
-      !this.widget.chartManager?.chart ||
-      !this.widget.transformedEntries.length
-    )
-      return;
+  getEntries() {
+    return this.widget.transformedEntries || [];
+  }
+
+  getSources() {
+    return this.widget.sources || null;
+  }
+
+  getMetricsToChart() {
+    const selectedItem = this.widget.selectedMetric;
+    const group = this.widget.schema.computed.find(
+      (g) => g.group === selectedItem,
+    );
+    const metricMatch = this.widget.schema.metrics.find(
+      (m) => m.field === selectedItem,
+    );
+    return group ? group.fields : metricMatch ? [metricMatch] : [];
+  }
+
+  getCurveDefaults() {
+    return {
+      fill: true,
+      interpolation: 0.3,
+      ghosts: true,
+    };
+  }
+
+  getMetricValue(entry, metric) {
+    return parseFloat(entry[metric.field]) || 0;
+  }
+
+  buildDatasets({ metric, values, label, curve, isMerged, sourceIndex }) {
+    const ChartManager = window.monitorShared.ChartManager;
+
+    if (isMerged) {
+      const sourceColors = ChartManager.getSeriesColors();
+      const color = sourceColors[sourceIndex % sourceColors.length];
+      return {
+        label,
+        data: values,
+        borderColor: color,
+        backgroundColor: `${color}33`,
+        borderWidth: 2,
+        pointRadius: 0,
+        tension: 0.3,
+        spanGaps: true,
+        _seriesLabel: label,
+      };
+    }
+
+    if (curve.ghosts) {
+      return ChartManager.buildGhostedDatasets({
+        label: metric.label,
+        color: metric.color,
+        rawValues: values,
+      }).map((dataset) => ({
+        ...dataset,
+        tension: curve.interpolation,
+        _seriesLabel: metric.label,
+      }));
+    }
+
+    const backgroundColor = curve.fill ? `${metric.color}33` : undefined;
+    return {
+      label: metric.label,
+      data: values,
+      borderColor: metric.color,
+      backgroundColor,
+      borderWidth: 2,
+      pointRadius: 0,
+      tension: curve.interpolation,
+      _seriesLabel: metric.label,
+    };
+  }
+
+  applyChartData(chartData) {
+    if (!chartData.allValues.length) return;
 
     const ChartManager = window.monitorShared.ChartManager;
-    const DataFormatter = window.monitorShared.DataFormatter;
-    const filteredEntries = ChartManager.filterEntries(
-      this.widget.transformedEntries,
-      this.widget.selectedNode,
-    );
-    const chartData = this.createChartData(filteredEntries, DataFormatter);
-
-    const filteredValues = chartData.allValues.filter((value) =>
-      Number.isFinite(value),
-    );
-    if (!filteredValues.length) return;
-
-    const min = Math.min(...filteredValues);
-    const max = Math.max(...filteredValues);
+    const min = Math.min(...chartData.allValues);
+    const max = Math.max(...chartData.allValues);
     const padding = (max - min) * 0.1;
 
     const yAxisLabel =
@@ -72,128 +123,6 @@ class MetricsChart {
     if (this.widget.chartManager?.hasChart()) {
       this.update();
     }
-  }
-
-  getMetricsToChart() {
-    const selectedItem = this.widget.selectedMetric;
-    const group = this.widget.schema.computed.find(
-      (g) => g.group === selectedItem,
-    );
-    const metricMatch = this.widget.schema.metrics.find(
-      (m) => m.field === selectedItem,
-    );
-    return group ? group.fields : metricMatch ? [metricMatch] : [];
-  }
-
-  createChartData(entries, dataFormatter) {
-    const ChartManager = window.monitorShared.ChartManager;
-    const metricsToChart = this.getMetricsToChart();
-    const filteredSources = ChartManager.filterSources(
-      this.widget.sources,
-      this.widget.selectedNode,
-    );
-
-    if (filteredSources && filteredSources.length > 1) {
-      return this.createMergedChartData(
-        entries,
-        metricsToChart,
-        dataFormatter,
-        filteredSources,
-      );
-    }
-
-    const chronological = entries.slice();
-    const labels = chronological.map((row) =>
-      dataFormatter.formatTime(row.timestamp),
-    );
-    const datasets = [];
-    const allValues = [];
-    const curve = this.widget.config?.chart?.curve || {
-      fill: true,
-      interpolation: 0.3,
-      ghosts: true,
-    };
-
-    for (const metric of metricsToChart) {
-      const values = chronological.map(
-        (row) => parseFloat(row[metric.field]) || 0,
-      );
-
-      if (curve.ghosts) {
-        const ghosted = ChartManager.buildGhostedDatasets({
-          label: metric.label,
-          color: metric.color,
-          rawValues: values,
-        }).map((dataset) => ({
-          ...dataset,
-          tension: curve.interpolation,
-          _seriesLabel: metric.label,
-        }));
-        datasets.push(...ghosted);
-      } else {
-        const backgroundColor = curve.fill ? `${metric.color}33` : undefined;
-        datasets.push({
-          label: metric.label,
-          data: values,
-          borderColor: metric.color,
-          backgroundColor,
-          borderWidth: 2,
-          pointRadius: 0,
-          tension: curve.interpolation,
-          _seriesLabel: metric.label,
-        });
-      }
-
-      allValues.push(...values);
-    }
-
-    return { labels, datasets, allValues };
-  }
-
-  createMergedChartData(entries, metricsToChart, dataFormatter, sources) {
-    const ChartManager = window.monitorShared.ChartManager;
-    const sourceColors = ChartManager.getSeriesColors();
-    const { entriesBySource, sortedTimestamps, labels } =
-      ChartManager.buildMergedTimeline(entries, (ts) =>
-        dataFormatter.formatTime(ts),
-      );
-
-    const datasets = [];
-    const allValues = [];
-
-    sources.forEach((source, sourceIndex) => {
-      const sourceRows = entriesBySource[source] || [];
-      const timestampMap = {};
-      for (const row of sourceRows) {
-        timestampMap[row.timestamp] = row;
-      }
-
-      const color = sourceColors[sourceIndex % sourceColors.length];
-
-      for (const metric of metricsToChart) {
-        const values = sortedTimestamps.map((timestamp) => {
-          const row = timestampMap[timestamp];
-          return row ? parseFloat(row[metric.field]) || 0 : null;
-        });
-
-        const label = `${source}: ${metric.label}`;
-
-        datasets.push({
-          label,
-          data: values,
-          borderColor: color,
-          backgroundColor: `${color}33`,
-          borderWidth: 2,
-          pointRadius: 0,
-          tension: 0.3,
-          spanGaps: true,
-          _seriesLabel: label,
-        });
-        allValues.push(...values.filter((value) => value !== null));
-      }
-    });
-
-    return { labels, datasets, allValues };
   }
 
   renderLegend(datasets) {

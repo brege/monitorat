@@ -1,10 +1,6 @@
-class SpeedtestTable {
+class SpeedtestTable extends window.monitorShared.HistoryTableBase {
   constructor(widget) {
-    this.widget = widget;
-  }
-
-  initializeManager() {
-    this.widget.tableManager = this.widget.createTableManager();
+    super(widget);
   }
 
   rebuildHeaders() {
@@ -36,94 +32,62 @@ class SpeedtestTable {
     }
   }
 
-  async loadHistory() {
-    const mergeSources = this.widget.config.federation?.nodes;
-    if (mergeSources && Array.isArray(mergeSources)) {
-      await this.loadMergedHistory(mergeSources);
-    } else {
-      await this.loadSingleHistory();
-    }
+  getRequestParams() {
+    return { limit: this.getTableLimit() };
   }
 
-  async loadSingleHistory() {
-    this.widget.tableManager.setEntries([]);
-    this.widget.tableManager.setStatus('Loading speedtest history…');
-
-    try {
-      const searchParameters = new URLSearchParams();
-      searchParameters.set('limit', this.widget.config.table.max);
-      searchParameters.set('ts', Date.now());
-
-      const response = await fetch(
-        `${this.widget.getApiBase()}/history?${searchParameters.toString()}`,
-        { cache: 'no-store' },
-      );
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const payload = await response.json();
-      this.widget.entries = payload.entries || [];
-      this.widget.sources = null;
-      this.widget.tableManager.setEntries(this.widget.entries);
-      this.widget.updateViewToggle(this.widget.entries.length > 0);
-      await this.widget.features.chart.loadChartData();
-    } catch (error) {
-      console.error('Speedtest history failed:', error);
-      this.widget.tableManager.setStatus(
-        `Unable to load speedtests: ${error.message}`,
-      );
-    }
+  getTableLimit() {
+    return this.widget.config.table.max;
   }
 
-  async loadMergedHistory(sources) {
-    this.widget.tableManager.setEntries([]);
-    this.widget.tableManager.setStatus('Loading speedtest history…');
+  getSingleUrl() {
+    return this.widget.getEndpoint('history');
+  }
 
-    try {
-      const results = await Promise.all(
-        sources.map(async (source) => {
-          try {
-            const searchParameters = new URLSearchParams();
-            searchParameters.set('limit', this.widget.config.table.max);
-            searchParameters.set('ts', Date.now());
+  getMergedUrl(source) {
+    return this.widget.getEndpoint('history', source);
+  }
 
-            const response = await fetch(
-              `api/speedtest-${source}/history?${searchParameters.toString()}`,
-              { cache: 'no-store' },
-            );
-            if (!response.ok) {
-              console.warn(
-                `Failed to fetch speedtest from ${source}: HTTP ${response.status}`,
-              );
-              return [];
-            }
-            const payload = await response.json();
-            return (payload.entries || []).map((entry) => ({
-              ...entry,
-              _source: source,
-            }));
-          } catch (error) {
-            console.warn(
-              `Failed to fetch speedtest from ${source}:`,
-              error.message,
-            );
-            return [];
-          }
-        }),
-      );
+  getSourcesFromPayload() {
+    return null;
+  }
 
-      const allEntries = results.flat();
-      allEntries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  parsePayload(payload) {
+    return Array.isArray(payload?.entries) ? payload.entries : [];
+  }
 
-      this.widget.entries = allEntries.slice(0, this.widget.config.table.max);
-      this.widget.sources = sources;
-      this.widget.tableManager.setEntries(this.widget.entries);
-      this.widget.updateViewToggle(this.widget.entries.length > 0);
-      await this.widget.features.chart.loadChartData();
-    } catch (error) {
-      console.error('Speedtest merged history failed:', error);
-      this.widget.tableManager.setStatus(
-        `Unable to load speedtests: ${error.message}`,
-      );
-    }
+  getLoadingMessage() {
+    return 'Loading speedtest history…';
+  }
+
+  getErrorMessage(error) {
+    return `Unable to load speedtests: ${error.message}`;
+  }
+
+  logSingleError(error) {
+    console.error('Speedtest history failed:', error);
+  }
+
+  logMergedError(error) {
+    console.error('Speedtest merged history failed:', error);
+  }
+
+  logSourceError(source, errorMessage) {
+    console.warn(`Failed to fetch speedtest from ${source}: ${errorMessage}`);
+  }
+
+  sortMergedEntries(entries) {
+    return entries.sort(
+      (a, b) => new Date(b.timestamp) - new Date(a.timestamp),
+    );
+  }
+
+  selectTableEntries(entries) {
+    return entries.slice(0, this.getTableLimit());
+  }
+
+  async afterEntriesApplied() {
+    await this.widget.features.chart.loadChartData();
   }
 }
 

@@ -271,9 +271,74 @@ const ChartTableWidgetMethods = {
     return this.getApiBase().split('/').pop();
   },
 
-  getLegendElements() {
-    const legendNames = ['chart-legend', 'metric-legend', 'node-legend'];
-    return legendNames.map((name) => this.getElement(name)).filter(Boolean);
+  getSchemaWidgetName() {
+    return this.schema?.widget || this.getApiBase().split('/').pop();
+  },
+
+  normalizeEndpoint(endpoint) {
+    return endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+  },
+
+  getSchemaEndpoint(name) {
+    const endpoint = this.schema?.endpoints?.[name];
+    return typeof endpoint === 'string' ? endpoint : null;
+  },
+
+  getFederatedEndpoint(endpoint, source) {
+    if (!source) return endpoint;
+    const widgetName = this.getSchemaWidgetName();
+    const normalized = this.normalizeEndpoint(endpoint);
+    const apiPrefix = `api/${widgetName}`;
+    if (normalized.startsWith(apiPrefix)) {
+      return normalized.replace(apiPrefix, `api/${widgetName}-${source}`);
+    }
+    const widgetPrefix = `${widgetName}/`;
+    if (normalized.startsWith(widgetPrefix)) {
+      return normalized.replace(widgetPrefix, `${widgetName}-${source}/`);
+    }
+    if (normalized === widgetName) {
+      return `${widgetName}-${source}`;
+    }
+    const marker = `/${widgetName}/`;
+    if (endpoint.includes(marker)) {
+      return endpoint.replace(marker, `/${widgetName}-${source}/`);
+    }
+    const tail = `/${widgetName}`;
+    if (endpoint.endsWith(tail)) {
+      return endpoint.replace(tail, `/${widgetName}-${source}`);
+    }
+    return endpoint;
+  },
+
+  rebaseSchemaEndpoint(endpoint) {
+    const normalized = this.normalizeEndpoint(endpoint);
+    const widgetName = this.getSchemaWidgetName();
+    const schemaPrefix = `api/${widgetName}`;
+    if (normalized.startsWith(schemaPrefix)) {
+      return `${this.getApiBase()}${normalized.slice(schemaPrefix.length)}`;
+    }
+    return normalized;
+  },
+
+  getEndpoint(name, source = null) {
+    const schemaEndpoint = this.getSchemaEndpoint(name);
+    if (schemaEndpoint) {
+      if (source) {
+        const normalizedSchema = this.normalizeEndpoint(schemaEndpoint);
+        const federated = this.getFederatedEndpoint(schemaEndpoint, source);
+        const normalizedFederated = this.normalizeEndpoint(federated);
+        if (normalizedFederated === normalizedSchema) {
+          return `api/${this.getSchemaWidgetName()}-${source}/${name}`;
+        }
+        return normalizedFederated;
+      }
+      return this.rebaseSchemaEndpoint(schemaEndpoint);
+    }
+    if (name === 'history') return `${this.getApiBase()}/history`;
+    if (name === 'chart') return `${this.getApiBase()}/chart`;
+    if (name === 'csv') return `${this.getApiBase()}/csv`;
+    if (name === 'schema') return `${this.getApiBase()}/schema`;
+    return this.getApiBase();
   },
 
   updateControlStates() {
@@ -294,26 +359,8 @@ const ChartTableWidgetMethods = {
   },
 
   updateLegendVisibility() {
-    const chartContainer = this.getElement('chart-container');
-    const overlay = chartContainer.querySelector('.chart-overlay');
-    const legends = this.getLegendElements();
-    const hasLegendItems = legends.some(
-      (legend) => legend.childElementCount > 0,
-    );
-    const show = this.currentView === 'chart' && this.legendVisible !== false;
-
-    legends.forEach((legend) => {
-      legend.style.display = show && legend.childElementCount ? '' : 'none';
-    });
-
-    chartContainer.classList.toggle('legend-hidden', !show);
-
-    overlay.style.display = show && hasLegendItems ? '' : 'none';
-
-    if (show && hasLegendItems) {
-      const ChartManager = window.monitorShared.ChartManager;
-      ChartManager.applyLegendDock(chartContainer);
-    }
+    const LegendControls = window.monitorShared.LegendControls;
+    LegendControls.updateVisibility(this);
   },
 
   setupNodeSelect() {
@@ -396,27 +443,8 @@ const ChartTableWidgetMethods = {
   },
 
   setupLegendToggle() {
-    const toggle = this.getElement('legend-toggle');
-    const chartContainer = this.getElement('chart-container');
-    const overlay = chartContainer?.querySelector('.chart-overlay');
-    if (!toggle || !chartContainer || !overlay) return;
-
-    this.legendVisible = true;
-    const applyState = () => {
-      chartContainer.classList.toggle('legend-hidden', !this.legendVisible);
-      toggle.classList.toggle('active', this.legendVisible);
-      toggle.setAttribute(
-        'aria-pressed',
-        this.legendVisible ? 'true' : 'false',
-      );
-      this.updateLegendVisibility();
-    };
-
-    applyState();
-    toggle.addEventListener('click', () => {
-      this.legendVisible = !this.legendVisible;
-      applyState();
-    });
+    const LegendControls = window.monitorShared.LegendControls;
+    LegendControls.setupToggle(this);
   },
 
   setView(view) {
