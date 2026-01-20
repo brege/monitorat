@@ -43,8 +43,20 @@ def reset_editor_images():
     shutil.copy2(base_images / "favicon.svg", img_dir / "favicon.svg")
 
 
+def reset_editor_snippets():
+    snippets_dir = DEMO_DIR / "snippets"
+    if snippets_dir.exists():
+        shutil.rmtree(snippets_dir)
+    snippets_dir.mkdir(parents=True, exist_ok=True)
+
+    source_dir = DEMO_DIR.parent / "simple" / "snippets"
+    shutil.copytree(source_dir, snippets_dir, dirs_exist_ok=True)
+    print(f"Copied {source_dir} → {snippets_dir}")
+
+
 def main():
     reset_editor_images()
+    reset_editor_snippets()
     copy_snapshot_data()
     generate_dummy_doc()
 

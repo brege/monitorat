@@ -3,11 +3,13 @@ demo: true
 site:
   name: '@editor'
   title: monitor@editor
+  editing: true
+
 includes:
-  - ../simple/snippets/wiki.yaml
-  - ../simple/snippets/reminders.yaml
-  - ../simple/snippets/services.yaml
-  - ../simple/snippets/footer.yaml
+  - snippets/wiki.yaml
+  - snippets/reminders.yaml
+  - snippets/services.yaml
+  - snippets/footer.yaml
 paths:
   data: data/
   img: img/
@@ -47,6 +49,10 @@ widgets:
     section: reminders
   
   services:
+    section: services
+    name: null
+    collapsible: true
+    hidden: false
   
   dummy:
     type: wiki
