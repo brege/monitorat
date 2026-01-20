@@ -319,7 +319,7 @@ async function showMenuModal() {
         <span class="menu-modal-label">Reload Page</span>
       </button>
       <button type="button" class="menu-modal-control" id="menu-privacy-toggle">
-        <span class="menu-modal-icon">${privacyState.masked ? MENU_ICONS.eyeOff : MENU_ICONS.eyeOpen}</span>
+        <span class="menu-modal-icon">${privacyState.masked ? MENU_ICONS.eyeOpen : MENU_ICONS.eyeOff}</span>
         <span class="menu-modal-label">${privacyState.masked ? 'Show Original' : 'Privacy Mask'}</span>
       </button>
     </div>
