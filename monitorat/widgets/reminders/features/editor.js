@@ -1,4 +1,3 @@
-/* global alert */
 const RemindersEditor = (() => {
   const DEFAULT_EXPIRY_DAYS = 30;
 
@@ -84,14 +83,6 @@ const RemindersEditor = (() => {
     return form;
   }
 
-  function setReminderFormState(form, state) {
-    window.FormFields.setFormState(form, state, {});
-  }
-
-  function getReminderFormState(form) {
-    return window.FormFields.getFormState(form, {});
-  }
-
   function applyEnabledState(form, enabled) {
     const fieldNames = [
       'name',
@@ -124,40 +115,6 @@ const RemindersEditor = (() => {
       onDelete,
     } = options;
 
-    if (!window.Editor) {
-      throw new Error('Editor modal is unavailable');
-    }
-
-    let handleSave = async () => {};
-    let previewDataProvider = () => null;
-
-    await window.Editor.open({
-      widget: editorKey,
-      file: path,
-      content: '',
-      initialMode: 'edit',
-      title: 'Reminder Editor',
-      labels: { edit: 'Edit', preview: 'Preview' },
-      previewRenderer: (value, previewElement) =>
-        previewRenderer(value, previewElement),
-      previewDataProvider: () => previewDataProvider(),
-      useForm: true,
-      onSave: async () => handleSave(),
-      onDelete,
-    });
-
-    const modalContent = document.querySelector('.editor-modal-content');
-    if (!modalContent) {
-      return;
-    }
-
-    const editPane =
-      modalContent.querySelector('.editor-form-pane') ||
-      modalContent.querySelector('.editor-edit-pane');
-    if (!editPane) {
-      return;
-    }
-
     const reminder = item || {};
     const initialState = {
       id: reminderId || 'new-reminder',
@@ -173,69 +130,92 @@ const RemindersEditor = (() => {
       enabled: reminder.disabled !== true,
     };
 
-    const form = buildReminderEditorForm(Boolean(reminderId));
-    setReminderFormState(form, initialState);
-    const scrollContainer = document.createElement('div');
-    scrollContainer.className = 'form-scroll';
-    scrollContainer.appendChild(form);
-    editPane.appendChild(scrollContainer);
+    const reminderSchema = {
+      title: 'Reminder Editor',
+      labels: { edit: 'Edit', preview: 'Preview' },
+      buildForm: ({ isEditing }) => buildReminderEditorForm(isEditing),
+      buildInitialState: ({ item: initialItem, itemKey }) => ({
+        id: itemKey || 'new-reminder',
+        name: initialItem.name || itemKey || '',
+        url: initialItem.url || '',
+        icon: initialItem.icon || '',
+        expiry_days:
+          initialItem.expiry_days !== undefined
+            ? initialItem.expiry_days
+            : DEFAULT_EXPIRY_DAYS,
+        expires_on: initialItem.expires_on || '',
+        reason: initialItem.reason || '',
+        enabled: initialItem.disabled !== true,
+      }),
+      buildPayload: (state) => buildReminderPayload(state, { strict: true }),
+      iconField: {
+        triggerSelector: '.form-icon-trigger',
+        previewSelector: '.form-icon-preview',
+        inputSelector: '[name="icon"]',
+        fileInputSelector: '.form-file-input',
+        infoSelector: '.form-icon-info',
+        apiEndpoint: 'api/reminders/icon',
+        imgPrefix: 'img/',
+      },
+    };
 
-    window.FormFields.setupIconField({
-      form,
-      triggerSelector: '.form-icon-trigger',
-      previewSelector: '.form-icon-preview',
-      inputSelector: '[name="icon"]',
-      fileInputSelector: '.form-file-input',
-      infoSelector: '.form-icon-info',
-      apiEndpoint: 'api/reminders/icon',
-      imgPrefix: 'img/',
+    const renderer =
+      typeof previewRenderer === 'function'
+        ? (value, previewElement) => previewRenderer(value, previewElement)
+        : null;
+
+    return window.monitorShared.ItemEditor.open({
+      editorKey,
+      itemKey: reminderId,
+      item: reminder,
+      path,
       imgRoot,
-      onUpdate: () => {},
-    });
-
-    const expiresInput = form.querySelector('[name="expires_on"]');
-    const expiryInput = form.querySelector('[name="expiry_days"]');
-    if (expiresInput && expiryInput) {
-      expiresInput.addEventListener('change', () => {
-        if (!expiresInput.value) {
-          return;
+      schema: reminderSchema,
+      previewRenderer: renderer,
+      onFormReady: (form, helpers) => {
+        const expiresInput = form.querySelector('[name="expires_on"]');
+        const expiryInput = form.querySelector('[name="expiry_days"]');
+        if (expiresInput && expiryInput) {
+          expiresInput.addEventListener('change', () => {
+            if (!expiresInput.value) {
+              return;
+            }
+            try {
+              const computedDays = window.FormFields.calculateDaysUntil(
+                expiresInput.value,
+              );
+              expiryInput.value = computedDays > 0 ? computedDays : '';
+            } catch (error) {
+              expiryInput.value = '';
+            }
+          });
         }
-        try {
-          const computedDays = window.FormFields.calculateDaysUntil(
-            expiresInput.value,
-          );
-          expiryInput.value = computedDays > 0 ? computedDays : '';
-        } catch (error) {
-          expiryInput.value = '';
+
+        const enabledInput = form.querySelector('[name="enabled"]');
+        if (enabledInput) {
+          enabledInput.addEventListener('change', () => {
+            applyEnabledState(form, enabledInput.checked);
+          });
         }
-      });
-    }
 
-    const enabledInput = form.querySelector('[name="enabled"]');
-    if (enabledInput) {
-      enabledInput.addEventListener('change', () => {
-        applyEnabledState(form, enabledInput.checked);
-      });
-    }
+        const currentState = helpers.getState();
+        applyEnabledState(form, currentState.enabled);
 
-    previewDataProvider = () => {
-      const state = getReminderFormState(form);
-      try {
-        return {
-          id: state.id,
-          item: buildReminderPayload(state, { strict: false }),
+        return () => {
+          const state = helpers.getState();
+          try {
+            return {
+              id: state.id,
+              item: buildReminderPayload(state, { strict: false }),
+            };
+          } catch (error) {
+            return null;
+          }
         };
-      } catch (error) {
-        return null;
-      }
-    };
-    applyEnabledState(form, initialState.enabled);
-
-    handleSave = async () => {
-      const state = getReminderFormState(form);
-      const payload = buildReminderPayload(state, { strict: true });
-      await onSave({ id: state.id, item: payload });
-    };
+      },
+      onSave,
+      onDelete,
+    });
   }
 
   return { open };
