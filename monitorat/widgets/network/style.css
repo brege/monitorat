@@ -119,18 +119,6 @@
   align-items: center;
   gap: 12px;
 }
-.network-container .alerts-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 4px;
-}
-.network-container .alerts-actions > * {
-  flex-shrink: 0;
-}
 .network-container .alerts-actions .log-download {
   font-size: 0.85rem;
   color: var(--accent);
@@ -139,12 +127,6 @@
 }
 .network-container .alerts-actions .log-download:hover {
   text-decoration: underline;
-}
-.network-container .outages-controls {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: nowrap;
 }
 .network-container .alert {
   --alert-bg: var(--alert-bg-default);

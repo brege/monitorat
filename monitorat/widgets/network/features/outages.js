@@ -71,15 +71,7 @@ class NetworkOutages {
       elements.alertList?.parentElement?.querySelector('.alerts-actions');
     if (!actionsContainer) return;
 
-    let controlsContainer = actionsContainer.querySelector('.outages-controls');
-    if (!controlsContainer) {
-      controlsContainer = document.createElement('div');
-      controlsContainer.className = 'outages-controls';
-      actionsContainer.insertBefore(
-        controlsContainer,
-        actionsContainer.firstChild,
-      );
-    }
+    const controlsContainer = actionsContainer;
 
     if (!this.elements.typeFilter) {
       const typeSelect = document.createElement('select');
@@ -96,7 +88,7 @@ class NetworkOutages {
         this.render();
       });
       this.elements.typeFilter = typeSelect;
-      controlsContainer.appendChild(typeSelect);
+      controlsContainer.insertBefore(typeSelect, controlsContainer.firstChild);
     }
 
     if (isMultiSource && !this.elements.sourceFilter) {
@@ -115,7 +107,10 @@ class NetworkOutages {
         this.render();
       });
       this.elements.sourceFilter = sourceSelect;
-      controlsContainer.appendChild(sourceSelect);
+      const insertionPoint = this.elements.typeFilter
+        ? this.elements.typeFilter.nextSibling
+        : controlsContainer.firstChild;
+      controlsContainer.insertBefore(sourceSelect, insertionPoint);
     }
 
     if (!isMultiSource && this.elements.sourceFilter) {

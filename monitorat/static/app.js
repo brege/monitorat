@@ -123,7 +123,7 @@ window.monitor.applyWidgetHeader = function applyWidgetHeader(
   const headerControls = (() => {
     const candidate = header.nextElementSibling;
     if (!candidate) return null;
-    const controlClasses = ['widget-controls', 'speedtest-controls'];
+    const controlClasses = ['controls-row', 'widget-controls'];
     if (
       controlClasses.some((className) =>
         candidate.classList.contains(className),

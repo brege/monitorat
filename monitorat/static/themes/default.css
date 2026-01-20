@@ -350,75 +350,9 @@ button:disabled {
   font-size: 0.9rem;
 }
 
-.widget-header-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.widget-header-wrapper .widget-controls,
-.widget-header-wrapper .speedtest-controls {
-  margin-bottom: 0;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-.widget-header-wrapper .widget-controls > *,
-.widget-header-wrapper .speedtest-controls > * {
-  flex-shrink: 0;
-}
-
 .card {
   background: var(--bg-card);
   border-radius: 8px;
-}
-
-/* Shared widget controls and layout patterns */
-.widget-controls {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 0.25rem;
-}
-
-.widget-controls > * {
-  flex-shrink: 0;
-}
-
-.widget-controls .spacer {
-  flex: 1;
-  flex-shrink: 1;
-}
-
-/* Shared view toggle pattern */
-.view-toggle {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  align-items: center;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: 0.25rem;
-}
-
-.view-toggle .alerts-toggle {
-  flex-shrink: 0;
-}
-
-.view-toggle .alerts-toggle.active {
-  font-weight: 600;
-}
-
-.view-toggle .view-toggle-spacer {
-  flex: 1;
-  min-width: 0.5rem;
 }
 
 /* Status card base styling */
