@@ -1461,6 +1461,17 @@ tr:last-child td {
   border-top-style: dashed;
 }
 
+.chart-panel {
+  margin: 1rem 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.chart-panel canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 .chart-legend-controls {
   display: flex;
   justify-content: flex-end;
@@ -1486,6 +1497,18 @@ tr:last-child td {
 @media (max-width: 640px) {
   .chart-legend {
     transform: scale(0.82);
+  }
+  .chart-panel {
+    display: flex;
+    flex-direction: column;
+  }
+  .chart-panel canvas {
+    order: 1;
+  }
+  .chart-panel .chart-overlay {
+    position: static;
+    order: 2;
+    margin-top: 6px;
   }
   .chart-legend-item {
     padding: 3px 6px;

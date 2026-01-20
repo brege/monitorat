@@ -1,14 +1,6 @@
 .metrics {
   --stat-stack-margin: 0;
 }
-.metrics-chart {
-  margin: 1rem 0;
-  overflow: hidden;
-}
-.metrics-chart canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
 .metrics-view-toggle {
   display: flex;
   flex-wrap: nowrap;

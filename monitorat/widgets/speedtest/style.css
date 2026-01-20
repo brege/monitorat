@@ -1,12 +1,3 @@
-.speedtest-chart {
-  margin: 1rem 0;
-  overflow: hidden;
-  position: relative;
-}
-.speedtest-chart canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
 .speedtest-view-toggle {
   display: flex;
   flex-wrap: nowrap;
