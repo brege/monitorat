@@ -25,7 +25,7 @@ Widgets have a general, self-contained structure where both API and UI are strai
     └── app.js
 ```
 
-Documentation is editable in-browser and handled by proliferating Wiki widgets across your dashboard. Each document snippet added is a new widget instance. All documents you add to your wiki will be rendered in GitHub-flavored Markdown via [markdown-it](https://github.com/markdown-it/markdown-it).
+Documentation is editable in-browser and handled by proliferating Wiki widgets across your dashboard. Each document fragment added is a new widget instance. All documents you add to your wiki will be rendered in GitHub-flavored Markdown via [markdown-it](https://github.com/markdown-it/markdown-it).
 
 ## Gallery
 
