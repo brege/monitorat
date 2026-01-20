@@ -1,4 +1,3 @@
-/* global getComputedStyle */
 class MetricsChart {
   constructor(widget) {
     this.widget = widget;
@@ -23,13 +22,13 @@ class MetricsChart {
     )
       return;
 
+    const ChartManager = window.monitorShared.ChartManager;
     const DataFormatter = window.monitorShared.DataFormatter;
-    const filteredEntries = this.getFilteredEntries();
-    const chartData = this.createChartData(
-      filteredEntries,
-      this.widget.selectedMetric,
-      DataFormatter,
+    const filteredEntries = ChartManager.filterEntries(
+      this.widget.transformedEntries,
+      this.widget.selectedNode,
     );
+    const chartData = this.createChartData(filteredEntries, DataFormatter);
 
     const filteredValues = chartData.allValues.filter((value) =>
       Number.isFinite(value),
@@ -49,7 +48,6 @@ class MetricsChart {
       )?.yAxisLabel ||
       'Value';
 
-    const ChartManager = window.monitorShared.ChartManager;
     const axes =
       this.widget.schema?.axes &&
       Object.keys(this.widget.schema.axes).length > 0
@@ -76,38 +74,25 @@ class MetricsChart {
     }
   }
 
-  getFilteredEntries() {
-    const selectedNode = this.widget.selectedNode;
-    if (!selectedNode || selectedNode === 'all') {
-      return this.widget.transformedEntries;
-    }
-    return this.widget.transformedEntries.filter(
-      (entry) => entry._source === selectedNode,
-    );
-  }
-
-  getFilteredSources() {
-    const selectedNode = this.widget.selectedNode;
-    if (!selectedNode || selectedNode === 'all') {
-      return this.widget.sources;
-    }
-    return [selectedNode];
-  }
-
-  createChartData(entries, selectedItem, dataFormatter) {
+  getMetricsToChart() {
+    const selectedItem = this.widget.selectedMetric;
     const group = this.widget.schema.computed.find(
-      (group) => group.group === selectedItem,
+      (g) => g.group === selectedItem,
     );
     const metricMatch = this.widget.schema.metrics.find(
-      (metric) => metric.field === selectedItem,
+      (m) => m.field === selectedItem,
     );
-    const metricsToChart = group
-      ? group.fields
-      : metricMatch
-        ? [metricMatch]
-        : [];
+    return group ? group.fields : metricMatch ? [metricMatch] : [];
+  }
+
+  createChartData(entries, dataFormatter) {
     const ChartManager = window.monitorShared.ChartManager;
-    const filteredSources = this.getFilteredSources();
+    const metricsToChart = this.getMetricsToChart();
+    const filteredSources = ChartManager.filterSources(
+      this.widget.sources,
+      this.widget.selectedNode,
+    );
+
     if (filteredSources && filteredSources.length > 1) {
       return this.createMergedChartData(
         entries,
@@ -165,40 +150,13 @@ class MetricsChart {
     return { labels, datasets, allValues };
   }
 
-  getSourceColors() {
-    const computedStyle = getComputedStyle(document.documentElement);
-    return [
-      computedStyle.getPropertyValue('--chart-series-1').trim(),
-      computedStyle.getPropertyValue('--chart-series-2').trim(),
-      computedStyle.getPropertyValue('--chart-series-3').trim(),
-      computedStyle.getPropertyValue('--chart-series-4').trim(),
-      computedStyle.getPropertyValue('--chart-series-5').trim(),
-      computedStyle.getPropertyValue('--chart-series-6').trim(),
-    ];
-  }
-
   createMergedChartData(entries, metricsToChart, dataFormatter, sources) {
-    const sourceColors = this.getSourceColors();
-    const entriesBySource = {};
-
-    for (const row of entries) {
-      const source = row._source || 'unknown';
-      if (!entriesBySource[source]) {
-        entriesBySource[source] = [];
-      }
-      entriesBySource[source].push(row);
-    }
-
-    const allTimestamps = new Set();
-    for (const rows of Object.values(entriesBySource)) {
-      for (const row of rows) {
-        allTimestamps.add(row.timestamp);
-      }
-    }
-    const sortedTimestamps = Array.from(allTimestamps).sort();
-    const labels = sortedTimestamps.map((timestamp) =>
-      dataFormatter.formatTime(timestamp),
-    );
+    const ChartManager = window.monitorShared.ChartManager;
+    const sourceColors = ChartManager.getSeriesColors();
+    const { entriesBySource, sortedTimestamps, labels } =
+      ChartManager.buildMergedTimeline(entries, (ts) =>
+        dataFormatter.formatTime(ts),
+      );
 
     const datasets = [];
     const allValues = [];
@@ -242,6 +200,7 @@ class MetricsChart {
     const legend = this.widget.getElement('chart-legend');
     if (!legend) return;
 
+    const ChartManager = window.monitorShared?.ChartManager;
     const ChartLegend = window.monitorShared?.ChartLegend;
     const chart = this.widget.chartManager?.chart;
     if (!ChartLegend || !chart) {
@@ -249,6 +208,36 @@ class MetricsChart {
       return;
     }
 
+    const seriesMap = this.buildSeriesMap(datasets);
+    const series = Array.from(seriesMap.values()).map((item) => ({
+      field: item.label,
+      label: item.label,
+      color: item.color,
+    }));
+    const activeMetrics = series
+      .filter((item) => {
+        const entry = seriesMap.get(item.label);
+        return entry.indexes.some((index) => chart.isDatasetVisible(index));
+      })
+      .map((item) => item.label);
+
+    ChartLegend.createMetricLegend(legend, series, {
+      activeMetrics,
+      onToggle: (label) => {
+        ChartManager.toggleDatasets(chart, (dataset) => {
+          const dsLabel = dataset._seriesLabel || dataset.label;
+          const baseLabel = dsLabel?.endsWith(' (raw)')
+            ? dsLabel.slice(0, -6)
+            : dsLabel;
+          return baseLabel === label;
+        });
+        chart.update();
+        this.renderLegend(chart.data.datasets || []);
+      },
+    });
+  }
+
+  buildSeriesMap(datasets) {
     const seriesMap = new Map();
     datasets.forEach((dataset, index) => {
       const label = dataset._seriesLabel || dataset.label;
@@ -269,36 +258,7 @@ class MetricsChart {
       }
       seriesMap.get(baseLabel).indexes.push(index);
     });
-
-    const series = Array.from(seriesMap.values()).map((item) => ({
-      field: item.label,
-      label: item.label,
-      color: item.color,
-    }));
-    const activeMetrics = series
-      .filter((item) => {
-        const entry = seriesMap.get(item.label);
-        return entry.indexes.some((index) => chart.isDatasetVisible(index));
-      })
-      .map((item) => item.label);
-
-    const toggleSeries = (label) => {
-      const entry = seriesMap.get(label);
-      if (!entry) return;
-      const anyVisible = entry.indexes.some((index) =>
-        chart.isDatasetVisible(index),
-      );
-      entry.indexes.forEach((index) => {
-        chart.setDatasetVisibility(index, !anyVisible);
-      });
-      chart.update();
-      this.renderLegend(chart.data.datasets || []);
-    };
-
-    ChartLegend.createMetricLegend(legend, series, {
-      activeMetrics,
-      onToggle: toggleSeries,
-    });
+    return seriesMap;
   }
 }
 

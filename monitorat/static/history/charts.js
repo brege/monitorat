@@ -233,6 +233,129 @@ class ChartManager {
     return data;
   }
 
+  static filterEntries(entries, selectedNode) {
+    if (!selectedNode || selectedNode === 'all') {
+      return entries;
+    }
+    return entries.filter((entry) => entry._source === selectedNode);
+  }
+
+  static filterSources(sources, selectedNode) {
+    if (!selectedNode || selectedNode === 'all') {
+      return sources;
+    }
+    return [selectedNode];
+  }
+
+  static buildMergedTimeline(entries, formatTime) {
+    const entriesBySource = {};
+    for (const entry of entries) {
+      const source = entry._source || 'unknown';
+      if (!entriesBySource[source]) {
+        entriesBySource[source] = [];
+      }
+      entriesBySource[source].push(entry);
+    }
+
+    const allTimestamps = new Set();
+    for (const rows of Object.values(entriesBySource)) {
+      for (const row of rows) {
+        allTimestamps.add(row.timestamp);
+      }
+    }
+
+    const sortedTimestamps = Array.from(allTimestamps).sort();
+    const labels = sortedTimestamps.map((timestamp) => formatTime(timestamp));
+
+    return { entriesBySource, sortedTimestamps, labels };
+  }
+
+  static getSeriesColors(count = 6) {
+    const computedStyle = getComputedStyle(document.documentElement);
+    const colors = [];
+    for (let i = 1; i <= count; i += 1) {
+      const color = computedStyle
+        .getPropertyValue(`--chart-series-${i}`)
+        .trim();
+      if (color) {
+        colors.push(color);
+      }
+    }
+    return colors;
+  }
+
+  static toggleDatasets(chart, predicate) {
+    const datasets = chart.data.datasets || [];
+    const indexes = datasets
+      .map((dataset, index) => (predicate(dataset) ? index : null))
+      .filter((index) => index !== null);
+    if (!indexes.length) return false;
+
+    const anyVisible = indexes.some((index) => chart.isDatasetVisible(index));
+    indexes.forEach((index) => {
+      chart.setDatasetVisibility(index, !anyVisible);
+    });
+    return true;
+  }
+
+  static updateAxisBounds(chart, options = {}) {
+    if (!chart) return;
+
+    const { padding = 0.1 } = options;
+    const valuesByAxis = {};
+    const datasets = chart.data.datasets || [];
+
+    datasets.forEach((dataset, index) => {
+      if (!chart.isDatasetVisible(index)) return;
+      const axisId = dataset.yAxisID || 'y';
+      if (!valuesByAxis[axisId]) {
+        valuesByAxis[axisId] = [];
+      }
+      for (const value of dataset.data || []) {
+        const numeric = Number(value);
+        if (Number.isFinite(numeric)) {
+          valuesByAxis[axisId].push(numeric);
+        }
+      }
+    });
+
+    const scales = chart.options?.scales || {};
+    Object.keys(scales).forEach((axisId) => {
+      if (axisId === 'x') return;
+      const values = valuesByAxis[axisId] || [];
+      if (!values.length) {
+        delete scales[axisId].min;
+        delete scales[axisId].max;
+        return;
+      }
+      let min = Math.min(...values);
+      let max = Math.max(...values);
+      if (min === max) {
+        min -= 1;
+        max += 1;
+      }
+      const range = max - min;
+      scales[axisId].min = min - range * padding;
+      scales[axisId].max = max + range * padding;
+    });
+
+    chart.update();
+  }
+
+  static getActiveDatasetFields(chart, fieldKey, predicate = null) {
+    const datasets = chart.data.datasets || [];
+    const fields = new Set();
+    datasets.forEach((dataset, index) => {
+      if (!chart.isDatasetVisible(index)) return;
+      if (predicate && !predicate(dataset)) return;
+      const field = dataset[fieldKey];
+      if (field) {
+        fields.add(field);
+      }
+    });
+    return Array.from(fields);
+  }
+
   static setView(view, elements, currentView, chartManager, onChartReady) {
     const targetView =
       view === 'table' ? 'table' : view === 'none' ? 'none' : 'chart';

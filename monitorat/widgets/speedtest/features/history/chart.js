@@ -102,28 +102,51 @@ class SpeedtestChart {
     }
   }
 
+  getMetricsToUse() {
+    return this.widget.selectedMetric === 'all'
+      ? this.widget.metricFields
+      : this.widget.metricFields.filter(
+          (metric) => metric.field === this.widget.selectedMetric,
+        );
+  }
+
+  formatMetricValue(raw, metric) {
+    if (raw === null || raw === undefined) return null;
+    const numeric = Number(raw);
+    if (!Number.isFinite(numeric)) return null;
+    if (metric.format === 'mbps') {
+      return Number((numeric / 1_000_000).toFixed(metric.decimals ?? 2));
+    }
+    if (metric.format === 'ping') {
+      return Number(numeric.toFixed(metric.decimals ?? 1));
+    }
+    return numeric;
+  }
+
   update() {
     if (!this.widget.chartManager?.hasChart()) return;
 
+    const ChartManager = window.monitorShared.ChartManager;
     const mergeSources = this.widget.config.federation?.nodes;
     if (mergeSources && Array.isArray(mergeSources)) {
-      const filteredSources = this.getFilteredSources(mergeSources);
+      const filteredSources = ChartManager.filterSources(
+        mergeSources,
+        this.widget.selectedNode,
+      );
       this.updateMerged(filteredSources);
       return;
     }
 
     const DataFormatter = window.monitorShared?.DataFormatter;
-    const filteredEntries = this.getFilteredEntries();
+    const filteredEntries = ChartManager.filterEntries(
+      this.widget.chartEntries,
+      this.widget.selectedNode,
+    );
     const labels = filteredEntries.map((entry) =>
       DataFormatter.formatTime(entry.timestamp),
     );
     const datasets = [];
-    const metricsToUse =
-      this.widget.selectedMetric === 'all'
-        ? this.widget.metricFields
-        : this.widget.metricFields.filter(
-            (metric) => metric.field === this.widget.selectedMetric,
-          );
+    const metricsToUse = this.getMetricsToUse();
     const curve = this.widget.config?.chart?.curve || {
       fill: false,
       interpolation: 0.3,
@@ -131,19 +154,9 @@ class SpeedtestChart {
     };
 
     for (const metric of metricsToUse) {
-      const values = filteredEntries.map((entry) => {
-        const raw = entry[metric.field];
-        if (raw === null || raw === undefined) return null;
-        const numeric = Number(raw);
-        if (!Number.isFinite(numeric)) return null;
-        if (metric.format === 'mbps') {
-          return Number((numeric / 1_000_000).toFixed(metric.decimals ?? 2));
-        }
-        if (metric.format === 'ping') {
-          return Number(numeric.toFixed(metric.decimals ?? 1));
-        }
-        return numeric;
-      });
+      const values = filteredEntries.map((entry) =>
+        this.formatMetricValue(entry[metric.field], metric),
+      );
 
       const color = metric.color;
       const backgroundColor = curve.fill ? `${color}33` : undefined;
@@ -163,60 +176,26 @@ class SpeedtestChart {
     }
 
     this.widget.chartManager.updateChart({ labels, datasets });
-    this.updateAxisBounds(this.widget.chartManager.chart);
+    ChartManager.updateAxisBounds(this.widget.chartManager.chart);
     this.renderLegends(metricsToUse, []);
-  }
-
-  getFilteredEntries() {
-    const selectedNode = this.widget.selectedNode;
-    if (!selectedNode || selectedNode === 'all') {
-      return this.widget.chartEntries;
-    }
-    return this.widget.chartEntries.filter(
-      (entry) => entry._source === selectedNode,
-    );
-  }
-
-  getFilteredSources(allSources) {
-    const selectedNode = this.widget.selectedNode;
-    if (!selectedNode || selectedNode === 'all') {
-      return allSources;
-    }
-    return [selectedNode];
   }
 
   updateMerged(sources) {
     if (!this.widget.chartManager?.hasChart()) return;
+
+    const ChartManager = window.monitorShared.ChartManager;
     const DataFormatter = window.monitorShared?.DataFormatter;
-    const filteredEntries = this.getFilteredEntries();
-
-    const entriesBySource = {};
-    for (const entry of filteredEntries) {
-      const source = entry._source || 'unknown';
-      if (!entriesBySource[source]) {
-        entriesBySource[source] = [];
-      }
-      entriesBySource[source].push(entry);
-    }
-
-    const allTimestamps = new Set();
-    for (const entries of Object.values(entriesBySource)) {
-      for (const entry of entries) {
-        allTimestamps.add(entry.timestamp);
-      }
-    }
-    const sortedTimestamps = Array.from(allTimestamps).sort();
-    const labels = sortedTimestamps.map((timestamp) =>
-      DataFormatter.formatTime(timestamp),
+    const filteredEntries = ChartManager.filterEntries(
+      this.widget.chartEntries,
+      this.widget.selectedNode,
     );
 
-    const metricsToUse =
-      this.widget.selectedMetric === 'all'
-        ? this.widget.metricFields
-        : this.widget.metricFields.filter(
-            (metric) => metric.field === this.widget.selectedMetric,
-          );
+    const { entriesBySource, sortedTimestamps, labels } =
+      ChartManager.buildMergedTimeline(filteredEntries, (ts) =>
+        DataFormatter.formatTime(ts),
+      );
 
+    const metricsToUse = this.getMetricsToUse();
     const datasets = [];
     const curve = this.widget.config?.chart?.curve || {
       fill: false,
@@ -235,17 +214,7 @@ class SpeedtestChart {
         const values = sortedTimestamps.map((timestamp) => {
           const entry = timestampMap[timestamp];
           if (!entry) return null;
-          const raw = entry[metric.field];
-          if (raw === null || raw === undefined) return null;
-          const numeric = Number(raw);
-          if (!Number.isFinite(numeric)) return null;
-          if (metric.format === 'mbps') {
-            return Number((numeric / 1_000_000).toFixed(metric.decimals ?? 2));
-          }
-          if (metric.format === 'ping') {
-            return Number(numeric.toFixed(metric.decimals ?? 1));
-          }
-          return numeric;
+          return this.formatMetricValue(entry[metric.field], metric);
         });
 
         const label = `${source}: ${metric.label || metric.field}`;
@@ -270,7 +239,7 @@ class SpeedtestChart {
     });
 
     this.widget.chartManager.updateChart({ labels, datasets });
-    this.updateAxisBounds(this.widget.chartManager.chart);
+    ChartManager.updateAxisBounds(this.widget.chartManager.chart);
     this.renderLegends(metricsToUse, sources);
   }
 
@@ -300,6 +269,7 @@ class SpeedtestChart {
 
   renderMetricLegend(chart, metrics) {
     const metricLegend = this.widget.getElement('metric-legend');
+    const ChartManager = window.monitorShared?.ChartManager;
     const ChartLegend = window.monitorShared?.ChartLegend;
     if (!metricLegend || !ChartLegend) {
       return;
@@ -328,7 +298,11 @@ class SpeedtestChart {
     ChartLegend.createMetricLegend(metricLegend, metricsToRender, {
       activeMetrics,
       onToggle: (field) => {
-        this.toggleDatasets(chart, (dataset) => dataset._metricField === field);
+        ChartManager.toggleDatasets(
+          chart,
+          (dataset) => dataset._metricField === field,
+        );
+        ChartManager.updateAxisBounds(chart);
         this.renderMetricLegend(chart, metricsToRender);
         if (this.legendState) {
           this.renderNodeLegend(chart, this.legendState.sources);
@@ -339,6 +313,7 @@ class SpeedtestChart {
 
   renderNodeLegend(chart, sources) {
     const nodeLegend = this.widget.getElement('node-legend');
+    const ChartManager = window.monitorShared?.ChartManager;
     const ChartLegend = window.monitorShared?.ChartLegend;
     if (!nodeLegend || !ChartLegend) {
       return;
@@ -365,68 +340,17 @@ class SpeedtestChart {
       lineStyles: this.lineStyles,
       activeNodes,
       onToggle: (node) => {
-        this.toggleDatasets(chart, (dataset) => dataset._source === node);
+        ChartManager.toggleDatasets(
+          chart,
+          (dataset) => dataset._source === node,
+        );
+        ChartManager.updateAxisBounds(chart);
         if (this.legendState) {
           this.renderMetricLegend(chart, this.legendState.metrics);
         }
         this.renderNodeLegend(chart, sources);
       },
     });
-  }
-
-  toggleDatasets(chart, predicate) {
-    const datasets = chart.data.datasets || [];
-    const indexes = datasets
-      .map((dataset, index) => (predicate(dataset) ? index : null))
-      .filter((index) => index !== null);
-    if (!indexes.length) return;
-
-    const anyVisible = indexes.some((index) => chart.isDatasetVisible(index));
-    indexes.forEach((index) => {
-      chart.setDatasetVisibility(index, !anyVisible);
-    });
-    this.updateAxisBounds(chart);
-  }
-
-  updateAxisBounds(chart) {
-    if (!chart) return;
-
-    const valuesByAxis = {};
-    const datasets = chart.data.datasets || [];
-    datasets.forEach((dataset, index) => {
-      if (!chart.isDatasetVisible(index)) return;
-      const axisId = dataset.yAxisID || 'y';
-      if (!valuesByAxis[axisId]) {
-        valuesByAxis[axisId] = [];
-      }
-      for (const value of dataset.data || []) {
-        const numeric = Number(value);
-        if (Number.isFinite(numeric)) {
-          valuesByAxis[axisId].push(numeric);
-        }
-      }
-    });
-
-    const scales = chart.options?.scales || {};
-    Object.keys(scales).forEach((axisId) => {
-      const values = valuesByAxis[axisId] || [];
-      if (!values.length) {
-        delete scales[axisId].min;
-        delete scales[axisId].max;
-        return;
-      }
-      let min = Math.min(...values);
-      let max = Math.max(...values);
-      if (min === max) {
-        min -= 1;
-        max += 1;
-      }
-      const padding = (max - min) * 0.1;
-      scales[axisId].min = min - padding;
-      scales[axisId].max = max + padding;
-    });
-
-    chart.update();
   }
 }
 
