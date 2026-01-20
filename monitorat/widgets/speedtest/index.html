@@ -11,19 +11,19 @@
   <div class="feature-header" data-speedtest-section-header="history"></div>
 
   <div class="speedtest-history">
-    <div class="speedtest-view-toggle" data-speedtest="view-toggle" style="display: none;">
+    <div class="speedtest-view-toggle history-view-toggle" data-speedtest="view-toggle" style="display: none;">
       <select class="alerts-toggle" data-speedtest="node-select" style="display: none;">
       </select>
       <button type="button" class="alerts-toggle" data-speedtest="view-table">Table</button>
       <button type="button" class="alerts-toggle" data-speedtest="view-chart">Chart</button>
-      <button type="button" class="alerts-toggle" data-speedtest="legend-toggle">Legend</button>
+      <button type="button" class="alerts-toggle history-legend-toggle" data-speedtest="legend-toggle">Legend</button>
       <select class="alerts-toggle" data-speedtest="metric-select" style="display: none;"></select>
       <select class="alerts-toggle" data-speedtest="period-select" style="display: none;">
       </select>
       <button type="button" class="alerts-toggle" data-speedtest="download-csv" title="Download CSV">CSV</button>
     </div>
     
-    <div class="speedtest-chart chart-panel" data-speedtest="chart-container" style="display: none;">
+    <div class="speedtest-chart chart-panel history-chart" data-speedtest="chart-container" style="display: none;">
       <div class="chart-overlay">
         <div class="chart-legend" data-speedtest="metric-legend"></div>
         <div class="chart-legend right" data-speedtest="node-legend"></div>
@@ -34,7 +34,7 @@
     <div data-speedtest="table-container" style="display: none;">
       <p class="muted" data-speedtest="history-status">Loading speedtest history…</p>
       <div class="table-wrapper">
-        <table>
+        <table class="history-table">
           <thead>
             <tr>
               <th>Timestamp</th>

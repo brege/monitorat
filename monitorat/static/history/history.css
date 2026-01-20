@@ -1,0 +1,239 @@
+[id$="-widget"]:has(.history-chart) {
+  --widget-min-width: 400px;
+}
+
+.history-view-toggle {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  align-items: center;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 0.25rem;
+}
+
+.history-view-toggle .alerts-toggle.active {
+  font-weight: 600;
+}
+
+.history-view-toggle .alerts-toggle {
+  flex-shrink: 0;
+}
+
+.history-view-toggle .view-toggle-spacer {
+  flex: 1;
+  min-width: 0.5rem;
+}
+
+.history-table {
+  width: 100%;
+  margin-top: 12px;
+  border-collapse: collapse;
+  min-width: max-content;
+}
+
+.history-table th,
+.history-table td {
+  padding: 9px 8px;
+  font-size: 0.9rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-muted);
+  white-space: nowrap;
+}
+
+.history-table th {
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-card);
+}
+
+.history-table tr:last-child td {
+  border-bottom: none;
+}
+
+.chart-legend {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  transform: scale(0.86);
+  transform-origin: top left;
+}
+
+.chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  color: var(--text-muted);
+  border: none;
+  background: none;
+  padding: 4px 8px;
+  cursor: default;
+  white-space: nowrap;
+  text-transform: none;
+  letter-spacing: normal;
+  width: 100%;
+  justify-content: flex-start;
+  box-sizing: border-box;
+}
+
+.chart-legend-item.active {
+  color: var(--text-primary);
+}
+
+.chart-legend-item.clickable {
+  cursor: pointer;
+}
+
+.chart-legend-item.clickable:hover {
+  background: color-mix(
+    in srgb,
+    var(--bg-surface) 82%,
+    var(--border-muted) 18%
+  );
+}
+
+.chart-legend-item.clickable:focus-visible {
+  background: color-mix(
+    in srgb,
+    var(--bg-surface) 82%,
+    var(--border-muted) 18%
+  );
+  outline: 1px solid var(--border-muted);
+  outline-offset: -1px;
+}
+
+.chart-legend-swatch {
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.chart-legend-swatch.dashed {
+  background: none;
+  border-top: 3px dashed currentColor;
+  height: 0;
+}
+
+.chart-overlay {
+  position: absolute;
+  top: 10px;
+  left: 52px;
+  right: 44px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.chart-overlay .chart-legend {
+  background: color-mix(in srgb, var(--bg-surface) 92%, var(--text-primary) 8%);
+  border: 1px solid
+    color-mix(in srgb, var(--border-muted) 70%, var(--text-primary) 30%);
+  border-radius: 6px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  pointer-events: auto;
+}
+
+.chart-overlay .chart-legend.right {
+  align-items: stretch;
+  transform-origin: top right;
+}
+
+.chart-overlay .chart-legend.right .chart-legend-item {
+  justify-content: flex-end;
+}
+
+.chart-overlay .chart-legend.right .chart-legend-swatch {
+  background: none;
+  border-top: 3px solid currentColor;
+  height: 0;
+}
+
+.chart-overlay .chart-legend.right .chart-legend-swatch.dashed {
+  border-top-style: dashed;
+}
+
+.chart-panel {
+  margin: 1rem 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.chart-panel canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.chart-legend-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.chart-legend-controls .alerts-toggle {
+  padding: 4px 10px;
+  font-size: 0.72rem;
+}
+
+.legend-hidden .chart-overlay {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .history-legend-toggle {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .chart-legend {
+    transform: scale(0.82);
+  }
+  .chart-panel {
+    display: flex;
+    flex-direction: column;
+  }
+  .chart-panel canvas {
+    order: 1;
+  }
+  .chart-panel .chart-overlay {
+    position: static;
+    order: 2;
+    margin-top: 6px;
+  }
+  .chart-legend-item {
+    padding: 3px 6px;
+    font-size: 0.62rem;
+  }
+  .chart-legend-swatch {
+    width: 12px;
+    height: 3px;
+  }
+  .chart-overlay .chart-legend {
+    border-radius: 5px;
+  }
+  .chart-overlay {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+  }
+  .chart-overlay.dock-bottom {
+    top: auto;
+    bottom: 10px;
+  }
+  .chart-legend-controls {
+    margin-top: 4px;
+  }
+  .chart-legend-controls .alerts-toggle {
+    padding: 3px 8px;
+    font-size: 0.162rem;
+  }
+}
