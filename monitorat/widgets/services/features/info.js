@@ -93,7 +93,11 @@ class ServicesInfo {
   }
 
   open(service) {
-    const hasLocal = service.local && service.local !== service.url;
+    const hasExternal = service.url && service.url.trim() !== '';
+    const hasLocal =
+      service.local &&
+      service.local !== service.url &&
+      service.local.trim() !== '';
     const imgBase = service._source
       ? `api/proxy/${service._source}/img`
       : this.widget.getImgBase();
@@ -129,6 +133,9 @@ class ServicesInfo {
       </div>
       ${statusHtml}
       <div class="url-picker-links">
+        ${
+          hasExternal
+            ? `
         <div class="url-picker-link-row">
           <span class="url-picker-link-url" title="${service.url}">${service.url}</span>
           <div class="url-picker-link-actions">
@@ -140,6 +147,9 @@ class ServicesInfo {
             </button>
           </div>
         </div>
+        `
+            : ''
+        }
         ${
           hasLocal
             ? `
