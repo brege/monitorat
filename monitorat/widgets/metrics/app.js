@@ -57,6 +57,10 @@ class MetricsWidget {
     }
   }
 
+  getApiBase() {
+    return `api/${this.apiPrefix}`;
+  }
+
   buildConfig(overrides = {}) {
     return TimeSeriesHandler.buildConfig(
       this.defaults,
@@ -128,7 +132,6 @@ class MetricsWidget {
   setupEventListeners() {
     const metricSelect = this.getElement('metric-select');
     const periodSelect = this.getElement('period-select');
-    const downloadButton = this.getElement('download-csv');
 
     this.wireViewToggles();
 
@@ -179,49 +182,9 @@ class MetricsWidget {
     }
 
     this.setupNodeSelect();
-    this.setupDownloadControl(downloadButton);
+    this.setupDownloadControl();
     this.setupLegendToggle();
     this.updateControlStates();
-  }
-
-  setupNodeSelect() {
-    const nodeSelect = this.getElement('node-select');
-    if (!nodeSelect) return;
-
-    const mergeSources = this.widgetConfig.federation?.nodes;
-    if (
-      !mergeSources ||
-      !Array.isArray(mergeSources) ||
-      mergeSources.length < 2
-    ) {
-      nodeSelect.style.display = 'none';
-      return;
-    }
-
-    nodeSelect.innerHTML = '';
-    nodeSelect.style.display = '';
-
-    const allOption = document.createElement('option');
-    allOption.value = 'all';
-    allOption.textContent = 'All Nodes';
-    nodeSelect.appendChild(allOption);
-
-    for (const source of mergeSources) {
-      const option = document.createElement('option');
-      option.value = source;
-      option.textContent = source;
-      nodeSelect.appendChild(option);
-    }
-
-    nodeSelect.value = this.selectedNode;
-    nodeSelect.addEventListener('change', (event) => {
-      this.selectedNode = event.target.value;
-      if (this.selectedNode === 'all' && this.currentView === 'table') {
-        this.setView('chart');
-      }
-      this.applyNodeFilter();
-      this.updateControlStates();
-    });
   }
 
   applyNodeFilter() {
@@ -243,55 +206,22 @@ class MetricsWidget {
     }
   }
 
-  setupDownloadControl(downloadButton) {
-    if (!downloadButton) return;
-
-    if (this.config.download_csv === false) {
-      downloadButton.style.display = 'none';
-      return;
-    }
-
-    downloadButton.addEventListener('click', (event) => {
-      event.preventDefault();
-      const mergeSources = this.widgetConfig.federation?.nodes;
-      const isFederated =
-        mergeSources && Array.isArray(mergeSources) && mergeSources.length > 1;
-      if (isFederated && this.selectedNode !== 'all') {
-        this.downloadCsvForSource(this.selectedNode);
-        return;
-      }
-      this.downloadCsv();
-    });
+  getCsvUrl() {
+    return `${this.getApiBase()}/csv?${Date.now()}`;
   }
 
-  setupLegendToggle() {
-    const toggle = this.getElement('legend-toggle');
-    const chartContainer = this.getElement('chart-container');
-    const overlay = chartContainer?.querySelector('.chart-overlay');
-    if (!toggle || !chartContainer || !overlay) return;
+  getCsvUrlForSource(source) {
+    const widgetName = this.getFederatedWidgetName();
+    return `api/${widgetName}-${source}/csv?${Date.now()}`;
+  }
 
-    this.legendVisible = true;
-    const applyState = () => {
-      chartContainer.classList.toggle('legend-hidden', !this.legendVisible);
-      overlay.style.display = this.legendVisible ? '' : 'none';
-      toggle.classList.toggle('active', this.legendVisible);
-      toggle.setAttribute(
-        'aria-pressed',
-        this.legendVisible ? 'true' : 'false',
-      );
-      if (this.legendVisible) {
-        const ChartManager = window.monitorShared?.ChartManager;
-        if (ChartManager) {
-          ChartManager.applyLegendDock(chartContainer);
-        }
-      }
-    };
+  getCsvFilename() {
+    return `${this.apiPrefix}.csv`;
+  }
 
-    applyState();
-    toggle.addEventListener('click', () => {
-      this.legendVisible = !this.legendVisible;
-      applyState();
-    });
+  getCsvFilenameForSource(source) {
+    const widgetName = this.getFederatedWidgetName();
+    return `${widgetName}-${source}.csv`;
   }
 
   async loadData() {
@@ -359,37 +289,6 @@ class MetricsWidget {
     this.features.chart.updateView();
   }
 
-  updateViewToggle(hasEntries) {
-    this.currentView = TimeSeriesHandler.updateViewToggle({
-      container: this.container,
-      attributeName: this.attributeName,
-      hasEntries,
-      currentView: this.currentView,
-      defaultViewSetter: () =>
-        this.setView(this.config.default || this.defaults.default),
-    });
-  }
-
-  downloadCsv() {
-    const url = `api/${this.apiPrefix}/csv?${Date.now()}`;
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${this.apiPrefix}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  downloadCsvForSource(source) {
-    const url = `api/metrics-${source}/csv?${Date.now()}`;
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `metrics-${source}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
   async loadFeatureScripts() {
     const featureScripts = [
       {
@@ -430,30 +329,6 @@ Object.assign(
 );
 
 MetricsWidget.prototype.getViewControls = () => [];
-
-MetricsWidget.prototype.updateControlStates = function () {
-  const mergeSources = this.widgetConfig.federation?.nodes;
-  const isFederated =
-    mergeSources && Array.isArray(mergeSources) && mergeSources.length > 1;
-  const isAllNodes = isFederated && this.selectedNode === 'all';
-  const isTableView = this.currentView === 'table';
-
-  const metricSelect = this.getElement('metric-select');
-  const periodSelect = this.getElement('period-select');
-  const tableButton = this.getElement('view-table');
-  const csvButton = this.getElement('download-csv');
-
-  if (metricSelect) metricSelect.disabled = isTableView;
-  if (periodSelect) periodSelect.disabled = isTableView;
-  if (tableButton) tableButton.disabled = isAllNodes;
-  if (csvButton) csvButton.disabled = isAllNodes;
-};
-
-MetricsWidget.prototype.setView = function (view) {
-  const nextView = ChartTableWidgetMethods.setView.call(this, view);
-  this.updateControlStates();
-  return nextView;
-};
 
 MetricsWidget.prototype.openTableForSource = function (source) {
   if (!source) {

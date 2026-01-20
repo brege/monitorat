@@ -258,6 +258,167 @@ const ChartTableWidgetMethods = {
     return this.container?.querySelector(`[${this.attributeName}="${name}"]`);
   },
 
+  getFederationSources() {
+    const sources =
+      this.config?.federation?.nodes || this.widgetConfig?.federation?.nodes;
+    return Array.isArray(sources) ? sources : null;
+  },
+
+  getFederatedWidgetName() {
+    if (this.schema?.widget) {
+      return this.schema.widget;
+    }
+    return this.getApiBase().split('/').pop();
+  },
+
+  getLegendElements() {
+    const legendNames = ['chart-legend', 'metric-legend', 'node-legend'];
+    return legendNames.map((name) => this.getElement(name)).filter(Boolean);
+  },
+
+  updateControlStates() {
+    const sources = this.getFederationSources();
+    const isFederated = Array.isArray(sources) && sources.length > 1;
+    const isAllNodes = isFederated && this.selectedNode === 'all';
+    const isTableView = this.currentView === 'table';
+
+    const metricSelect = this.getElement('metric-select');
+    const periodSelect = this.getElement('period-select');
+    const tableButton = this.getElement('view-table');
+    const csvButton = this.getElement('download-csv');
+
+    if (metricSelect) metricSelect.disabled = isTableView;
+    if (periodSelect) periodSelect.disabled = isTableView;
+    if (tableButton) tableButton.disabled = isAllNodes;
+    if (csvButton) csvButton.disabled = isAllNodes;
+  },
+
+  updateLegendVisibility() {
+    const chartContainer = this.getElement('chart-container');
+    const overlay = chartContainer.querySelector('.chart-overlay');
+    const legends = this.getLegendElements();
+    const hasLegendItems = legends.some(
+      (legend) => legend.childElementCount > 0,
+    );
+    const show = this.currentView === 'chart' && this.legendVisible !== false;
+
+    legends.forEach((legend) => {
+      legend.style.display = show && legend.childElementCount ? '' : 'none';
+    });
+
+    chartContainer.classList.toggle('legend-hidden', !show);
+
+    overlay.style.display = show && hasLegendItems ? '' : 'none';
+
+    if (show && hasLegendItems) {
+      const ChartManager = window.monitorShared.ChartManager;
+      ChartManager.applyLegendDock(chartContainer);
+    }
+  },
+
+  setupNodeSelect() {
+    const nodeSelect = this.getElement('node-select');
+    if (!nodeSelect) return;
+
+    const sources = this.getFederationSources();
+    if (!sources || sources.length < 2) {
+      nodeSelect.style.display = 'none';
+      return;
+    }
+
+    nodeSelect.innerHTML = '';
+    nodeSelect.style.display = '';
+
+    const allOption = document.createElement('option');
+    allOption.value = 'all';
+    allOption.textContent = 'All Nodes';
+    nodeSelect.appendChild(allOption);
+
+    for (const source of sources) {
+      const option = document.createElement('option');
+      option.value = source;
+      option.textContent = source;
+      nodeSelect.appendChild(option);
+    }
+
+    nodeSelect.value = this.selectedNode;
+    nodeSelect.addEventListener('change', (event) => {
+      this.selectedNode = event.target.value;
+      if (this.selectedNode === 'all' && this.currentView === 'table') {
+        this.setView('chart');
+      }
+      this.applyNodeFilter();
+      this.updateControlStates();
+    });
+  },
+
+  setupDownloadControl() {
+    const downloadButton = this.getElement('download-csv');
+    if (!downloadButton) return;
+
+    if (this.config.download_csv === false) {
+      downloadButton.style.display = 'none';
+      return;
+    }
+
+    downloadButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      const sources = this.getFederationSources();
+      const isFederated = Array.isArray(sources) && sources.length > 1;
+      if (isFederated && this.selectedNode !== 'all') {
+        this.downloadCsvForSource(this.selectedNode);
+        return;
+      }
+      this.downloadCsv();
+    });
+  },
+
+  downloadCsv() {
+    const url = this.getCsvUrl();
+    const filename = this.getCsvFilename();
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  },
+
+  downloadCsvForSource(source) {
+    const url = this.getCsvUrlForSource(source);
+    const filename = this.getCsvFilenameForSource(source);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  },
+
+  setupLegendToggle() {
+    const toggle = this.getElement('legend-toggle');
+    const chartContainer = this.getElement('chart-container');
+    const overlay = chartContainer?.querySelector('.chart-overlay');
+    if (!toggle || !chartContainer || !overlay) return;
+
+    this.legendVisible = true;
+    const applyState = () => {
+      chartContainer.classList.toggle('legend-hidden', !this.legendVisible);
+      toggle.classList.toggle('active', this.legendVisible);
+      toggle.setAttribute(
+        'aria-pressed',
+        this.legendVisible ? 'true' : 'false',
+      );
+      this.updateLegendVisibility();
+    };
+
+    applyState();
+    toggle.addEventListener('click', () => {
+      this.legendVisible = !this.legendVisible;
+      applyState();
+    });
+  },
+
   setView(view) {
     const controls = this.getViewControls();
 
@@ -278,6 +439,8 @@ const ChartTableWidgetMethods = {
     });
 
     if (this.tableManager) this.tableManager.updateToggleVisibility();
+    this.updateControlStates();
+    this.updateLegendVisibility();
     return this.currentView;
   },
 

@@ -52,6 +52,24 @@ class SpeedtestWidget {
       : 'api/speedtest';
   }
 
+  getCsvUrl() {
+    return `${this.getApiBase()}/csv?${Date.now()}`;
+  }
+
+  getCsvUrlForSource(source) {
+    const widgetName = this.getFederatedWidgetName();
+    return `api/${widgetName}-${source}/csv?${Date.now()}`;
+  }
+
+  getCsvFilename() {
+    return 'speedtest.csv';
+  }
+
+  getCsvFilenameForSource(source) {
+    const widgetName = this.getFederatedWidgetName();
+    return `${widgetName}-${source}.csv`;
+  }
+
   async loadSchema() {
     if (this.schema) return;
     const response = await fetch(`${this.getApiBase()}/schema`);
@@ -222,46 +240,6 @@ class SpeedtestWidget {
     return ChartTableWidgetMethods.updateViewToggle.call(this, hasEntries);
   }
 
-  setupNodeSelect() {
-    const nodeSelect = this.getElement('node-select');
-    if (!nodeSelect) return;
-
-    const mergeSources = this.config.federation?.nodes;
-    if (
-      !mergeSources ||
-      !Array.isArray(mergeSources) ||
-      mergeSources.length < 2
-    ) {
-      nodeSelect.style.display = 'none';
-      return;
-    }
-
-    nodeSelect.innerHTML = '';
-    nodeSelect.style.display = '';
-
-    const allOption = document.createElement('option');
-    allOption.value = 'all';
-    allOption.textContent = 'All Nodes';
-    nodeSelect.appendChild(allOption);
-
-    for (const source of mergeSources) {
-      const option = document.createElement('option');
-      option.value = source;
-      option.textContent = source;
-      nodeSelect.appendChild(option);
-    }
-
-    nodeSelect.value = this.selectedNode;
-    nodeSelect.addEventListener('change', (event) => {
-      this.selectedNode = event.target.value;
-      if (this.selectedNode === 'all' && this.currentView === 'table') {
-        this.setView('chart');
-      }
-      this.applyNodeFilter();
-      this.updateControlStates();
-    });
-  }
-
   applyNodeFilter() {
     const filtered =
       this.selectedNode === 'all'
@@ -271,81 +249,6 @@ class SpeedtestWidget {
     this.tableManager.setEntries(filtered);
     this.features.chart.update();
   }
-
-  setupDownloadControl() {
-    const downloadButton = this.getElement('download-csv');
-    if (!downloadButton) {
-      return;
-    }
-    if (this.config.download_csv === false) {
-      downloadButton.style.display = 'none';
-      return;
-    }
-    downloadButton.addEventListener('click', (event) => {
-      event.preventDefault();
-      const mergeSources = this.config.federation?.nodes;
-      const isFederated =
-        mergeSources && Array.isArray(mergeSources) && mergeSources.length > 1;
-      if (isFederated && this.selectedNode !== 'all') {
-        this.downloadCsvForSource(this.selectedNode);
-        return;
-      }
-      this.downloadCsv();
-    });
-  }
-
-  setupLegendToggle() {
-    const toggle = this.getElement('legend-toggle');
-    const chartContainer = this.getElement('chart-container');
-    const overlay = chartContainer?.querySelector('.chart-overlay');
-    if (!toggle || !chartContainer || !overlay) {
-      return;
-    }
-
-    this.legendVisible = true;
-    const applyState = () => {
-      chartContainer.classList.toggle('legend-hidden', !this.legendVisible);
-      overlay.style.display = this.legendVisible ? '' : 'none';
-      toggle.classList.toggle('active', this.legendVisible);
-      toggle.setAttribute(
-        'aria-pressed',
-        this.legendVisible ? 'true' : 'false',
-      );
-      if (this.legendVisible) {
-        const ChartManager = window.monitorShared?.ChartManager;
-        if (ChartManager) {
-          ChartManager.applyLegendDock(chartContainer);
-        }
-      }
-    };
-
-    applyState();
-    toggle.addEventListener('click', () => {
-      this.legendVisible = !this.legendVisible;
-      applyState();
-      this.updateLegendVisibility();
-    });
-  }
-
-  downloadCsv() {
-    const url = `${this.getApiBase()}/csv?${Date.now()}`;
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'speedtest.csv';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  downloadCsvForSource(source) {
-    const url = `api/speedtest-${source}/csv?${Date.now()}`;
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `speedtest-${source}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
 }
 
 Object.assign(
@@ -354,52 +257,6 @@ Object.assign(
 );
 
 SpeedtestWidget.prototype.getViewControls = () => [];
-
-SpeedtestWidget.prototype.updateControlStates = function () {
-  const mergeSources = this.config.federation?.nodes;
-  const isFederated =
-    mergeSources && Array.isArray(mergeSources) && mergeSources.length > 1;
-  const isAllNodes = isFederated && this.selectedNode === 'all';
-  const isTableView = this.currentView === 'table';
-
-  const metricSelect = this.getElement('metric-select');
-  const periodSelect = this.getElement('period-select');
-  const tableButton = this.getElement('view-table');
-  const csvButton = this.getElement('download-csv');
-
-  if (metricSelect) metricSelect.disabled = isTableView;
-  if (periodSelect) periodSelect.disabled = isTableView;
-  if (tableButton) tableButton.disabled = isAllNodes;
-  if (csvButton) csvButton.disabled = isAllNodes;
-};
-
-SpeedtestWidget.prototype.updateLegendVisibility = function () {
-  const metricLegend = this.getElement('metric-legend');
-  const nodeLegend = this.getElement('node-legend');
-  const chartContainer = this.getElement('chart-container');
-  if (!metricLegend && !nodeLegend) {
-    return;
-  }
-  const show = this.currentView === 'chart' && this.legendVisible !== false;
-  if (metricLegend) {
-    metricLegend.style.display =
-      show && metricLegend.childElementCount ? '' : 'none';
-  }
-  if (nodeLegend) {
-    nodeLegend.style.display =
-      show && nodeLegend.childElementCount ? '' : 'none';
-  }
-  if (chartContainer) {
-    chartContainer.classList.toggle('legend-hidden', !show);
-  }
-};
-
-SpeedtestWidget.prototype.setView = function (view) {
-  const nextView = ChartTableWidgetMethods.setView.call(this, view);
-  this.updateControlStates();
-  this.updateLegendVisibility();
-  return nextView;
-};
 
 SpeedtestWidget.prototype.openTableForSource = function (source) {
   if (!source) {

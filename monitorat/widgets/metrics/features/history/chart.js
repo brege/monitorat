@@ -205,6 +205,7 @@ class MetricsChart {
     const chart = this.widget.chartManager?.chart;
     if (!ChartLegend || !chart) {
       legend.innerHTML = '';
+      this.widget.updateLegendVisibility();
       return;
     }
 
@@ -235,6 +236,7 @@ class MetricsChart {
         this.renderLegend(chart.data.datasets || []);
       },
     });
+    this.widget.updateLegendVisibility();
   }
 
   buildSeriesMap(datasets) {
