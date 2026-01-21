@@ -292,3 +292,7 @@
     min-width: 100%;
   }
 }
+
+[id$="-widget"]:has(.uptime-rows) {
+  --widget-min-width: 340px;
+}

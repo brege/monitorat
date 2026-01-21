@@ -76,3 +76,31 @@
     color: var(--accent);
   }
 }
+
+.markdown-body h2 {
+  font-size: 1.3rem;
+}
+
+.markdown-body h3 {
+  font-size: 1.15rem;
+}
+
+.markdown-body img {
+  border-radius: 12px;
+}
+
+.notes .markdown-body table {
+  min-width: max-content;
+}
+
+[id$="-widget"]:has(.notes) {
+  --widget-min-width: 300px;
+}
+
+.wiki-columns .layout-column {
+  min-width: 0;
+}
+
+.wiki-columns .wiki-source-content {
+  overflow-x: auto;
+}

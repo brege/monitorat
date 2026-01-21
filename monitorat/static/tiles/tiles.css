@@ -86,3 +86,7 @@
   flex: 1 1 auto;
   min-width: 100px;
 }
+
+[id$="-widget"]:has(.stats) {
+  --widget-min-width: 280px;
+}
