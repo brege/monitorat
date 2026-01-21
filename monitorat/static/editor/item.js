@@ -34,9 +34,6 @@ const ItemEditor = (() => {
       path,
       schema,
       imgRoot,
-      previewRenderer,
-      previewDataProvider,
-      onFormReady,
       onSave,
       onDelete,
     } = options;
@@ -54,18 +51,24 @@ const ItemEditor = (() => {
         'ItemEditor requires buildForm, buildPayload, and buildInitialState',
       );
     }
-    if (previewRenderer && typeof previewRenderer !== 'function') {
-      throw new Error('ItemEditor previewRenderer must be a function');
+    if (
+      schema.preview?.renderer &&
+      typeof schema.preview.renderer !== 'function'
+    ) {
+      throw new Error('ItemEditor preview.renderer must be a function');
     }
-    if (previewDataProvider && typeof previewDataProvider !== 'function') {
-      throw new Error('ItemEditor previewDataProvider must be a function');
+    if (
+      schema.preview?.dataProvider &&
+      typeof schema.preview.dataProvider !== 'function'
+    ) {
+      throw new Error('ItemEditor preview.dataProvider must be a function');
     }
-    if (onFormReady && typeof onFormReady !== 'function') {
+    if (schema.onFormReady && typeof schema.onFormReady !== 'function') {
       throw new Error('ItemEditor onFormReady must be a function');
     }
 
     let handleSave = async () => {};
-    let activePreviewProvider = previewDataProvider || (() => null);
+    let activePreviewProvider = schema.preview?.dataProvider || (() => null);
 
     await window.Editor.open({
       widget: editorKey,
@@ -74,7 +77,7 @@ const ItemEditor = (() => {
       initialMode: schema.initialMode || 'edit',
       title: schema.title || 'Editor',
       labels: schema.labels || { edit: 'Edit', preview: 'Preview' },
-      previewRenderer,
+      previewRenderer: schema.preview?.renderer || null,
       previewDataProvider: () => activePreviewProvider(),
       useForm: true,
       onSave: async () => handleSave(),
@@ -125,8 +128,8 @@ const ItemEditor = (() => {
       });
     }
 
-    if (onFormReady) {
-      const result = onFormReady(form, {
+    if (schema.onFormReady) {
+      const result = schema.onFormReady(form, {
         parseArrayValue,
         getState: () =>
           window.FormFields.getFormState(form, schema.fieldConfig),

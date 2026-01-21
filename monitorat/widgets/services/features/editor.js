@@ -79,6 +79,7 @@ const ServicesEditor = (() => {
       apiEndpoint: 'api/services/icon',
       imgPrefix: 'img/',
     },
+    preview: null,
     buildForm: ({ isEditing }) => buildServiceEditorForm(isEditing),
     buildInitialState: ({ item, itemKey, parseArrayValue }) => ({
       id: itemKey || 'new-service',

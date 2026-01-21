@@ -115,20 +115,10 @@ const RemindersEditor = (() => {
       onDelete,
     } = options;
 
-    const reminder = item || {};
-    const initialState = {
-      id: reminderId || 'new-reminder',
-      name: reminder.name || reminderId || '',
-      url: reminder.url || '',
-      icon: reminder.icon || '',
-      expiry_days:
-        reminder.expiry_days !== undefined
-          ? reminder.expiry_days
-          : DEFAULT_EXPIRY_DAYS,
-      expires_on: reminder.expires_on || '',
-      reason: reminder.reason || '',
-      enabled: reminder.disabled !== true,
-    };
+    const renderer =
+      typeof previewRenderer === 'function'
+        ? (value, previewElement) => previewRenderer(value, previewElement)
+        : null;
 
     const reminderSchema = {
       title: 'Reminder Editor',
@@ -157,21 +147,7 @@ const RemindersEditor = (() => {
         apiEndpoint: 'api/reminders/icon',
         imgPrefix: 'img/',
       },
-    };
-
-    const renderer =
-      typeof previewRenderer === 'function'
-        ? (value, previewElement) => previewRenderer(value, previewElement)
-        : null;
-
-    return window.monitorShared.ItemEditor.open({
-      editorKey,
-      itemKey: reminderId,
-      item: reminder,
-      path,
-      imgRoot,
-      schema: reminderSchema,
-      previewRenderer: renderer,
+      preview: renderer ? { renderer } : null,
       onFormReady: (form, helpers) => {
         const expiresInput = form.querySelector('[name="expires_on"]');
         const expiryInput = form.querySelector('[name="expiry_days"]');
@@ -213,6 +189,15 @@ const RemindersEditor = (() => {
           }
         };
       },
+    };
+
+    return window.monitorShared.ItemEditor.open({
+      editorKey,
+      itemKey: reminderId,
+      item,
+      path,
+      imgRoot,
+      schema: reminderSchema,
       onSave,
       onDelete,
     });
