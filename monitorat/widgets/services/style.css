@@ -123,6 +123,14 @@
 .service-card:hover .service-edit-btn {
   opacity: 0.7;
 }
+.service-card.has-badge {
+  position: relative;
+}
+.service-card.has-badge .source-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
 .service-editor-textarea-hidden {
   display: none;
 }

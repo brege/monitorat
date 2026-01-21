@@ -197,30 +197,44 @@ class NetworkOutages {
   }
 
   createAlertCard(alert, showBadge, helpers) {
-    const item = document.createElement('div');
-    const badgeHtml = showBadge
-      ? `<span class="source-badge">${alert._source}</span>`
-      : '';
-    const badgeClass = showBadge ? ' has-badge' : '';
-
+    const Alerts = window.monitorShared.Alerts;
+    const badge = showBadge ? { text: alert._source } : null;
     if (alert.type === 'ipchange') {
-      item.className = `alert alert-card ipchange${badgeClass}`;
-      item.innerHTML = `${badgeHtml}<strong>IP changed</strong> from ${alert.oldIp} to ${alert.newIp} at ${helpers.formatDateTime(alert.timestamp)}`;
+      const strong = document.createElement('strong');
+      strong.textContent = 'IP changed';
+      const detail = document.createElement('span');
+      detail.textContent = ` from ${alert.oldIp} to ${alert.newIp} at ${helpers.formatDateTime(alert.timestamp)}`;
+      return Alerts.createCard({
+        classes: ['alert', 'ipchange'],
+        badge,
+        content: [strong, detail],
+      });
     } else if (alert.type === 'failure') {
-      item.className = `alert alert-card failure${badgeClass}`;
-      item.innerHTML = `${badgeHtml}<strong>Connection failure</strong> at ${helpers.formatDateTime(alert.timestamp)} (${alert.message})`;
+      const strong = document.createElement('strong');
+      strong.textContent = 'Connection failure';
+      const detail = document.createElement('span');
+      detail.textContent = ` at ${helpers.formatDateTime(alert.timestamp)} (${alert.message})`;
+      return Alerts.createCard({
+        classes: ['alert', 'failure'],
+        badge,
+        content: [strong, detail],
+      });
     } else {
-      item.className = `alert alert-card${badgeClass}`;
-      if (alert.open) item.classList.add('open');
       const endLabel = alert.open ? 'now' : helpers.formatDateTime(alert.end);
       const duration = helpers.formatDuration(
         alert.end.getTime() - alert.start.getTime(),
       );
       const countLabel = alert.missedChecks === 1 ? 'check' : 'checks';
-      item.innerHTML = `${badgeHtml}<strong>${alert.missedChecks} ${countLabel} missed</strong> from ${helpers.formatDateTime(alert.start)} to ${endLabel} (${duration})`;
+      const strong = document.createElement('strong');
+      strong.textContent = `${alert.missedChecks} ${countLabel} missed`;
+      const detail = document.createElement('span');
+      detail.textContent = ` from ${helpers.formatDateTime(alert.start)} to ${endLabel} (${duration})`;
+      return Alerts.createCard({
+        classes: ['alert', alert.open ? 'open' : ''],
+        badge,
+        content: [strong, detail],
+      });
     }
-
-    return item;
   }
 
   updateToggle(toggle, totalCount, maxVisible, expanded) {

@@ -47,23 +47,16 @@ class RemindersAlerts {
 
   createReminderCard(reminder, showBadge, options = {}) {
     const { disableActions = false } = options;
-    const alertElement = document.createElement('div');
     const hasBadge = showBadge && reminder._source;
     const isDisabled = reminder.disabled === true;
     const statusClass = isDisabled ? 'disabled' : reminder.status;
-    alertElement.className = `reminder-alert alert-card status-card status-${statusClass} hover-expand-parent${hasBadge ? ' has-badge' : ''}${isDisabled ? ' is-disabled' : ''}`;
-    if (reminder.url && !disableActions && !isDisabled) {
-      alertElement.title = reminder.url;
-      alertElement.style.cursor = 'pointer';
-    }
-
-    if (hasBadge) {
-      const badge = document.createElement('span');
-      badge.className = `source-badge source-${reminder._source}`;
-      badge.textContent = reminder._source;
-      badge.title = `Source: ${reminder._source}`;
-      alertElement.appendChild(badge);
-    }
+    const classes = [
+      'reminder-alert',
+      'status-card',
+      `status-${statusClass}`,
+      'hover-expand-parent',
+      isDisabled ? 'is-disabled' : '',
+    ];
 
     const iconContainer = document.createElement('div');
     iconContainer.className = 'reminder-alert-icon hover-expand';
@@ -129,12 +122,10 @@ class RemindersAlerts {
     content.appendChild(textDiv);
     content.appendChild(statsDiv);
 
-    alertElement.appendChild(iconContainer);
-    alertElement.appendChild(content);
-
     const canEdit =
       !disableActions && this.widget.canEditReminders() && !reminder._source;
 
+    const actions = [];
     if (canEdit) {
       const editButton = document.createElement('button');
       editButton.type = 'button';
@@ -152,16 +143,29 @@ class RemindersAlerts {
         event.stopPropagation();
         this.widget.openReminderEditor(reminder);
       });
-      alertElement.appendChild(editButton);
+      actions.push(editButton);
     }
 
-    if (!disableActions && !isDisabled) {
-      alertElement.addEventListener('click', () => {
-        this.widget.openReminderModal(reminder);
-      });
-    }
-
-    return alertElement;
+    const Alerts = window.monitorShared.Alerts;
+    return Alerts.createCard({
+      classes,
+      badge: hasBadge
+        ? {
+            text: reminder._source,
+            title: `Source: ${reminder._source}`,
+            className: `source-${reminder._source}`,
+          }
+        : null,
+      content: [iconContainer, content],
+      actions,
+      title: reminder.url && !disableActions && !isDisabled ? reminder.url : '',
+      onClick:
+        !disableActions && !isDisabled
+          ? () => {
+              this.widget.openReminderModal(reminder);
+            }
+          : null,
+    });
   }
 }
 

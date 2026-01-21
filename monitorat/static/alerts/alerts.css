@@ -1,0 +1,30 @@
+.alert-card {
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  background: var(--alert-bg, var(--status-bg, var(--bg-card)));
+  border-left: 4px solid var(--alert-border, var(--status-border, transparent));
+  color: var(--alert-color, var(--text-primary));
+  margin-bottom: 8px;
+}
+
+.alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.alert-card.has-badge {
+  position: relative;
+}
+
+.alert-card.has-badge .source-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+
+[id$="-widget"]:has(.alert-list) {
+  --widget-min-width: 280px;
+}

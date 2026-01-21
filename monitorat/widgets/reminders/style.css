@@ -79,6 +79,9 @@
 .reminder-editor-textarea-hidden {
   display: none;
 }
+.reminder-alerts {
+  --widget-min-width: 260px;
+}
 
 .reminder-action-modal {
   display: flex;
