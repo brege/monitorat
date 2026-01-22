@@ -1,3 +1,12 @@
+"""Metrics backend registry.
+
+To add a new observable (quantity):
+1) Add a getter on MetricContext if the source data is new.
+2) Add a MetricQuantity in get_core_quantities() with key/label/unit/title.
+3) Optionally add to history.table.columns and/or snapshots.quantities in config.
+4) If it should influence status, add a thresholds entry and set status_key if needed.
+"""
+
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
