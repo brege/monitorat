@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
 import json
-import os
-import psutil
+import logging
 import threading
 import time
-import logging
 from datetime import datetime, timedelta
-from typing import List
+from typing import Dict, List, Optional, Tuple
 
+import psutil
 from monitor import (
     config,
     parse_iso_timestamp,
@@ -20,27 +19,27 @@ from monitor import (
 )
 from flask import request, send_file
 
+from .registry import METRIC_REGISTRY, MetricContext, MetricValue, build_metric_context
+
 logger = logging.getLogger(__name__)
-
-METRICS_COLUMNS: List[str] = [
-    "timestamp",
-    "cpu_percent",
-    "memory_percent",
-    "disk_read_mb",
-    "disk_write_mb",
-    "net_rx_mb",
-    "net_tx_mb",
-    "load_1min",
-    "temp_c",
-    "battery_percent",
-    "source",
-]
-
-csv_handler = CSVHandler("metrics", METRICS_COLUMNS)
 
 
 def metrics_config():
     return config["widgets"]["metrics"]
+
+
+def get_history_columns() -> List[str]:
+    columns = metrics_config()["history"]["columns"].get(list)
+    for key in columns:
+        METRIC_REGISTRY.get_quantity(key)
+    return columns
+
+
+def get_csv_columns() -> List[str]:
+    return ["timestamp", *get_history_columns(), "source"]
+
+
+csv_handler = CSVHandler("metrics", get_csv_columns())
 
 
 def is_daemon_enabled():
@@ -52,20 +51,22 @@ def get_collection_interval():
     return interval if interval > 0 else 60
 
 
-def get_history_file():
-    return metrics_config()["history"]["file"].get(str)
+def is_snapshots_enabled() -> bool:
+    return metrics_config()["snapshots"]["enabled"].get(bool)
 
 
-def get_history_max_rows():
-    limit = metrics_config()["history"]["max_rows"].get(int)
-    return limit if limit > 0 else 1000
+def get_snapshot_keys() -> List[str]:
+    keys = metrics_config()["snapshots"]["quantities"].get(list)
+    for key in keys:
+        METRIC_REGISTRY.get_quantity(key)
+    return keys
 
 
-def get_storage_mounts():
-    return metrics_config()["storage"]["mounts"].get(list)
+def get_storage_mounts() -> List[str]:
+    return metrics_config()["snapshots"]["storage"]["mounts"].get(list)
 
 
-def get_threshold_settings():
+def get_threshold_settings() -> Dict[str, Dict[str, float]]:
     return metrics_config()["thresholds"].get(dict)
 
 
@@ -132,63 +133,16 @@ def downsample_lttb(
     return sampled
 
 
-def get_uptime():
-    """Get system uptime as formatted string"""
-    try:
-        with open("/proc/uptime", "r") as f:
-            uptime_seconds = float(f.read().split()[0])
-
-        days = int(uptime_seconds // 86400)
-        hours = int((uptime_seconds % 86400) // 3600)
-        minutes = int((uptime_seconds % 3600) // 60)
-
-        if days > 0:
-            return f"{days}d {hours}h {minutes}m"
-        elif hours > 0:
-            return f"{hours}h {minutes}m"
-        else:
-            return f"{minutes}m"
-    except Exception:
-        return "Unknown"
-
-
-def get_load_average():
-    """Get 1min, 5min, 15min load averages"""
-    try:
-        return list(os.getloadavg())
-    except Exception:
-        return [0.0, 0.0, 0.0]
-
-
-def get_enabled_metrics():
-    """Get list of enabled metrics from config (None = all enabled)"""
-    try:
-        enabled = metrics_config()["enabled"].get(list)
-        return enabled if enabled else None
-    except Exception:
-        return None
-
-
-def is_metric_enabled(metric_name):
-    """Check if a metric should be collected and recorded"""
-    enabled = get_enabled_metrics()
-    if enabled is None:
-        return True
-    return metric_name in enabled
-
-
-def get_metric_status(metric_type, value, thresholds=None):
-    """Determine status (ok/caution/critical) for a metric"""
-    thresholds = thresholds or {}
-    metric_thresholds = thresholds.get(metric_type, {})
-
+def get_metric_status(
+    metric_key: str, value: float, thresholds: Dict[str, float]
+) -> str:
     comparator = value
-    if metric_type == "load" and metric_thresholds.get("normalize_per_cpu", True):
-        cpu_count = psutil.cpu_count()
-        comparator = value / cpu_count if cpu_count else value
+    if metric_key == "load_1min" and thresholds.get("normalize_per_cpu", True):
+        cpu_count = psutil.cpu_count() or 1
+        comparator = value / cpu_count
 
-    caution = metric_thresholds.get("caution")
-    critical = metric_thresholds.get("critical")
+    caution = thresholds.get("caution")
+    critical = thresholds.get("critical")
 
     if critical is not None and comparator > critical:
         return "critical"
@@ -197,203 +151,102 @@ def get_metric_status(metric_type, value, thresholds=None):
     return "ok"
 
 
-def log_metrics_to_csv(metrics_data, source="refresh"):
-    """Log metrics data to CSV file"""
+def build_metric_statuses(
+    values: Dict[str, MetricValue],
+    thresholds: Dict[str, Dict[str, float]],
+) -> Dict[str, str]:
+    statuses: Dict[str, str] = {}
+    for key, rules in thresholds.items():
+        value = values[key].value
+        if value is None:
+            continue
+        statuses[key] = get_metric_status(key, value, rules)
+    return statuses
 
-    # Extract numeric values from metrics
-    load_parts = metrics_data["load"].split()
-    load_1min = float(load_parts[0]) if load_parts else 0.0
 
-    # Parse memory usage
-    memory_parts = metrics_data["memory"].split("/")
-    memory_used_gb = (
-        float(memory_parts[0].replace("GB", "").strip()) if memory_parts else 0.0
-    )
-    memory_total_gb = (
-        float(memory_parts[1].replace("GB", "").strip())
-        if len(memory_parts) > 1
-        else 0.0
-    )
-    memory_percent = (
-        (memory_used_gb / memory_total_gb * 100) if memory_total_gb > 0 else 0.0
-    )
+def collect_metrics() -> Tuple[
+    MetricContext,
+    Dict[str, MetricValue],
+    Dict[str, str],
+    List[str],
+    List[str],
+]:
+    history_keys = get_history_columns()
+    snapshot_keys = get_snapshot_keys() if is_snapshots_enabled() else []
+    threshold_keys = list(get_threshold_settings().keys())
+    alert_keys = [
+        "load_1min",
+        "memory_percent",
+        "temp_c",
+        "disk_percent",
+        "storage_percent",
+    ]
 
-    # Parse temperature
-    temp_c = (
-        float(metrics_data["temp"].replace("°C", "").strip())
-        if "Unknown" not in metrics_data["temp"]
-        else 0.0
-    )
+    collection_keys: List[str] = []
+    for key in history_keys + snapshot_keys + threshold_keys + alert_keys:
+        if key not in collection_keys:
+            collection_keys.append(key)
 
-    # CPU percentage
-    cpu_percent = psutil.cpu_percent(interval=0.1)
+    context = build_metric_context(get_storage_mounts())
+    values = METRIC_REGISTRY.collect_values(collection_keys, context)
+    statuses = build_metric_statuses(values, get_threshold_settings())
+    return context, values, statuses, history_keys, snapshot_keys
 
-    # Battery percentage
-    battery_percent = 0.0
-    try:
-        battery = psutil.sensors_battery()
-        if battery:
-            battery_percent = battery.percent
-    except Exception:
-        battery_percent = 0.0
 
-    # Get I/O counters (always needed for CSV)
-    try:
-        disk_io = psutil.disk_io_counters()
-        disk_read_mb = disk_io.read_bytes / (1024**2) if disk_io else 0.0
-        disk_write_mb = disk_io.write_bytes / (1024**2) if disk_io else 0.0
-
-        net_io = psutil.net_io_counters()
-        net_rx_mb = net_io.bytes_recv / (1024**2) if net_io else 0.0
-        net_tx_mb = net_io.bytes_sent / (1024**2) if net_io else 0.0
-    except Exception:
-        disk_read_mb = disk_write_mb = net_rx_mb = net_tx_mb = 0.0
-
-    row = {
-        "timestamp": datetime.now().isoformat(),
-        "source": source,
-    }
-
-    if is_metric_enabled("cpu_percent"):
-        row["cpu_percent"] = f"{cpu_percent:.1f}"
-    if is_metric_enabled("memory_percent"):
-        row["memory_percent"] = f"{memory_percent:.1f}"
-    if is_metric_enabled("disk_read_mb"):
-        row["disk_read_mb"] = f"{disk_read_mb:.1f}"
-    if is_metric_enabled("disk_write_mb"):
-        row["disk_write_mb"] = f"{disk_write_mb:.1f}"
-    if is_metric_enabled("net_rx_mb"):
-        row["net_rx_mb"] = f"{net_rx_mb:.1f}"
-    if is_metric_enabled("net_tx_mb"):
-        row["net_tx_mb"] = f"{net_tx_mb:.1f}"
-    if is_metric_enabled("load_1min"):
-        row["load_1min"] = f"{load_1min:.2f}"
-    if is_metric_enabled("temp_c"):
-        row["temp_c"] = f"{temp_c:.1f}"
-    if is_metric_enabled("battery_percent"):
-        row["battery_percent"] = f"{battery_percent:.1f}"
-
+def log_metrics_to_csv(
+    values: Dict[str, MetricValue],
+    timestamp: datetime,
+    source: str,
+) -> None:
+    columns = get_history_columns()
+    row = {"timestamp": timestamp.isoformat(), "source": source}
+    row.update(METRIC_REGISTRY.build_csv_row(columns, values))
     csv_handler.append(row)
 
 
-def resolve_storage_usage():
-    mounts = get_storage_mounts()
-    for path in mounts:
-        try:
-            if os.path.exists(path):
-                usage = psutil.disk_usage(path)
-                text = (
-                    f"{usage.used / (1024**4):.1f}TB / "
-                    f"{usage.total / (1024**4):.1f}TB ({usage.percent:.0f}%)"
-                )
-                return text, usage.percent
-        except Exception:
-            continue
-    return "Not mounted", 0.0
-
-
-def get_system_metrics():
-    """Get all system metrics and their statuses"""
-    try:
-        # Get basic metrics
-        uptime = get_uptime()
-        load = get_load_average()
-        load_str = f"{load[0]:.2f} {load[1]:.2f} {load[2]:.2f}"
-
-        # Memory info
-        memory = psutil.virtual_memory()
-        memory_str = (
-            f"{memory.used / (1024**3):.1f}GB / {memory.total / (1024**3):.1f}GB"
-        )
-
-        # Temperature
-        try:
-            sensors = psutil.sensors_temperatures()
-            temp = 0
-            if "coretemp" in sensors:
-                temps = [s.current for s in sensors["coretemp"]]
-                temp = max(temps) if temps else 0
-            elif "cpu_thermal" in sensors:
-                temp = sensors["cpu_thermal"][0].current
-            elif "k10temp" in sensors:
-                temps = [s.current for s in sensors["k10temp"]]
-                temp = max(temps) if temps else 0
-            else:
-                # fallback: first available sensor group with plausible temps
-                for entries in sensors.values():
-                    for s in entries:
-                        if 10 < s.current < 120:
-                            temp = s.current
-                            break
-                    if temp:
-                        break
-
-            temp_str = f"{temp:.1f}°C"
-        except Exception:
-            temp = 0
-            temp_str = "Unknown"
-
-        # Disk usage
-        disk = psutil.disk_usage("/")
-        disk_str = f"{disk.used / (1024**3):.1f}GB / {disk.total / (1024**3):.1f}GB ({disk.percent:.0f}%)"
-
-        storage_str, storage_percent = resolve_storage_usage()
-
-        metrics = {
-            "uptime": uptime,
-            "load": load_str,
-            "memory": memory_str,
-            "temp": temp_str,
-            "disk": disk_str,
-            "storage": storage_str,
-            "status": "Running",
-            "lastUpdated": datetime.now().isoformat(),
-        }
-
-        thresholds = get_threshold_settings()
-        statuses = {
-            "load": get_metric_status("load", load[0], thresholds),
-            "memory": get_metric_status("memory", memory.percent, thresholds),
-            "temp": get_metric_status("temp", temp, thresholds),
-            "disk": get_metric_status("disk", disk.percent, thresholds),
-            "storage": get_metric_status("storage", storage_percent, thresholds),
-        }
-
-        return metrics, statuses, list(metrics.keys())
-
-    except Exception as e:
-        logger.error(f"Error getting system metrics: {e}")
-        return {}, {}, []
-
-
-def get_demo_metrics():
+def get_demo_metrics() -> Dict[str, object]:
     snapshot_path = get_data_path() / "snapshot.jsonl"
-    if snapshot_path.exists():
-        with snapshot_path.open("r", encoding="utf-8") as handle:
-            last_line = None
-            for line in handle:
-                if line.strip():
-                    last_line = line
-            if last_line is None:
-                raise FileNotFoundError("snapshot.jsonl is empty")
+    if not snapshot_path.exists():
+        raise FileNotFoundError("snapshot.jsonl not found")
 
-        snapshot_entry = json.loads(last_line)
-        if "snapshot" not in snapshot_entry:
-            raise KeyError("Missing snapshot payload")
-        snapshot_payload = snapshot_entry["snapshot"]
-        if "metrics" not in snapshot_payload:
-            raise KeyError("Missing metrics snapshot")
-        metrics_snapshot = snapshot_payload["metrics"]
-        for key in ["metrics", "metric_statuses", "metric_keys"]:
-            if key not in metrics_snapshot:
-                raise KeyError(f"Missing metrics snapshot key: {key}")
-        return (
-            metrics_snapshot["metrics"],
-            metrics_snapshot["metric_statuses"],
-            metrics_snapshot["metric_keys"],
-        )
+    with snapshot_path.open("r", encoding="utf-8") as handle:
+        last_line = None
+        for line in handle:
+            if line.strip():
+                last_line = line
+        if last_line is None:
+            raise FileNotFoundError("snapshot.jsonl is empty")
 
-    return {}, {}, []
+    snapshot_entry = json.loads(last_line)
+    if "snapshot" not in snapshot_entry:
+        raise KeyError("Missing snapshot payload")
+    snapshot_payload = snapshot_entry["snapshot"]
+    if "metrics" not in snapshot_payload:
+        raise KeyError("Missing metrics snapshot")
+    metrics_snapshot = snapshot_payload["metrics"]
+    for key in ["timestamp", "values", "statuses"]:
+        if key not in metrics_snapshot:
+            raise KeyError(f"Missing metrics snapshot key: {key}")
+    return {
+        "timestamp": metrics_snapshot["timestamp"],
+        "values": metrics_snapshot["values"],
+        "statuses": metrics_snapshot["statuses"],
+    }
+
+
+def serialize_metric_values(
+    values: Dict[str, MetricValue], keys: List[str]
+) -> Dict[str, Dict[str, Optional[float]]]:
+    serialized: Dict[str, Dict[str, Optional[float]]] = {}
+    for key in keys:
+        value = values[key]
+        serialized[key] = {
+            "key": value.key,
+            "label": value.label,
+            "unit": value.unit,
+            "value": value.value,
+        }
+    return serialized
 
 
 _metrics_thread = None
@@ -423,127 +276,73 @@ def _metrics_collector():
                 time.sleep(interval)
                 continue
 
-            metrics, statuses, _ = get_system_metrics()
-            if metrics:
-                log_metrics_to_csv(metrics, source="daemon")
-                check_metric_alerts(metrics, statuses)
-        except Exception as e:
-            logger.error(f"Metrics daemon error: {e}")
+            context, values, _, history_keys, _ = collect_metrics()
+            if history_keys:
+                log_metrics_to_csv(values, context.timestamp, source="daemon")
+            check_metric_alerts(values)
+        except Exception as error:
+            logger.error(f"Metrics daemon error: {error}")
         time.sleep(interval)
 
 
-def check_metric_alerts(metrics, statuses):
-    """Check metric values against alert thresholds and log alert events"""
+def check_metric_alerts(values: Dict[str, MetricValue]) -> None:
+    metric_checks = {
+        "high_load": {
+            "key": "load_1min",
+            "label": "CPU load",
+        },
+        "high_memory": {
+            "key": "memory_percent",
+            "label": "Memory usage",
+        },
+        "high_temp": {
+            "key": "temp_c",
+            "label": "Temperature",
+        },
+        "low_disk": {
+            "key": "disk_percent",
+            "label": "Disk usage",
+        },
+        "low_storage": {
+            "key": "storage_percent",
+            "label": "Storage usage",
+        },
+    }
+
     try:
-        # Extract current metric values for alert checking
-        load_parts = metrics["load"].split()
-        load_1min = float(load_parts[0]) if load_parts else 0.0
+        alerts_config = config["alerts"].get()
+    except Exception:
+        return
+    if not alerts_config:
+        return
+    rules = alerts_config.get("rules", {})
+    if not rules:
+        return
 
-        # Parse memory usage
-        memory_parts = metrics["memory"].split("/")
-        memory_used_gb = (
-            float(memory_parts[0].replace("GB", "").strip()) if memory_parts else 0.0
-        )
-        memory_total_gb = (
-            float(memory_parts[1].replace("GB", "").strip())
-            if len(memory_parts) > 1
-            else 0.0
-        )
-        memory_percent = (
-            (memory_used_gb / memory_total_gb * 100) if memory_total_gb > 0 else 0.0
-        )
+    for alert_name, rule in rules.items():
+        if alert_name not in metric_checks:
+            continue
 
-        # Parse temperature
-        temp_c = (
-            float(metrics["temp"].replace("°C", "").strip())
-            if "Unknown" not in metrics["temp"]
-            else 0.0
-        )
+        threshold = rule.get("threshold")
+        if threshold is None:
+            continue
 
-        # Parse disk usage
-        disk_parts = metrics["disk"].split("(")
-        disk_percent = (
-            float(disk_parts[1].replace("%)", "").strip())
-            if len(disk_parts) > 1
-            else 0.0
-        )
+        metric_key = metric_checks[alert_name]["key"]
+        value = values[metric_key].value
+        if value is None:
+            continue
 
-        # Parse storage usage
-        if "Not mounted" not in metrics["storage"]:
-            storage_parts = metrics["storage"].split("(")
-            storage_percent = (
-                float(storage_parts[1].replace("%)", "").strip())
-                if len(storage_parts) > 1
-                else 0.0
+        label = metric_checks[alert_name]["label"]
+        if value > threshold:
+            logger.warning(
+                f"Alert threshold exceeded: {label} {value} > {threshold}",
+                extra={
+                    "alert_type": "metric_threshold",
+                    "alert_name": alert_name,
+                    "alert_value": value,
+                    "alert_threshold": threshold,
+                },
             )
-        else:
-            storage_percent = 0.0
-
-        # Define metric checks - maps alert names to values and thresholds
-        metric_checks = {
-            "high_load": {
-                "value": load_1min,
-                "description": f"CPU load: {load_1min:.2f}",
-            },
-            "high_memory": {
-                "value": memory_percent,
-                "description": f"Memory usage: {memory_percent:.1f}%",
-            },
-            "high_temp": {
-                "value": temp_c,
-                "description": f"Temperature: {temp_c:.1f}°C",
-            },
-            "low_disk": {
-                "value": disk_percent,
-                "description": f"Disk usage: {disk_percent:.1f}%",
-            },
-            "low_storage": {
-                "value": storage_percent,
-                "description": f"Storage usage: {storage_percent:.1f}%",
-            },
-        }
-
-        # Import here to avoid circular imports
-        from monitor import config
-
-        # Check if alerts are configured
-        try:
-            alerts_config = config["alerts"].get()
-        except Exception:
-            logger.debug("Alerts configuration not available; skipping metric checks")
-            return
-        rules = alerts_config.get("rules", {})
-        if not rules:
-            return
-
-        # Check each configured alert rule
-        for alert_name, rule in rules.items():
-            if alert_name in metric_checks:
-                threshold = rule.get("threshold")
-                if threshold is None:
-                    continue
-
-                current_value = metric_checks[alert_name]["value"]
-                description = metric_checks[alert_name]["description"]
-
-                # Check if threshold exceeded
-                if current_value > threshold:
-                    # Log structured alert event
-                    logger.warning(
-                        f"Alert threshold exceeded: {description} > {threshold}",
-                        extra={
-                            "alert_type": "metric_threshold",
-                            "alert_name": alert_name,
-                            "alert_value": current_value,
-                            "alert_threshold": threshold,
-                        },
-                    )
-
-    except Exception as e:
-        logger.error(f"Error checking metric alerts: {e}")
-        import traceback
-
-        logger.error(f"Alert check traceback: {traceback.format_exc()}")
 
 
 def filter_data_by_period(data, period_str, now_override=None):
@@ -568,11 +367,11 @@ def register_routes(app):
         start_metrics_daemon()
 
     def metrics_snapshot():
-        metrics, statuses, keys = get_system_metrics()
+        context, values, statuses, _, snapshot_keys = collect_metrics()
         return {
-            "metrics": metrics,
-            "metric_statuses": statuses,
-            "metric_keys": keys,
+            "timestamp": context.timestamp.isoformat(),
+            "values": serialize_metric_values(values, snapshot_keys),
+            "statuses": statuses,
         }
 
     register_snapshot_provider("metrics", metrics_snapshot)
@@ -585,6 +384,9 @@ def register_routes(app):
         schema_path = Path(__file__).parent / "schema.json"
         with open(schema_path) as f:
             schema = json.load(f)
+        schema.pop("metrics", None)
+        schema.pop("computed", None)
+        schema["quantities"] = METRIC_REGISTRY.serialize_quantities()
         return app.response_class(
             response=json.dumps(schema),
             status=200,
@@ -594,21 +396,19 @@ def register_routes(app):
     @app.route("/api/metrics", methods=["GET"])
     def api_metrics():
         if is_demo_enabled():
-            metrics, statuses, keys = get_demo_metrics()
+            payload = get_demo_metrics()
         else:
-            metrics, statuses, keys = get_system_metrics()
-
-        # Log this refresh to CSV
-        if metrics and not is_demo_enabled():
-            try:
-                log_metrics_to_csv(metrics, source="refresh")
-            except Exception as e:
-                logger.error(f"Error logging metrics: {e}")
+            context, values, statuses, history_keys, snapshot_keys = collect_metrics()
+            if history_keys:
+                log_metrics_to_csv(values, context.timestamp, source="refresh")
+            payload = {
+                "timestamp": context.timestamp.isoformat(),
+                "values": serialize_metric_values(values, snapshot_keys),
+                "statuses": statuses,
+            }
 
         return app.response_class(
-            response=json.dumps(
-                {"metrics": metrics, "metric_statuses": statuses, "keys": keys}
-            ),
+            response=json.dumps(payload),
             status=200,
             mimetype="application/json",
         )
@@ -630,7 +430,12 @@ def register_routes(app):
             max_points_param = request.args.get("max_points")
             max_points = int(max_points_param) if max_points_param else 1500
             if len(data) > max_points:
-                data = downsample_lttb(data, max_points)
+                value_key = request.args.get("value_key")
+                if not value_key:
+                    history_columns = get_history_columns()
+                    value_key = history_columns[0] if history_columns else None
+                if value_key:
+                    data = downsample_lttb(data, max_points, value_key=value_key)
 
             return app.response_class(
                 response=json.dumps({"data": data}),

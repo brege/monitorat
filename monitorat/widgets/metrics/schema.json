@@ -35,103 +35,36 @@
       }
     }
   },
-  "metrics": [
-    {
-      "field": "cpu_percent",
-      "label": "CPU %",
-      "unit": "%",
+  "units": {
+    "percent": {
+      "label": "Percent",
       "format": "number",
       "decimals": 1,
-      "color": "rgb(75, 192, 192)",
-      "yAxisLabel": "Percentage"
+      "color": "rgb(75, 192, 192)"
     },
-    {
-      "field": "memory_percent",
-      "label": "Memory %",
-      "unit": "%",
+    "celsius": {
+      "label": "Temperature",
       "format": "number",
       "decimals": 1,
-      "color": "rgb(255, 159, 64)",
-      "yAxisLabel": "Percentage"
+      "color": "rgb(255, 99, 132)"
     },
-    {
-      "field": "load_1min",
+    "load": {
       "label": "Load Average",
-      "unit": "",
       "format": "number",
       "decimals": 2,
-      "color": "rgb(153, 102, 255)",
-      "yAxisLabel": "Load Average"
+      "color": "rgb(153, 102, 255)"
     },
-    {
-      "field": "temp_c",
-      "label": "Temperature",
-      "unit": "°C",
+    "megabytes": {
+      "label": "Megabytes",
       "format": "number",
       "decimals": 1,
-      "color": "rgb(255, 99, 132)",
-      "yAxisLabel": "Temperature (°C)"
+      "color": "rgb(54, 162, 235)"
     },
-    {
-      "field": "battery_percent",
-      "label": "Battery",
-      "unit": "%",
+    "seconds": {
+      "label": "Seconds",
       "format": "number",
-      "decimals": 1,
-      "color": "rgb(34, 197, 94)",
-      "yAxisLabel": "Percentage"
+      "decimals": 0,
+      "color": "rgb(255, 159, 64)"
     }
-  ],
-  "computed": [
-    {
-      "group": "disk_io",
-      "label": "Disk I/O",
-      "yAxisLabel": "MB/min",
-      "fields": [
-        {
-          "field": "disk_read_rate",
-          "label": "Read MB/min",
-          "unit": "MB/min",
-          "format": "number",
-          "decimals": 1,
-          "color": "rgb(54, 162, 235)",
-          "source": "disk_read_mb"
-        },
-        {
-          "field": "disk_write_rate",
-          "label": "Write MB/min",
-          "unit": "MB/min",
-          "format": "number",
-          "decimals": 1,
-          "color": "rgb(255, 99, 132)",
-          "source": "disk_write_mb"
-        }
-      ]
-    },
-    {
-      "group": "net_io",
-      "label": "Network I/O",
-      "yAxisLabel": "MB/min",
-      "fields": [
-        {
-          "field": "net_rx_rate",
-          "label": "RX MB/min",
-          "unit": "MB/min",
-          "format": "number",
-          "decimals": 1,
-          "color": "rgb(75, 192, 192)",
-          "source": "net_rx_mb"
-        },
-        {
-          "field": "net_tx_rate",
-          "label": "TX MB/min",
-          "unit": "MB/min",
-          "format": "number",
-          "decimals": 1,
-          "color": "rgb(255, 159, 64)",
-          "source": "net_tx_mb"
-        }
-      ]
-    }
-  ]
+  }
 }
