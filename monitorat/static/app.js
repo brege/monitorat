@@ -98,123 +98,6 @@ window.monitorShared.loadFeatureScripts = async (featureScripts) => {
   }
 };
 
-window.monitor.applyWidgetHeader = function applyWidgetHeader(
-  container,
-  options = {},
-) {
-  if (!container) {
-    return;
-  }
-
-  const {
-    selector = 'h2',
-    suppressHeader = false,
-    name,
-    preserveChildren = false,
-    downloadUrl = null,
-    downloadCsv = false,
-  } = options;
-
-  const header = container.querySelector(selector);
-  if (!header) {
-    return;
-  }
-
-  const headerControls = (() => {
-    const candidate = header.nextElementSibling;
-    if (!candidate) return null;
-    const controlClasses = ['controls-row', 'widget-controls'];
-    if (
-      controlClasses.some((className) =>
-        candidate.classList.contains(className),
-      )
-    ) {
-      return candidate;
-    }
-    return null;
-  })();
-
-  if (suppressHeader) {
-    if (typeof name === 'string' && name.length > 0) {
-      const featureHeader = document.createElement('div');
-      featureHeader.className = 'feature-header';
-      featureHeader.textContent = name;
-      header.replaceWith(featureHeader);
-    } else {
-      header.remove();
-    }
-    return;
-  }
-
-  if (name === null || name === false) {
-    header.remove();
-    return;
-  }
-
-  let wrapper = null;
-  if ((downloadCsv && downloadUrl) || headerControls) {
-    const headerParent = header.parentElement;
-    if (headerParent?.classList.contains('widget-header-wrapper')) {
-      wrapper = headerParent;
-    } else if (headerParent) {
-      wrapper = document.createElement('div');
-      wrapper.className = 'widget-header-wrapper';
-      headerParent.insertBefore(wrapper, header);
-      wrapper.appendChild(header);
-    }
-    if (wrapper && headerControls && headerControls.parentElement !== wrapper) {
-      wrapper.appendChild(headerControls);
-    }
-  }
-
-  if (downloadCsv && downloadUrl) {
-    const downloadLink = document.createElement('a');
-    downloadLink.href = '#';
-    downloadLink.textContent = 'Download CSV';
-    downloadLink.style.fontSize = '0.85rem';
-    downloadLink.style.color = 'var(--accent)';
-    downloadLink.style.textDecoration = 'none';
-    downloadLink.style.cursor = 'pointer';
-    downloadLink.addEventListener('mouseover', () => {
-      downloadLink.style.textDecoration = 'underline';
-    });
-    downloadLink.addEventListener('mouseout', () => {
-      downloadLink.style.textDecoration = 'none';
-    });
-    downloadLink.addEventListener('click', (e) => {
-      e.preventDefault();
-      const link = document.createElement('a');
-      link.href = `${downloadUrl}?${Date.now()}`;
-      link.download = `${downloadUrl.split('/').pop()}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    });
-
-    if (wrapper) {
-      wrapper.appendChild(downloadLink);
-    }
-  }
-
-  if (typeof name === 'string' && name.length > 0) {
-    if (preserveChildren) {
-      const preservedChildren = Array.from(header.children);
-      header.textContent = name;
-      if (preservedChildren.length) {
-        header.appendChild(document.createTextNode(' '));
-        preservedChildren.forEach((child, index) => {
-          if (index > 0) {
-            header.appendChild(document.createTextNode(' '));
-          }
-          header.appendChild(child);
-        });
-      }
-    } else {
-      header.textContent = name;
-    }
-  }
-};
-
 document.addEventListener('DOMContentLoaded', async () => {
   const config = await loadConfig();
   const federationStatus = window.StatusIndicator
@@ -347,7 +230,7 @@ async function initializeWidget(
 
   try {
     const contentContainer = container;
-    const widgetConfig = { ...config, _suppressHeader: true };
+    const widgetConfig = { ...config };
 
     if (config?.remote || config?.federation?.nodes) {
       widgetConfig._apiPrefix = widgetName;

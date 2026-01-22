@@ -29,14 +29,6 @@ class WikiWidget {
     const html = await response.text();
     container.innerHTML = html;
 
-    const applyWidgetHeader = window.monitor?.applyWidgetHeader;
-    if (applyWidgetHeader) {
-      applyWidgetHeader(container, {
-        suppressHeader: this.config._suppressHeader,
-        name: this.config.name,
-      });
-    }
-
     this.initializeFeatureHeaders();
 
     if (window.monitorShared?.isEditModeEnabled?.() === true) {

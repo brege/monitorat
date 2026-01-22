@@ -73,16 +73,42 @@ class MetricsWidget {
     }
   }
 
+  getHistoryPeriods() {
+    const historyPeriods = this.config?.history?.periods;
+    if (Array.isArray(historyPeriods) && historyPeriods.length) {
+      return historyPeriods;
+    }
+    const chartPeriods = this.config?.chart?.periods;
+    if (Array.isArray(chartPeriods) && chartPeriods.length) {
+      return chartPeriods;
+    }
+    return this.defaults.periods || [];
+  }
+
   getApiBase() {
     return `api/${this.apiPrefix}`;
   }
 
   buildConfig(overrides = {}) {
-    return TimeSeriesHandler.buildConfig(
+    const merged = TimeSeriesHandler.buildConfig(
       this.defaults,
       this.widgetConfig,
       overrides,
     );
+    const history = merged.history || {};
+    if (history.chart && typeof history.chart === 'object') {
+      merged.chart = { ...merged.chart, ...history.chart };
+    }
+    if (history.table && typeof history.table === 'object') {
+      merged.table = { ...merged.table, ...history.table };
+    }
+    if (typeof history.default === 'string') {
+      merged.default = history.default;
+    }
+    if (Array.isArray(history.periods)) {
+      merged.periods = [...history.periods];
+    }
+    return merged;
   }
 
   getComputedGroup(groupName) {
@@ -195,15 +221,6 @@ class MetricsWidget {
     await this.loadFeatureScripts();
     this.initializeFeatures();
     this.features.table.rebuildHeaders();
-    const applyWidgetHeader = window.monitor?.applyWidgetHeader;
-    if (applyWidgetHeader) {
-      applyWidgetHeader(container, {
-        suppressHeader: this.config._suppressHeader,
-        name: this.config.name,
-        downloadCsv: false,
-        downloadUrl: null,
-      });
-    }
 
     this.setupEventListeners();
     this.initManagers();
@@ -246,7 +263,7 @@ class MetricsWidget {
 
     TimeSeriesHandler.setupPeriodSelect(
       periodSelect,
-      this.config.chart.periods,
+      this.getHistoryPeriods(),
       this.selectedPeriod,
       (period) => {
         this.selectedPeriod = period;

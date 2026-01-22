@@ -153,16 +153,6 @@ class SpeedtestWidget {
     await this.loadFeatureScripts();
     this.initializeFeatures();
 
-    const applyWidgetHeader = window.monitor?.applyWidgetHeader;
-    if (applyWidgetHeader) {
-      applyWidgetHeader(container, {
-        suppressHeader: this.config._suppressHeader,
-        name: this.config.name,
-        downloadCsv: false,
-        downloadUrl: null,
-      });
-    }
-
     const showControls = this.config.show?.controls !== false;
     const showHistory = this.config.show?.history !== false;
 

@@ -112,14 +112,6 @@ class NetworkWidget {
     const html = await response.text();
     container.innerHTML = html;
 
-    const applyWidgetHeader = window.monitor?.applyWidgetHeader;
-    if (applyWidgetHeader) {
-      applyWidgetHeader(container, {
-        suppressHeader: this.config._suppressHeader,
-        name: this.config.name,
-      });
-    }
-
     await this.loadFeatureScripts();
     this.initializeFeatureHeaders();
     this.cacheElements();
