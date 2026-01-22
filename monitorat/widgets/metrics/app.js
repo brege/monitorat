@@ -29,6 +29,8 @@ class MetricsWidget {
     this.selectedNode = 'all';
     this.schema = null;
     this.metricFields = null;
+    this.chartFields = null;
+    this.computedGroups = [];
     this.features = {
       snapshot: null,
       chart: null,
@@ -52,7 +54,9 @@ class MetricsWidget {
     if (!Array.isArray(this.schema.computed)) {
       this.schema.computed = [];
     }
-    this.metricFields = this.resolveMetricFields();
+    this.metricFields = this.resolveTableFields();
+    this.chartFields = this.resolveChartFields();
+    this.computedGroups = this.resolveComputedGroups();
   }
 
   initializeFeatureHeaders() {
@@ -81,10 +85,14 @@ class MetricsWidget {
     );
   }
 
-  resolveMetricFields() {
+  getComputedGroup(groupName) {
+    return this.computedGroups.find((group) => group.group === groupName);
+  }
+
+  resolveTableFields() {
     const unitSpecs = this.schema?.units || {};
     const quantities = this.schema?.quantities || [];
-    const historyKeys = this.config?.history?.columns;
+    const historyKeys = this.config?.history?.table?.columns;
     const filteredQuantities =
       Array.isArray(historyKeys) && historyKeys.length
         ? quantities.filter((quantity) => historyKeys.includes(quantity.key))
@@ -95,12 +103,70 @@ class MetricsWidget {
       return {
         field: quantity.key,
         label: quantity.label,
+        unitName: quantity.unit,
         unit: unitSpec.suffix ?? '',
         format: unitSpec.format,
         decimals: unitSpec.decimals,
         color: unitSpec.color,
       };
     });
+  }
+
+  resolveChartFields() {
+    const unitSpecs = this.schema?.units || {};
+    const quantities = this.schema?.quantities || [];
+    const chartKeys = this.config?.history?.chart?.quantities;
+    const filteredQuantities =
+      Array.isArray(chartKeys) && chartKeys.length
+        ? quantities.filter((quantity) => chartKeys.includes(quantity.key))
+        : quantities;
+
+    return filteredQuantities.map((quantity) => {
+      const unitSpec = unitSpecs[quantity.unit] || {};
+      return {
+        field: quantity.key,
+        label: quantity.label,
+        unitName: quantity.unit,
+        unit: unitSpec.suffix ?? '',
+        format: unitSpec.format,
+        decimals: unitSpec.decimals,
+        color: unitSpec.color,
+      };
+    });
+  }
+  resolveComputedGroups() {
+    const groups = this.config?.history?.computed;
+    const unitSpecs = this.schema?.units || {};
+    if (!Array.isArray(groups)) {
+      return [];
+    }
+    return groups
+      .filter((group) => group && typeof group.group === 'string')
+      .map((group) => {
+        const unitSpec = unitSpecs[group.unit] || {};
+        const fields = Array.isArray(group.fields) ? group.fields : [];
+        return {
+          group: group.group,
+          label: group.label || group.group,
+          unit: group.unit,
+          unitLabel: unitSpec.label,
+          unitSuffix: unitSpec.suffix,
+          unitFormat: unitSpec.format,
+          unitDecimals: unitSpec.decimals,
+          fields: fields
+            .filter((field) => field && field.field && field.source)
+            .map((field) => ({
+              field: field.field,
+              label: field.label || field.field,
+              source: field.source,
+              unitName: group.unit,
+              color: field.color || unitSpec.color,
+              format: unitSpec.format,
+              decimals: unitSpec.decimals,
+              unit: unitSpec.suffix ?? '',
+            })),
+        };
+      });
   }
 
   async init(container, config = {}) {
@@ -110,12 +176,15 @@ class MetricsWidget {
       this.config.chart.default_period || this.defaults.chart.default_period;
 
     await this.loadSchema();
-    const metricFields = this.metricFields.map((metric) => metric.field);
+    const metricFields = this.chartFields.map((metric) => metric.field);
     const preferredMetric =
       this.config.chart.default_metric || this.defaults.chart.default_metric;
+    const computedGroups = this.computedGroups.map((group) => group.group);
     this.selectedMetric = metricFields.includes(preferredMetric)
       ? preferredMetric
-      : metricFields[0] || preferredMetric;
+      : computedGroups.includes(preferredMetric)
+        ? preferredMetric
+        : metricFields[0] || computedGroups[0] || preferredMetric;
 
     const response = await fetch('widgets/metrics/index.html');
     const html = await response.text();
@@ -155,10 +224,16 @@ class MetricsWidget {
 
     if (metricSelect) {
       metricSelect.innerHTML = '';
-      for (const metric of this.metricFields) {
+      for (const metric of this.chartFields) {
         const option = document.createElement('option');
         option.value = metric.field;
         option.textContent = metric.label;
+        metricSelect.appendChild(option);
+      }
+      for (const group of this.computedGroups) {
+        const option = document.createElement('option');
+        option.value = group.group;
+        option.textContent = group.label;
         metricSelect.appendChild(option);
       }
       metricSelect.value = this.selectedMetric;

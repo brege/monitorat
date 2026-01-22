@@ -66,58 +66,68 @@ class MetricsTable extends window.monitorShared.HistoryTableBase {
   }
 
   transformEntries(entries) {
-    return this.calculateTableDeltas(entries);
+    const fieldSet = new Set(
+      (this.widget.metricFields || []).map((metric) => metric.field),
+    );
+    const computedFields = (this.widget.computedGroups || []).flatMap(
+      (group) => group.fields || [],
+    );
+    const previousBySource = {};
+
+    return entries.map((entry) => {
+      const next = { ...entry };
+      for (const field of fieldSet) {
+        if (typeof next[field] === 'string') {
+          const value = Number(next[field]);
+          if (Number.isFinite(value)) {
+            next[field] = value;
+          }
+        }
+      }
+
+      if (computedFields.length > 0) {
+        const sourceKey = entry._source || '';
+        const previous = previousBySource[sourceKey];
+        let timeDeltaMinutes = null;
+        if (previous && entry.timestamp && previous.timestamp) {
+          timeDeltaMinutes =
+            (new Date(entry.timestamp) - new Date(previous.timestamp)) / 60000;
+        }
+
+        for (const metric of computedFields) {
+          if (!metric.source) {
+            continue;
+          }
+          const current = Number(entry[metric.source]);
+          const previousValue = previous
+            ? Number(previous[metric.source])
+            : null;
+          if (
+            Number.isFinite(current) &&
+            Number.isFinite(previousValue) &&
+            timeDeltaMinutes &&
+            timeDeltaMinutes > 0
+          ) {
+            const rate = (current - previousValue) / timeDeltaMinutes;
+            next[metric.field] = Number.isFinite(rate)
+              ? Math.max(0, rate)
+              : null;
+          } else {
+            next[metric.field] = null;
+          }
+        }
+
+        previousBySource[sourceKey] = entry;
+      }
+
+      return next;
+    });
   }
 
   async afterEntriesApplied() {
     if (this.widget.chartManager?.hasChart()) {
       this.widget.updateChart();
     }
-  }
-
-  calculateTableDeltas(data) {
-    const result = [];
-    const previousBySource = {};
-
-    for (const row of data) {
-      const sourceKey = row._source || '';
-      const entry = {
-        timestamp: row.timestamp,
-        source: row.source || '',
-        _source: row._source || '',
-      };
-
-      for (const metric of this.widget.metricFields) {
-        if (metric.source) {
-          entry[metric.field] = 0;
-        } else {
-          entry[metric.field] = parseFloat(row[metric.field]) || 0;
-        }
-      }
-
-      const previousRow = previousBySource[sourceKey];
-      if (previousRow) {
-        const timeDelta =
-          (new Date(row.timestamp) - new Date(previousRow.timestamp)) / 60000;
-        if (timeDelta > 0) {
-          for (const metric of this.widget.metricFields) {
-            if (metric.source) {
-              const current = parseFloat(row[metric.source]) || 0;
-              const previous = parseFloat(previousRow[metric.source]) || 0;
-              entry[metric.field] = Math.max(
-                0,
-                (current - previous) / timeDelta,
-              );
-            }
-          }
-        }
-      }
-
-      result.push(entry);
-      previousBySource[sourceKey] = row;
-    }
-
-    return result;
   }
 }
 

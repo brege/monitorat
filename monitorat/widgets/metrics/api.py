@@ -29,7 +29,7 @@ def metrics_config():
 
 
 def get_history_columns() -> List[str]:
-    columns = metrics_config()["history"]["columns"].get(list)
+    columns = metrics_config()["history"]["table"]["columns"].get(list)
     for key in columns:
         METRIC_REGISTRY.get_quantity(key)
     return columns

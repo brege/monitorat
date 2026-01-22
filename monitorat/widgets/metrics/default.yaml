@@ -1,9 +1,7 @@
 widgets:
-  metrics:  # temperature, cpu, memory, disk
+  metrics:
     name: System Metrics
-    collapsible: true  # show hide/show toggle (default: false)
-    hidden: false  # start collapsed (default: false)
-    min_width: 400
+    min_width: 400        # px
     features:
       snapshot:
         header: "Current Status"
@@ -11,33 +9,65 @@ widgets:
         header: "History"
     daemon:
       enabled: true
-      interval_seconds: 60  # sampling cadence for the collector (seconds)
+      interval_seconds: 60
     history:
-      columns:
-        - cpu_percent
-        - memory_percent
-        - disk_read_mb
-        - disk_write_mb
-        - net_rx_mb
-        - net_tx_mb
-        - load_1min
-        - temp_c
-      # - battery_percent
-      default: chart  # default view: "chart" or "table"
+      default: chart
       periods: [1 year, 30 days, 7 days, 24 hours, 6 hours, 1 hour]
-      file: metrics.csv  # relative to data path
-      max_rows: 1000  # cap for history API responses
+      file: metrics.csv   # relative to data path
+      max_rows: 1000      # cap for history API responses
       table:
-        min: 5  # minimum rows to show
-        max: 200  # maximum rows to load
+        min: 5            # minimum rows to show
+        max: 200          # maximum rows to load
+        columns:
+          - cpu_percent
+          - memory_percent
+          - disk_read_mb
+          - disk_write_mb
+          - net_rx_mb
+          - net_tx_mb
+          - load_1min
+          - temp_c
+        # - battery_percent
       chart:
-        default_metric: cpu_memory  # options: cpu_memory, cpu_percent, memory_percent, disk_io, net_io, temp_c, load_1min, battery_percent
-        default_period: 1 hour  # natural language
-        height: 300px  # fixed chart height
+        default_metric: cpu_percent
+        default_period: 1 hour
+        height: 300px     # fixed chart height
         curve:
-          fill: true  # shade area under line
-          interpolation: 0.3  # 0: straight lines, 1.0: max smoothing
-          ghosts: true  # show raw data overlay
+          fill: true      # shade area under line
+          interpolation: 0.3  # 0: straight lines, 1: max smoothing
+          ghosts: true    # show raw data overlay
+        quantities:
+          - cpu_percent
+          - memory_percent
+          - load_1min
+          - temp_c
+          - disk_io
+          - net_io
+      computed:
+        - group: disk_io
+          label: Disk I/O
+          unit: megabytes_per_minute
+          fields:
+            - field: disk_read_rate
+              label: Read MB/min
+              source: disk_read_mb
+              color: "rgb(54, 162, 235)"
+            - field: disk_write_rate
+              label: Write MB/min
+              source: disk_write_mb
+              color: "rgb(255, 99, 132)"
+        - group: net_io
+          label: Network I/O
+          unit: megabytes_per_minute
+          fields:
+            - field: net_rx_rate
+              label: RX MB/min
+              source: net_rx_mb
+              color: "rgb(75, 192, 192)"
+            - field: net_tx_rate
+              label: TX MB/min
+              source: net_tx_mb
+              color: "rgb(255, 159, 64)"
     snapshots:
       enabled: true
       quantities:
@@ -49,8 +79,8 @@ widgets:
         - storage_usage
       # - battery_percent
       storage:
-        mounts: []  # optional: paths to monitor
-    thresholds:  # caution/critical cutoffs for status badges
+        mounts: []        # optional: paths to monitor
+    thresholds:           # caution/critical cutoffs for status badges
       load_1min:
         caution: 1.0
         critical: 2.0

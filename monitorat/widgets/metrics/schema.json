@@ -64,6 +64,13 @@
       "color": "rgb(54, 162, 235)",
       "suffix": "MB"
     },
+    "megabytes_per_minute": {
+      "label": "MB/min",
+      "format": "number",
+      "decimals": 1,
+      "color": "rgb(54, 162, 235)",
+      "suffix": "MB/min"
+    },
     "seconds": {
       "label": "Duration",
       "format": "duration",

@@ -16,14 +16,17 @@ class MetricsChart extends window.monitorShared.HistoryChartBase {
   }
 
   getMetricsToChart() {
-    const selectedItem = this.widget.selectedMetric;
-    const group = this.widget.schema.computed.find(
-      (g) => g.group === selectedItem,
+    const group = this.widget.getComputedGroup?.(this.widget.selectedMetric);
+    if (group) {
+      return group.fields || [];
+    }
+    const metric = this.widget.chartFields?.find(
+      (item) => item.field === this.widget.selectedMetric,
     );
-    const metricMatch = this.widget.schema.metrics.find(
-      (m) => m.field === selectedItem,
-    );
-    return group ? group.fields : metricMatch ? [metricMatch] : [];
+    if (metric) {
+      return [metric];
+    }
+    return this.widget.chartFields?.length ? [this.widget.chartFields[0]] : [];
   }
 
   getCurveDefaults() {
@@ -35,7 +38,9 @@ class MetricsChart extends window.monitorShared.HistoryChartBase {
   }
 
   getMetricValue(entry, metric) {
-    return parseFloat(entry[metric.field]) || 0;
+    const value = entry?.[metric.field];
+    const num = Number(value);
+    return Number.isFinite(num) ? num : 0;
   }
 
   buildDatasets({ metric, values, label, curve, isMerged, sourceIndex }) {
@@ -58,6 +63,16 @@ class MetricsChart extends window.monitorShared.HistoryChartBase {
     }
 
     if (curve.ghosts) {
+      if (!metric.color) {
+        return {
+          label: metric.label,
+          data: values,
+          borderWidth: 2,
+          pointRadius: 0,
+          tension: curve.interpolation,
+          _seriesLabel: metric.label,
+        };
+      }
       return ChartManager.buildGhostedDatasets({
         label: metric.label,
         color: metric.color,
@@ -90,14 +105,18 @@ class MetricsChart extends window.monitorShared.HistoryChartBase {
     const max = Math.max(...chartData.allValues);
     const padding = (max - min) * 0.1;
 
-    const yAxisLabel =
-      this.widget.schema.computed.find(
-        (group) => group.group === this.widget.selectedMetric,
-      )?.yAxisLabel ||
-      this.widget.schema.metrics.find(
-        (metric) => metric.field === this.widget.selectedMetric,
-      )?.yAxisLabel ||
-      'Value';
+    const group = this.widget.getComputedGroup?.(this.widget.selectedMetric);
+    const unitSpec =
+      group?.unit && this.widget.schema?.units?.[group.unit]
+        ? this.widget.schema.units[group.unit]
+        : null;
+    const selectedMetric = this.widget.chartFields?.find(
+      (item) => item.field === this.widget.selectedMetric,
+    );
+    const selectedUnitSpec =
+      selectedMetric?.unitName &&
+      this.widget.schema?.units?.[selectedMetric.unitName];
+    const yAxisLabel = unitSpec?.label || selectedUnitSpec?.label || 'Value';
 
     const axes =
       this.widget.schema?.axes &&

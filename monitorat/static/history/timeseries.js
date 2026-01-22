@@ -110,6 +110,10 @@ const DataFormatter = {
       return formattedPing === '–' ? formattedPing : `${formattedPing}${unit}`;
     }
 
+    if (formatType === 'text') {
+      return String(value);
+    }
+
     if (formatType === 'duration') {
       const formattedDuration = DataFormatter.formatDurationSeconds(value);
       return formattedDuration === '–'
