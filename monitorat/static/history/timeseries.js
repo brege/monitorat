@@ -26,6 +26,23 @@ const DataFormatter = {
     return decimals === 1 && text.endsWith('.0') ? text.slice(0, -2) : text;
   },
 
+  formatDurationSeconds(value) {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return '–';
+    const totalSeconds = Math.max(0, Math.floor(num));
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+    if (days > 0) {
+      return `${days}d ${hours}h ${minutes}m`;
+    }
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  },
+
   formatNumber(value, decimals = 1) {
     const num = Number(value);
     if (!Number.isFinite(num)) return '–';
@@ -91,6 +108,13 @@ const DataFormatter = {
     if (formatType === 'ping') {
       const formattedPing = DataFormatter.formatPing(value, decimals);
       return formattedPing === '–' ? formattedPing : `${formattedPing}${unit}`;
+    }
+
+    if (formatType === 'duration') {
+      const formattedDuration = DataFormatter.formatDurationSeconds(value);
+      return formattedDuration === '–'
+        ? formattedDuration
+        : `${formattedDuration}${unit}`;
     }
 
     const formattedNumber = DataFormatter.formatNumber(value, decimals);

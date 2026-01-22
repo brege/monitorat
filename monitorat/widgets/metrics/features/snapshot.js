@@ -2,10 +2,11 @@ class MetricsSnapshot {
   constructor(widget) {
     this.widget = widget;
     this.tiles = null;
+    this.warnedMissingUnits = new Set();
   }
 
   render(data) {
-    if (!data.metrics || !data.metric_statuses) return;
+    if (!data?.values || !data?.statuses) return;
 
     const TileBuilder =
       window.monitorTiles?.TileBuilder || window.monitorShared?.TileBuilder;
@@ -31,19 +32,15 @@ class MetricsSnapshot {
     }
 
     if (!this.tiles) {
-      this.tiles = TileBuilder.renderInto(statsContainer, this.getTileSpec());
+      this.tiles = TileBuilder.renderInto(
+        statsContainer,
+        this.buildTileSpec(data),
+      );
     }
 
-    TileBuilder.updateValues(this.tiles, {
-      uptime: data.metrics.uptime,
-      load: data.metrics.load,
-      memory: data.metrics.memory,
-      temp: data.metrics.temp,
-      disk: data.metrics.disk,
-      storage: data.metrics.storage,
-    });
+    TileBuilder.updateValues(this.tiles, this.formatTileValues(data.values));
 
-    for (const [key, status] of Object.entries(data.metric_statuses)) {
+    for (const [key, status] of Object.entries(data.statuses)) {
       const tile = this.tiles.tiles.get(key);
       if (!tile) {
         continue;
@@ -134,113 +131,102 @@ class MetricsSnapshot {
     if (!TileBuilder) {
       throw new Error('Tile builder not loaded');
     }
-    const metrics = data.metrics || {};
-    const statuses = data.metric_statuses || {};
-
-    const resolveTileClass = (key) => {
-      const status = statuses[key] || 'ok';
-      return `stat status-card status-${status}`;
-    };
+    const values = data?.values || {};
+    const statuses = data?.statuses || {};
+    const tiles = this.buildTiles(values, statuses);
 
     return TileBuilder.build({
       containerClass: 'stats',
       rows: [
         {
-          className: 'stats-row primary',
-          tiles: [
-            {
-              label: 'Uptime',
-              value: metrics.uptime || '–',
-              options: { tileClass: resolveTileClass('uptime') },
-            },
-            {
-              label: 'Load Average',
-              value: metrics.load || '–',
-              options: { tileClass: resolveTileClass('load') },
-            },
-            {
-              label: 'Memory Usage',
-              value: metrics.memory || '–',
-              options: { tileClass: resolveTileClass('memory') },
-            },
-            {
-              label: 'Temperature',
-              value: metrics.temp || '–',
-              options: { tileClass: resolveTileClass('temp') },
-            },
-          ],
-        },
-        {
-          className: 'stats-row dates',
-          tiles: [
-            {
-              label: 'Disk Usage',
-              value: metrics.disk || '–',
-              options: { tileClass: resolveTileClass('disk') },
-            },
-            {
-              label: 'NFS Storage',
-              value: metrics.storage || '–',
-              options: { tileClass: resolveTileClass('storage') },
-            },
-          ],
+          tiles,
         },
       ],
     }).container;
   }
 
-  getTileSpec() {
+  buildTileSpec(data) {
     return {
       containerClass: 'stats',
       rows: [
         {
-          className: 'stats-row primary',
-          tiles: [
-            {
-              key: 'uptime',
-              label: 'Uptime',
-              value: '–',
-              options: { tileClass: 'stat status-card' },
-            },
-            {
-              key: 'load',
-              label: 'Load Average',
-              value: '–',
-              options: { tileClass: 'stat status-card' },
-            },
-            {
-              key: 'memory',
-              label: 'Memory Usage',
-              value: '–',
-              options: { tileClass: 'stat status-card' },
-            },
-            {
-              key: 'temp',
-              label: 'Temperature',
-              value: '–',
-              options: { tileClass: 'stat status-card' },
-            },
-          ],
-        },
-        {
-          className: 'stats-row dates',
-          tiles: [
-            {
-              key: 'disk',
-              label: 'Disk Usage',
-              value: '–',
-              options: { tileClass: 'stat status-card' },
-            },
-            {
-              key: 'storage',
-              label: 'NFS Storage',
-              value: '–',
-              options: { tileClass: 'stat status-card' },
-            },
-          ],
+          tiles: this.buildTiles(data.values || {}, data.statuses || {}),
         },
       ],
     };
+  }
+
+  buildTiles(values, statuses) {
+    const schemaQuantities = this.widget.schema?.quantities || [];
+    const configuredKeys = this.widget.config?.snapshots?.quantities;
+    const keys =
+      Array.isArray(configuredKeys) && configuredKeys.length
+        ? configuredKeys
+        : schemaQuantities.map((quantity) => quantity.key);
+
+    return keys.map((key) => {
+      const quantity = schemaQuantities.find((item) => item.key === key);
+      const label = quantity?.title || quantity?.label || key;
+      const unitSpec = this.resolveUnitSpec(quantity?.unit);
+      const value = values[key]?.value ?? null;
+      const formatted = this.formatValue(value, unitSpec);
+      const statusKey = quantity?.status_key || key;
+      const status = statuses[statusKey];
+      const tileClass = status
+        ? `stat status-card status-${status}`
+        : 'stat status-card';
+
+      return {
+        key,
+        label,
+        value: formatted,
+        options: { tileClass },
+      };
+    });
+  }
+
+  resolveUnitSpec(unitName) {
+    if (!unitName) {
+      return {};
+    }
+    const unitSpec = this.widget.schema?.units?.[unitName] || {};
+    if (!this.widget.schema?.units?.[unitName]) {
+      if (!this.warnedMissingUnits.has(unitName)) {
+        this.warnedMissingUnits.add(unitName);
+        console.warn(`Missing unit spec for ${unitName}`);
+      }
+    }
+    return unitSpec;
+  }
+
+  formatTileValues(values) {
+    const schemaQuantities = this.widget.schema?.quantities || [];
+    const result = {};
+    for (const [key, payload] of Object.entries(values || {})) {
+      const quantity = schemaQuantities.find((item) => item.key === key);
+      const unitSpec = this.resolveUnitSpec(quantity?.unit);
+      result[key] = this.formatValue(payload?.value ?? null, unitSpec);
+    }
+    return result;
+  }
+
+  formatValue(value, unitSpec) {
+    const DataFormatter = window.monitorShared?.DataFormatter;
+    if (!DataFormatter || !unitSpec) {
+      return value ?? '–';
+    }
+    if (typeof value === 'string') {
+      return value;
+    }
+    if (unitSpec.format === 'text') {
+      return value ?? '–';
+    }
+    const schema = {
+      unit: unitSpec.suffix ?? '',
+      format: unitSpec.format,
+      decimals: unitSpec.decimals,
+    };
+    return DataFormatter.formatBySchema(value, schema);
   }
 }
 

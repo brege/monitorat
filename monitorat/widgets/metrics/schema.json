@@ -40,31 +40,43 @@
       "label": "Percent",
       "format": "number",
       "decimals": 1,
-      "color": "rgb(75, 192, 192)"
+      "color": "rgb(75, 192, 192)",
+      "suffix": "%"
     },
     "celsius": {
       "label": "Temperature",
       "format": "number",
       "decimals": 1,
-      "color": "rgb(255, 99, 132)"
+      "color": "rgb(255, 99, 132)",
+      "suffix": "°C"
     },
     "load": {
       "label": "Load Average",
       "format": "number",
       "decimals": 2,
-      "color": "rgb(153, 102, 255)"
+      "color": "rgb(153, 102, 255)",
+      "suffix": ""
     },
     "megabytes": {
       "label": "Megabytes",
       "format": "number",
       "decimals": 1,
-      "color": "rgb(54, 162, 235)"
+      "color": "rgb(54, 162, 235)",
+      "suffix": "MB"
     },
     "seconds": {
-      "label": "Seconds",
-      "format": "number",
+      "label": "Duration",
+      "format": "duration",
       "decimals": 0,
-      "color": "rgb(255, 159, 64)"
+      "color": "rgb(255, 159, 64)",
+      "suffix": ""
+    },
+    "text": {
+      "label": "Text",
+      "format": "text",
+      "decimals": 0,
+      "color": "rgb(75, 85, 99)",
+      "suffix": ""
     }
   }
 }

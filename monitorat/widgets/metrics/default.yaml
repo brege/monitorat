@@ -42,12 +42,11 @@ widgets:
       enabled: true
       quantities:
         - uptime_seconds
-        - cpu_percent
-        - memory_percent
-        - load_1min
+        - load_summary
+        - memory_usage
         - temp_c
-        - disk_percent
-        - storage_percent
+        - disk_usage
+        - storage_usage
       # - battery_percent
       storage:
         mounts: []  # optional: paths to monitor

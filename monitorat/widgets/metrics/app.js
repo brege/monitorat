@@ -24,7 +24,7 @@ class MetricsWidget {
     this.currentView = null;
     this.entries = [];
     this.transformedEntries = [];
-    this.selectedMetric = 'cpu_percent';
+    this.selectedMetric = null;
     this.selectedPeriod = 'all';
     this.selectedNode = 'all';
     this.schema = null;
@@ -40,6 +40,18 @@ class MetricsWidget {
     if (this.schema) return;
     const response = await fetch(`api/${this.apiPrefix}/schema`);
     this.schema = await response.json();
+    if (!Array.isArray(this.schema.quantities)) {
+      this.schema.quantities = [];
+    }
+    if (!this.schema.units || typeof this.schema.units !== 'object') {
+      this.schema.units = {};
+    }
+    if (!Array.isArray(this.schema.metrics)) {
+      this.schema.metrics = [];
+    }
+    if (!Array.isArray(this.schema.computed)) {
+      this.schema.computed = [];
+    }
     this.metricFields = this.resolveMetricFields();
   }
 
@@ -70,19 +82,25 @@ class MetricsWidget {
   }
 
   resolveMetricFields() {
-    const allMetrics = [
-      ...(this.schema?.metrics || []),
-      ...(this.schema?.computed || []).flatMap((group) => group.fields),
-    ];
-    const enabled = this.config?.enabled;
-    if (Array.isArray(enabled) && enabled.length > 0) {
-      return allMetrics.filter((metric) => {
-        if (enabled.includes(metric.field)) return true;
-        if (metric.source && enabled.includes(metric.source)) return true;
-        return false;
-      });
-    }
-    return allMetrics;
+    const unitSpecs = this.schema?.units || {};
+    const quantities = this.schema?.quantities || [];
+    const historyKeys = this.config?.history?.columns;
+    const filteredQuantities =
+      Array.isArray(historyKeys) && historyKeys.length
+        ? quantities.filter((quantity) => historyKeys.includes(quantity.key))
+        : quantities;
+
+    return filteredQuantities.map((quantity) => {
+      const unitSpec = unitSpecs[quantity.unit] || {};
+      return {
+        field: quantity.key,
+        label: quantity.label,
+        unit: unitSpec.suffix ?? '',
+        format: unitSpec.format,
+        decimals: unitSpec.decimals,
+        color: unitSpec.color,
+      };
+    });
   }
 
   async init(container, config = {}) {
@@ -137,27 +155,10 @@ class MetricsWidget {
 
     if (metricSelect) {
       metricSelect.innerHTML = '';
-      const allowedFields = new Set(
-        this.metricFields.map((metric) => metric.field),
-      );
-
-      const allowedMetrics = (this.schema.metrics || []).filter((metric) =>
-        allowedFields.has(metric.field),
-      );
-      const allowedComputed = (this.schema.computed || []).filter((group) =>
-        group.fields.some((field) => allowedFields.has(field.field)),
-      );
-
-      for (const metric of allowedMetrics) {
+      for (const metric of this.metricFields) {
         const option = document.createElement('option');
         option.value = metric.field;
         option.textContent = metric.label;
-        metricSelect.appendChild(option);
-      }
-      for (const group of allowedComputed) {
-        const option = document.createElement('option');
-        option.value = group.group;
-        option.textContent = group.label;
         metricSelect.appendChild(option);
       }
       metricSelect.value = this.selectedMetric;

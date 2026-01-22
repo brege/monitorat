@@ -35,6 +35,15 @@ class MetricContext:
             return cached
         return self._cache_value("memory_percent", psutil.virtual_memory().percent)
 
+    def get_memory_usage(self) -> Optional[Tuple[int, int, float]]:
+        cached = self._get_cached("memory_usage")
+        if cached is not None:
+            return cached
+        memory = psutil.virtual_memory()
+        return self._cache_value(
+            "memory_usage", (memory.used, memory.total, memory.percent)
+        )
+
     def get_disk_io(self):
         cached = self._get_cached("disk_io")
         if cached is not None:
@@ -98,18 +107,15 @@ class MetricContext:
         cached = self._get_cached("disk_percent")
         if cached is not None:
             return cached
-        return self._cache_value("disk_percent", psutil.disk_usage("/").percent)
+        usage = self.get_disk_usage()
+        return self._cache_value("disk_percent", usage[2] if usage else None)
 
     def get_storage_percent(self) -> Optional[float]:
         cached = self._get_cached("storage_percent")
         if cached is not None:
             return cached
-        for path in self.storage_mounts:
-            if not os.path.exists(path):
-                continue
-            usage = psutil.disk_usage(path)
-            return self._cache_value("storage_percent", usage.percent)
-        return self._cache_value("storage_percent", None)
+        usage = self.get_storage_usage()
+        return self._cache_value("storage_percent", usage[2] if usage else None)
 
     def get_uptime_seconds(self) -> Optional[float]:
         cached = self._get_cached("uptime_seconds")
@@ -123,14 +129,39 @@ class MetricContext:
         except (OSError, ValueError, IndexError):
             return self._cache_value("uptime_seconds", None)
 
+    def get_disk_usage(self) -> Optional[Tuple[int, int, float]]:
+        cached = self._get_cached("disk_usage")
+        if cached is not None:
+            return cached
+        usage = psutil.disk_usage("/")
+        return self._cache_value("disk_usage", (usage.used, usage.total, usage.percent))
+
+    def get_storage_usage(self) -> Optional[Tuple[int, int, float]]:
+        cached = self._get_cached("storage_usage")
+        if cached is not None:
+            return cached
+        for path in self.storage_mounts:
+            if not os.path.exists(path):
+                continue
+            usage = psutil.disk_usage(path)
+            return self._cache_value(
+                "storage_usage", (usage.used, usage.total, usage.percent)
+            )
+        return self._cache_value("storage_usage", None)
+
+
+MetricValueType = Optional[float | str]
+
 
 @dataclass(frozen=True)
 class MetricQuantity:
     key: str
     label: str
     unit: str
-    collect: Callable[[MetricContext], Optional[float]]
-    csv_value: Callable[[Optional[float]], Optional[float]] = identity_value
+    collect: Callable[[MetricContext], MetricValueType]
+    title: Optional[str] = None
+    status_key: Optional[str] = None
+    csv_value: Callable[[MetricValueType], Optional[float]] = identity_value
 
 
 @dataclass(frozen=True)
@@ -138,7 +169,7 @@ class MetricValue:
     key: str
     label: str
     unit: str
-    value: Optional[float]
+    value: MetricValueType
 
 
 class MetricRegistry:
@@ -157,6 +188,8 @@ class MetricRegistry:
                 "key": quantity.key,
                 "label": quantity.label,
                 "unit": quantity.unit,
+                "title": quantity.title or quantity.label,
+                "status_key": quantity.status_key or quantity.key,
             }
             for quantity in self._quantities.values()
         ]
@@ -196,30 +229,71 @@ def bytes_to_megabytes(value: Optional[int]) -> Optional[float]:
     return value / (1024**2)
 
 
+def format_gigabytes(value: Optional[int]) -> Optional[str]:
+    if value is None:
+        return None
+    return f"{value / (1024**3):.1f}GB"
+
+
+def format_terabytes(value: Optional[int]) -> Optional[str]:
+    if value is None:
+        return None
+    return f"{value / (1024**4):.1f}TB"
+
+
 def get_core_quantities() -> List[MetricQuantity]:
     return [
         MetricQuantity(
             key="uptime_seconds",
             label="Uptime",
             unit="seconds",
+            title="Uptime",
             collect=lambda context: context.get_uptime_seconds(),
+        ),
+        MetricQuantity(
+            key="load_summary",
+            label="Load Average",
+            unit="text",
+            title="Load Average",
+            status_key="load_1min",
+            collect=lambda context: (
+                " ".join(f"{value:.2f}" for value in context.get_load_averages())
+                if context.get_load_averages()
+                else None
+            ),
+        ),
+        MetricQuantity(
+            key="memory_usage",
+            label="Memory Usage",
+            unit="text",
+            title="Memory Usage",
+            status_key="memory_percent",
+            collect=lambda context: (
+                None
+                if not context.get_memory_usage()
+                else f"{format_gigabytes(context.get_memory_usage()[0])} / "
+                f"{format_gigabytes(context.get_memory_usage()[1])}"
+            ),
         ),
         MetricQuantity(
             key="cpu_percent",
             label="CPU %",
             unit="percent",
+            title="CPU %",
             collect=lambda context: context.get_cpu_percent(),
         ),
         MetricQuantity(
             key="memory_percent",
             label="Memory %",
             unit="percent",
+            title="Memory Usage",
             collect=lambda context: context.get_memory_percent(),
         ),
         MetricQuantity(
             key="disk_read_mb",
             label="Disk Read",
             unit="megabytes",
+            title="Disk Read",
             collect=lambda context: bytes_to_megabytes(
                 context.get_disk_io().read_bytes if context.get_disk_io() else None
             ),
@@ -228,6 +302,7 @@ def get_core_quantities() -> List[MetricQuantity]:
             key="disk_write_mb",
             label="Disk Write",
             unit="megabytes",
+            title="Disk Write",
             collect=lambda context: bytes_to_megabytes(
                 context.get_disk_io().write_bytes if context.get_disk_io() else None
             ),
@@ -236,6 +311,7 @@ def get_core_quantities() -> List[MetricQuantity]:
             key="net_rx_mb",
             label="Network RX",
             unit="megabytes",
+            title="Network RX",
             collect=lambda context: bytes_to_megabytes(
                 context.get_network_io().bytes_recv
                 if context.get_network_io()
@@ -246,6 +322,7 @@ def get_core_quantities() -> List[MetricQuantity]:
             key="net_tx_mb",
             label="Network TX",
             unit="megabytes",
+            title="Network TX",
             collect=lambda context: bytes_to_megabytes(
                 context.get_network_io().bytes_sent
                 if context.get_network_io()
@@ -256,6 +333,7 @@ def get_core_quantities() -> List[MetricQuantity]:
             key="load_1min",
             label="Load (1m)",
             unit="load",
+            title="Load Average",
             collect=lambda context: (
                 context.get_load_averages()[0] if context.get_load_averages() else None
             ),
@@ -264,25 +342,57 @@ def get_core_quantities() -> List[MetricQuantity]:
             key="temp_c",
             label="Temperature",
             unit="celsius",
+            title="Temperature",
             collect=lambda context: context.get_temperature_c(),
         ),
         MetricQuantity(
             key="battery_percent",
             label="Battery %",
             unit="percent",
+            title="Battery",
             collect=lambda context: context.get_battery_percent(),
         ),
         MetricQuantity(
             key="disk_percent",
             label="Disk %",
             unit="percent",
+            title="Disk Usage",
             collect=lambda context: context.get_disk_percent(),
         ),
         MetricQuantity(
             key="storage_percent",
             label="Storage %",
             unit="percent",
+            title="Storage Usage",
             collect=lambda context: context.get_storage_percent(),
+        ),
+        MetricQuantity(
+            key="disk_usage",
+            label="Disk Usage",
+            unit="text",
+            title="Disk Usage",
+            status_key="disk_percent",
+            collect=lambda context: (
+                None
+                if not context.get_disk_usage()
+                else f"{format_gigabytes(context.get_disk_usage()[0])} / "
+                f"{format_gigabytes(context.get_disk_usage()[1])} "
+                f"({context.get_disk_usage()[2]:.0f}%)"
+            ),
+        ),
+        MetricQuantity(
+            key="storage_usage",
+            label="Storage Usage",
+            unit="text",
+            title="NFS Storage",
+            status_key="storage_percent",
+            collect=lambda context: (
+                None
+                if not context.get_storage_usage()
+                else f"{format_terabytes(context.get_storage_usage()[0])} / "
+                f"{format_terabytes(context.get_storage_usage()[1])} "
+                f"({context.get_storage_usage()[2]:.0f}%)"
+            ),
         ),
     ]
 
