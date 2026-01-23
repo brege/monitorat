@@ -342,7 +342,7 @@ def get_reminder_status():
         expiry_days = parse_duration_days(
             reminder_config.get("expiry", reminder_config.get("expiry_days", 90)),
             "expiry_days",
-            allow_zero=False,
+            allow_zero=True,
         )
 
         if days_since is None:
