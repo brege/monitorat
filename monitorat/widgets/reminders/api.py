@@ -448,6 +448,28 @@ def send_test_notification(priority=0):
     return notification_handler.send_test_notification(priority, "monitorat reminder")
 
 
+def send_test_notification_detailed(priority=0):
+    """Send test notification and return detailed results per service
+
+    Args:
+        priority (int): Priority level (-1=low, 0=normal, 1=high)
+
+    Returns:
+        list: List of dicts with 'service' and 'success' keys
+    """
+    if is_demo_enabled():
+        return []
+    apprise_urls = _get_apprise_urls()
+    if not apprise_urls:
+        return []
+
+    notification_handler = NotificationHandler(apprise_urls)
+
+    return notification_handler.send_test_notification_detailed(
+        priority, "monitorat reminder"
+    )
+
+
 def scheduled_notification_check():
     """Function called by the scheduler"""
     if is_demo_enabled():
@@ -554,9 +576,11 @@ def register_routes(app):
         from flask import jsonify
 
         if is_demo_enabled():
-            return jsonify({"error": "reminders disabled in demo mode"}), 403
-        result = send_test_notification()
-        return jsonify({"success": result})
+            return jsonify({"demo_mode": True, "results": []}), 200
+        results = send_test_notification_detailed()
+        if not results:
+            return jsonify({"demo_mode": False, "results": [], "error": "no_urls"}), 200
+        return jsonify({"demo_mode": False, "results": results})
 
     @app.route("/api/reminders/schema", methods=["GET"])
     def api_reminders_schema():

@@ -5,17 +5,15 @@ site:
   name: monitor@
   title: System Monitor
   base_url: http://localhost:6161
-  theme: default # default | formal
+  theme: default    # default | formal
   editing: false
-# all paths relative to monitorat config dir (~/.config/monitorat/)
-# absolute paths also supported
-paths:
+paths:              # all paths relative to config home (e.g. ~/.config/monitorat/) or absolute
   data: data/
   img: img/
   favicon: favicon.ico
   vendors: vendors/
   widgets: [widgets/]
-  theme: null  # your themes/minimal.css. applies on top of site.theme
+  theme: null       # your themes/my-theme.css applies on top of site.theme
 notifications:
   apprise_urls: []
   interval: 300
@@ -27,11 +25,11 @@ federation:
   remotes: []
 demo: false
 widgets:
-  columns: 1  # default layout: 1 = stacked, 2+ = columnated, auto = responsive
-  enabled:  # provides order and visibility
-    - metrics  # monitorat/widgets/* for available widgets
+  columns: 1        # default layout: 1 = stacked, 2+ = columnated, auto = responsive
+  enabled:          # visibility plus order
+    - metrics
     - speedtest
     - wiki
-privacy:  # toggle, for screenshots
+privacy:            # when sharing screenshots or 'monitorat config'
   mask_ips: true
   replacements: {}  # { my-site.com: example.com ; ... }

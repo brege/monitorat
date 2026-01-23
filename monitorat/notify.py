@@ -120,6 +120,62 @@ class NotificationHandler:
         self.logger.info(f"Sending test notification from {service_name}")
         return self.send_notification(title, body, priority)
 
+    def send_test_notification_detailed(self, priority=0, service_name="monitorat"):
+        """Send test notification and return detailed results per service
+
+        Args:
+            priority (int): Priority level (-1=low, 0=normal, 1=high)
+            service_name (str): Name of service sending the test
+
+        Returns:
+            list: List of dicts with 'service' and 'success' keys for each apprise URL
+        """
+        if not self.apprise_urls:
+            self.logger.warning(
+                "No apprise URLs configured, test notification not sent"
+            )
+            return []
+
+        priority_names = {-1: "Low", 0: "Normal", 1: "High"}
+        priority_name = priority_names.get(priority, "Unknown")
+
+        title = f"{service_name} Test ({priority_name} Priority)"
+        body = f"Test notification from {service_name} with {priority_name.lower()} priority level"
+
+        results = []
+        apobj = Apprise()
+
+        for url in self.apprise_urls:
+            priority_url = self.add_priority_to_url(url, priority)
+            apobj.add(priority_url)
+
+        if len(apobj) == 0:
+            self.logger.error("Failed to add any notification services")
+            return []
+
+        for server in apobj.servers:
+            service_name = getattr(server, "service_name", None)
+            if not service_name:
+                service_name = type(server).__name__.replace("Notify", "").lower()
+
+            try:
+                result = server.notify(
+                    body=body,
+                    title=title,
+                    notify_type=apprise_common.NotifyType.INFO,
+                )
+                success = bool(result)
+                results.append({"service": service_name, "success": success})
+                if success:
+                    self.logger.info(f"Test notification sent to {service_name}")
+                else:
+                    self.logger.error(f"Test notification failed for {service_name}")
+            except Exception as exc:
+                self.logger.error(f"Test notification error for {service_name}: {exc}")
+                results.append({"service": service_name, "success": False})
+
+        return results
+
     def _notify_sequential(self, apobj, title, body):
         if len(apobj.servers) == 0:
             return False
@@ -244,7 +300,9 @@ def format_range_label(first_ts: str, last_ts: str) -> str:
         return f"{first_ts} to {last_ts}"
     if start == end:
         return start.strftime("%Y-%m-%d %H:%M:%S")
-    return f"{start.strftime('%Y-%m-%d %H:%M:%S')} to {end.strftime('%Y-%m-%d %H:%M:%S')}"
+    return (
+        f"{start.strftime('%Y-%m-%d %H:%M:%S')} to {end.strftime('%Y-%m-%d %H:%M:%S')}"
+    )
 
 
 def build_pending_notification(pending: PendingNotification) -> tuple[str, str]:
@@ -254,7 +312,9 @@ def build_pending_notification(pending: PendingNotification) -> tuple[str, str]:
         lines.append(pending.message)
     if pending.count > 1:
         lines.append(f"Count: {pending.count}")
-    lines.append(f"Range: {format_range_label(pending.first_timestamp, pending.last_timestamp)}")
+    lines.append(
+        f"Range: {format_range_label(pending.first_timestamp, pending.last_timestamp)}"
+    )
     if pending.source:
         lines.append(f"Source: {pending.source}")
     if pending.details:
@@ -292,7 +352,6 @@ class NotificationQueue:
     def add(self, event):
         widget_cfg = get_widget_notify_config(event)
         queue_enabled = bool(widget_cfg.get("queue", True))
-        queue_window = get_notification_interval()
 
         key = (event.widget, event.type, event.key, event.source)
         now_epoch = time.time()
@@ -345,7 +404,7 @@ class NotificationQueue:
             for key, pending in list(self._pending.items()):
                 if pending.event_type == "outage" and pending.open:
                     continue
-                if now_epoch - pending.last_seen_epoch >= queue_window:
+                if now_epoch - pending.last_seen_epoch >= get_notification_interval():
                     to_send.append((key, pending))
 
         for key, pending in to_send:

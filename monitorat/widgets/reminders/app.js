@@ -371,24 +371,6 @@ class RemindersWidget {
   }
 }
 
-// Test notification function (global)
-async function testNotification() {
-  try {
-    const response = await fetch('api/reminders/test-notification', {
-      method: 'POST',
-    });
-    const result = await response.json();
-    if (result.success) {
-      alert('Test notification sent!');
-    } else {
-      alert('Failed to send test notification');
-    }
-  } catch {
-    alert('Error sending test notification');
-  }
-}
-window.testNotification = testNotification;
-
 // Register widget
 window.widgets = window.widgets || {};
 window.widgets.reminders = RemindersWidget;
