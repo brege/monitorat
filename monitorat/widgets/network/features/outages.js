@@ -16,6 +16,7 @@ class NetworkOutages {
     };
     this.events = [];
     this.loading = false;
+    this.hasLoaded = false;
   }
 
   async fetchEvents() {
@@ -48,6 +49,7 @@ class NetworkOutages {
         return true;
       })
       .sort((a, b) => this.getAlertTime(b) - this.getAlertTime(a));
+    this.hasLoaded = true;
   }
 
   buildEventsUrl(source) {
@@ -100,7 +102,7 @@ class NetworkOutages {
     const list = elements.alertList;
     const toggle = elements.alertToggle;
 
-    if (!this.loading) {
+    if (!this.loading && !this.hasLoaded) {
       this.loading = true;
       await this.fetchEvents();
       this.loading = false;
@@ -153,9 +155,9 @@ class NetworkOutages {
       typeSelect.className = 'alerts-toggle';
       typeSelect.innerHTML = `
         <option value="all">All Events</option>
-        <option value="outage">Missed Checks</option>
+        <option value="outage">Missing</option>
         <option value="ipchange">IP Changes</option>
-        <option value="failure">Connection Failures</option>
+        <option value="failure">Connection Failed</option>
       `;
       typeSelect.value = this.filters.type;
       typeSelect.addEventListener('change', () => {
@@ -234,9 +236,9 @@ class NetworkOutages {
 
     if (alert.type === 'ipchange') {
       const strong = document.createElement('strong');
-      strong.textContent = 'IP changed';
+      strong.textContent = 'IP address changed';
       const detail = document.createElement('span');
-      detail.textContent = ` from ${alert.oldIp} to ${alert.newIp} at ${helpers.formatDateTime(alert.timestamp)}`;
+      detail.textContent = `${alert.oldIp} to ${alert.newIp} at ${helpers.formatDateTime(alert.timestamp)}`;
       return Alerts.createCard({
         classes: ['alert', 'ipchange'],
         badge,
@@ -246,9 +248,9 @@ class NetworkOutages {
 
     if (alert.type === 'failure') {
       const strong = document.createElement('strong');
-      strong.textContent = 'Connection failure';
+      strong.textContent = 'Connection failed';
       const detail = document.createElement('span');
-      detail.textContent = ` at ${helpers.formatDateTime(alert.timestamp)} (${alert.message})`;
+      detail.textContent = `${alert.message} at ${helpers.formatDateTime(alert.timestamp)}`;
       return Alerts.createCard({
         classes: ['alert', 'failure'],
         badge,
@@ -263,11 +265,10 @@ class NetworkOutages {
         ? alert.missedChecks * intervalMs
         : alert.end.getTime() - alert.start.getTime();
     const duration = helpers.formatDuration(durationMs);
-    const countLabel = alert.missedChecks === 1 ? 'check' : 'checks';
     const strong = document.createElement('strong');
-    strong.textContent = `${alert.missedChecks} ${countLabel} missed`;
+    strong.textContent = `${alert.missedChecks} missing - logger not running`;
     const detail = document.createElement('span');
-    detail.textContent = ` from ${helpers.formatDateTime(alert.start)} to ${endLabel} (${duration})`;
+    detail.textContent = `${helpers.formatDateTime(alert.start)} to ${endLabel} (${duration})`;
     return Alerts.createCard({
       classes: ['alert', alert.open ? 'open' : ''],
       badge,

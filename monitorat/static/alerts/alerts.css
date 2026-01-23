@@ -9,6 +9,10 @@
   margin-bottom: 8px;
 }
 
+.alert-card strong + span {
+  margin-left: 0.35em;
+}
+
 .alert-list {
   display: flex;
   flex-direction: column;

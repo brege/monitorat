@@ -211,6 +211,8 @@ def register_routes(app):
                     event["details"] = details
                 events.append(event)
             events.sort(key=lambda e: e.get("timestamp", ""), reverse=True)
+            if limit <= 0:
+                return jsonify({"events": events})
             return jsonify({"events": events[:limit]})
 
         try:
@@ -270,7 +272,7 @@ def register_routes(app):
             )
         return jsonify(
             {
-                "loggedChecks": len(result.entries),
+                "loggedChecks": result.observed_checks,
                 "uptimeValue": result.uptime_value,
                 "uptimeText": result.uptime_text,
                 "missedChecks": result.missed_checks,

@@ -488,6 +488,16 @@ def run_demo_mode(data_dir: Path) -> None:
     now_value = datetime.now(timezone.utc)
     generate_network_log(data_dir / "network.log", now_value)
     generate_speedtest_csv(data_dir / "speedtest.csv", now_value)
+    generate_network_events(data_dir / "network.log", data_dir)
+
+
+def generate_network_events(log_path: Path, data_dir: Path) -> None:
+    from monitorat.observer import Observer
+    from monitorat.widgets.network.events import process_network_log_from_path
+
+    observer = Observer(data_path=data_dir)
+    process_network_log_from_path(observer, log_path, "local")
+    print(f"  Generated {data_dir / 'events.jsonl'}")
 
 
 def run_test_mode(fixtures_dir: Path, node: str | None, hours: int) -> None:

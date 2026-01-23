@@ -199,7 +199,7 @@ class NetworkWidget {
   }
 
   async loadSingleUptime() {
-    setText(this.elements.logStatus, 'Loading uptime data…');
+    setText(this.elements.logStatus, 'Loading update data…');
 
     try {
       const response = await fetch(
@@ -221,16 +221,16 @@ class NetworkWidget {
       if (data.expectedChecks > 0) {
         setText(
           this.elements.logStatus,
-          `${data.expectedChecks.toLocaleString()} expected checks.`,
+          `${data.expectedChecks.toLocaleString()} expected.`,
         );
       } else {
-        setText(this.elements.logStatus, 'No uptime data available.');
+        setText(this.elements.logStatus, 'No update data available.');
       }
     } catch (error) {
-      console.error('Network uptime API call failed:', error);
+      console.error('Network update API call failed:', error);
       setText(
         this.elements.logStatus,
-        `Unable to load uptime: ${error.message}`,
+        `Unable to load update data: ${error.message}`,
       );
       this.state.uptime = this.emptyUptimeState();
       this.state.alertsExpanded = false;
@@ -239,7 +239,7 @@ class NetworkWidget {
   }
 
   async loadMergedUptime(sources) {
-    setText(this.elements.logStatus, 'Loading uptime data…');
+    setText(this.elements.logStatus, 'Loading update data…');
 
     this.state.sources = sources;
     this.state.sourceStates = {};
@@ -253,14 +253,17 @@ class NetworkWidget {
           );
           if (!response.ok) {
             console.warn(
-              `Failed to fetch uptime from ${source}: HTTP ${response.status}`,
+              `Failed to fetch update data from ${source}: HTTP ${response.status}`,
             );
             return { source, uptime: null, error: `HTTP ${response.status}` };
           }
           const data = await response.json();
           return { source, uptime: this.convertUptimeData(data), error: null };
         } catch (error) {
-          console.warn(`Failed to fetch uptime from ${source}:`, error.message);
+          console.warn(
+            `Failed to fetch update data from ${source}:`,
+            error.message,
+          );
           return { source, uptime: null, error: error.message };
         }
       }),
@@ -280,7 +283,7 @@ class NetworkWidget {
 
     setText(
       this.elements.logStatus,
-      `Loaded uptime from ${sources.length} sources.`,
+      `Loaded update data from ${sources.length} sources.`,
     );
   }
 
@@ -299,6 +302,7 @@ class NetworkWidget {
         observed: ws.observed,
         expected: ws.expected,
         missed: ws.missed,
+        failed: ws.failed ?? 0,
         uptime: ws.uptime,
         coverage: ws.coverage,
         segments: (ws.segments || []).map((s) => ({
@@ -468,22 +472,22 @@ function buildSegmentTooltip(windowLabel, segment, expectedIntervalMs) {
     if (segment.available === 0) {
       lines.push('Period has not started yet.');
     } else {
-      lines.push('No log data for this period.');
+      lines.push('No data for this period.');
     }
   } else {
     lines.push(
-      `${formatNumber(segment.observed)} / ${formatNumber(segment.expected)} checks (${formatPercent(segment.uptime)})`,
+      `${formatNumber(segment.observed)} / ${formatNumber(segment.expected)} observed (${formatPercent(segment.uptime)})`,
     );
     if (segment.missed) {
       lines.push(
-        `${segment.missed} missed (~${formatDuration(segment.missed * expectedIntervalMs)})`,
+        `${segment.missed} missing (~${formatDuration(segment.missed * expectedIntervalMs)})`,
       );
     } else {
-      lines.push('No missed checks.');
+      lines.push('0 missing.');
     }
     if (segment.coverage < 0.98) {
       lines.push(
-        `${Math.round(segment.coverage * 100)}% coverage (partial log range)`,
+        `${Math.round(segment.coverage * 100)}% coverage (partial range)`,
       );
     }
   }

@@ -14,7 +14,7 @@ class NetworkUptime {
     if (!stats.length) {
       const info = document.createElement('p');
       info.className = 'muted';
-      info.textContent = 'No log data available yet.';
+      info.textContent = 'No update data available yet.';
       container.replaceChildren(info);
       this.widget.uptimeCache.rows.clear();
       return;
@@ -147,22 +147,16 @@ class NetworkUptime {
     }
 
     const counts = document.createElement('span');
-    counts.textContent = `${this.widget.helpers.formatNumber(stat.observed)} of ${this.widget.helpers.formatNumber(stat.expected)} checks`;
+    counts.textContent = `${this.widget.helpers.formatNumber(stat.observed)} of ${this.widget.helpers.formatNumber(stat.expected)} observed`;
     meta.appendChild(counts);
 
     const misses = document.createElement('span');
-    if (stat.missed) {
-      misses.textContent = `${this.widget.helpers.formatNumber(stat.missed)} missed (${this.widget.helpers.formatDuration(stat.missed * this.widget.expectedIntervalMs)})`;
-    } else {
-      misses.textContent = 'No missed checks';
-    }
+    misses.textContent = `${this.widget.helpers.formatNumber(stat.missed)} missing (${this.widget.helpers.formatDuration(stat.missed * this.widget.expectedIntervalMs)})`;
     meta.appendChild(misses);
 
-    if (stat.coverage < 0.98) {
-      const coverage = document.createElement('span');
-      coverage.textContent = `${Math.round(stat.coverage * 100)}% coverage`;
-      meta.appendChild(coverage);
-    }
+    const failures = document.createElement('span');
+    failures.textContent = `${this.widget.helpers.formatNumber(stat.failed)} failed`;
+    meta.appendChild(failures);
   }
 }
 

@@ -7,6 +7,7 @@
 network.log
 speedtest.csv
 monitor.log
+events.jsonl
 editor/data/*
 editor/img/*
 editor/snippets/*

@@ -131,6 +131,7 @@ class WindowStats:
     observed: int
     expected: int
     missed: int
+    failed: int
     uptime: Optional[float]
     coverage: float
 
@@ -139,6 +140,7 @@ class WindowStats:
 class AnalysisResult:
     entries: list
     alerts: list
+    observed_checks: int
     missed_checks: int
     expected_checks: int
     uptime_value: Optional[float]
@@ -148,7 +150,12 @@ class AnalysisResult:
     window_stats: list
 
 
-_cache = {"hash": None, "entries": None, "slots": None}
+_cache = {
+    "hash": None,
+    "entries": None,
+    "success_slots": None,
+    "failure_slots": None,
+}
 _analysis_cache = {"key": None, "result": None}
 
 
@@ -240,32 +247,40 @@ def compute_hash(text: str) -> str:
     return hashlib.md5(text.encode()).hexdigest()
 
 
-def get_cached_entries(text: str) -> tuple[list[LogEntry], list[int]]:
+def build_slot_sets(
+    entries: list[LogEntry], interval_ms: int
+) -> tuple[list[int], list[int]]:
+    success_slots = set()
+    failure_slots = set()
+
+    for entry in entries:
+        slot = round(entry.timestamp.timestamp() * 1000 / interval_ms)
+        if entry.failure:
+            failure_slots.add(slot)
+        else:
+            success_slots.add(slot)
+
+    failure_slots = sorted(failure_slots)
+    success_slots = sorted(slot for slot in success_slots if slot not in failure_slots)
+    return success_slots, failure_slots
+
+
+def get_cached_entries(text: str) -> tuple[list[LogEntry], list[int], list[int]]:
     """Parse log with caching based on content hash."""
     text_hash = compute_hash(text)
     if _cache["hash"] == text_hash and _cache["entries"] is not None:
-        return _cache["entries"], _cache["slots"]
+        return _cache["entries"], _cache["success_slots"], _cache["failure_slots"]
 
     entries = parse_log(text)
     interval_ms = get_expected_interval() * 1000
-    slots = build_slot_numbers(entries, interval_ms)
+    success_slots, failure_slots = build_slot_sets(entries, interval_ms)
 
     _cache["hash"] = text_hash
     _cache["entries"] = entries
-    _cache["slots"] = slots
+    _cache["success_slots"] = success_slots
+    _cache["failure_slots"] = failure_slots
 
-    return entries, slots
-
-
-def build_slot_numbers(entries: list[LogEntry], interval_ms: int) -> list[int]:
-    slots = []
-    previous = None
-    for entry in entries:
-        slot = round(entry.timestamp.timestamp() * 1000 / interval_ms)
-        if slot != previous:
-            slots.append(slot)
-            previous = slot
-    return slots
+    return entries, success_slots, failure_slots
 
 
 def detect_alerts(
@@ -424,7 +439,8 @@ def format_segment_label(segment_ms: int, start_ms: int, end_ms: int) -> str:
 
 def compute_window_stats(
     entries: list[LogEntry],
-    slots: list[int],
+    success_slots: list[int],
+    failure_slots: list[int],
     alerts: list[Alert],
     periods_config: list,
     interval_seconds: int,
@@ -456,6 +472,7 @@ def compute_window_stats(
                     observed=0,
                     expected=0,
                     missed=0,
+                    failed=0,
                     uptime=None,
                     coverage=0,
                 )
@@ -471,6 +488,7 @@ def compute_window_stats(
         first_start_slot = end_slot - segment_count * segment_slots + 1
 
         segments = []
+        total_failures = 0
         for seg_index in range(segment_count):
             start_slot = first_start_slot + seg_index * segment_slots
             end_slot_seg = start_slot + segment_slots - 1
@@ -487,11 +505,17 @@ def compute_window_stats(
                 else 0
             )
             observed = (
-                count_slots_in_range(slots, effective_start, clamped_end_slot)
+                count_slots_in_range(success_slots, effective_start, clamped_end_slot)
                 if expected > 0
                 else 0
             )
-            missed = max(0, expected - observed)
+            failures = (
+                count_slots_in_range(failure_slots, effective_start, clamped_end_slot)
+                if expected > 0
+                else 0
+            )
+            total_failures += failures
+            missed = max(0, expected - observed - failures)
             uptime = (observed / expected * 100) if expected > 0 else None
             coverage = expected / available if available > 0 else 0
 
@@ -517,7 +541,7 @@ def compute_window_stats(
         total_observed = sum(s.observed for s in segments)
         total_expected = sum(s.expected for s in segments)
         total_available = sum(s.available for s in segments)
-        total_missed = max(0, total_expected - total_observed)
+        total_missed = max(0, total_expected - total_observed - total_failures)
         total_uptime = (
             (total_observed / total_expected * 100) if total_expected > 0 else None
         )
@@ -531,6 +555,7 @@ def compute_window_stats(
                 observed=total_observed,
                 expected=total_expected,
                 missed=total_missed,
+                failed=total_failures,
                 uptime=total_uptime,
                 coverage=total_coverage,
             )
@@ -542,7 +567,7 @@ def compute_window_stats(
 def analyze_log(text: str, now: Optional[datetime] = None) -> AnalysisResult:
     """Full analysis: parse log, detect alerts, compute uptime stats."""
     now = now or datetime.now()
-    entries, slots = get_cached_entries(text)
+    entries, success_slots, failure_slots = get_cached_entries(text)
 
     if not entries:
         periods = get_uptime_periods()
@@ -550,6 +575,7 @@ def analyze_log(text: str, now: Optional[datetime] = None) -> AnalysisResult:
         return AnalysisResult(
             entries=[],
             alerts=[],
+            observed_checks=0,
             missed_checks=0,
             expected_checks=0,
             uptime_value=None,
@@ -562,16 +588,27 @@ def analyze_log(text: str, now: Optional[datetime] = None) -> AnalysisResult:
     interval = get_expected_interval()
     alerts, missed = detect_alerts(entries, interval, now)
 
-    expected_checks = len(entries) + missed
-    uptime_value = (len(entries) / expected_checks * 100) if expected_checks else 100
+    observed_checks = len(success_slots)
+    failed_checks = len(failure_slots)
+    expected_checks = observed_checks + missed + failed_checks
+    uptime_value = (observed_checks / expected_checks * 100) if expected_checks else 100
     uptime_text = f"{uptime_value:.2f}%" if expected_checks else "100%"
 
     periods = get_uptime_periods()
-    window_stats = compute_window_stats(entries, slots, alerts, periods, interval, now)
+    window_stats = compute_window_stats(
+        entries,
+        success_slots,
+        failure_slots,
+        alerts,
+        periods,
+        interval,
+        now,
+    )
 
     return AnalysisResult(
         entries=entries,
         alerts=alerts,
+        observed_checks=observed_checks,
         missed_checks=missed,
         expected_checks=expected_checks,
         uptime_value=uptime_value,
@@ -625,6 +662,7 @@ def serialize_window_stats(stats: WindowStats) -> dict:
         "observed": stats.observed,
         "expected": stats.expected,
         "missed": stats.missed,
+        "failed": stats.failed,
         "uptime": stats.uptime,
         "coverage": stats.coverage,
     }

@@ -20,7 +20,10 @@ try:
 except ImportError:
     from observer import Event, Observer, register_observer_source, get_observer
 
-from monitor import config
+try:
+    from monitorat.monitor import config
+except ImportError:
+    from monitor import config
 from .analysis import (
     get_log_file_path,
     get_expected_interval,
@@ -49,7 +52,7 @@ def alert_to_event(alert: Alert, source: str = "local") -> Event:
             status="detected",
             value=float(alert.missed_checks),
             threshold=None,
-            message=f"{alert.missed_checks} check{'s' if alert.missed_checks != 1 else ''} missed",
+            message=f"{alert.missed_checks} missing",
             source=source,
             details={
                 "start": alert.start.isoformat(),
@@ -178,6 +181,12 @@ def process_network_log(observer: Observer) -> list[Event]:
     if not log_path or not log_path.exists():
         return []
 
+    return process_network_log_from_path(observer, log_path, get_source())
+
+
+def process_network_log_from_path(
+    observer: Observer, log_path, source: str
+) -> list[Event]:
     try:
         with open(log_path, "r", encoding="utf-8") as handle:
             text = handle.read()
@@ -185,7 +194,6 @@ def process_network_log(observer: Observer) -> list[Event]:
         logger.error(f"Failed to read network log: {error}")
         return []
 
-    source = get_source()
     events_path = observer.event_store.path
     all_entries = parse_log(text)
     if not all_entries:

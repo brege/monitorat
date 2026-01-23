@@ -2,6 +2,38 @@ class NetworkSnapshot {
   constructor(widget) {
     this.widget = widget;
     this.tiles = null;
+    this.eventSummary = null;
+    this.loadingSummary = false;
+  }
+
+  async loadEventSummary() {
+    if (this.loadingSummary || this.eventSummary) {
+      return;
+    }
+    this.loadingSummary = true;
+    try {
+      const response = await fetch(
+        `${this.widget.getApiBase()}/events?limit=0`,
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const data = await response.json();
+      const summary = { failures: 0, ipChanges: 0 };
+      for (const event of data.events || []) {
+        if (event.type === 'failure') {
+          summary.failures += 1;
+        } else if (event.type === 'ipchange') {
+          summary.ipChanges += 1;
+        }
+      }
+      this.eventSummary = summary;
+      this.render();
+    } catch (error) {
+      console.warn('Failed to load event summary:', error);
+    } finally {
+      this.loadingSummary = false;
+    }
   }
 
   render() {
@@ -24,10 +56,10 @@ class NetworkSnapshot {
           {
             className: 'stats-row primary',
             tiles: [
-              { key: 'uptime', label: 'Uptime', value: '–' },
-              { key: 'total', label: 'Checks Logged', value: '–' },
-              { key: 'expected', label: 'Checks Expected', value: '–' },
-              { key: 'missed', label: 'Missed Checks', value: '–' },
+              { key: 'uptime', label: 'Availability', value: '–' },
+              { key: 'total', label: 'Observed', value: '–' },
+              { key: 'expected', label: 'Expected', value: '–' },
+              { key: 'missed', label: 'Missing', value: '–' },
             ],
           },
           {
@@ -35,6 +67,8 @@ class NetworkSnapshot {
             tiles: [
               { key: 'first', label: 'First Entry', value: '–' },
               { key: 'last', label: 'Most Recent', value: '–' },
+              { key: 'failures', label: 'Failed', value: '–' },
+              { key: 'ip_changes', label: 'IP Changes', value: '–' },
             ],
           },
         ],
@@ -49,8 +83,14 @@ class NetworkSnapshot {
         missed: '–',
         first: '–',
         last: '–',
+        failures: '–',
+        ip_changes: '–',
       });
       return;
+    }
+
+    if (!this.eventSummary) {
+      this.loadEventSummary();
     }
 
     TileBuilder.updateValues(this.tiles, {
@@ -60,6 +100,8 @@ class NetworkSnapshot {
       missed: helpers.formatNumber(uptime.missedChecks),
       first: helpers.formatDateTime(uptime.firstEntry),
       last: helpers.formatDateTime(uptime.lastEntry),
+      failures: helpers.formatNumber(this.eventSummary?.failures || 0),
+      ip_changes: helpers.formatNumber(this.eventSummary?.ipChanges || 0),
     });
   }
 }

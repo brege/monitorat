@@ -1,6 +1,6 @@
 widgets:
-  network:  # network monitoring and outage tracking
-    name: Network Outages
+  network:  # network monitoring and event tracking
+    name: Network Events
     collapsible: true
     hidden: false
     min_width: 340
@@ -14,9 +14,9 @@ widgets:
       metrics:
         header: "Statistics"
       uptime:
-        header: "Uptime"
+        header: "Availability"
       alerts:
-        header: "Outages"
+        header: "Events"
     metrics:
       show: true
     uptime:
@@ -34,6 +34,6 @@ widgets:
           segment_size: 1 month
     alerts:
       show: true
-      max: 3  # maximum outage alerts to show initially
-      cadence: 0  # minimum outage duration in minutes to show
+      max: 3  # maximum event alerts to show initially
+      cadence: 0  # minimum duration in minutes to show
       cadenceChecks: 0  # computed from cadence for confuse
