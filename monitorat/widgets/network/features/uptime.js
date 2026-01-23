@@ -151,7 +151,7 @@ class NetworkUptime {
     meta.appendChild(counts);
 
     const misses = document.createElement('span');
-    misses.textContent = `${this.widget.helpers.formatNumber(stat.missed)} missing (${this.widget.helpers.formatDuration(stat.missed * this.widget.expectedIntervalMs)})`;
+    misses.textContent = `${this.widget.helpers.formatNumber(stat.missed)} unknown (${this.widget.helpers.formatDuration(stat.missed * this.widget.expectedIntervalMs)})`;
     meta.appendChild(misses);
 
     const failures = document.createElement('span');

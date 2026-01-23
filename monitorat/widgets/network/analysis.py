@@ -516,7 +516,8 @@ def compute_window_stats(
             )
             total_failures += failures
             missed = max(0, expected - observed - failures)
-            uptime = (observed / expected * 100) if expected > 0 else None
+            known = observed + failures
+            uptime = (observed / known * 100) if known > 0 else None
             coverage = expected / available if available > 0 else 0
 
             end_ms_clamped = min(end_ms, (clamped_end_slot + 1) * interval_ms)
@@ -542,9 +543,8 @@ def compute_window_stats(
         total_expected = sum(s.expected for s in segments)
         total_available = sum(s.available for s in segments)
         total_missed = max(0, total_expected - total_observed - total_failures)
-        total_uptime = (
-            (total_observed / total_expected * 100) if total_expected > 0 else None
-        )
+        total_known = total_observed + total_failures
+        total_uptime = (total_observed / total_known * 100) if total_known > 0 else None
         total_coverage = total_expected / total_available if total_available > 0 else 0
 
         results.append(
@@ -591,8 +591,9 @@ def analyze_log(text: str, now: Optional[datetime] = None) -> AnalysisResult:
     observed_checks = len(success_slots)
     failed_checks = len(failure_slots)
     expected_checks = observed_checks + missed + failed_checks
-    uptime_value = (observed_checks / expected_checks * 100) if expected_checks else 100
-    uptime_text = f"{uptime_value:.2f}%" if expected_checks else "100%"
+    known_checks = observed_checks + failed_checks
+    uptime_value = (observed_checks / known_checks * 100) if known_checks else None
+    uptime_text = f"{uptime_value:.2f}%" if known_checks else "–"
 
     periods = get_uptime_periods()
     window_stats = compute_window_stats(

@@ -59,7 +59,7 @@ class NetworkSnapshot {
               { key: 'uptime', label: 'Availability', value: '–' },
               { key: 'total', label: 'Observed', value: '–' },
               { key: 'expected', label: 'Expected', value: '–' },
-              { key: 'missed', label: 'Missing', value: '–' },
+              { key: 'missed', label: 'Unknown', value: '–' },
             ],
           },
           {

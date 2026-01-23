@@ -155,7 +155,7 @@ class NetworkOutages {
       typeSelect.className = 'alerts-toggle';
       typeSelect.innerHTML = `
         <option value="all">All Events</option>
-        <option value="outage">Missing</option>
+        <option value="outage">Unknown</option>
         <option value="ipchange">IP Changes</option>
         <option value="failure">Connection Failed</option>
       `;
@@ -266,11 +266,11 @@ class NetworkOutages {
         : alert.end.getTime() - alert.start.getTime();
     const duration = helpers.formatDuration(durationMs);
     const strong = document.createElement('strong');
-    strong.textContent = `${alert.missedChecks} missing - logger not running`;
+    strong.textContent = `${alert.missedChecks} unknown - logger not running`;
     const detail = document.createElement('span');
     detail.textContent = `${helpers.formatDateTime(alert.start)} to ${endLabel} (${duration})`;
     return Alerts.createCard({
-      classes: ['alert', alert.open ? 'open' : ''],
+      classes: ['alert', 'unknown', alert.open ? 'open' : ''],
       badge,
       content: [strong, detail],
     });

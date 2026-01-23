@@ -221,7 +221,7 @@ class NetworkWidget {
       if (data.expectedChecks > 0) {
         setText(
           this.elements.logStatus,
-          `${data.expectedChecks.toLocaleString()} expected.`,
+          `${data.expectedChecks.toLocaleString()} expected since first entry.`,
         );
       } else {
         setText(this.elements.logStatus, 'No update data available.');
@@ -443,15 +443,15 @@ function formatPercent(value, decimals = 2) {
 }
 
 function applySegmentClasses(element, segment) {
-  element.classList.remove('ok', 'warn', 'bad', 'idle', 'future');
+  element.classList.remove('ok', 'warn', 'bad', 'idle', 'future', 'unknown');
   if (segment.available === 0) {
     element.classList.add('future');
   } else if (!segment.expected) {
     element.classList.add('idle');
   } else if (segment.status === 'systemDown') {
-    element.classList.add('bad');
+    element.classList.add('unknown');
   } else if (segment.status === 'connectionFailure') {
-    element.classList.add('warn');
+    element.classList.add('bad');
   } else {
     element.classList.add('ok');
   }
@@ -480,15 +480,10 @@ function buildSegmentTooltip(windowLabel, segment, expectedIntervalMs) {
     );
     if (segment.missed) {
       lines.push(
-        `${segment.missed} missing (~${formatDuration(segment.missed * expectedIntervalMs)})`,
+        `${segment.missed} unknown (~${formatDuration(segment.missed * expectedIntervalMs)})`,
       );
     } else {
-      lines.push('0 missing.');
-    }
-    if (segment.coverage < 0.98) {
-      lines.push(
-        `${Math.round(segment.coverage * 100)}% coverage (partial range)`,
-      );
+      lines.push('0 unknown.');
     }
   }
 

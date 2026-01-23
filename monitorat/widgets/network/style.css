@@ -29,12 +29,15 @@
   --alert-bg-open: rgba(var(--status-critical-rgb), 0.18);
   --alert-border-open: rgb(var(--status-critical-rgb));
   --alert-color-open: var(--text-heading);
-  --alert-bg-failure: rgba(var(--status-warn-rgb), 0.18);
-  --alert-border-failure: rgb(var(--status-warn-rgb));
+  --alert-bg-failure: rgba(var(--status-critical-rgb), 0.18);
+  --alert-border-failure: rgb(var(--status-critical-rgb));
   --alert-color-failure: var(--text-heading);
-  --alert-bg-ipchange: rgba(var(--status-ok-rgb), 0.18);
-  --alert-border-ipchange: rgb(var(--status-ok-rgb));
+  --alert-bg-ipchange: rgba(var(--accent-rgb, 37, 99, 235), 0.18);
+  --alert-border-ipchange: rgb(var(--accent-rgb, 37, 99, 235));
   --alert-color-ipchange: var(--text-heading);
+  --alert-bg-unknown: rgba(var(--status-unknown-rgb), 0.18);
+  --alert-border-unknown: rgb(var(--status-unknown-rgb));
+  --alert-color-unknown: var(--text-muted);
   --stat-stack-margin: 0;
 }
 .network-container .uptime-overview h2,
@@ -87,6 +90,9 @@
 }
 .network-container .uptime-pill.warn {
   background: rgb(var(--status-warn-rgb));
+}
+.network-container .uptime-pill.unknown {
+  background: var(--uptime-pill-idle);
 }
 .network-container .uptime-pill.bad {
   background: rgb(var(--status-critical-rgb));
@@ -148,6 +154,12 @@
   --alert-border: var(--alert-border-ipchange);
   --alert-color: var(--alert-color-ipchange);
 }
+.network-container .alert.unknown,
+.network-container .alert.unknown.open {
+  --alert-bg: var(--alert-bg-unknown);
+  --alert-border: var(--alert-border-unknown);
+  --alert-color: var(--alert-color-unknown);
+}
 .network-container .hidden {
   display: none !important;
 }
@@ -161,12 +173,15 @@
   --alert-bg-open: rgba(var(--status-critical-rgb), 0.16);
   --alert-border-open: rgb(var(--status-critical-rgb));
   --alert-color-open: var(--text-primary);
-  --alert-bg-failure: rgba(var(--status-warn-rgb), 0.16);
-  --alert-border-failure: rgb(var(--status-warn-rgb));
+  --alert-bg-failure: rgba(var(--status-critical-rgb), 0.16);
+  --alert-border-failure: rgb(var(--status-critical-rgb));
   --alert-color-failure: var(--text-primary);
-  --alert-bg-ipchange: rgba(var(--status-ok-rgb), 0.16);
-  --alert-border-ipchange: rgb(var(--status-ok-rgb));
+  --alert-bg-ipchange: rgba(var(--accent-rgb, 37, 99, 235), 0.16);
+  --alert-border-ipchange: rgb(var(--accent-rgb, 37, 99, 235));
   --alert-color-ipchange: var(--text-primary);
+  --alert-bg-unknown: rgba(var(--status-unknown-rgb), 0.16);
+  --alert-border-unknown: rgb(var(--status-unknown-rgb));
+  --alert-color-unknown: var(--text-primary);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .network-container {
@@ -179,12 +194,15 @@
     --alert-bg-open: rgba(var(--status-critical-rgb), 0.16);
     --alert-border-open: rgb(var(--status-critical-rgb));
     --alert-color-open: var(--text-primary);
-    --alert-bg-failure: rgba(var(--status-warn-rgb), 0.16);
-    --alert-border-failure: rgb(var(--status-warn-rgb));
+    --alert-bg-failure: rgba(var(--status-critical-rgb), 0.16);
+    --alert-border-failure: rgb(var(--status-critical-rgb));
     --alert-color-failure: var(--text-primary);
-    --alert-bg-ipchange: rgba(var(--status-ok-rgb), 0.16);
-    --alert-border-ipchange: rgb(var(--status-ok-rgb));
+    --alert-bg-ipchange: rgba(var(--accent-rgb, 37, 99, 235), 0.16);
+    --alert-border-ipchange: rgb(var(--accent-rgb, 37, 99, 235));
     --alert-color-ipchange: var(--text-primary);
+    --alert-bg-unknown: rgba(var(--status-unknown-rgb), 0.16);
+    --alert-border-unknown: rgb(var(--status-unknown-rgb));
+    --alert-color-unknown: var(--text-primary);
   }
 }
 @media (max-width: 640px) {
