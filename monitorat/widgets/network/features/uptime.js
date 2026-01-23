@@ -10,8 +10,7 @@ class NetworkUptime {
     }
 
     const container = elements.uptimeRows;
-    const analysis = state.analysis;
-    const stats = analysis?.windowStats || [];
+    const stats = state.uptime?.windowStats || [];
     if (!stats.length) {
       const info = document.createElement('p');
       info.className = 'muted';

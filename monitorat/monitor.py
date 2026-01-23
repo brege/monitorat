@@ -24,6 +24,7 @@ try:
     from .alerts import NotificationHandler, setup_alert_handler
     from .auth import require_auth_for_api
     from .federation import federation_client
+    from .observer import start_observer, get_observer
 except ImportError:
     from config import (
         config,
@@ -37,6 +38,7 @@ except ImportError:
     from alerts import NotificationHandler, setup_alert_handler
     from auth import require_auth_for_api
     from federation import federation_client
+    from observer import start_observer, get_observer
 
 __all__ = [
     "config",
@@ -338,6 +340,32 @@ def api_info():
             "themes": themes,
         }
     )
+
+
+@app.route("/api/events", methods=["GET"])
+def api_events():
+    """
+    Fetch events from the observer's event store.
+
+    Query params:
+        widget: Filter by widget name (network, metrics)
+        limit: Max events to return (default 100)
+        since: ISO timestamp; only return events after this time
+    """
+    observer = get_observer()
+    if observer is None:
+        return jsonify({"events": [], "error": "Observer not running"}), 200
+
+    widget = request.args.get("widget")
+    limit = request.args.get("limit", 100, type=int)
+
+    events = observer.event_store.read_all(widget=widget, limit=limit)
+
+    since = request.args.get("since")
+    if since:
+        events = [e for e in events if e.get("timestamp", "") > since]
+
+    return jsonify({"events": events})
 
 
 def append_snapshot(payload: dict) -> None:
@@ -835,6 +863,9 @@ logger.info("Starting monitorat application (demo=%s)", is_demo_enabled())
 if not is_demo_enabled():
     setup_alert_handler()
     logger.info("Alert handler initialized")
+
+    start_observer(data_path=get_data_path())
+    logger.info("Observer daemon started")
 
 register_widgets()
 

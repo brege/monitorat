@@ -10,7 +10,7 @@ class NetworkSnapshot {
       return;
     }
 
-    const analysis = state.analysis;
+    const uptime = state.uptime;
     const TileBuilder =
       window.monitorTiles?.TileBuilder || window.monitorShared?.TileBuilder;
     if (!TileBuilder) {
@@ -41,7 +41,7 @@ class NetworkSnapshot {
       });
     }
 
-    if (!analysis || !analysis.entries.length) {
+    if (!uptime || !uptime.expectedChecks) {
       TileBuilder.updateValues(this.tiles, {
         uptime: '–',
         total: '–',
@@ -54,12 +54,12 @@ class NetworkSnapshot {
     }
 
     TileBuilder.updateValues(this.tiles, {
-      uptime: analysis.uptimeText,
-      total: helpers.formatNumber(analysis.entries.length),
-      expected: helpers.formatNumber(analysis.expectedChecks),
-      missed: helpers.formatNumber(analysis.missedChecks),
-      first: helpers.formatDateTime(analysis.firstEntry),
-      last: helpers.formatDateTime(analysis.lastEntry),
+      uptime: uptime.uptimeText,
+      total: helpers.formatNumber(uptime.loggedChecks || 0),
+      expected: helpers.formatNumber(uptime.expectedChecks),
+      missed: helpers.formatNumber(uptime.missedChecks),
+      first: helpers.formatDateTime(uptime.firstEntry),
+      last: helpers.formatDateTime(uptime.lastEntry),
     });
   }
 }

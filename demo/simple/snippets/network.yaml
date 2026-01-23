@@ -21,10 +21,6 @@ widgets:
           segment_size: 2 hours
         - period: 1 week
           segment_size: 1 day
-        - period: 1 month
-          segment_size: 1 week
-        - period: 1 year
-          segment_size: 1 month
     alerts:
       show: true
       max: 3

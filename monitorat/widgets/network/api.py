@@ -108,6 +108,10 @@ def register_routes(app):
     if not is_demo_enabled():
         start_chirper_daemon()
 
+        from .events import register_network_observer
+
+        register_network_observer()
+
     @app.route("/api/network/log", methods=["GET"])
     def network_log():
         """Serve the network monitoring log file from configured path"""
@@ -149,6 +153,139 @@ def register_routes(app):
         with open(schema_path) as f:
             schema = json.load(f)
         return jsonify(schema)
+
+    @app.route("/api/network/events", methods=["GET"])
+    def api_network_events():
+        """
+        Get network events (alerts).
+
+        For demo mode, generates events on-demand from the log.
+        For live mode, reads from events.jsonl via observer.
+        """
+        from flask import request
+
+        limit = request.args.get("limit", 100, type=int)
+
+        if is_demo_enabled():
+            from .analysis import (
+                analyze_log_file,
+                serialize_alert,
+                get_log_file_path as get_log_path,
+            )
+
+            log_path = get_log_path()
+            if not log_path or not log_path.exists():
+                return jsonify({"events": []})
+
+            try:
+                result = analyze_log_file(log_path)
+            except OSError:
+                return jsonify({"events": []})
+            events = []
+            for alert in result.alerts:
+                payload = serialize_alert(alert)
+                event = {
+                    "timestamp": payload.get("timestamp"),
+                    "widget": "network",
+                    "type": payload.get("type"),
+                    "status": "detected",
+                    "source": "local",
+                }
+                details = {}
+                if payload.get("type") == "outage":
+                    details = {
+                        "start": payload.get("start"),
+                        "end": payload.get("end"),
+                        "missedChecks": payload.get("missedChecks"),
+                        "open": payload.get("open"),
+                    }
+                    event["value"] = payload.get("missedChecks")
+                elif payload.get("type") == "ipchange":
+                    details = {
+                        "oldIp": payload.get("oldIp"),
+                        "newIp": payload.get("newIp"),
+                    }
+                elif payload.get("type") == "failure":
+                    event["message"] = payload.get("message") or "Connection failure"
+                if details:
+                    event["details"] = details
+                events.append(event)
+            events.sort(key=lambda e: e.get("timestamp", ""), reverse=True)
+            return jsonify({"events": events[:limit]})
+
+        try:
+            from monitorat.observer import get_observer
+        except ImportError:
+            from observer import get_observer
+
+        observer = get_observer()
+        if observer is None:
+            return jsonify({"events": [], "error": "Observer not running"})
+
+        events = observer.event_store.read_all(widget="network", limit=limit)
+        events = [event for event in events if event.get("type") != "checkpoint"]
+        return jsonify({"events": events})
+
+    @app.route("/api/network/uptime", methods=["GET"])
+    def api_network_uptime():
+        """
+        Get uptime statistics with segment data for rendering pips.
+
+        Returns windowStats structure with computed segments.
+        """
+        from .analysis import (
+            analyze_log_file,
+            serialize_window_stats,
+            get_log_file_path as get_log_path,
+        )
+
+        log_path = get_log_path()
+        if not log_path or not log_path.exists():
+            return jsonify(
+                {
+                    "loggedChecks": 0,
+                    "uptimeValue": None,
+                    "uptimeText": "–",
+                    "missedChecks": 0,
+                    "expectedChecks": 0,
+                    "firstEntry": None,
+                    "lastEntry": None,
+                    "windowStats": [],
+                }
+            )
+        try:
+            result = analyze_log_file(log_path)
+        except OSError:
+            return jsonify(
+                {
+                    "loggedChecks": 0,
+                    "uptimeValue": None,
+                    "uptimeText": "–",
+                    "missedChecks": 0,
+                    "expectedChecks": 0,
+                    "firstEntry": None,
+                    "lastEntry": None,
+                    "windowStats": [],
+                }
+            )
+        return jsonify(
+            {
+                "loggedChecks": len(result.entries),
+                "uptimeValue": result.uptime_value,
+                "uptimeText": result.uptime_text,
+                "missedChecks": result.missed_checks,
+                "expectedChecks": result.expected_checks,
+                "firstEntry": result.first_entry.isoformat()
+                if result.first_entry
+                else None,
+                "lastEntry": result.last_entry.isoformat()
+                if result.last_entry
+                else None,
+                "windowStats": [
+                    serialize_window_stats(ws) for ws in result.window_stats
+                ],
+            }
+        )
 
 
 _chirper_thread = None

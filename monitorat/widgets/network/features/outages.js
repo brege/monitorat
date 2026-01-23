@@ -1,8 +1,7 @@
-// NetworkOutages: Unified outage renderer
+// NetworkOutages: Event-driven outage renderer
 //
+// Fetches events from /api/network/events instead of client-side log parsing.
 // Handles both single-source and multi-source (federation) cases.
-// Single-source is the trivial case: one source, no badges.
-// Multi-source interleaves alerts from all sources with source badges.
 
 class NetworkOutages {
   constructor(widget) {
@@ -15,9 +14,83 @@ class NetworkOutages {
       typeFilter: null,
       sourceFilter: null,
     };
+    this.events = [];
+    this.loading = false;
   }
 
-  render() {
+  async fetchEvents() {
+    const { config } = this.widget;
+    const sources = this.resolveSources();
+    const allEvents = [];
+
+    for (const source of sources) {
+      try {
+        const url = this.buildEventsUrl(source);
+        const response = await fetch(url);
+        if (!response.ok) continue;
+
+        const data = await response.json();
+        const events = (data.events || []).map((e) =>
+          this.convertEvent(e, source),
+        );
+        allEvents.push(...events);
+      } catch (error) {
+        console.warn(`Failed to fetch events from ${source}:`, error);
+      }
+    }
+
+    const threshold = config.alerts.cadenceChecks || 0;
+    this.events = allEvents
+      .filter((e) => {
+        if (e.type === 'outage' && e.missedChecks < threshold) {
+          return false;
+        }
+        return true;
+      })
+      .sort((a, b) => this.getAlertTime(b) - this.getAlertTime(a));
+  }
+
+  buildEventsUrl(source) {
+    if (source === 'local') {
+      return `${this.widget.getApiBase()}/events?limit=0`;
+    }
+    return `api/network-${source}/events?limit=0`;
+  }
+
+  convertEvent(event, source) {
+    const details = event.details || {};
+    const timestamp = new Date(event.timestamp);
+
+    if (event.type === 'outage') {
+      return {
+        type: 'outage',
+        start: details.start ? new Date(details.start) : timestamp,
+        end: details.end ? new Date(details.end) : timestamp,
+        missedChecks: details.missedChecks || event.value || 0,
+        open: details.open || false,
+        _source: source,
+      };
+    }
+
+    if (event.type === 'ipchange') {
+      return {
+        type: 'ipchange',
+        timestamp,
+        oldIp: details.oldIp || '?',
+        newIp: details.newIp || '?',
+        _source: source,
+      };
+    }
+
+    return {
+      type: 'failure',
+      timestamp,
+      message: event.message || 'Connection failure',
+      _source: source,
+    };
+  }
+
+  async render() {
     const { config, elements, state, helpers } = this.widget;
 
     if (!config.alerts.show || !elements.alertList) {
@@ -25,22 +98,26 @@ class NetworkOutages {
     }
 
     const list = elements.alertList;
-    list.innerHTML = '';
     const toggle = elements.alertToggle;
 
-    const sources = this.resolveSources();
-    const sourceStates = this.resolveSourceStates(sources);
-    const isMultiSource = sources.length > 1;
+    if (!this.loading) {
+      this.loading = true;
+      await this.fetchEvents();
+      this.loading = false;
+    }
 
+    list.innerHTML = '';
+
+    const sources = this.resolveSources();
+    const isMultiSource = sources.length > 1;
     this.renderControls(sources, isMultiSource);
 
-    const allAlerts = this.collectAlerts(sources, sourceStates);
-    const filteredAlerts = this.applyFilters(allAlerts);
+    const filteredAlerts = this.applyFilters(this.events);
 
     if (!filteredAlerts.length) {
       const info = document.createElement('p');
       info.className = 'muted';
-      info.textContent = allAlerts.length
+      info.textContent = this.events.length
         ? 'No events match the current filters.'
         : 'No events detected.';
       list.appendChild(info);
@@ -71,8 +148,6 @@ class NetworkOutages {
       elements.alertList?.parentElement?.querySelector('.alerts-actions');
     if (!actionsContainer) return;
 
-    const controlsContainer = actionsContainer;
-
     if (!this.elements.typeFilter) {
       const typeSelect = document.createElement('select');
       typeSelect.className = 'alerts-toggle';
@@ -88,7 +163,7 @@ class NetworkOutages {
         this.render();
       });
       this.elements.typeFilter = typeSelect;
-      controlsContainer.insertBefore(typeSelect, controlsContainer.firstChild);
+      actionsContainer.insertBefore(typeSelect, actionsContainer.firstChild);
     }
 
     if (isMultiSource && !this.elements.sourceFilter) {
@@ -109,8 +184,8 @@ class NetworkOutages {
       this.elements.sourceFilter = sourceSelect;
       const insertionPoint = this.elements.typeFilter
         ? this.elements.typeFilter.nextSibling
-        : controlsContainer.firstChild;
-      controlsContainer.insertBefore(sourceSelect, insertionPoint);
+        : actionsContainer.firstChild;
+      actionsContainer.insertBefore(sourceSelect, insertionPoint);
     }
 
     if (!isMultiSource && this.elements.sourceFilter) {
@@ -129,49 +204,6 @@ class NetworkOutages {
     }
 
     return ['local'];
-  }
-
-  resolveSourceStates() {
-    const { state } = this.widget;
-
-    if (state.sourceStates) {
-      return state.sourceStates;
-    }
-
-    return {
-      local: {
-        analysis: state.analysis,
-        entries: state.entries,
-        error: null,
-      },
-    };
-  }
-
-  collectAlerts(sources, sourceStates) {
-    const { config } = this.widget;
-    const threshold = config.alerts.cadenceChecks || 0;
-    const allAlerts = [];
-
-    for (const source of sources) {
-      const sourceState = sourceStates[source];
-      const analysis = sourceState?.analysis;
-      if (!analysis?.alerts) continue;
-
-      for (const alert of analysis.alerts) {
-        if (alert.type === 'outage' && alert.missedChecks < threshold) {
-          continue;
-        }
-        allAlerts.push({ ...alert, _source: source });
-      }
-    }
-
-    allAlerts.sort((a, b) => {
-      const aTime = this.getAlertTime(a);
-      const bTime = this.getAlertTime(b);
-      return bTime - aTime;
-    });
-
-    return allAlerts;
   }
 
   getAlertTime(alert) {
@@ -199,6 +231,7 @@ class NetworkOutages {
   createAlertCard(alert, showBadge, helpers) {
     const Alerts = window.monitorShared.Alerts;
     const badge = showBadge ? { text: alert._source } : null;
+
     if (alert.type === 'ipchange') {
       const strong = document.createElement('strong');
       strong.textContent = 'IP changed';
@@ -209,7 +242,9 @@ class NetworkOutages {
         badge,
         content: [strong, detail],
       });
-    } else if (alert.type === 'failure') {
+    }
+
+    if (alert.type === 'failure') {
       const strong = document.createElement('strong');
       strong.textContent = 'Connection failure';
       const detail = document.createElement('span');
@@ -219,22 +254,25 @@ class NetworkOutages {
         badge,
         content: [strong, detail],
       });
-    } else {
-      const endLabel = alert.open ? 'now' : helpers.formatDateTime(alert.end);
-      const duration = helpers.formatDuration(
-        alert.end.getTime() - alert.start.getTime(),
-      );
-      const countLabel = alert.missedChecks === 1 ? 'check' : 'checks';
-      const strong = document.createElement('strong');
-      strong.textContent = `${alert.missedChecks} ${countLabel} missed`;
-      const detail = document.createElement('span');
-      detail.textContent = ` from ${helpers.formatDateTime(alert.start)} to ${endLabel} (${duration})`;
-      return Alerts.createCard({
-        classes: ['alert', alert.open ? 'open' : ''],
-        badge,
-        content: [strong, detail],
-      });
     }
+
+    const endLabel = alert.open ? 'now' : helpers.formatDateTime(alert.end);
+    const intervalMs = this.widget.expectedIntervalMs || 0;
+    const durationMs =
+      intervalMs > 0
+        ? alert.missedChecks * intervalMs
+        : alert.end.getTime() - alert.start.getTime();
+    const duration = helpers.formatDuration(durationMs);
+    const countLabel = alert.missedChecks === 1 ? 'check' : 'checks';
+    const strong = document.createElement('strong');
+    strong.textContent = `${alert.missedChecks} ${countLabel} missed`;
+    const detail = document.createElement('span');
+    detail.textContent = ` from ${helpers.formatDateTime(alert.start)} to ${endLabel} (${duration})`;
+    return Alerts.createCard({
+      classes: ['alert', alert.open ? 'open' : ''],
+      badge,
+      content: [strong, detail],
+    });
   }
 
   updateToggle(toggle, totalCount, maxVisible, expanded) {
