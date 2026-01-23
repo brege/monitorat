@@ -18,6 +18,7 @@ paths:
   theme: null  # your themes/minimal.css. applies on top of site.theme
 notifications:
   apprise_urls: []
+  interval: 300
 auth:
   api_key: ''
 federation:

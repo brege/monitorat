@@ -37,3 +37,14 @@ widgets:
       max: 3  # maximum event alerts to show initially
       cadence: 0  # minimum duration in minutes to show
       cadenceChecks: 0  # computed from cadence for confuse
+    notify:
+      ipchange:
+        enabled: false
+        priority: 0
+      failure:
+        enabled: false
+        priority: 0
+      outage:
+        enabled: false
+        priority: 0
+      queue: true

@@ -21,7 +21,7 @@ try:
         load_widget_items_from_file,
         write_widget_items_to_file,
     )
-    from .alerts import NotificationHandler, setup_alert_handler
+    from .notify import NotificationHandler, setup_observer_notifications
     from .auth import require_auth_for_api
     from .federation import federation_client
     from .observer import start_observer, get_observer
@@ -35,7 +35,7 @@ except ImportError:
         load_widget_items_from_file,
         write_widget_items_to_file,
     )
-    from alerts import NotificationHandler, setup_alert_handler
+    from notify import NotificationHandler, setup_observer_notifications
     from auth import require_auth_for_api
     from federation import federation_client
     from observer import start_observer, get_observer
@@ -861,11 +861,9 @@ logger = logging.getLogger(__name__)
 logger.info("Starting monitorat application (demo=%s)", is_demo_enabled())
 
 if not is_demo_enabled():
-    setup_alert_handler()
-    logger.info("Alert handler initialized")
-
-    start_observer(data_path=get_data_path())
+    observer = start_observer(data_path=get_data_path())
     logger.info("Observer daemon started")
+    setup_observer_notifications(observer, logger)
 
 register_widgets()
 
