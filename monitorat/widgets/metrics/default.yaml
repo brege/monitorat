@@ -1,7 +1,7 @@
 widgets:
   metrics:
     name: System Metrics
-    min_width: 400        # px
+    min_width: 400px
     features:
       snapshot:
         header: "Current Status"
@@ -9,7 +9,7 @@ widgets:
         header: "History"
     daemon:
       enabled: true
-      interval_seconds: 60
+      interval: 60
     history:
       default: chart
       periods: [1 year, 30 days, 7 days, 24 hours, 6 hours, 1 hour]

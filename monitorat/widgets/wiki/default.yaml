@@ -3,7 +3,7 @@ widgets:
     name: Documentation
     collapsible: true  # enable collapse/expand
     hidden: false  # start expanded
-    min_width: 240
+    min_width: 240px
     features:
       content:
         header: null

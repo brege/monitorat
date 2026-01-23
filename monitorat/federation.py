@@ -29,9 +29,12 @@ class FederationClient:
     @property
     def timeout(self) -> float:
         try:
-            return config["federation"]["timeout_seconds"].get(float)
+            return config["federation"]["timeout"].get(float)
         except Exception:
-            return 10.0
+            try:
+                return config["federation"]["timeout_seconds"].get(float)
+            except Exception:
+                return 10.0
 
     @property
     def remotes(self) -> list:

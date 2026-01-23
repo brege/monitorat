@@ -21,7 +21,7 @@ auth:
   api_key: ''
 federation:
   enabled: false
-  timeout_seconds: 10
+  timeout: 10
   remotes: []
 demo: false
 widgets:

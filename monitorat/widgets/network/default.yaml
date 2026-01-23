@@ -3,12 +3,12 @@ widgets:
     name: Network Events
     collapsible: true
     hidden: false
-    min_width: 340
+    min_width: 340px
     log_file: network.log  # relative to data path, or absolute if external
     external: false  # overrides chirper.enabled
     chirper:
       enabled: true
-      interval_seconds: 300  # check IP every 5 minutes
+      interval: 300  # check IP every 5 minutes
       mode: ipv4  # or ipv6
     features:
       metrics:
@@ -35,7 +35,7 @@ widgets:
     alerts:
       show: true
       max: 3  # maximum event alerts to show initially
-      cadence: 0  # minimum duration in minutes to show
+      cadence: 0 minutes  # minimum duration to show
       cadenceChecks: 0  # computed from cadence for confuse
     notify:
       ipchange:

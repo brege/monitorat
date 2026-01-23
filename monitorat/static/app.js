@@ -292,9 +292,24 @@ function createWidgetContainer(widgetName, widgetConfig, orderIndex) {
     widgetConfig?.min_width !== undefined &&
     widgetConfig?.min_width !== null
   ) {
-    const minWidthValue = Number(widgetConfig.min_width);
+    let minWidthValue = null;
+    if (typeof widgetConfig.min_width === 'number') {
+      if (widgetName === 'network') {
+        throw new Error(`${widgetName} min_width must be a px length`);
+      }
+      minWidthValue = widgetConfig.min_width;
+    } else if (typeof widgetConfig.min_width === 'string') {
+      // Match a CSS px length like "320px".
+      const match = widgetConfig.min_width.trim().match(/^(\d+(?:\.\d+)?)px$/);
+      if (!match) {
+        throw new Error(`${widgetName} min_width must be a px length`);
+      }
+      minWidthValue = Number(match[1]);
+    } else {
+      throw new Error(`${widgetName} min_width must be a px length`);
+    }
     if (!Number.isFinite(minWidthValue)) {
-      throw new Error(`${widgetName} min_width must be a number`);
+      throw new Error(`${widgetName} min_width must be a px length`);
     }
     container.style.setProperty('--widget-min-width', `${minWidthValue}px`);
   } else {

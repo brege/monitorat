@@ -31,7 +31,7 @@ def is_chirper_enabled():
 
 def get_chirper_interval():
     try:
-        interval = network_config()["chirper"]["interval_seconds"].get(int)
+        interval = network_config()["chirper"]["interval"].get(int)
         return interval if interval > 0 else 300
     except Exception:
         return 300

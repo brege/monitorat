@@ -47,7 +47,14 @@ def is_daemon_enabled():
 
 
 def get_collection_interval():
-    interval = metrics_config()["daemon"]["interval_seconds"].get(int)
+    try:
+        legacy = metrics_config()["daemon"]["interval_seconds"]
+        if legacy.exists():
+            interval = legacy.get(int)
+        else:
+            interval = metrics_config()["daemon"]["interval"].get(int)
+    except Exception:
+        interval = metrics_config()["daemon"]["interval"].get(int)
     return interval if interval > 0 else 60
 
 

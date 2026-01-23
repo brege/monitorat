@@ -3,13 +3,13 @@ widgets:
     name: Reminders
     collapsible: true
     hidden: false
-    min_width: 260
+    min_width: 260px
     edit_file: null  # relative to config dir, or absolute
     features:
       reminders:
         header: null
     state_file: reminders.json  # relative to data path, or absolute
-    nudges: [14, 7]  # days, lower priority (apprise param 0)
-    urgents: [3, 1, 0]  # days, higher priority (apprise param 1 or 2)
+    nudges: ["14 days", "7 days"]
+    urgents: ["3 days", "1 day", "0 days"]
     time: "23:55"  # what time to check
     items: {}  # { protonmail: {} ; GitHub SSH Keys: {} ; ... }

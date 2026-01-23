@@ -75,7 +75,7 @@ def get_log_file_path() -> Optional[Path]:
 
 def get_expected_interval() -> int:
     try:
-        return network_config()["chirper"]["interval_seconds"].get(int)
+        return network_config()["chirper"]["interval"].get(int)
     except Exception:
         return 300
 

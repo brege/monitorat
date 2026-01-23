@@ -9,8 +9,10 @@ from datetime import datetime
 from pathlib import Path
 import sys
 import re
+import math
 
 from confuse import ConfigError
+from pytimeparse import parse as parse_duration
 
 sys.path.append(str(Path(__file__).parent.parent))
 from monitor import (  # noqa: E402
@@ -95,6 +97,42 @@ def get_reminders_items():
     return items or {}
 
 
+def parse_duration_days(value, field_name, allow_zero=False) -> int:
+    if isinstance(value, str):
+        trimmed = value.strip()
+        if trimmed.isdigit():
+            days = int(trimmed)
+        else:
+            seconds = parse_duration(trimmed)
+            if seconds is None:
+                raise ValueError(f"Reminder {field_name} must be a duration string.")
+            days = int(math.ceil(seconds / 86400))
+    elif isinstance(value, (int, float)):
+        days = int(value)
+    else:
+        raise ValueError(f"Reminder {field_name} must be a number or duration string.")
+
+    if days < 0 or (days == 0 and not allow_zero):
+        raise ValueError(f"Reminder {field_name} must be greater than zero.")
+    return days
+
+
+def parse_offset_days(values, field_name) -> list[int]:
+    if not isinstance(values, list):
+        raise ValueError(f"Reminder {field_name} must be a list.")
+    return [parse_duration_days(value, field_name, allow_zero=True) for value in values]
+
+
+def normalize_editor_reminder(reminder: dict) -> dict:
+    item = dict(reminder)
+    if "expiry" in item or "expiry_days" in item:
+        expiry_value = item.get("expiry", item.get("expiry_days"))
+        item["expiry_days"] = parse_duration_days(
+            expiry_value, "expiry_days", allow_zero=False
+        )
+    return item
+
+
 def normalize_reminder_entry(reminder_id, reminder):
     if not isinstance(reminder_id, str) or not reminder_id.strip():
         raise ValueError("Reminder id must be a non-empty string.")
@@ -105,7 +143,9 @@ def normalize_reminder_entry(reminder_id, reminder):
     url = reminder.get("url")
     icon = reminder.get("icon")
     reason = reminder.get("reason")
-    expiry_days = reminder.get("expiry_days")
+    expiry_value = (
+        reminder.get("expiry") if "expiry" in reminder else reminder.get("expiry_days")
+    )
     disabled = reminder.get("disabled", False)
 
     if isinstance(disabled, str):
@@ -128,14 +168,7 @@ def normalize_reminder_entry(reminder_id, reminder):
     if not isinstance(reason, str) or not reason.strip():
         raise ValueError("Reminder reason is required.")
 
-    if isinstance(expiry_days, str):
-        if not expiry_days.strip().isdigit():
-            raise ValueError("Reminder expiry_days must be a number.")
-        expiry_days = int(expiry_days.strip())
-    elif isinstance(expiry_days, (int, float)):
-        expiry_days = int(expiry_days)
-    else:
-        raise ValueError("Reminder expiry_days must be a number.")
+    expiry_days = parse_duration_days(expiry_value, "expiry_days", allow_zero=False)
 
     if expiry_days <= 0:
         raise ValueError("Reminder expiry_days must be greater than zero.")
@@ -273,8 +306,8 @@ def get_reminder_status():
     # Reload data after cleanup
     data = load_reminder_data()
 
-    nudges = reminders_view["nudges"].get(list)
-    urgents = reminders_view["urgents"].get(list)
+    nudges = parse_offset_days(reminders_view["nudges"].get(list), "nudges")
+    urgents = parse_offset_days(reminders_view["urgents"].get(list), "urgents")
     now = datetime.now()
 
     orange_min = min(urgents) if urgents else 0
@@ -306,7 +339,11 @@ def get_reminder_status():
         else:
             days_since = None
 
-        expiry_days = reminder_config.get("expiry_days", 90)
+        expiry_days = parse_duration_days(
+            reminder_config.get("expiry", reminder_config.get("expiry_days", 90)),
+            "expiry_days",
+            allow_zero=False,
+        )
 
         if days_since is None:
             status = "never"
@@ -385,8 +422,8 @@ def send_notifications():
     if not apprise_urls:
         return False
 
-    nudges = reminders_view["nudges"].get(list)
-    urgents = reminders_view["urgents"].get(list)
+    nudges = parse_offset_days(reminders_view["nudges"].get(list), "nudges")
+    urgents = parse_offset_days(reminders_view["urgents"].get(list), "urgents")
     base_url = config["site"]["base_url"].get(str)
 
     # Create notification handler
@@ -609,7 +646,11 @@ def register_routes(app):
         reminders_items = get_reminders_items()
         if reminder_id:
             reminder_entry = reminders_items.get(reminder_id)
-            item = reminder_entry or build_reminder_item(reminder_id)
+            item = (
+                normalize_editor_reminder(reminder_entry)
+                if reminder_entry
+                else build_reminder_item(reminder_id)
+            )
         else:
             reminder_id = "new-reminder"
             item = build_reminder_item(reminder_id)

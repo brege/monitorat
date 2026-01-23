@@ -289,7 +289,13 @@ def get_widget_notify_config(event) -> dict:
 
 
 def get_notification_interval() -> int:
-    return config["notifications"]["interval"].get(int)
+    try:
+        return config["notifications"]["interval"].get(int)
+    except Exception:
+        try:
+            return config["notifications"]["interval_seconds"].get(int)
+        except Exception:
+            return 300
 
 
 def format_range_label(first_ts: str, last_ts: str) -> str:

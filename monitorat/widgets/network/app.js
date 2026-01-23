@@ -5,7 +5,7 @@ class NetworkWidget {
     this.container = null;
     this.config = mergeNetworkConfig(config);
     this.periodsConfig = this.config.uptime?.periods || [];
-    const intervalSeconds = this.config.chirper.interval_seconds;
+    const intervalSeconds = this.config.chirper.interval ?? 300;
     this.expectedIntervalMs = intervalSeconds * 1000;
     this.minutesPerCheck = this.expectedIntervalMs / 60000;
     this.state = {
@@ -35,7 +35,7 @@ class NetworkWidget {
     this.container = container;
     this.config = mergeNetworkConfig({ ...this.config, ...config });
     this.periodsConfig = this.config.uptime?.periods || [];
-    const intervalSeconds = this.config.chirper.interval_seconds;
+    const intervalSeconds = this.config.chirper.interval ?? 300;
     this.expectedIntervalMs = intervalSeconds * 1000;
     this.minutesPerCheck = this.expectedIntervalMs / 60000;
 
@@ -366,11 +366,9 @@ class NetworkWidget {
 }
 
 function mergeNetworkConfig(cfg) {
-  const cadenceRaw = Number(cfg.alerts?.cadence);
-  const intervalSeconds = cfg.chirper?.interval_seconds || 300;
+  const intervalSeconds = cfg.chirper?.interval ?? 300;
   const checksPerMinute = 60 / intervalSeconds;
-  const cadenceMinutes =
-    !Number.isNaN(cadenceRaw) && cadenceRaw >= 0 ? cadenceRaw : 0;
+  const cadenceMinutes = parseDurationMinutes(cfg.alerts?.cadence);
   const cadenceChecks = Math.ceil(cadenceMinutes * checksPerMinute);
 
   return {
@@ -380,6 +378,28 @@ function mergeNetworkConfig(cfg) {
       cadenceChecks,
     },
   };
+}
+
+function parseDurationMinutes(value) {
+  if (value === null || value === undefined) return 0;
+  if (typeof value === 'number') {
+    throw new Error('network alerts.cadence must be a duration string');
+  }
+  if (typeof value !== 'string') {
+    throw new Error('network alerts.cadence must be a duration string');
+  }
+  const trimmed = value.trim();
+  if (!trimmed) return 0;
+  // Match duration strings like "5 minutes", "1 hour", "2 days".
+  const match = trimmed.match(/^(\d+(?:\.\d+)?)\s*(minutes?|hours?|days?)$/i);
+  if (!match) {
+    throw new Error('network alerts.cadence must be a duration string');
+  }
+  const amount = Number(match[1]);
+  const unit = match[2].toLowerCase();
+  if (unit.startsWith('hour')) return amount * 60;
+  if (unit.startsWith('day')) return amount * 1440;
+  return amount;
 }
 
 function setText(element, text) {
