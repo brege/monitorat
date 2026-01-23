@@ -207,67 +207,6 @@
   background: rgb(var(--status-critical-rgb));
 }
 
-.url-picker-status {
-  margin-bottom: 16px;
-  padding: 12px;
-  background: var(--bg-card);
-  border-radius: 6px;
-  font-size: 0.85rem;
-}
-
-.url-picker-status-item {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  padding: 4px 0;
-}
-
-.url-picker-status-item:not(:last-child) {
-  border-bottom: 1px solid var(--border-muted);
-  padding-bottom: 8px;
-  margin-bottom: 8px;
-}
-
-.url-picker-status-name {
-  flex: 1;
-  color: var(--text-muted);
-  font-family: var(--font-mono, monospace);
-  font-size: 0.8rem;
-  display: block;
-  white-space: nowrap;
-  overflow-x: auto;
-  min-width: 0;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-muted) transparent;
-  scrollbar-gutter: stable;
-}
-
-.url-picker-status-label {
-  font-weight: 500;
-  white-space: normal;
-  text-align: right;
-  flex: 0 0 auto;
-  max-width: 50%;
-  min-width: 0;
-}
-
-.url-picker-status-label.status-ok {
-  color: rgb(var(--status-ok-rgb));
-}
-.url-picker-status-label.status-warning,
-.url-picker-status-label.status-warn,
-.url-picker-status-label.status-caution {
-  color: rgb(var(--status-warn-rgb));
-}
-.url-picker-status-label.status-down,
-.url-picker-status-label.status-expired,
-.url-picker-status-label.status-critical {
-  color: rgb(var(--status-critical-rgb));
-}
-.url-picker-status-label.status-unknown {
-  color: rgb(var(--status-unknown-rgb));
-}
-
 .url-picker-name {
   font-size: 1.1rem;
   font-weight: 500;
@@ -367,17 +306,14 @@
   align-self: stretch;
 }
 
-.url-picker-status-name::-webkit-scrollbar,
 .url-picker-link-url::-webkit-scrollbar {
   height: 6px;
 }
 
-.url-picker-status-name::-webkit-scrollbar-track,
 .url-picker-link-url::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.url-picker-status-name::-webkit-scrollbar-thumb,
 .url-picker-link-url::-webkit-scrollbar-thumb {
   background: var(--border-muted);
   border-radius: 6px;

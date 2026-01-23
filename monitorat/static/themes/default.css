@@ -456,6 +456,90 @@ button.alerts-toggle:hover {
   height: 100%;
 }
 
+.modal-status {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--bg-card);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.modal-status-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 4px 0;
+}
+
+.modal-status-item:not(:last-child) {
+  border-bottom: 1px solid var(--border-muted);
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.modal-status-name {
+  flex: 1;
+  color: var(--text-muted);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.8rem;
+  display: block;
+  white-space: nowrap;
+  overflow-x: auto;
+  min-width: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-muted) transparent;
+  scrollbar-gutter: stable;
+}
+
+.modal-status-label {
+  font-weight: 500;
+  white-space: normal;
+  text-align: right;
+  flex: 0 0 auto;
+  max-width: 50%;
+  min-width: 0;
+}
+
+.modal-status-label.status-ok {
+  color: rgb(var(--status-ok-rgb));
+}
+.modal-status-label.status-warning,
+.modal-status-label.status-warn,
+.modal-status-label.status-caution {
+  color: rgb(var(--status-warn-rgb));
+}
+.modal-status-label.status-down,
+.modal-status-label.status-expired,
+.modal-status-label.status-critical {
+  color: rgb(var(--status-critical-rgb));
+}
+.modal-status-label.status-unknown {
+  color: rgb(var(--status-unknown-rgb));
+}
+
+.modal-status-name::-webkit-scrollbar {
+  height: 6px;
+}
+
+.modal-status-name::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-status-name::-webkit-scrollbar-thumb {
+  background: var(--border-muted);
+  border-radius: 6px;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
 select.alerts-toggle {
   background: var(--toggle-bg);
   border: 1px solid var(--toggle-border);

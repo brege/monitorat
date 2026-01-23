@@ -108,13 +108,13 @@ class ServicesInfo {
     const statusHtml =
       statusInfo.parts.length > 0
         ? `
-      <div class="url-picker-status">
+      <div class="modal-status">
         ${statusInfo.parts
           .map(
             (part) => `
-          <div class="url-picker-status-item">
-            <span class="url-picker-status-name">${part.name}</span>
-            <span class="url-picker-status-label ${this.widget.getStatusClass(part.status)}">${part.label}${part.reason}</span>
+          <div class="modal-status-item">
+            <span class="modal-status-name">${part.name}</span>
+            <span class="modal-status-label ${this.widget.getStatusClass(part.status)}">${part.label}${part.reason}</span>
           </div>
         `,
           )

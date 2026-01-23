@@ -330,7 +330,7 @@ async function showMenuModal() {
     </div>
     <div id="notification-test-results" class="menu-modal-section" style="display: none;">
       <h4>Notification Test Results</h4>
-      <div id="notification-results-list"></div>
+      <div id="notification-results-list" class="modal-status"></div>
     </div>
     <div class="menu-modal-section">
       <h4>Color Theme</h4>
@@ -417,7 +417,7 @@ async function showMenuModal() {
       if (!resultsContainer || !resultsList) return;
 
       resultsList.innerHTML =
-        '<div class="notification-result-loading">Sending test notifications...</div>';
+        '<div style="padding: 10px 0; color: var(--text-muted); animation: pulse 1.5s ease-in-out infinite;">Sending test notifications...</div>';
       resultsContainer.style.display = 'block';
 
       try {
@@ -428,35 +428,33 @@ async function showMenuModal() {
 
         if (result.demo_mode) {
           resultsList.innerHTML =
-            '<div class="notification-result-message">Demo mode is enabled. Test notifications are disabled.</div>';
+            '<div style="padding: 10px 0; color: var(--text-muted);">Demo mode is enabled. Test notifications are disabled.</div>';
           return;
         }
 
         if (result.error === 'no_urls') {
           resultsList.innerHTML =
-            '<div class="notification-result-message">No apprise URLs configured in config.</div>';
+            '<div style="padding: 10px 0; color: var(--text-muted);">No apprise URLs configured in config.</div>';
           return;
         }
 
         if (!result.results || result.results.length === 0) {
           resultsList.innerHTML =
-            '<div class="notification-result-message">No notification services configured.</div>';
+            '<div style="padding: 10px 0; color: var(--text-muted);">No notification services configured.</div>';
           return;
         }
 
         const html = result.results
           .map((r) => {
-            const statusClass = r.success
-              ? 'notification-result-ok'
-              : 'notification-result-failed';
+            const statusClass = r.success ? 'status-ok' : 'status-critical';
             const statusText = r.success ? 'ok' : 'failed';
-            return `<div class="notification-result ${statusClass}"><span class="notification-result-service">${r.service}:</span> <span class="notification-result-status">${statusText}</span></div>`;
+            return `<div class="modal-status-item"><span class="modal-status-name">${r.service}</span><span class="modal-status-label ${statusClass}">${statusText}</span></div>`;
           })
           .join('');
 
         resultsList.innerHTML = html;
       } catch (err) {
-        resultsList.innerHTML = `<div class="notification-result-message notification-result-failed">Error: ${err.message}</div>`;
+        resultsList.innerHTML = `<div style="padding: 10px 0; color: rgb(var(--status-critical-rgb));">Error: ${err.message}</div>`;
       }
     });
 
