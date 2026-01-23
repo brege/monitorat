@@ -1,6 +1,6 @@
 federation:
   enabled: true
-  timeout_seconds: 10
+  timeout: 10
   remotes:
     - name: nas-1
       url: http://localhost:6301

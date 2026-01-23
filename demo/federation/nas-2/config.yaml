@@ -57,7 +57,7 @@ widgets:
         name: SSL Certificate
         url: https://nas-2.local/ssl
         icon: reminders/protonmail.png
-        expiry_days: 30
+        expiry: "30 days"
         reason: Renew NAS-2 SSL certificate
 
   speedtest:
@@ -70,7 +70,7 @@ widgets:
     name: "NAS-2 Network"
     log_file: network.log
     chirper:
-      interval_seconds: 300
+      interval: 300
     metrics:
       show: true
     uptime:

@@ -7,7 +7,7 @@ widgets:
     log_file: network.log
     chirper:
       enabled: false
-      interval_seconds: 600
+      interval: 600
       mode: ipv4
     federation:
       nodes: [nas-1, nas-2]

@@ -3,22 +3,11 @@ widgets:
   metrics:
     section: metrics
     name: null
-    default: chart
     collapsible: true
-    enabled:
-      - cpu_percent
-      - memory_percent
-      - disk_read_mb
-      - disk_write_mb
-      - net_rx_mb
-      - net_tx_mb
-      - load_1min
-      - temp_c
-    chart:
+    history:
       periods: [30 days, 1 week, 24 hours, 6 hours, 1 hour]
-      default_metric: temp_c
-      default_period: 6 hours
-      days: 30
-    table:
-      min: 5
-      max: 20
+      table:
+        max: 20
+      chart:
+        default_metric: temp_c
+        default_period: 6 hours

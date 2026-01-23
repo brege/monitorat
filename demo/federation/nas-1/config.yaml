@@ -57,19 +57,19 @@ widgets:
         name: Backup Check
         url: https://nas-1.local/backup
         icon: reminders/restic.png
-        expiry_days: 30
+        expiry: "30 days"
         reason: Verify NAS-1 backups
       beets:
         name: Beets
         url: https://github.com/beetbox/beets
         icon: reminders/beets.png
-        expiry_days: 14
+        expiry: "14 days"
         reason: Check music inbox for new music arrivals and process with beets
       monitorat:
         name: Install Monitorat
         url: https://pypi.org/project/monitorat/
         icon: favicon.svg
-        expiry_days: 1
+        expiry: "1 days"
         reason: "install from PyPI:  uv tool install monitorat"
 
   speedtest:
@@ -82,7 +82,7 @@ widgets:
     name: "NAS-1 Network"
     log_file: network.log
     chirper:
-      interval_seconds: 300
+      interval: 300
     metrics:
       show: true
     uptime:

@@ -8,7 +8,7 @@ widgets:
     collapsible: true
     chirper:
       enabled: false
-      interval_seconds: 600
+      interval: 600
       mode: ipv4
     metrics:
       show: true
@@ -24,4 +24,4 @@ widgets:
     alerts:
       show: true
       max: 3
-      cadence: 0
+      cadence: "0 minutes"

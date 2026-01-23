@@ -110,7 +110,7 @@ def format_iso_datetime(value: datetime, use_timezone: bool) -> str:
 
 
 def generate_network_log(
-    target_path: Path, now_value: datetime, days: int = 7, interval_seconds: int = 600
+    target_path: Path, now_value: datetime, days: int = 7, interval: int = 600
 ) -> None:
     start = now_value - timedelta(days=days)
     domain = "example.com"
@@ -139,7 +139,7 @@ def generate_network_log(
     current = start
     while current <= now_value:
         if outage_start <= current <= outage_end:
-            current += timedelta(seconds=interval_seconds)
+            current += timedelta(seconds=interval)
             continue
         ip_address = resolve_ip(current)
         message = (
@@ -147,7 +147,7 @@ def generate_network_log(
             f"[{domain}]> detected IPv4 address {ip_address}"
         )
         entries.append(NetworkLine(timestamp=current, message=message))
-        current += timedelta(seconds=interval_seconds)
+        current += timedelta(seconds=interval)
 
     for failure_time in failure_times:
         message = (
@@ -330,7 +330,7 @@ def generate_test_network(
     node_name: str,
     now_value: datetime,
     days: int = 3,
-    interval_seconds: int = 600,
+    interval: int = 600,
 ) -> None:
     """Generate network.log with node-specific data."""
     start = now_value - timedelta(days=days)
@@ -351,7 +351,7 @@ def generate_test_network(
     entries = []
     current = start
     step = 0
-    steps_per_day = int(86400 / interval_seconds)
+    steps_per_day = int(86400 / interval)
     failure_interval = max(1, steps_per_day // 3)
     failure_offset = node_index % failure_interval
     outage_start_hour = (2 + node_index * 3) % 24
@@ -362,7 +362,7 @@ def generate_test_network(
             <= current.hour
             < outage_start_hour + outage_duration_hours
         ):
-            current += timedelta(seconds=interval_seconds)
+            current += timedelta(seconds=interval)
             step += 1
             continue
 
@@ -378,7 +378,7 @@ def generate_test_network(
                 f"[{domain}]> updating {domain}: nohost: unable to resolve current IP"
             )
             entries.append(NetworkLine(timestamp=current, message=failed_message))
-        current += timedelta(seconds=interval_seconds)
+        current += timedelta(seconds=interval)
         step += 1
 
     output_lines = [
@@ -414,7 +414,7 @@ def generate_test_metrics(
     node_name: str,
     now_value: datetime,
     hours: int = 24,
-    interval_seconds: int = 60,
+    interval: int = 60,
 ) -> None:
     """Generate metrics.csv with distinguishable waveform patterns."""
     waveform = TEST_NODE_WAVEFORMS.get(node_name, "sine")
@@ -426,7 +426,7 @@ def generate_test_metrics(
     step = 0
 
     while current <= now_value:
-        t_hours = step * interval_seconds / 3600
+        t_hours = step * interval / 3600
         wave = waveform_value(waveform, t_hours, period=4.0)
 
         cpu_percent = 10 + wave * 60 + random_generator.gauss(0, 3)
@@ -456,7 +456,7 @@ def generate_test_metrics(
             }
         )
 
-        current += timedelta(seconds=interval_seconds)
+        current += timedelta(seconds=interval)
         step += 1
 
     fieldnames = [

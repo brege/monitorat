@@ -4,8 +4,8 @@ widgets:
     section: reminders
     name: null
     enabled: true
-    nudges: [14, 7]
-    urgents: [3, 1, 0]
+    nudges: ["14 days", "7 days"]
+    urgents: ["3 days", "1 day", "0 days"]
     time: "21:00"
     items:
       github:
@@ -13,23 +13,23 @@ widgets:
         url: https://github.com/settings/keys
         icon: reminders/github.svg
         chrome: true
-        expiry_days: 365
+        expiry: "365 days"
         reason: Change your GitHub SSH key once a year
       beets:
         name: Beets
         url: https://github.com/beetbox/beets
         icon: reminders/beets.png
-        expiry_days: 14
+        expiry: "14 days"
         reason: Check music inbox for new music arrivals and process with beets
       protonmail:
         name: Proton Mail
         url: https://proton.me/
         icon: reminders/protonmail.png
-        expiry_days: 365
+        expiry: "365 days"
         reason: Login every 365 days
       monitorat:
         name: Install Monitorat
         url: https://pypi.org/project/monitorat/
         icon: favicon.svg
-        expiry_days: 1
+        expiry: "1 days"
         reason: "install from PyPI:  uv tool install monitorat"
