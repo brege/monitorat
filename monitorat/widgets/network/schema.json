@@ -19,5 +19,25 @@
     "log": "/api/network/log",
     "schema": "/api/network/schema"
   },
-  "log_format": "plain_text"
+  "log_format": "plain_text",
+  "eventTypes": {
+    "outage": {
+      "label": "Unknown",
+      "classes": ["alert", "unknown"],
+      "titleTemplate": "{missedChecks} unknown - logger not running",
+      "detailTemplate": "{start} to {end} ({duration})"
+    },
+    "ipchange": {
+      "label": "IP Changes",
+      "classes": ["alert", "ipchange"],
+      "titleTemplate": "IP address changed",
+      "detailTemplate": "{oldIp} to {newIp} at {timestamp}"
+    },
+    "failure": {
+      "label": "Connection Failed",
+      "classes": ["alert", "failure"],
+      "titleTemplate": "Connection failed",
+      "detailTemplate": "{message} at {timestamp}"
+    }
+  }
 }

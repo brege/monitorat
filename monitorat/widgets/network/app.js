@@ -16,7 +16,7 @@ class NetworkWidget {
     this.features = {
       snapshot: null,
       uptime: null,
-      outages: null,
+      events: null,
     };
     this.uptimeCache = {
       rows: new Map(),
@@ -129,8 +129,8 @@ class NetworkWidget {
         source: 'widgets/network/features/uptime.js',
       },
       {
-        globalName: 'NetworkOutages',
-        source: 'widgets/network/features/outages.js',
+        globalName: 'NetworkEvents',
+        source: 'widgets/network/features/events.js',
       },
     ];
 
@@ -168,8 +168,8 @@ class NetworkWidget {
       });
     }
 
-    if (window.NetworkOutages) {
-      this.features.outages = new window.NetworkOutages(this);
+    if (window.NetworkEvents) {
+      this.features.events = new window.NetworkEvents(this);
     }
   }
 
@@ -177,7 +177,7 @@ class NetworkWidget {
     if (this.elements.alertToggle) {
       this.elements.alertToggle.addEventListener('click', () => {
         this.state.alertsExpanded = !this.state.alertsExpanded;
-        this.features.outages.render();
+        this.features.events.render();
       });
     }
 
@@ -352,8 +352,8 @@ class NetworkWidget {
     if (this.features.uptime) {
       this.features.uptime.render();
     }
-    if (this.features.outages) {
-      this.features.outages.render();
+    if (this.features.events) {
+      this.features.events.render();
     }
   }
 
