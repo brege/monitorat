@@ -239,9 +239,15 @@ def get_demo_metrics() -> Dict[str, object]:
     if "snapshot" not in snapshot_entry:
         raise KeyError("Missing snapshot payload")
     snapshot_payload = snapshot_entry["snapshot"]
-    if "metrics" not in snapshot_payload:
+    api_prefix = get_api_prefix()
+    metrics_snapshot = None
+    for key in [api_prefix, "metrics"]:
+        candidate = snapshot_payload.get(key)
+        if isinstance(candidate, dict):
+            metrics_snapshot = candidate
+            break
+    if metrics_snapshot is None:
         raise KeyError("Missing metrics snapshot")
-    metrics_snapshot = snapshot_payload["metrics"]
     for key in ["timestamp", "values", "statuses"]:
         if key not in metrics_snapshot:
             raise KeyError(f"Missing metrics snapshot key: {key}")
@@ -424,7 +430,16 @@ def register_routes(app):
 
     def api_metrics():
         if is_demo_enabled():
-            payload = get_demo_metrics()
+            try:
+                payload = get_demo_metrics()
+            except Exception as error:
+                logger.warning("Failed to read demo metrics snapshot: %s", error)
+                context, values, statuses, _, snapshot_keys = collect_metrics()
+                payload = {
+                    "timestamp": context.timestamp.isoformat(),
+                    "values": serialize_metric_values(values, snapshot_keys),
+                    "statuses": statuses,
+                }
         else:
             context, values, statuses, history_keys, snapshot_keys = collect_metrics()
             if history_keys:
