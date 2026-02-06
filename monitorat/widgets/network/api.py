@@ -102,6 +102,24 @@ def append_log_entry(ip_address):
         return False
 
 
+def _prewarm_cache():
+    """Pre-warm analysis cache in background to avoid cold-start latency."""
+    import threading
+
+    def warm():
+        try:
+            log_path = get_log_file_path()
+            if log_path and log_path.exists():
+                from .analysis import analyze_log_file
+
+                analyze_log_file(log_path)
+                logger.info("Network analysis cache warmed")
+        except Exception as e:
+            logger.debug(f"Cache warm skipped: {e}")
+
+    threading.Thread(target=warm, daemon=True).start()
+
+
 def register_routes(app):
     """Register network widget API routes"""
 
@@ -111,6 +129,8 @@ def register_routes(app):
         from .events import register_network_observer
 
         register_network_observer()
+
+    _prewarm_cache()
 
     @app.route("/api/network/log", methods=["GET"])
     def network_log():
