@@ -3,8 +3,8 @@
 ## Features
 
 New Subwidget Capabilities
-- [ ] Add an alerts subwidget for System Metrics events (alternative to Apprise)
-- [ ] Conversely, add Apprise notifications for Network alerts
+- [x] Add an alerts subwidget for System Metrics events (alternative to Apprise)
+- [x] Conversely, add Apprise notifications for Network alerts
 
 Editors and Web UI Configuration
 - [ ] System Metrics: Customizing tiles and custom commands

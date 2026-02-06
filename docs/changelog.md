@@ -1,10 +1,53 @@
 ## Changelog
 
-### 2026-01-19
+### 2026-02-06 -- [14792dd..8d49baa](https://github.com/brege/monitorat/compare/14792dd..8d49baa)
+
+- Fix test harness API endpoints following Metrics refactor
+- BREAKING: rename `/metrics/` API base path to `/system/`
+- Pre-warm/cache network logs (backend) for MUCH faster restarts
+- Make tile renormalization AFTER remeasure 
+- Add a metrics event method (similar to network events/alerts/outages)
+- Bump version to v0.12.1
+
+### 2026-01-23 -- [4d29a30..1483e24](https://github.com/brege/monitorat/compare/4d29a30..1483e24)
+
+- Generalized network events handling to static/alerts/
+- Allow for zero-day expiration in reminders widget
+- Generalize url-picker-status* from service.info to modal-status*
+- Move notification testing to menu modal
+- Add notification queue and add notify support for network events
+- Update network statuses/colors for accuracy
+- Switch alerts+notifications handlers to observers system
+- Bump version to v0.12
+
+### 2026-01-22 -- [7cabfe2..3c24d16](https://github.com/brege/monitorat/compare/7cabfe2..3c24d16)
+
+- Add docstring explaining new observable adds to metrics
+- Remove legacy H2 headers (widget headers)
+
+### 2026-01-21 -- [67ca836..0d3f1e2](https://github.com/brege/monitorat/compare/67ca836..0d3f1e2)
+
+- Refactored metrics tiles/snapshots into a registry driven design (continued and finished)
+
+### 2026-01-20 -- [2456c53..371fc99](https://github.com/brege/monitorat/compare/2456c53..371fc99)
+
+- Refactored metrics tiles/snapshots into a registry driven design [ refactor(1..8) ]
+- Refactor network tiles, pips for new Observer-based system
+- Make editor demo use destructable config snippets/document fragments
+- Prevent wrapping/truncation of widget header on mobile through clamping and scalling
+- Privacy icon switched from eyeOpen to incognitoGuy
+- Services info can now hide URL bars if url set to '' or null
+- Bump version to v0.11.1
+
+### 2026-01-19 -- [f8c188a..2059111](https://github.com/brege/monitorat/compare/f8c188a..2059111)
 
 - Bump version to v0.11
 - Refactored README and update all non-install docs (sans screenshots)
 - Made editing a single-key and single-menu-item toggle
+- Make editing global only through the Main Menu modal
+- Write directly on main config file
+- De-duplicate chart CSS CSS styles and chart.js logic
+- Make the chart easier MUCH easier to read on mobile
 
 ### 2026-01-18 -- [b05081d..cb23046](https://github.com/brege/monitorat/compare/b05081d..cb23046)
 
