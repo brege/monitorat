@@ -103,6 +103,13 @@
 .network-container .uptime-pill.future {
   background: var(--uptime-pill-future);
 }
+.network-container .uptime-pill.gradient {
+  background: color-mix(
+    in oklch,
+    rgb(var(--status-ok-rgb)),
+    rgb(var(--status-critical-rgb)) calc(var(--pip-severity, 0) * 100%)
+  );
+}
 .network-container .uptime-meta {
   font-size: 0.8rem;
   color: var(--text-muted);

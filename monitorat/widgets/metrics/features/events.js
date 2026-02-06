@@ -1,18 +1,16 @@
 class MetricsEvents {
   constructor(widget) {
     this.widget = widget;
-    const sources = widget.getFederationSources() || ['local'];
-    const schemaEndpoint =
-      widget.getSchemaEndpoint('schema') || `${widget.getApiBase()}/schema`;
-    const eventsEndpoint =
-      widget.getSchemaEndpoint('events') || `${widget.getApiBase()}/events`;
-    const eventsUrls = sources.map((source) => ({
-      source,
-      url:
-        source === 'local'
-          ? `${eventsEndpoint}?limit=0`
-          : `${widget.getFederatedEndpoint(eventsEndpoint, source)}?limit=0`,
-    }));
+    const sources = widget.getFederationSources();
+    const schemaUrl = `${widget.getApiBase()}/schema`;
+    const widgetName = widget.getFederatedWidgetName();
+    const eventsUrls =
+      Array.isArray(sources) && sources.length
+        ? sources.map((source) => ({
+            source,
+            url: `api/${widgetName}-${source}/events?limit=0`,
+          }))
+        : [{ source: 'local', url: `${widget.getApiBase()}/events?limit=0` }];
 
     const featureConfig = widget.config?.features?.events || {};
     const baseConfig = widget.config?.events || {};
@@ -33,7 +31,7 @@ class MetricsEvents {
     };
 
     this.eventsList = new window.monitorShared.EventsList({
-      schemaUrl: schemaEndpoint,
+      schemaUrl,
       eventsUrls,
       container: widget.getElement('events-list'),
       toggle: widget.getElement('events-toggle'),

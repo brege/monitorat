@@ -5,6 +5,13 @@
     "label": "Network",
     "emptyMessage": "No network log available."
   },
+  "uptime": {
+    "gradient": {
+      "perfect": 100,
+      "good": 95,
+      "acceptable": 80
+    }
+  },
   "fields": [
     { "field": "timestamp", "label": "Timestamp", "format": "datetime" },
     {

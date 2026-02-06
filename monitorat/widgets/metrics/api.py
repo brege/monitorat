@@ -28,6 +28,13 @@ def metrics_config():
     return config["widgets"]["metrics"]
 
 
+def get_api_prefix():
+    try:
+        return metrics_config()["api_prefix"].get(str) or "metrics"
+    except Exception:
+        return "metrics"
+
+
 def get_history_columns() -> List[str]:
     columns = metrics_config()["history"]["table"]["columns"].get(list)
     for key in columns:
@@ -67,6 +74,10 @@ def get_snapshot_keys() -> List[str]:
     for key in keys:
         METRIC_REGISTRY.get_quantity(key)
     return keys
+
+
+def get_chart_quantities() -> List[str]:
+    return metrics_config()["history"]["chart"]["quantities"].get(list)
 
 
 def get_storage_mounts() -> List[str]:
@@ -368,8 +379,8 @@ def filter_data_by_period(data, period_str, now_override=None):
 
 def register_routes(app):
     """Register metrics API routes with Flask app"""
+    api_prefix = get_api_prefix()
 
-    # Start background metrics collection
     if not is_demo_enabled():
         start_metrics_daemon()
         from .events import register_metrics_observer
@@ -386,7 +397,6 @@ def register_routes(app):
 
     register_snapshot_provider("metrics", metrics_snapshot)
 
-    @app.route("/api/metrics/schema", methods=["GET"])
     def api_metrics_schema():
         import json
         from pathlib import Path
@@ -397,13 +407,21 @@ def register_routes(app):
         schema.pop("metrics", None)
         schema.pop("computed", None)
         schema["quantities"] = METRIC_REGISTRY.serialize_quantities()
+        schema["chart_quantities"] = get_chart_quantities()
+        schema["api_prefix"] = api_prefix
+        schema["endpoints"] = {
+            "current": f"api/{api_prefix}",
+            "history": f"api/{api_prefix}/history",
+            "csv": f"api/{api_prefix}/csv",
+            "schema": f"api/{api_prefix}/schema",
+            "events": f"api/{api_prefix}/events",
+        }
         return app.response_class(
             response=json.dumps(schema),
             status=200,
             mimetype="application/json",
         )
 
-    @app.route("/api/metrics", methods=["GET"])
     def api_metrics():
         if is_demo_enabled():
             payload = get_demo_metrics()
@@ -442,7 +460,6 @@ def register_routes(app):
         events = [event for event in events if event.get("type") != "checkpoint"]
         return {"events": events}
 
-    @app.route("/api/metrics/events", methods=["GET"])
     def api_metrics_events():
         from flask import request
 
@@ -454,19 +471,6 @@ def register_routes(app):
             mimetype="application/json",
         )
 
-    @app.route("/api/metrics/alerts", methods=["GET"])
-    def api_metrics_alerts():
-        from flask import request
-
-        limit = request.args.get("limit", 100, type=int)
-        payload = build_metrics_events_payload(limit)
-        return app.response_class(
-            response=json.dumps(payload),
-            status=200,
-            mimetype="application/json",
-        )
-
-    @app.route("/api/metrics/history", methods=["GET"])
     def api_metrics_history():
         """Get historical metrics data with optional period filtering and downsampling."""
         try:
@@ -502,7 +506,6 @@ def register_routes(app):
                 mimetype="application/json",
             )
 
-    @app.route("/api/metrics/csv", methods=["GET"])
     def api_metrics_csv():
         """Download the raw metrics CSV file"""
         try:
@@ -525,3 +528,69 @@ def register_routes(app):
                 status=500,
                 mimetype="text/plain",
             )
+
+    app.add_url_rule(
+        f"/api/{api_prefix}/schema",
+        endpoint="api_metrics_schema",
+        view_func=api_metrics_schema,
+        methods=["GET"],
+    )
+    app.add_url_rule(
+        f"/api/{api_prefix}",
+        endpoint="api_metrics",
+        view_func=api_metrics,
+        methods=["GET"],
+    )
+    app.add_url_rule(
+        f"/api/{api_prefix}/events",
+        endpoint="api_metrics_events",
+        view_func=api_metrics_events,
+        methods=["GET"],
+    )
+    app.add_url_rule(
+        f"/api/{api_prefix}/history",
+        endpoint="api_metrics_history",
+        view_func=api_metrics_history,
+        methods=["GET"],
+    )
+    app.add_url_rule(
+        f"/api/{api_prefix}/csv",
+        endpoint="api_metrics_csv",
+        view_func=api_metrics_csv,
+        methods=["GET"],
+    )
+
+    if api_prefix != "metrics":
+        app.add_url_rule(
+            "/api/metrics/schema",
+            endpoint="api_metrics_schema_alias",
+            view_func=api_metrics_schema,
+            methods=["GET"],
+        )
+        app.add_url_rule(
+            "/api/metrics",
+            endpoint="api_metrics_alias",
+            view_func=api_metrics,
+            methods=["GET"],
+        )
+        app.add_url_rule(
+            "/api/metrics/events",
+            endpoint="api_metrics_events_alias",
+            view_func=api_metrics_events,
+            methods=["GET"],
+        )
+        app.add_url_rule(
+            "/api/metrics/history",
+            endpoint="api_metrics_history_alias",
+            view_func=api_metrics_history,
+            methods=["GET"],
+        )
+        app.add_url_rule(
+            "/api/metrics/csv",
+            endpoint="api_metrics_csv_alias",
+            view_func=api_metrics_csv,
+            methods=["GET"],
+        )
+        logger.info("Metrics alias routes registered at /api/metrics")
+
+    logger.info(f"Metrics routes registered at /api/{api_prefix}")

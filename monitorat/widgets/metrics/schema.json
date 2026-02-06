@@ -1,12 +1,13 @@
 {
   "widget": "metrics",
   "version": 1,
+  "api_prefix": "system",
   "endpoints": {
-    "current": "/api/metrics",
-    "history": "/api/metrics/history",
-    "csv": "/api/metrics/csv",
-    "schema": "/api/metrics/schema",
-    "events": "/api/metrics/alerts"
+    "current": "api/system",
+    "history": "api/system/history",
+    "csv": "api/system/csv",
+    "schema": "api/system/schema",
+    "events": "api/system/events"
   },
   "metadata": {
     "field": "source",

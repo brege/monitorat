@@ -18,7 +18,8 @@ class MetricsWidget {
       },
     };
     this.config = this.buildConfig();
-    this.apiPrefix = widgetConfig._apiPrefix || 'metrics';
+    this.apiPrefix =
+      widgetConfig._apiPrefix || widgetConfig.api_prefix || 'system';
     this.chartManager = null;
     this.tableManager = null;
     this.currentView = null;
@@ -151,7 +152,8 @@ class MetricsWidget {
   resolveChartFields() {
     const unitSpecs = this.schema?.units || {};
     const quantities = this.schema?.quantities || [];
-    const chartKeys = this.config?.history?.chart?.quantities;
+    const chartKeys =
+      this.config?.history?.chart?.quantities || this.schema?.chart_quantities;
     const filteredQuantities =
       Array.isArray(chartKeys) && chartKeys.length
         ? quantities.filter((quantity) => chartKeys.includes(quantity.key))

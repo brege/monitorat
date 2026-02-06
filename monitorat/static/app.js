@@ -234,6 +234,8 @@ async function initializeWidget(
 
     if (config?.remote || config?.federation?.nodes) {
       widgetConfig._apiPrefix = widgetName;
+    } else if (config?.api_prefix) {
+      widgetConfig._apiPrefix = config.api_prefix;
     }
 
     if (widgetType === 'wiki') {

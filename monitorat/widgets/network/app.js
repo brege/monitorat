@@ -8,6 +8,7 @@ class NetworkWidget {
     const intervalSeconds = this.config.chirper.interval ?? 300;
     this.expectedIntervalMs = intervalSeconds * 1000;
     this.minutesPerCheck = this.expectedIntervalMs / 60000;
+    this.schema = null;
     this.state = {
       uptime: null,
       alertsExpanded: false,
@@ -26,7 +27,8 @@ class NetworkWidget {
       formatDuration,
       formatNumber,
       formatPercent,
-      applySegmentClasses,
+      applySegmentClasses: (el, seg) =>
+        applySegmentClasses(el, seg, this.schema?.uptime?.gradient),
       buildSegmentTooltip,
     };
   }
@@ -39,6 +41,8 @@ class NetworkWidget {
     this.expectedIntervalMs = intervalSeconds * 1000;
     this.minutesPerCheck = this.expectedIntervalMs / 60000;
 
+    await this.loadSchema();
+
     const response = await fetch('widgets/network/index.html');
     const html = await response.text();
     container.innerHTML = html;
@@ -50,6 +54,15 @@ class NetworkWidget {
     this.initializeFeatures();
     this.applyVisibilityConfig();
     await this.loadUptime();
+  }
+
+  async loadSchema() {
+    try {
+      const response = await fetch(`${this.getApiBase()}/schema`);
+      this.schema = await response.json();
+    } catch {
+      this.schema = {};
+    }
   }
 
   cacheElements() {
@@ -462,19 +475,59 @@ function formatPercent(value, decimals = 2) {
   return `${value.toFixed(decimals)}%`;
 }
 
-function applySegmentClasses(element, segment) {
-  element.classList.remove('ok', 'warn', 'bad', 'idle', 'future', 'unknown');
+function applySegmentClasses(element, segment, gradientConfig) {
+  element.classList.remove(
+    'ok',
+    'warn',
+    'bad',
+    'idle',
+    'future',
+    'unknown',
+    'gradient',
+  );
+  element.style.removeProperty('--pip-severity');
+
   if (segment.available === 0) {
     element.classList.add('future');
-  } else if (!segment.expected) {
+    return;
+  }
+  if (!segment.expected) {
     element.classList.add('idle');
-  } else if (segment.status === 'systemDown') {
+    return;
+  }
+  if (segment.status === 'systemDown') {
     element.classList.add('unknown');
+    return;
+  }
+
+  if (
+    gradientConfig &&
+    segment.uptime !== null &&
+    segment.uptime !== undefined
+  ) {
+    const severity = calculateUptimeSeverity(segment.uptime, gradientConfig);
+    element.classList.add('gradient');
+    element.style.setProperty('--pip-severity', severity);
   } else if (segment.status === 'connectionFailure') {
     element.classList.add('bad');
   } else {
     element.classList.add('ok');
   }
+}
+
+function calculateUptimeSeverity(uptime, config) {
+  const perfect = config.perfect ?? 100;
+  const good = config.good ?? 95;
+  const acceptable = config.acceptable ?? 80;
+
+  if (uptime >= perfect) return 0;
+  if (uptime >= good) {
+    return ((perfect - uptime) / (perfect - good)) * 0.33;
+  }
+  if (uptime >= acceptable) {
+    return 0.33 + ((good - uptime) / (good - acceptable)) * 0.34;
+  }
+  return 0.67 + ((acceptable - uptime) / acceptable) * 0.33;
 }
 
 function buildSegmentTooltip(windowLabel, segment, expectedIntervalMs) {

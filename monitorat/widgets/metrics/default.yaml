@@ -1,6 +1,7 @@
 widgets:
   metrics:
     name: System Metrics
+    api_prefix: system
     min_width: 400px
     features:
       snapshot:
