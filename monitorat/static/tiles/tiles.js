@@ -170,6 +170,9 @@ class TylerLayout {
       index: this.tiles.length,
     }));
     this.layout();
+    if (this._isNormalized) {
+      this.normalizeRows();
+    }
   }
 
   measureMinWidth(element) {
