@@ -31,10 +31,14 @@ class MetricsWidget {
     this.metricFields = null;
     this.chartFields = null;
     this.computedGroups = [];
+    this.state = {
+      eventsExpanded: false,
+    };
     this.features = {
       snapshot: null,
       chart: null,
       table: null,
+      events: null,
     };
   }
 
@@ -109,6 +113,12 @@ class MetricsWidget {
       merged.periods = [...history.periods];
     }
     return merged;
+  }
+
+  getEventsConfig() {
+    const baseConfig = this.config?.events || {};
+    const featureConfig = this.config?.features?.events || {};
+    return { ...baseConfig, ...featureConfig };
   }
 
   getComputedGroup(groupName) {
@@ -231,6 +241,8 @@ class MetricsWidget {
       this.setView(this.config.default || this.defaults.default);
       await this.features.table.loadHistory();
     }
+
+    await this.features.events.render();
   }
 
   setupEventListeners() {
@@ -278,6 +290,14 @@ class MetricsWidget {
     this.setupDownloadControl();
     this.setupLegendToggle();
     this.updateControlStates();
+
+    const eventsToggle = this.getElement('events-toggle');
+    if (eventsToggle) {
+      eventsToggle.addEventListener('click', () => {
+        this.state.eventsExpanded = !this.state.eventsExpanded;
+        this.features.events?.render();
+      });
+    }
   }
 
   applyNodeFilter() {
@@ -362,11 +382,21 @@ class MetricsWidget {
 
   applyVisibilityConfig() {
     const FeatureVisibility = window.monitorShared.FeatureVisibility;
+    const eventsConfig = this.getEventsConfig();
 
-    FeatureVisibility.apply(this.container, this.config.show, {
-      tiles: '.stats',
-      history: '.metrics-history',
-    });
+    FeatureVisibility.apply(
+      this.container,
+      {
+        tiles: this.config.show?.tiles !== false,
+        history: this.config.show?.history !== false,
+        events: eventsConfig.show !== false,
+      },
+      {
+        tiles: '.stats',
+        history: '.metrics-history',
+        events: '[data-metrics-section="events"]',
+      },
+    );
   }
 
   initManagers() {
@@ -396,6 +426,10 @@ class MetricsWidget {
         globalName: 'MetricsTable',
         source: 'widgets/metrics/features/history/table.js',
       },
+      {
+        globalName: 'MetricsEvents',
+        source: 'widgets/metrics/features/events.js',
+      },
     ];
 
     await window.monitorShared.loadFeatureScripts(featureScripts);
@@ -405,14 +439,16 @@ class MetricsWidget {
     const SnapshotFeature = window.MetricsSnapshot;
     const ChartFeature = window.MetricsChart;
     const TableFeature = window.MetricsTable;
+    const EventsFeature = window.MetricsEvents;
 
-    if (!SnapshotFeature || !ChartFeature || !TableFeature) {
+    if (!SnapshotFeature || !ChartFeature || !TableFeature || !EventsFeature) {
       throw new Error('Metrics feature scripts not loaded');
     }
 
     this.features.snapshot = new SnapshotFeature(this);
     this.features.chart = new ChartFeature(this);
     this.features.table = new TableFeature(this);
+    this.features.events = new EventsFeature(this);
   }
 }
 

@@ -3,11 +3,18 @@ widgets:
   metrics:
     section: metrics
     name: null
-    collapsible: true
+    features:
+      events:
+        show: true
     history:
       periods: [30 days, 1 week, 24 hours, 6 hours, 1 hour]
-      table:
-        max: 20
       chart:
         default_metric: temp_c
         default_period: 6 hours
+    thresholds:
+      memory_percent:
+        caution: 75
+        critical: 90
+      temp_c:
+        caution: 85
+        critical: 90

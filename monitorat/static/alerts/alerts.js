@@ -71,7 +71,16 @@ function createAlertCard(options = {}) {
 }
 
 class EventsList {
-  constructor({ schemaUrl, eventsUrls, container, toggle, config, state, stateKey, helpers }) {
+  constructor({
+    schemaUrl,
+    eventsUrls,
+    container,
+    toggle,
+    config,
+    state,
+    stateKey,
+    helpers,
+  }) {
     this.schemaUrl = schemaUrl;
     this.eventsUrls = eventsUrls;
     this.container = container;
@@ -106,7 +115,10 @@ class EventsList {
         if (!response.ok) continue;
 
         const data = await response.json();
-        const events = (data.events || []).map((e) => ({ ...e, _source: source }));
+        const events = (data.events || []).map((e) => ({
+          ...e,
+          _source: source,
+        }));
         allEvents.push(...events);
       } catch (error) {
         console.warn(`Failed to fetch events from ${source}:`, error);
@@ -136,8 +148,10 @@ class EventsList {
     this.renderControls(isMultiSource);
 
     const filtered = this.events.filter((e) => {
-      if (this.filters.type !== 'all' && e.type !== this.filters.type) return false;
-      if (this.filters.source !== 'all' && e._source !== this.filters.source) return false;
+      if (this.filters.type !== 'all' && e.type !== this.filters.type)
+        return false;
+      if (this.filters.source !== 'all' && e._source !== this.filters.source)
+        return false;
       return true;
     });
 
@@ -165,7 +179,8 @@ class EventsList {
   }
 
   renderControls(isMultiSource) {
-    const actionsContainer = this.container?.parentElement?.querySelector('.alerts-actions');
+    const actionsContainer =
+      this.container?.parentElement?.querySelector('.alerts-actions');
     if (!actionsContainer) return;
 
     if (!this.elements.typeFilter) {
@@ -174,7 +189,10 @@ class EventsList {
       typeSelect.innerHTML =
         '<option value="all">All Events</option>' +
         Object.entries(this.schema)
-          .map(([type, def]) => `<option value="${type}">${def.label || type}</option>`)
+          .map(
+            ([type, def]) =>
+              `<option value="${type}">${def.label || type}</option>`,
+          )
           .join('');
       typeSelect.value = this.filters.type;
       typeSelect.addEventListener('change', () => {
@@ -190,14 +208,19 @@ class EventsList {
       sourceSelect.className = 'alerts-toggle';
       sourceSelect.innerHTML =
         '<option value="all">All Nodes</option>' +
-        this.eventsUrls.map(({ source }) => `<option value="${source}">${source}</option>`).join('');
+        this.eventsUrls
+          .map(({ source }) => `<option value="${source}">${source}</option>`)
+          .join('');
       sourceSelect.value = this.filters.source;
       sourceSelect.addEventListener('change', () => {
         this.filters.source = sourceSelect.value;
         this.render();
       });
       this.elements.sourceFilter = sourceSelect;
-      actionsContainer.insertBefore(sourceSelect, this.elements.typeFilter.nextSibling);
+      actionsContainer.insertBefore(
+        sourceSelect,
+        this.elements.typeFilter.nextSibling,
+      );
     }
 
     if (!isMultiSource && this.elements.sourceFilter) {
@@ -211,13 +234,37 @@ class EventsList {
     const def = this.schema[event.type] || {};
     const details = event.details || {};
 
+    const formatTemplateValue = (value) => {
+      if (value === null || value === undefined) return '';
+      if (typeof value === 'number' && this.helpers?.formatNumber) {
+        return this.helpers.formatNumber(value);
+      }
+      return value;
+    };
+
     const formatValue = (template, vars) => {
-      return template.replace(/\{(\w+)\}/g, (_, key) => vars[key] || '');
+      // Regex matches {token} placeholders for template substitution.
+      return template.replace(/\{(\w+)\}/g, (_, key) =>
+        formatTemplateValue(vars[key]),
+      );
     };
 
     let title = '';
     let detailText = '';
     let classes = def.classes || ['alert'];
+    if (event.status && event.status !== 'detected') {
+      if (Array.isArray(classes)) {
+        if (!classes.includes(event.status)) {
+          classes = [...classes, event.status];
+        }
+      } else if (typeof classes === 'string') {
+        const tokens = classes.split(' ').filter(Boolean);
+        if (!tokens.includes(event.status)) {
+          tokens.push(event.status);
+        }
+        classes = tokens;
+      }
+    }
 
     if (event.type === 'outage') {
       const start = details.start ? new Date(details.start) : null;
@@ -247,11 +294,18 @@ class EventsList {
         timestamp: this.helpers.formatDateTime(new Date(event.timestamp)),
       });
     } else {
-      title = def.titleTemplate || 'Connection failed';
-      detailText = formatValue(def.detailTemplate || '', {
+      const templateVars = {
+        ...details,
         message: event.message,
         timestamp: this.helpers.formatDateTime(new Date(event.timestamp)),
-      });
+        value: details.value ?? event.value,
+        threshold: details.threshold ?? event.threshold,
+      };
+      title = formatValue(
+        def.titleTemplate || event.message || event.type,
+        templateVars,
+      );
+      detailText = formatValue(def.detailTemplate || '', templateVars);
     }
 
     const strong = document.createElement('strong');

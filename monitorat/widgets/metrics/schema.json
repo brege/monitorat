@@ -5,7 +5,8 @@
     "current": "/api/metrics",
     "history": "/api/metrics/history",
     "csv": "/api/metrics/csv",
-    "schema": "/api/metrics/schema"
+    "schema": "/api/metrics/schema",
+    "events": "/api/metrics/alerts"
   },
   "metadata": {
     "field": "source",
@@ -84,6 +85,38 @@
       "decimals": 0,
       "color": "rgb(75, 85, 99)",
       "suffix": ""
+    }
+  },
+  "eventTypes": {
+    "load_1min": {
+      "label": "Load (1m)",
+      "classes": ["alert", "threshold"],
+      "titleTemplate": "{label} threshold",
+      "detailTemplate": "{value} > {threshold} at {timestamp}"
+    },
+    "memory_percent": {
+      "label": "Memory %",
+      "classes": ["alert", "threshold"],
+      "titleTemplate": "{label} threshold",
+      "detailTemplate": "{value} > {threshold} at {timestamp}"
+    },
+    "temp_c": {
+      "label": "Temperature",
+      "classes": ["alert", "threshold"],
+      "titleTemplate": "{label} threshold",
+      "detailTemplate": "{value} > {threshold} at {timestamp}"
+    },
+    "disk_percent": {
+      "label": "Disk %",
+      "classes": ["alert", "threshold"],
+      "titleTemplate": "{label} threshold",
+      "detailTemplate": "{value} > {threshold} at {timestamp}"
+    },
+    "storage_percent": {
+      "label": "Storage %",
+      "classes": ["alert", "threshold"],
+      "titleTemplate": "{label} threshold",
+      "detailTemplate": "{value} > {threshold} at {timestamp}"
     }
   }
 }

@@ -1,3 +1,41 @@
 .metrics {
   --stat-stack-margin: 0;
 }
+
+.metrics .alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.metrics .alerts-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.metrics .alerts-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.metrics .alert {
+  --alert-bg: rgba(var(--status-warn-rgb), 0.16);
+  --alert-border: rgb(var(--status-warn-rgb));
+  --alert-color: var(--text-primary);
+}
+
+.metrics .alert.caution {
+  --alert-bg: rgba(var(--status-warn-rgb), 0.16);
+  --alert-border: rgb(var(--status-warn-rgb));
+  --alert-color: var(--text-primary);
+}
+
+.metrics .alert.critical {
+  --alert-bg: rgba(var(--status-critical-rgb), 0.16);
+  --alert-border: rgb(var(--status-critical-rgb));
+  --alert-color: var(--text-primary);
+}

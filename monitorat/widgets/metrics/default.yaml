@@ -7,6 +7,8 @@ widgets:
         header: "Current Status"
       history:
         header: "History"
+      events:
+        header: "Events"
     daemon:
       enabled: true
       interval: 60
@@ -86,14 +88,34 @@ widgets:
         critical: 2.0
         normalize_per_cpu: true
       memory_percent:
-        caution: 75
-        critical: 90
+        caution: 85
+        critical: 95
       temp_c:
-        caution: 60
-        critical: 80
+        caution: 85
+        critical: 95
       disk_percent:
-        caution: 80
+        caution: 85
         critical: 95
       storage_percent:
         caution: 85
         critical: 95
+    events:
+      show: false
+      max: 3
+    notify:
+      load_1min:
+        enabled: false
+        priority: 0
+      memory_percent:
+        enabled: false
+        priority: 0
+      temp_c:
+        enabled: false
+        priority: 0
+      disk_percent:
+        enabled: false
+        priority: 0
+      storage_percent:
+        enabled: false
+        priority: 0
+      queue: true

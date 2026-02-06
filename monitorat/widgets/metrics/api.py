@@ -372,6 +372,9 @@ def register_routes(app):
     # Start background metrics collection
     if not is_demo_enabled():
         start_metrics_daemon()
+        from .events import register_metrics_observer
+
+        register_metrics_observer()
 
     def metrics_snapshot():
         context, values, statuses, _, snapshot_keys = collect_metrics()
@@ -414,6 +417,49 @@ def register_routes(app):
                 "statuses": statuses,
             }
 
+        return app.response_class(
+            response=json.dumps(payload),
+            status=200,
+            mimetype="application/json",
+        )
+
+    def build_metrics_events_payload(limit: int) -> dict:
+        if is_demo_enabled():
+            from .events import get_metrics_events_for_demo
+
+            return {"events": get_metrics_events_for_demo(limit=limit)}
+
+        try:
+            from monitorat.observer import get_observer
+        except ImportError:
+            from observer import get_observer
+
+        observer = get_observer()
+        if observer is None:
+            return {"events": [], "error": "Observer not running"}
+
+        events = observer.event_store.read_all(widget="metrics", limit=limit)
+        events = [event for event in events if event.get("type") != "checkpoint"]
+        return {"events": events}
+
+    @app.route("/api/metrics/events", methods=["GET"])
+    def api_metrics_events():
+        from flask import request
+
+        limit = request.args.get("limit", 100, type=int)
+        payload = build_metrics_events_payload(limit)
+        return app.response_class(
+            response=json.dumps(payload),
+            status=200,
+            mimetype="application/json",
+        )
+
+    @app.route("/api/metrics/alerts", methods=["GET"])
+    def api_metrics_alerts():
+        from flask import request
+
+        limit = request.args.get("limit", 100, type=int)
+        payload = build_metrics_events_payload(limit)
         return app.response_class(
             response=json.dumps(payload),
             status=200,
