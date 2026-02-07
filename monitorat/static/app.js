@@ -238,7 +238,7 @@ async function initializeWidget(
       widgetConfig._apiPrefix = config.api_prefix;
     }
 
-    if (widgetType === 'wiki') {
+    if (widgetType === 'wiki' || widgetType === 'metrics') {
       widgetConfig._widgetName = widgetName;
     }
 

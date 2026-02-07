@@ -401,7 +401,7 @@ def _collect_config_sources(
     return sources
 
 
-def find_widget_items_source(widget_name: str) -> Path:
+def find_widget_items_source(widget_name: str, key: str = "items") -> Path:
     config_path = get_primary_config_path()
     if not config_path or not config_path.exists():
         raise FileNotFoundError("Config file not found.")
@@ -412,6 +412,7 @@ def find_widget_items_source(widget_name: str) -> Path:
         seen=set(),
         allow_default=True,
     )
+    widget_source = None
     for source in sources:
         data = _load_yaml_mapping(source)
         widgets = data.get("widgets")
@@ -420,9 +421,11 @@ def find_widget_items_source(widget_name: str) -> Path:
         widget_config = widgets.get(widget_name)
         if not isinstance(widget_config, dict):
             continue
-        if "items" in widget_config:
+        if key in widget_config:
             return source
-    return config_path
+        if widget_source is None:
+            widget_source = source
+    return widget_source or config_path
 
 
 def load_widget_items_from_file(path: Path, widget_name: str) -> dict:

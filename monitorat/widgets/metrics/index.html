@@ -1,13 +1,17 @@
 <link rel="stylesheet" href="widgets/metrics/style.css">
 
 <section class="metrics">
+<div class="widget-controls controls-row" data-metrics="widget-controls" style="display: none;">
+  <span class="spacer"></span>
+  <button type="button" class="alerts-toggle metrics-configure" style="display: none;">Configure Metrics</button>
+</div>
+
 <div class="feature-header" data-metrics-section-header="snapshot"></div>
 
 <div class="stats" data-metrics="snapshot-tiles"></div>
 
-<div class="feature-header" data-metrics-section-header="history"></div>
-
 <div class="metrics-history">
+    <div class="feature-header" data-metrics-section-header="history"></div>
     <div class="metrics-view-toggle history-view-toggle" data-metrics="view-toggle" style="display: none;">
       <select class="alerts-toggle" data-metrics="node-select" style="display: none;">
       </select>

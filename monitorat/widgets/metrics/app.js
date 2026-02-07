@@ -29,6 +29,7 @@ class MetricsWidget {
     this.selectedPeriod = 'all';
     this.selectedNode = 'all';
     this.schema = null;
+    this.editor = null;
     this.metricFields = null;
     this.chartFields = null;
     this.computedGroups = [];
@@ -238,6 +239,10 @@ class MetricsWidget {
     this.initManagers();
     await this.loadData();
 
+    if (this.canEditMetrics()) {
+      this.addEditButton();
+    }
+
     const showHistory = this.config.show?.history !== false;
     if (showHistory) {
       this.setView(this.config.default || this.defaults.default);
@@ -245,6 +250,58 @@ class MetricsWidget {
     }
 
     await this.features.events.render();
+  }
+
+  canEditMetrics() {
+    if (this.config.remote) {
+      return false;
+    }
+    if (this.config.federation?.nodes) {
+      return false;
+    }
+    return window.monitorShared?.isEditModeEnabled?.() === true;
+  }
+
+  async openMetricsEditor() {
+    if (!window.MetricsEditor) {
+      await window.monitorShared.loadScript(
+        'widgets/metrics/features/editor.js',
+        'MetricsEditor',
+      );
+    }
+    if (!this.editor) {
+      this.editor = new window.MetricsEditor(this);
+    }
+    await this.editor.openEditor();
+  }
+
+  async applySnapshotQuantities(quantities) {
+    this.config = this.buildConfig({
+      snapshots: {
+        ...(this.config.snapshots || {}),
+        quantities: [...quantities],
+      },
+    });
+    if (this.features.snapshot) {
+      this.features.snapshot.tiles = null;
+    }
+    await this.loadData();
+  }
+
+  addEditButton() {
+    const controlsRow = this.container.querySelector(
+      '[data-metrics="widget-controls"]',
+    );
+    if (!controlsRow) return;
+
+    controlsRow.style.display = '';
+    const configureBtn = controlsRow.querySelector('.metrics-configure');
+    if (!configureBtn) return;
+
+    configureBtn.style.display = '';
+    configureBtn.addEventListener('click', () => {
+      this.openMetricsEditor();
+    });
   }
 
   setupEventListeners() {

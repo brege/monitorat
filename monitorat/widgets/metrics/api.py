@@ -7,7 +7,10 @@ import time
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
+import confuse
 import psutil
+import yaml
+
 from monitor import (
     config,
     parse_iso_timestamp,
@@ -16,8 +19,10 @@ from monitor import (
     is_demo_enabled,
     register_snapshot_provider,
     get_data_path,
+    reload_config,
+    find_widget_items_source,
 )
-from flask import request, send_file
+from flask import request, send_file, jsonify
 
 from .registry import METRIC_REGISTRY, MetricContext, MetricValue, build_metric_context
 
@@ -544,6 +549,74 @@ def register_routes(app):
                 mimetype="text/plain",
             )
 
+    def is_editing_enabled():
+        return config["site"]["editing"].get(bool)
+
+    def _get_widget_config(widget_key):
+        try:
+            return config["widgets"][widget_key]
+        except confuse.NotFoundError:
+            return None
+
+    def _get_config_list(widget_config, *keys):
+        node = widget_config
+        try:
+            for key in keys:
+                node = node[key]
+            return node.get(list)
+        except (confuse.NotFoundError, confuse.ConfigError):
+            return []
+
+    def api_metrics_source_get():
+        if not is_editing_enabled():
+            return jsonify({"error": "Editing is disabled"}), 403
+        widget_key = request.args.get("widget", "metrics")
+        widget_config = _get_widget_config(widget_key)
+        source_path = find_widget_items_source(widget_key, key="snapshots")
+        available = [
+            {"key": quantity.key, "label": quantity.label}
+            for quantity in METRIC_REGISTRY.list_quantities()
+        ]
+        quantities = (
+            _get_config_list(widget_config, "snapshots", "quantities")
+            if widget_config
+            else []
+        )
+        return jsonify(
+            {
+                "quantities": quantities,
+                "available": available,
+                "path": str(source_path),
+            }
+        )
+
+    def api_metrics_source_put():
+        if not is_editing_enabled():
+            return jsonify({"error": "Editing is disabled"}), 403
+        widget_key = request.args.get("widget", "metrics")
+        source_path = find_widget_items_source(widget_key, key="snapshots")
+        payload = request.get_json()
+        if not payload or not isinstance(payload.get("quantities"), list):
+            return jsonify({"error": "quantities must be a list"}), 400
+        quantities = payload["quantities"]
+        for key in quantities:
+            if not isinstance(key, str):
+                return jsonify({"error": f"Invalid quantity key: {key}"}), 400
+            try:
+                METRIC_REGISTRY.get_quantity(key)
+            except KeyError:
+                return jsonify({"error": f"Unknown quantity: {key}"}), 400
+        data = yaml.safe_load(source_path.read_text(encoding="utf-8")) or {}
+        widget_block = data.setdefault("widgets", {}).setdefault(widget_key, {})
+        snapshots = widget_block.setdefault("snapshots", {})
+        snapshots["quantities"] = quantities
+        source_path.write_text(
+            yaml.safe_dump(data, sort_keys=False, default_flow_style=False),
+            encoding="utf-8",
+        )
+        reload_config()
+        return jsonify({"status": "ok"})
+
     app.add_url_rule(
         f"/api/{api_prefix}/schema",
         endpoint="api_metrics_schema",
@@ -573,6 +646,18 @@ def register_routes(app):
         endpoint="api_metrics_csv",
         view_func=api_metrics_csv,
         methods=["GET"],
+    )
+    app.add_url_rule(
+        f"/api/{api_prefix}/source",
+        endpoint="api_metrics_source_get",
+        view_func=api_metrics_source_get,
+        methods=["GET"],
+    )
+    app.add_url_rule(
+        f"/api/{api_prefix}/source",
+        endpoint="api_metrics_source_put",
+        view_func=api_metrics_source_put,
+        methods=["PUT"],
     )
 
     if api_prefix != "metrics":
@@ -605,6 +690,18 @@ def register_routes(app):
             endpoint="api_metrics_csv_alias",
             view_func=api_metrics_csv,
             methods=["GET"],
+        )
+        app.add_url_rule(
+            "/api/metrics/source",
+            endpoint="api_metrics_source_get_alias",
+            view_func=api_metrics_source_get,
+            methods=["GET"],
+        )
+        app.add_url_rule(
+            "/api/metrics/source",
+            endpoint="api_metrics_source_put_alias",
+            view_func=api_metrics_source_put,
+            methods=["PUT"],
         )
         logger.info("Metrics alias routes registered at /api/metrics")
 

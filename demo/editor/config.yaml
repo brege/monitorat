@@ -1,15 +1,14 @@
----
 demo: true
 site:
   name: '@editor'
   title: monitor@editor
   editing: true
-
 includes:
-  - snippets/wiki.yaml
-  - snippets/reminders.yaml
-  - snippets/services.yaml
-  - snippets/footer.yaml
+- snippets/wiki.yaml
+- snippets/reminders.yaml
+- snippets/services.yaml
+- snippets/metrics.yaml
+- snippets/footer.yaml
 paths:
   data: data/
   img: img/
@@ -25,42 +24,73 @@ sections:
     title: Reminders
   services:
     title: Services
+  metrics:
+    title: Metrics
   wiki-footer:
     title: Links
-
 widgets:
   enabled:
-    - editor-readme
-    - dummy
-    - reminders
-    - services
-    - wiki-footer
-
+  - editor-readme
+  - dummy
+  - reminders
+  - services
+  - metrics
+  - wiki-footer
   editor-readme:
     type: wiki
     name: null
     section: editor-readme
     doc: ./README.md
     mode: seamless
-
   reminders:
     type: reminders
     name: null
     section: reminders
-  
   services:
     section: services
     name: null
     collapsible: true
     hidden: false
-  
+  metrics:
+    section: metrics
+    name: null
+    show:
+      tiles: true
+      history: false
+    features:
+      events:
+        show: false
+    snapshots:
+      quantities:
+      - uptime_seconds
+      - load_summary
+      - memory_usage
+      - temp_c
+      - disk_usage
+      - storage_usage
+    history:
+      table:
+        columns:
+        - cpu_percent
+        - memory_percent
+        - disk_read_mb
+        - disk_write_mb
+        - net_rx_mb
+        - net_tx_mb
+        - load_1min
+        - temp_c
+      chart:
+        quantities:
+        - cpu_percent
+        - memory_percent
+        - load_1min
+        - temp_c
   dummy:
     type: wiki
     name: null
     section: dummy
     doc: docs/dummy.md
     mode: rail
-
   wiki-footer:
     type: wiki
     name: null
