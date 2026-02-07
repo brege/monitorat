@@ -2,12 +2,9 @@
 
 ## Features
 
-New Subwidget Capabilities
-- [x] Add an alerts subwidget for System Metrics events (alternative to Apprise)
-- [x] Conversely, add Apprise notifications for Network alerts
-
 Editors and Web UI Configuration
-- [ ] System Metrics: Customizing tiles and custom commands
+- [x] System Metrics: Customizing tiles
+- [ ] System Metrics: Customizing commands for tiles
 - [ ] Network: log\_file path, enable chirper, pips and ranges
 
 Sugar

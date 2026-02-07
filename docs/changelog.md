@@ -1,5 +1,10 @@
 ## Changelog
 
+### 2026-05-07
+
+- Support tile/snapshot configuration for metrics widget
+- Bump version to v0.12.2
+
 ### 2026-02-06 -- [14792dd..8d49baa](https://github.com/brege/monitorat/compare/14792dd..8d49baa)
 
 - Fix test harness API endpoints following Metrics refactor
