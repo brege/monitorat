@@ -4,7 +4,9 @@
 
 Editors and Web UI Configuration
 - [x] System Metrics: Customizing tiles
-- [ ] System Metrics: Customizing commands for tiles
+- [x] ~~System Metrics: Customizing commands for tiles~~
+  - **Decision:** Do not work on this now. Want metrics capability to grow, not fragment to user
+    factions, in this early hour. Intentional debt.
 - [ ] Network: log\_file path, enable chirper, pips and ranges
 
 Sugar
