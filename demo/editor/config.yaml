@@ -19,7 +19,7 @@ sections:
     title: null
     collapsible: false
   dummy:
-    title: Dummy Document
+    title: Markdown
   reminders:
     title: Reminders
   services:
@@ -33,8 +33,11 @@ widgets:
   - editor-readme
   - dummy
   - reminders
+  - reminders-doc
   - services
+  - services-doc
   - metrics
+  - metrics-doc
   - wiki-footer
   editor-readme:
     type: wiki
@@ -46,11 +49,23 @@ widgets:
     type: reminders
     name: null
     section: reminders
+  reminders-doc:
+    type: wiki
+    name: null
+    section: reminders
+    doc: ./docs/reminders.md
+    mode: seamless
   services:
     section: services
     name: null
     collapsible: true
     hidden: false
+  services-doc:
+    type: wiki
+    name: null
+    section: services
+    doc: ./docs/services.md
+    mode: seamless
   metrics:
     section: metrics
     name: null
@@ -85,6 +100,12 @@ widgets:
         - memory_percent
         - load_1min
         - temp_c
+  metrics-doc:
+    type: wiki
+    name: null
+    section: metrics
+    doc: ./docs/metrics.md
+    mode: seamless
   dummy:
     type: wiki
     name: null

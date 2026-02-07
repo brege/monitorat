@@ -2,16 +2,57 @@ defaults:
   summary: Show config
   lang: yaml
 documents:
+  - output: demo/editor/docs/reminders.md
+    preface: |-
+      ### Adding and Editing Reminders
+
+      You can add new reminders with the "Add Reminder" button and edit 
+      existing reminders with the pencil icon. To test notifications, use
+      the main menu. All notifications use the same Apprise harnesses you've
+      configured in the main YAML config.
+    include: snippets/reminders.yaml
+    show_config: false
+  - output: demo/editor/docs/services.md
+    preface: |-
+      ### Adding and Editing Services 
+
+      You add new service cards with the "Add Service" button or edit existing
+      services with the pencil icon. This widget supports adding both
+      [Docker](https://www.docker.com/) and
+      [systemd](https://www.freedesktop.org/wiki/Software/systemd/)
+      services, where you can configure the local and external URL for each
+      service.
+
+      Service editing does not modify the host's actual systemd or Docker
+      state.
+    include: snippets/services.yaml
+    show_config: false
+  - output: demo/editor/docs/metrics.md
+    preface: |-
+      ### Metrics Snapshot Configuration
+
+      Here you can choose and reorder metrics snapshot tiles to display. This
+      editor controls tile presentation only and has no effect on the heartbeat
+      metrics that are recorded in `metrics.csv`. For that, you must edit the 
+      widget's config snippet.
+
+      Not configurable through the UI: metrics charts, tables, and alerts.
+    include: snippets/metrics.yaml
+    show_config: false
   - output: demo/editor/docs/dummy.md
     preface: |-
       ### Edit Me
 
-      This is a dummy document for testing the editor. It is not
-      intended for actual use.
+      This is a dummy document for testing the editor. Press the pencil
+      icon to edit this copy.
+
+      A code block,
 
       ```bash
       uv tool install monitorat
       ```
-    epilogue: See [github.com/brege/monitorat](https://github.com/brege/monitorat) for more information.
+    epilogue: |-
+      See [github.com/brege/monitorat](https://github.com/brege/monitorat)
+      for more information.
     include: demo/editor/config.yaml
     show_config: false
