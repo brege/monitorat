@@ -159,10 +159,13 @@ class MetricsSnapshot {
   buildTiles(values, statuses) {
     const schemaQuantities = this.widget.schema?.quantities || [];
     const configuredKeys = this.widget.config?.snapshots?.quantities;
+    const payloadKeys = Object.keys(values || {});
     const keys =
       Array.isArray(configuredKeys) && configuredKeys.length
         ? configuredKeys
-        : schemaQuantities.map((quantity) => quantity.key);
+        : payloadKeys.length
+          ? payloadKeys
+          : schemaQuantities.map((quantity) => quantity.key);
 
     return keys.map((key) => {
       const quantity = schemaQuantities.find((item) => item.key === key);
