@@ -3,6 +3,9 @@ widgets:
     type: metrics
     name: "Metrics: History - Default"
     section: metrics
+    features:
+      events:
+        show: false
     show:
       tiles: false
       history: true

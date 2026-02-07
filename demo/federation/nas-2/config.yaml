@@ -38,16 +38,27 @@ widgets:
   services:
     name: "NAS-2 Services"
     items:
-      jellyfin:
-        name: Jellyfin
-        icon: services/docker/jellyfin.png
-        containers: [jellyfin]
-        url: https://jellyfin.org
-      immich:
-        name: Immich
-        icon: services/docker/immich.webp
-        containers: [immich_server, immich_ml]
-        url: https://immich.app
+      monitor:
+        name: monitorat
+        icon: favicon.svg
+        services: [monitor@demo.service]
+        url: https://github.com/brege/monitorat
+      ollama:
+        name: Ollama
+        icon: services/systemd/ollama.svg
+        chrome: true
+        services: [ollama.service]
+        url: https://github.com/ollama/ollama
+      porkbun_ddns:
+        name: Porkbun DDNS
+        icon: services/systemd/porkbun.png
+        timers: [porkbun-ddns.timer]
+        url: https://github.com/brege/porkbun-ddns
+      nginx:
+        name: Nginx
+        icon: services/systemd/nginx.png
+        services: [nginx.service]
+        url: https://github.com/nginx/nginx
 
   reminders:
     name: "NAS-2 Reminders"

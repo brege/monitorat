@@ -38,16 +38,42 @@ widgets:
   services:
     name: "NAS-1 Services"
     items:
+      monitor:
+        name: monitorat
+        icon: favicon.svg
+        services: [monitor@demo.service]
+        url: https://github.com/brege/monitorat
       plex:
         name: Plex
         icon: services/systemd/plex.svg
         services: [plexmediaserver.service]
         url: https://plex.tv
-      syncthing:
-        name: Syncthing
-        icon: services/systemd/syncthing.png
-        services: [syncthing@nas1.service]
-        url: https://syncthing.net
+      immich:
+        name: Immich
+        icon: services/docker/immich.webp
+        containers:
+          - immich_server
+          - immich_machine_learning
+          - immich_microservices
+          - immich_postgres
+          - immich_redis
+        url: https://github.com/immich-app/immich
+      kometa:
+        name: Kometa
+        icon: services/systemd/kometa.png
+        timers: [kometa@full.timer, kometa@recent.timer]
+        url: https://github.com/Kometa-Team/kometa
+      plex_letterboxd:
+        name: Plex Letterboxd
+        icon: services/systemd/letterboxd.png
+        services: [plex-letterboxd@demo.service]
+        timers: [plex-letterboxd@demo.timer, plex-letterboxd@monthly.timer]
+        url: https://github.com/brege/plex-letterboxd
+      jellyfin:
+        name: Jellyfin
+        icon: services/docker/jellyfin.png
+        containers: [jellyfin]
+        url: https://github.com/jellyfin/jellyfin
 
   reminders:
     name: "NAS-1 Reminders"

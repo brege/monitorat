@@ -17,7 +17,8 @@ widgets:
       show: false
     alerts:
       show: true
-      max: 10
+      max: 3
+      cadence: 30 minutes
 
   wiki-network-outages-merge:
     type: wiki
