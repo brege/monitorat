@@ -1,15 +1,15 @@
-### Demos
-- **Simple** - [monitorat.brege.org](https://monitorat.brege.org)
-- **Widget Features and Modes** - [monitorat.brege.org/advanced](https://monitorat.brege.org/advanced)
-- **Columns and Layout** - [monitorat.brege.org/layout](https://monitorat.brege.org/layout)
-- **Federation** - [monitorat.brege.org/federation](https://monitorat.brege.org/federation)
+### **Demos**
+[simple](https://monitorat.brege.org)
+· [advanced](https://monitorat.brege.org/advanced)
+· [layout](https://monitorat.brege.org/layout)
+· [federation](https://monitorat.brege.org/federation)
 
-### Repositories
-- **GitHub** - [github.com/brege/monitorat](https://github.com/brege/monitorat)
-- **PyPI** - [pypi.org/project/monitorat](https://pypi.org/project/monitorat) `uv tool install monitorat`
+### **Repositories**
+[github.com/brege/monitorat](https://github.com/brege/monitorat)
+· [pypi.org/project/monitorat](https://pypi.org/project/monitorat)
 
-### About
-- **Monitorat** - [monitorat.brege.org](https://monitorat.brege.org) (c) 2025-2026 GPL-3.0
-- **Wyatt Brege** - [brege.org](https://brege.org)
-- **GitHub** - [github.com/brege](https://github.com/brege)
-- **Mastodon** - [@brege@mastodon.social](https://mastodon.social/@brege)
+### **About**
+[brege.org](https://brege.org)
+· [monitorat.brege.org](https://monitorat.brege.org)
+· [github.com/brege](https://github.com/brege)
+· [mastodon.social/@brege](https://mastodon.social/@brege)

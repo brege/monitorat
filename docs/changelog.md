@@ -7,6 +7,7 @@
 - Improved spacing between feature-headers and features in metrics and network widgets
 - Add KaTeX math support for the Wiki widget
 - Bump version to v0.12.3
+- Make network uptime pips meter-like, not a color gradient, to show fractional network health
 
 ### 2026-02-07 -- [9c843fe..337cd00](https://github.com/brege/monitorat/compare/9c843fe..337cd00)
 

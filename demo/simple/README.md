@@ -19,11 +19,11 @@ There are several demos.
 
 | Demo | Command | Port | Online Demo |
 |:--- |:--- | --- |:--- |
-| **Simple** | `monitorat demo --mode simple` | :6100  | [monitorat.brege.org/](http://monitorat.brege.org/) |
+| **Simple** | `monitorat demo --mode simple` | :6100  | [monitorat.brege.org/](http://monitorat.brege.org) |
 | **Advanced** | `monitorat demo --mode advanced` | :6200 | [monitorat.brege.org/advanced](http://monitorat.brege.org/advanced) |
-| **Layout** | `monitorat demo --mode layout` | :6500 | [monitorat.brege.org/layout](http://monitorat.brege.org/layout) |
 | **Federation** | `monitorat demo --mode federation` | :6300 | [monitorat.brege.org/federation](http://monitorat.brege.org/federation) |
-| **Editor** | `monitorat demo --mode editor` | :6400 | n/a |
+| **Editor** | `monitorat demo --mode editor` | :6400 | not available online |
+| **Layout** | `monitorat demo --mode layout` | :6500 | [monitorat.brege.org/layout](http://monitorat.brege.org/layout) |
 
 - The [simple](http://monitorat.brege.org/) demo goes over the widget basics.
 - The [advanced](http://monitorat.brege.org/advanced) demo breaks down how different features of each widget can be toggled, configured, and adjusted for different display modes.
