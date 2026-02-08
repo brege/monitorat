@@ -686,6 +686,26 @@ h6:hover .header-anchor {
   font-weight: 500;
 }
 
+.metrics > :is(.metrics-history, .metrics-events),
+.network .network-container > :is(.uptime-overview, .alerts) {
+  margin-top: 12px;
+}
+
+.metrics
+  :is(
+    .feature-header[data-metrics-section-header="snapshot"],
+    .feature-header[data-metrics-section-header="history"],
+    .feature-header[data-metrics-section-header="events"]
+  ),
+.network
+  :is(
+    .feature-header[data-network-section-header="metrics"],
+    .feature-header[data-network-section-header="uptime"],
+    .feature-header[data-network-section-header="alerts"]
+  ) {
+  margin: 0 0 8px 0;
+}
+
 .layout-columns {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));

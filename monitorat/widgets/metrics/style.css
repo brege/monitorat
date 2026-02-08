@@ -6,7 +6,26 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 12px;
+}
+
+.metrics .metrics-events {
+  gap: 6px;
+}
+
+.metrics .metrics-events .feature-header[data-metrics-section-header="events"] {
+  margin-bottom: 4px;
+}
+
+.metrics .metrics-events .alerts-actions {
+  gap: 8px;
+}
+
+.metrics .metrics-events .alert-list {
+  gap: 5px;
+}
+
+.metrics .metrics-events .alert-card {
+  margin-bottom: 0;
 }
 
 .metrics .alerts-header {

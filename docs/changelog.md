@@ -3,6 +3,8 @@
 ### 2026-05-08
 
 - Improve all documentation of and backlinks to layout demo
+- Use 'assets', not 'vendors', since these are not proprietary moneyware
+- Add KaTeX math support for the Wiki widget
 
 ### 2026-02-07 -- [9c843fe..337cd00](https://github.com/brege/monitorat/compare/9c843fe..337cd00)
 

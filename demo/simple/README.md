@@ -56,13 +56,13 @@ This section is a KaTeX smoke test for wiki math rendering.
 
 Inline Euler identity: $e^{i\pi} + 1 = 0$
 
-Display form:
+Richard Feynman called *Euler's identity* the **jewel of mathematics**:
 
 $$
-\exp(i\pi) + 1 = 0
+e^(i\pi) + 1 = 0
 $$
 
-Quadratic formula:
+The *quadratic formula* can be obtained from **completing the square**:
 
 $$
 x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}

@@ -19,7 +19,7 @@
 .network-container {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 0;
   --uptime-pill-base: var(--border-muted);
   --uptime-pill-idle: rgba(var(--status-unknown-rgb), 0.6);
   --uptime-pill-future: rgba(var(--status-unknown-rgb), 0.35);
@@ -126,6 +126,28 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.network-container [data-network-section="alerts"] {
+  gap: 6px;
+}
+
+.network-container
+  [data-network-section="alerts"]
+  .feature-header[data-network-section-header="alerts"] {
+  margin-bottom: 4px;
+}
+
+.network-container [data-network-section="alerts"] .alerts-actions {
+  gap: 8px;
+}
+
+.network-container [data-network-section="alerts"] .alert-list {
+  gap: 5px;
+}
+
+.network-container [data-network-section="alerts"] .alert-card {
+  margin-bottom: 0;
 }
 .network-container .alerts-header {
   display: flex;

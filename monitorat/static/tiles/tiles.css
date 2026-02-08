@@ -6,7 +6,11 @@
 }
 
 .stats {
-  margin: var(--stat-stack-margin, 18px 0 24px);
+  margin: var(
+    --stat-stack-margin,
+    var(--stat-stack-margin-top, 18px) var(--stat-stack-margin-right, 0)
+      var(--stat-stack-margin-bottom, 24px) var(--stat-stack-margin-left, 0)
+  );
 }
 
 .tyler-tile {
