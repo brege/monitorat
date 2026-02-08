@@ -98,6 +98,32 @@ window.monitorShared.loadFeatureScripts = async (featureScripts) => {
   }
 };
 
+window.monitorShared.ensureStylesheet = (href) =>
+  new Promise((resolve, reject) => {
+    const existing = document.querySelector(`link[href="${href}"]`);
+    if (existing) {
+      resolve();
+      return;
+    }
+
+    const stylesheet = document.createElement('link');
+    stylesheet.rel = 'stylesheet';
+    stylesheet.href = href;
+    stylesheet.onload = () => resolve();
+    stylesheet.onerror = () =>
+      reject(new Error(`Failed to load stylesheet: ${href}`));
+    document.head.appendChild(stylesheet);
+  });
+
+window.monitorShared.ensureEditorAssets = async () => {
+  await Promise.all([
+    window.monitorShared.ensureStylesheet('editor/editor.css'),
+    window.monitorShared.ensureStylesheet('editor/fields.css'),
+  ]);
+  await window.monitorShared.loadScript('editor/editor.js', 'Editor');
+  await window.monitorShared.loadScript('editor/item.js', 'ItemEditor');
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
   const config = await loadConfig();
   const federationStatus = window.StatusIndicator
@@ -111,6 +137,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.monitorShared.setEditingAvailable(editingAvailable);
   if (editingAvailable) {
     window.monitorShared.ensureEditMode(true);
+    await window.monitorShared.ensureEditorAssets();
   } else {
     window.monitorShared.setEditModeEnabled(false);
   }

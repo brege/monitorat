@@ -387,14 +387,6 @@ class ServicesWidget {
         source: 'ui/icons.js',
       },
       {
-        globalName: 'FormFields',
-        source: 'editor/fields.js',
-      },
-      {
-        globalName: 'ServicesEditor',
-        source: 'widgets/services/features/editor.js',
-      },
-      {
         globalName: 'ServicesControls',
         source: 'widgets/services/features/controls.js',
       },
@@ -407,6 +399,25 @@ class ServicesWidget {
         source: 'widgets/services/features/snapshot.js',
       },
     ];
+
+    const editingAvailable =
+      window.monitorShared?.isEditingAvailable?.() === true;
+    const localEditableWidget =
+      !this.config._apiPrefix &&
+      !this.config.remote &&
+      !this.config.federation?.nodes;
+    if (editingAvailable && localEditableWidget) {
+      featureScripts.push(
+        {
+          globalName: 'FormFields',
+          source: 'editor/fields.js',
+        },
+        {
+          globalName: 'ServicesEditor',
+          source: 'widgets/services/features/editor.js',
+        },
+      );
+    }
 
     await window.monitorShared.loadFeatureScripts(featureScripts);
   }

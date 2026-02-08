@@ -305,14 +305,6 @@ class RemindersWidget {
         source: 'ui/icons.js',
       },
       {
-        globalName: 'FormFields',
-        source: 'editor/fields.js',
-      },
-      {
-        globalName: 'RemindersEditor',
-        source: 'widgets/reminders/features/editor.js',
-      },
-      {
         globalName: 'RemindersModal',
         source: 'widgets/reminders/features/confirm.js',
       },
@@ -325,6 +317,25 @@ class RemindersWidget {
         source: 'widgets/reminders/features/alerts.js',
       },
     ];
+
+    const editingAvailable =
+      window.monitorShared?.isEditingAvailable?.() === true;
+    const localEditableWidget =
+      !this.config._apiPrefix &&
+      !this.config.remote &&
+      !this.config.federation?.nodes;
+    if (editingAvailable && localEditableWidget) {
+      featureScripts.push(
+        {
+          globalName: 'FormFields',
+          source: 'editor/fields.js',
+        },
+        {
+          globalName: 'RemindersEditor',
+          source: 'widgets/reminders/features/editor.js',
+        },
+      );
+    }
 
     await window.monitorShared.loadFeatureScripts(featureScripts);
   }
