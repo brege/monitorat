@@ -41,7 +41,7 @@ class ChartManager {
         initialize();
       } else {
         const script = document.createElement('script');
-        script.src = 'vendors/chart.min.js';
+        script.src = 'assets/chart.min.js';
         script.onload = initialize;
         script.onerror = () => {
           console.error('Failed to load Chart.js');

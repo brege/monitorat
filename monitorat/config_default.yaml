@@ -11,7 +11,7 @@ paths:              # all paths relative to config home (e.g. ~/.config/monitora
   data: data/
   img: img/
   favicon: favicon.ico
-  vendors: vendors/
+  assets: assets/
   widgets: [widgets/]
   theme: null       # your themes/my-theme.css applies on top of site.theme
 notifications:

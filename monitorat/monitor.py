@@ -208,7 +208,7 @@ class CSVHandler:
             return list(csv.DictReader(f))
 
 
-VENDOR_URLS = {
+ASSET_URLS = {
     "github-markdown.min.css": "https://cdn.jsdelivr.net/npm/github-markdown-css@5.6.1/github-markdown.min.css",
     "markdown-it.min.js": "https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js",
     "markdown-it-anchor.min.js": "https://cdn.jsdelivr.net/npm/markdown-it-anchor@9/dist/markdownItAnchor.umd.min.js",
@@ -216,6 +216,7 @@ VENDOR_URLS = {
     "mermaid.js": "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.js",
     "chart.min.js": "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js",
 }
+VENDOR_URLS = ASSET_URLS
 
 
 def strip_source_map_reference(path: Path) -> None:
@@ -233,16 +234,33 @@ def strip_source_map_reference(path: Path) -> None:
     path.write_text("\n".join(cleaned), encoding="utf-8")
 
 
-def ensure_vendors():
-    vendors_config = config["paths"]["vendors"].get()
-    if vendors_config is None:
+def resolve_assets_config():
+    paths_view = config["paths"]
+    path_keys = set(paths_view.keys())
+    if "assets" in path_keys:
+        return paths_view["assets"].get()
+    if "vendors" in path_keys:
+        return paths_view["vendors"].get()
+    return "assets/"
+
+
+def resolve_assets_path() -> Optional[Path]:
+    assets_config = resolve_assets_config()
+    if assets_config is None:
+        return None
+    assets_path = Path(assets_config) if assets_config else Path("assets/")
+    if not assets_path.is_absolute():
+        assets_path = Path(config.config_dir()) / assets_path
+    return assets_path
+
+
+def ensure_assets():
+    assets_path = resolve_assets_path()
+    if assets_path is None:
         return
-    vendors_path = Path(vendors_config) if vendors_config else Path("vendors/")
-    if not vendors_path.is_absolute():
-        vendors_path = Path(config.config_dir()) / vendors_path
-    vendors_path.mkdir(exist_ok=True, parents=True)
-    for filename, url in VENDOR_URLS.items():
-        filepath = vendors_path / filename
+    assets_path.mkdir(exist_ok=True, parents=True)
+    for filename, url in ASSET_URLS.items():
+        filepath = assets_path / filename
         if not filepath.exists():
             print(f"Downloading {filename}...")
             urlretrieve(url, filepath)
@@ -250,7 +268,11 @@ def ensure_vendors():
         strip_source_map_reference(filepath)
 
 
-ensure_vendors()
+def ensure_vendors():
+    ensure_assets()
+
+
+ensure_assets()
 
 
 @app.route("/")
@@ -510,18 +532,20 @@ def img_files(filename):
     return send_from_directory(str(img_dir), filename)
 
 
-@app.route("/vendors/<path:filename>")
-def vendor_files(filename):
-    vendors_config = config["paths"]["vendors"].get()
-    if vendors_config is None:
-        url = VENDOR_URLS.get(filename)
+@app.route("/assets/<path:filename>")
+def asset_files(filename):
+    assets_path = resolve_assets_path()
+    if assets_path is None:
+        url = ASSET_URLS.get(filename)
         if url:
             return redirect(url, code=307)
-        return jsonify({"error": f"Vendor '{filename}' not found"}), 404
-    vendors_path = Path(vendors_config) if vendors_config else Path("vendors/")
-    if not vendors_path.is_absolute():
-        vendors_path = Path(config.config_dir()) / vendors_path
-    return send_from_directory(str(vendors_path), filename)
+        return jsonify({"error": f"Asset '{filename}' not found"}), 404
+    return send_from_directory(str(assets_path), filename)
+
+
+@app.route("/vendors/<path:filename>")
+def vendor_files(filename):
+    return asset_files(filename)
 
 
 def resolve_custom_widget_asset(filename: str) -> Optional[Path]:

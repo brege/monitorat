@@ -13,7 +13,7 @@ paths:
   data: data/
   img: img/
   favicon: ../simple/img/favicon.svg
-  vendors: ../../vendors/
+  assets: ../../assets/
 sections:
   editor-readme:
     title: null

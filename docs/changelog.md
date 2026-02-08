@@ -1,9 +1,15 @@
 ## Changelog
 
-### 2026-05-07
+### 2026-05-08
+
+- Improve all documentation of and backlinks to layout demo
+
+### 2026-02-07 -- [9c843fe..337cd00](https://github.com/brege/monitorat/compare/9c843fe..337cd00)
 
 - Support tile/snapshot configuration for metrics widget
 - Bump version to v0.12.2
+- Add a new "suite" mode for demos, so advanced, simple, and layout demos run from same server
+- Production server (monitorat.brege.org) updated to show the layout demo
 
 ### 2026-02-06 -- [14792dd..8d49baa](https://github.com/brege/monitorat/compare/14792dd..8d49baa)
 

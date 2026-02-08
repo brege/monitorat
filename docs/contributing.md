@@ -32,7 +32,7 @@ Promise.
 
 ### Important dependencies
 
-The `vendors/` are for plotting and especially rendering and styling markdown documents (via [markdown-it](https://github.com/markdown-it/markdown-it)) like `README.md` in HTML. These libraries are automatically downloaded locally by `monitor.py` only once. You can disable the local download to use the CDN's permanently too (to save my bandwidth, the public-facing demos at [monitorat.brege.org](https://monitorat.brege.org/) use the CDN configuration).
+The `assets/` are for plotting and especially rendering and styling markdown documents (via [markdown-it](https://github.com/markdown-it/markdown-it)) like `README.md` in HTML. These libraries are automatically downloaded locally by `monitor.py` only once. You can disable the local download to use the CDN's permanently too (to save my bandwidth, the public-facing demos at [monitorat.brege.org](https://monitorat.brege.org/) use the CDN configuration).
 
 This project uses [confuse](https://confuse.readthedocs.io/en/latest/) for configuration management, which boasts a common-sense config hierarchy. Parameters are set in `monitorat/config_default.yaml` and may be overridden in `~/.config/monitorat/config.yaml`.
 

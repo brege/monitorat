@@ -15,7 +15,7 @@ paths:
   data: data/
   img: img/
   favicon: img/favicon.svg
-  vendors: vendors/ # use 'null' to use CDNs
+  assets: assets/ # use 'null' to use CDNs
 sections:
   overview:
     title: null
