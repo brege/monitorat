@@ -6,7 +6,6 @@ Editors/UI Configuration
 - [ ] Network: log\_file path, enable chirper, pips and ranges
 
 Sugar
-- [ ] Add KaTex support for math (probably use `$`, `$$` notation like Hugo)
 - [ ] Add GitHub-style admonitions ([!NOTE], [!IMPORTANT])
 
 ## Onboarding
