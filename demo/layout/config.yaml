@@ -13,11 +13,13 @@ includes:
 
   # Site
   - snippets/site.yaml
+  - snippets/overview.yaml
 
   # Layout examples
   - snippets/section-1.yaml
   - snippets/section-2.yaml
   - snippets/section-3.yaml
+  - ../simple/snippets/footer.yaml
 
 demo: true
 
@@ -27,15 +29,23 @@ paths:
   favicon: ../simple/img/favicon.svg
 
 sections:
+  overview:
+    title: null
+    collapsible: false
   section-1:
     title: System Overview
   section-2:
     title: Status
   section-3:
     title: Performance
+  footer:
+    title: Links
 
 widgets:
   enabled:
+    # Intro/readme
+    - wiki-layout-readme
+
     # Tiles row: metrics + network tiles side by side
     - metrics-tiles-left
     - network-tiles-right
@@ -47,3 +57,6 @@ widgets:
     # Wiki sidebar: content + wiki
     - speedtest-main
     - wiki-sidebar
+
+    # Shared footer links
+    - wiki-footer

@@ -1,6 +1,7 @@
 ### Demos
 - **Simple** - [monitorat.brege.org](https://monitorat.brege.org)
 - **Widget Features and Modes** - [monitorat.brege.org/advanced](https://monitorat.brege.org/advanced)
+- **Columns and Layout** - [monitorat.brege.org/layout](https://monitorat.brege.org/layout)
 - **Federation** - [monitorat.brege.org/federation](https://monitorat.brege.org/federation)
 
 ### Repositories

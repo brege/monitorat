@@ -2,8 +2,25 @@ defaults:
   summary: Show config
   lang: yaml
 documents:
+  - output: demo/layout/docs/overview.md
+    preface: |-
+      ### Layout Demo
+
+      This demo focuses on grouping and placement: section headers, two-column
+      rows, and position ordering.
+    include: config.yaml
+  - output: demo/layout/docs/section-1.md
+    preface: |-
+      Section 1 demonstrates side-by-side tiles for metrics and network in a
+      shared two-column group.
+    include: snippets/section-1.yaml
+  - output: demo/layout/docs/section-2.md
+    preface: |-
+      Section 2 demonstrates a mixed compact/service and reminders pairing in a
+      shared two-column group.
+    include: snippets/section-2.yaml
   - output: demo/layout/docs/speedtest.md
     preface: |-
-      Speedtest widget has `min_width: 500` which bumps this wikidocument down
-      if it doesn't fit in the viewport.
+      Section 3 demonstrates speedtest + wiki with `min_width: 500px`, which
+      forces wrapping when the viewport gets tight.
     include: snippets/section-3.yaml

@@ -8,14 +8,17 @@ I like [uv](https://github.com/astral-sh/uv):
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 uv tool install monitorat
-monitorat demo  # --mode [simple|advanced|federation|editor|layout]
+monitorat demo # --mode [simple|advanced|federation|editor|layout|suite]
 ```
 Then open a browser at http://localhost:6100.
 
 To try the demo modes on [monitorat.brege.org](https://monitorat.brege.org):
 - [simple](https://monitorat.brege.org/)
 - [advanced](https://monitorat.brege.org/advanced)
+- [layout](https://monitorat.brege.org/layout)
 - [federation](https://monitorat.brege.org/federation)
+
+The production server runs `--mode suite` under the hood, which launches a single (read-only) instance of simple, advanced, and layout.
 
 ### Running the Server
 
@@ -40,7 +43,7 @@ This pulls the script from [scripts/install-systemd-uv.sh](../../scripts/install
 The simplest way:
 ```bash
 pip install monitorat
-monitorat demo # --mode [simple|advanced|federation|editor|layout]
+monitorat demo # --mode [simple|advanced|federation|editor|layout|suite]
 ```
 
 ### Running the Server
@@ -60,7 +63,7 @@ The script uses sudo internally to install the systemd unit to `/etc/systemd/sys
 
 To review the script before running:
 - **Local**: [`../../scripts/install-systemd-pip.sh`](../../scripts/install-systemd-pip.sh)
-- **GitHub**: [https://github.com/brege/monitorat/blob/main/scripts/install-systemd-pip.sh](https://github.com/brege/monitorat/blob/main/scripts/install-systemd-pip.sh)
+- **GitHub**: [github.com/brege/monitorat/blob/main/scripts/install-systemd-pip.sh](https://github.com/brege/monitorat/blob/main/scripts/install-systemd-pip.sh)
 
 ---
 

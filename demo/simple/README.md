@@ -9,23 +9,26 @@ Its philosophy is to make system monitoring and documentation continuous, much l
 uv tool install monitorat
 monitorat demo
 ```
-then open your browser at [http://localhost:6100](http://localhost:6100).  Or checkout the [advanced](http://monitorat.brege.org/advanced) and [federation](http://monitorat.brege.org/federation) demos.
+then open your browser at [http://localhost:6100](http://localhost:6100).  Or checkout the [advanced](http://monitorat.brege.org/advanced), [layout](http://monitorat.brege.org/layout), and [federation](http://monitorat.brege.org/federation) demos.
 
 This dashboard is a read-only instance of [**monitorat**](https://github.com/brege/monitorat). It's similar to the one you could be using on your machine, just with synthetic data. Being scroll-focused and continuous, monitorat aims to be a dashboard that's a knowledge base and not a knowledge sink.
 
 ### Demos
 
-There are three demos.
+There are several demos.
 
 | Demo | Command | Port | Online Demo |
 |:--- |:--- | --- |:--- |
-| **Simple** | `monitorat demo --mode simple` | :6100  | [http://monitorat.brege.org/](http://monitorat.brege.org/) |
-| **Advanced** | `monitorat demo --mode advanced` | :6200 | [http://monitorat.brege.org/advanced](http://monitorat.brege.org/advanced) |
-| **Federation** | `monitorat demo --mode federation` | :6300 | [http://monitorat.brege.org/federation](http://monitorat.brege.org/federation) |
+| **Simple** | `monitorat demo --mode simple` | :6100  | [monitorat.brege.org/](http://monitorat.brege.org/) |
+| **Advanced** | `monitorat demo --mode advanced` | :6200 | [monitorat.brege.org/advanced](http://monitorat.brege.org/advanced) |
+| **Layout** | `monitorat demo --mode layout` | :6500 | [monitorat.brege.org/layout](http://monitorat.brege.org/layout) |
+| **Federation** | `monitorat demo --mode federation` | :6300 | [monitorat.brege.org/federation](http://monitorat.brege.org/federation) |
+| **Editor** | `monitorat demo --mode editor` | :6400 | n/a |
 
 - The [simple](http://monitorat.brege.org/) demo goes over the widget basics.
 - The [advanced](http://monitorat.brege.org/advanced) demo breaks down how different features of each widget can be toggled, configured, and adjusted for different display modes.
-- [Federation](http://monitorat.brege.org/federation) is a multi-node demo that demonstrates how widgets can be shared and used from a central command. *Simple is a prerequisite for Advanced. Advanced is a prerequisite for Federation.* This demo launches 3 survers on ports `6300` (head), `6301` & `6302` (nodes).
+- A more compact, columnated layout is exemplified in the [layout](http://monitorat.brege.org/layout) demo.
+- [Federation](http://monitorat.brege.org/federation) is a multi-node demo that demonstrates how widgets can be shared and used from a central command. *Simple is a prerequisite for Advanced. Advanced is a prerequisite for Federation.* This demo launches 3 servers on ports `6300` (head), `6301` & `6302` (nodes).
 
 ### Widgets
 - [Wiki](#overview)

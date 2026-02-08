@@ -6,6 +6,8 @@ Usage:
     python demo/launcher.py                 # Start simple demo
     monitorat demo                          # (same as above)
     monitorat demo --mode advanced          # Start advanced demo
+    monitorat demo --mode layout            # Start layout demo
+    monitorat demo --mode editor            # Start editor demo
     monitorat demo --mode federation        # Start federation demo
     monitorat demo --mode suite             # Start simple+advanced+layout in one server
     monitorat demo --background             # Daemonize

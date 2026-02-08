@@ -11,7 +11,7 @@
 
 Launch demos:
 ```
-uv run demo/launcher.py --mode simple # simple | advanced | federation | editor | layout
+uv run demo/launcher.py # --mode [simple|advanced|federation|editor|layout|suite]
 ```
 
 ## 1. Simple Demo

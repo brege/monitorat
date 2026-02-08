@@ -1,7 +1,8 @@
 ## Overview
 
-- Simple demo: [https://monitorat.brege.org/](https://monitorat.brege.org/)
-- Federation demo: [https://monitorat.brege.org/federation](https://monitorat.brege.org/federation)
+- Simple demo: [monitorat.brege.org/](https://monitorat.brege.org/)
+- Layout demo: [monitorat.brege.org/layout](https://monitorat.brege.org/layout)
+- Federation demo: [monitorat.brege.org/federation](https://monitorat.brege.org/federation)
 
 This demo focuses on per-widget configuration patterns and feature toggles for a single server. Each widget example is paired with the exact snippet used to render it, so you can lift the config directly.
 

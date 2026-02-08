@@ -2,11 +2,7 @@
 
 ## Features
 
-Editors and Web UI Configuration
-- [x] System Metrics: Customizing tiles
-- [x] ~~System Metrics: Customizing commands for tiles~~
-  - **Decision:** Do not work on this now. Want metrics capability to grow, not fragment to user
-    factions, in this early hour. Intentional debt.
+Editors/UI Configuration
 - [ ] Network: log\_file path, enable chirper, pips and ranges
 
 Sugar
@@ -15,7 +11,6 @@ Sugar
 
 ## Onboarding
 
-- [ ] Deploy Layout and Editor demos to `prod`
 - [ ] Create Docker image for a faster, bandwidth-saving, and friendlier deployment
 
 ## Backend / API

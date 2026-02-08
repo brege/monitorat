@@ -2,8 +2,9 @@
 
 Prerequisites:
 
-- Simple demo: [https://monitorat.brege.org/](https://monitorat.brege.org/)
-- Advanced demo: [https://monitorat.brege.org/advanced/](https://monitorat.brege.org/advanced/)
+- Simple demo: [monitorat.brege.org/](https://monitorat.brege.org/)
+- Layout demo: [monitorat.brege.org/layout/](https://monitorat.brege.org/layout/)
+- Advanced demo: [monitorat.brege.org/advanced/](https://monitorat.brege.org/advanced/)
 
 Federation aggregates data from multiple monitorat instances into a unified view. This makes comparing metric data across two or more instances more continuous, allowing you to merge charts, mix reminders and service status, and pull documentation from multiple sources in one continuous display.
 
@@ -18,7 +19,7 @@ Different widgets and widget features support different integrations.
 | services  | cards/compact | interleave status cards; sort by status |
 | reminders | cards         | interleave reminders; sort by severity, date, name, source |
 | speedtest | chart/table   | combine speedtest data; multi-plot over time; filter; run all |
-| network   | outages       | interleave ouages; sort by status type, date, source |
+| network   | outages       | interleave outages; sort by status type, date, source |
 
 Each federated widget declares its sources with, for example `federation.nodes: [nas-1, nas-2]`.
 

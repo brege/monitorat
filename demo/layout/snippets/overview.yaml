@@ -1,0 +1,7 @@
+widgets:
+  wiki-layout-readme:
+    type: wiki
+    name: null
+    section: overview
+    mode: seamless
+    doc: ../README.md

@@ -11,6 +11,9 @@ widgets:
     show:
       tiles: true
       history: false
+    features:
+      events:
+        show: false
 
   network-tiles-right:
     type: network

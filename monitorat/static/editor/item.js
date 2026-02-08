@@ -151,5 +151,7 @@ const ItemEditor = (() => {
   return { open };
 })();
 
+window.ItemEditor = ItemEditor;
+
 window.monitorShared = window.monitorShared || {};
 window.monitorShared.ItemEditor = ItemEditor;
