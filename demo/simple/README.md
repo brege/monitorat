@@ -2,7 +2,7 @@
 
 **Monitorat** is a federated dashboard and documentation system.
 
-Its philosophy is to make system monitoring and documentation continuous, much like the way tables and figures are integrated in journal articles or [Wikipedia](https://wikipedia.org/).
+Its varphilosophy is to make system monitoring and documentation continuous, much like the way tables and figures are integrated in journal articles or [Wikipedia](https://wikipedia.org/).
 
 ### Quickstart
 ```bash
@@ -50,16 +50,16 @@ On headless machines (Raspberry Pi, a NAS, NUC, or Beelink), monitorat becomes b
 
 Monitorat's text editor for Markdown files is in beta. If you make edits with an editor like [Neovim](https://neovim.io/) or [Obsidian](https://obsidian.md/), simply save and refresh.
 
-### Math Rendering Test
+### Math Rendering
 
-This section is a KaTeX smoke test for wiki math rendering.
+[KaTeX](https://katex.org/) math rendering is supported. Here's an example of inline math:
+[Euler's formula](https://en.wikipedia.org/wiki/Euler%27s_formula) is $e^{i\varphi} = \cos\varphi + i\sin\varphi$.
 
-Inline Euler identity: $e^{i\pi} + 1 = 0$
-
-Richard Feynman called *Euler's identity* the **jewel of mathematics**:
+Richard Feynman called [Euler's identity](https://en.wikipedia.org/wiki/Euler%27s_identity) (when $\varphi = \pi$) the
+**jewel of mathematics**:
 
 $$
-e^(i\pi) + 1 = 0
+e^{i\pi} + 1 = 0
 $$
 
 The *quadratic formula* can be obtained from **completing the square**:
