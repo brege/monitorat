@@ -116,8 +116,8 @@ class NetworkUptime {
         segmentMap.set(segment.key, pill);
       }
       pill.className = 'uptime-pill';
-      this.widget.helpers.applySegmentClasses(pill, segment);
-      pill.title = this.widget.helpers.buildSegmentTooltip(
+      this.applySegmentClasses(pill, segment);
+      pill.title = this.buildSegmentTooltip(
         stat.label,
         segment,
         this.widget.expectedIntervalMs,
@@ -157,6 +157,142 @@ class NetworkUptime {
     const failures = document.createElement('span');
     failures.textContent = `${this.widget.helpers.formatNumber(stat.failed)} failed`;
     meta.appendChild(failures);
+  }
+
+  applySegmentClasses(element, segment) {
+    const gradientConfig = this.widget.schema?.uptime?.gradient;
+
+    element.classList.remove(
+      'ok',
+      'warn',
+      'bad',
+      'idle',
+      'future',
+      'unknown',
+      'gradient',
+      'meter',
+    );
+    element.style.removeProperty('--pip-ok-end');
+    element.style.removeProperty('--pip-unknown-end');
+
+    if (segment.available === 0) {
+      element.classList.add('future');
+      return;
+    }
+    if (!segment.expected) {
+      element.classList.add('idle');
+      return;
+    }
+    if (segment.status === 'systemDown') {
+      element.classList.add('unknown');
+      return;
+    }
+
+    if (gradientConfig && segment.expected > 0) {
+      const rawUnknownRatio = this.clampRatio(
+        segment.missed / segment.expected,
+      );
+      const rawFailedRatio = this.clampRatio(
+        (segment.failed || 0) / segment.expected,
+      );
+      const { unknownRatio, failedRatio } = this.applyMeterVisualFloor(
+        rawUnknownRatio,
+        rawFailedRatio,
+        segment.uptime,
+      );
+      const unknownEnd = this.clampRatio(1 - failedRatio);
+      const okEnd = this.clampRatio(unknownEnd - unknownRatio);
+
+      if (okEnd <= 0) {
+        if (failedRatio > 0) {
+          element.classList.add('bad');
+        } else {
+          element.classList.add('unknown');
+        }
+        return;
+      }
+
+      if (failedRatio <= 0 && unknownRatio <= 0) {
+        element.classList.add('ok');
+        return;
+      }
+
+      element.classList.add('meter');
+      element.style.setProperty('--pip-ok-end', `${(okEnd * 100).toFixed(3)}%`);
+      element.style.setProperty(
+        '--pip-unknown-end',
+        `${(unknownEnd * 100).toFixed(3)}%`,
+      );
+    } else if (segment.status === 'connectionFailure') {
+      element.classList.add('bad');
+    } else {
+      element.classList.add('ok');
+    }
+  }
+
+  clampRatio(value) {
+    if (!Number.isFinite(value)) {
+      return 0;
+    }
+    return Math.max(0, Math.min(1, value));
+  }
+
+  applyMeterVisualFloor(unknownRatio, failedRatio, uptime) {
+    const nonOk = this.clampRatio(unknownRatio + failedRatio);
+    if (nonOk <= 0) {
+      return { unknownRatio: 0, failedRatio: 0 };
+    }
+
+    if (uptime === null || uptime === undefined || uptime < 90) {
+      return { unknownRatio, failedRatio };
+    }
+
+    const minimumNonOkWidth = 0.08;
+    if (nonOk >= minimumNonOkWidth) {
+      return { unknownRatio, failedRatio };
+    }
+
+    const scale = minimumNonOkWidth / nonOk;
+    return {
+      unknownRatio: this.clampRatio(unknownRatio * scale),
+      failedRatio: this.clampRatio(failedRatio * scale),
+    };
+  }
+
+  buildSegmentTooltip(windowLabel, segment, expectedIntervalMs) {
+    const { formatDateTime, formatDuration, formatNumber, formatPercent } =
+      this.widget.helpers;
+    const lines = [];
+
+    if (segment.label) {
+      lines.push(`${windowLabel} • ${segment.label}`);
+    } else {
+      lines.push(windowLabel);
+    }
+    lines.push(
+      `${formatDateTime(segment.start)} → ${formatDateTime(segment.end)}`,
+    );
+
+    if (!segment.expected) {
+      if (segment.available === 0) {
+        lines.push('Period has not started yet.');
+      } else {
+        lines.push('No data for this period.');
+      }
+    } else {
+      lines.push(
+        `${formatNumber(segment.observed)} / ${formatNumber(segment.expected)} observed (${formatPercent(segment.uptime)})`,
+      );
+      if (segment.missed) {
+        lines.push(
+          `${segment.missed} unknown (~${formatDuration(segment.missed * expectedIntervalMs)})`,
+        );
+      } else {
+        lines.push('0 unknown.');
+      }
+    }
+
+    return lines.join('\n');
   }
 }
 

@@ -1,9 +1,7 @@
-const NET_MINUTE_MS = 60 * 1000;
-
 class NetworkWidget {
   constructor(config = {}) {
     this.container = null;
-    this.config = mergeNetworkConfig(config);
+    this.config = config;
     this.periodsConfig = this.config.uptime?.periods || [];
     const intervalSeconds = this.config.chirper.interval ?? 300;
     this.expectedIntervalMs = intervalSeconds * 1000;
@@ -27,15 +25,12 @@ class NetworkWidget {
       formatDuration,
       formatNumber,
       formatPercent,
-      applySegmentClasses: (el, seg) =>
-        applySegmentClasses(el, seg, this.schema?.uptime?.gradient),
-      buildSegmentTooltip,
     };
   }
 
   async init(container, config = {}) {
     this.container = container;
-    this.config = mergeNetworkConfig({ ...this.config, ...config });
+    this.config = { ...this.config, ...config };
     this.periodsConfig = this.config.uptime?.periods || [];
     const intervalSeconds = this.config.chirper.interval ?? 300;
     this.expectedIntervalMs = intervalSeconds * 1000;
@@ -370,50 +365,6 @@ class NetworkWidget {
       this.features.events.render();
     }
   }
-
-  resolveNowOverride() {
-    const isDemoEnabled = window.monitor?.demoEnabled === true;
-    if (!isDemoEnabled) return null;
-    if (!this.state.uptime?.lastEntry) return null;
-    return new Date(this.state.uptime.lastEntry.getTime() + NET_MINUTE_MS);
-  }
-}
-
-function mergeNetworkConfig(cfg) {
-  const intervalSeconds = cfg.chirper?.interval ?? 300;
-  const checksPerMinute = 60 / intervalSeconds;
-  const cadenceMinutes = parseDurationMinutes(cfg.alerts?.cadence);
-  const cadenceChecks = Math.ceil(cadenceMinutes * checksPerMinute);
-
-  return {
-    ...cfg,
-    alerts: {
-      ...cfg.alerts,
-      cadenceChecks,
-    },
-  };
-}
-
-function parseDurationMinutes(value) {
-  if (value === null || value === undefined) return 0;
-  if (typeof value === 'number') {
-    throw new Error('network alerts.cadence must be a duration string');
-  }
-  if (typeof value !== 'string') {
-    throw new Error('network alerts.cadence must be a duration string');
-  }
-  const trimmed = value.trim();
-  if (!trimmed) return 0;
-  // Match duration strings like "5 minutes", "1 hour", "2 days".
-  const match = trimmed.match(/^(\d+(?:\.\d+)?)\s*(minutes?|hours?|days?)$/i);
-  if (!match) {
-    throw new Error('network alerts.cadence must be a duration string');
-  }
-  const amount = Number(match[1]);
-  const unit = match[2].toLowerCase();
-  if (unit.startsWith('hour')) return amount * 60;
-  if (unit.startsWith('day')) return amount * 1440;
-  return amount;
 }
 
 function setText(element, text) {
@@ -474,106 +425,6 @@ function formatNumber(value, decimals = 0) {
 function formatPercent(value, decimals = 2) {
   if (value === null || value === undefined) return '–';
   return `${value.toFixed(decimals)}%`;
-}
-
-function applySegmentClasses(element, segment, gradientConfig) {
-  element.classList.remove(
-    'ok',
-    'warn',
-    'bad',
-    'idle',
-    'future',
-    'unknown',
-    'gradient',
-    'meter',
-  );
-  element.style.removeProperty('--pip-ok-end');
-  element.style.removeProperty('--pip-unknown-end');
-
-  if (segment.available === 0) {
-    element.classList.add('future');
-    return;
-  }
-  if (!segment.expected) {
-    element.classList.add('idle');
-    return;
-  }
-  if (segment.status === 'systemDown') {
-    element.classList.add('unknown');
-    return;
-  }
-
-  if (gradientConfig && segment.expected && segment.expected > 0) {
-    const unknownRatio = clampRatio(segment.missed / segment.expected);
-    const failedRatio = clampRatio((segment.failed || 0) / segment.expected);
-    const unknownEnd = clampRatio(1 - failedRatio);
-    const okEnd = clampRatio(unknownEnd - unknownRatio);
-
-    if (okEnd <= 0) {
-      if (failedRatio > 0) {
-        element.classList.add('bad');
-      } else {
-        element.classList.add('unknown');
-      }
-      return;
-    }
-
-    if (failedRatio <= 0 && unknownRatio <= 0) {
-      element.classList.add('ok');
-      return;
-    }
-
-    element.classList.add('meter');
-    element.style.setProperty('--pip-ok-end', `${(okEnd * 100).toFixed(3)}%`);
-    element.style.setProperty(
-      '--pip-unknown-end',
-      `${(unknownEnd * 100).toFixed(3)}%`,
-    );
-  } else if (segment.status === 'connectionFailure') {
-    element.classList.add('bad');
-  } else {
-    element.classList.add('ok');
-  }
-}
-
-function clampRatio(value) {
-  if (!Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.max(0, Math.min(1, value));
-}
-
-function buildSegmentTooltip(windowLabel, segment, expectedIntervalMs) {
-  const lines = [];
-  if (segment.label) {
-    lines.push(`${windowLabel} • ${segment.label}`);
-  } else {
-    lines.push(windowLabel);
-  }
-  lines.push(
-    `${formatDateTime(segment.start)} → ${formatDateTime(segment.end)}`,
-  );
-
-  if (!segment.expected) {
-    if (segment.available === 0) {
-      lines.push('Period has not started yet.');
-    } else {
-      lines.push('No data for this period.');
-    }
-  } else {
-    lines.push(
-      `${formatNumber(segment.observed)} / ${formatNumber(segment.expected)} observed (${formatPercent(segment.uptime)})`,
-    );
-    if (segment.missed) {
-      lines.push(
-        `${segment.missed} unknown (~${formatDuration(segment.missed * expectedIntervalMs)})`,
-      );
-    } else {
-      lines.push('0 unknown.');
-    }
-  }
-
-  return lines.join('\n');
 }
 
 window.widgets = window.widgets || {};
