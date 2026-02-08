@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from pathlib import Path
 import threading
+from contextlib import contextmanager
+from contextvars import ContextVar
 import confuse
 from typing import Callable, List, Optional
 import yaml
@@ -21,6 +23,7 @@ __all__ = [
     "set_project_config_path",
     "get_project_config_dir",
     "get_project_config_path",
+    "set_active_config_manager",
 ]
 
 
@@ -299,32 +302,70 @@ class ConfigProxy:
         return repr(self._manager.get())
 
 
-config_manager = ConfigManager()
-config = ConfigProxy(config_manager)
+_default_config_manager = ConfigManager()
+_active_config_manager: ContextVar[Optional[ConfigManager]] = ContextVar(
+    "monitorat_active_config_manager", default=None
+)
+
+
+def _get_active_config_manager() -> ConfigManager:
+    active = _active_config_manager.get()
+    if active is not None:
+        return active
+    return _default_config_manager
+
+
+@contextmanager
+def set_active_config_manager(manager: ConfigManager):
+    token = _active_config_manager.set(manager)
+    try:
+        yield
+    finally:
+        _active_config_manager.reset(token)
+
+
+class ActiveConfigProxy:
+    """Resolve config lookups against the active config manager."""
+
+    def __getitem__(self, key):
+        return _get_active_config_manager().get()[key]
+
+    def __getattr__(self, item):
+        return getattr(_get_active_config_manager().get(), item)
+
+    def get(self, *args, **kwargs):
+        return _get_active_config_manager().get().get(*args, **kwargs)
+
+    def __repr__(self) -> str:
+        return repr(_get_active_config_manager().get())
+
+
+config_manager = _default_config_manager
+config = ActiveConfigProxy()
 
 
 def get_config() -> confuse.Configuration:
-    return config_manager.get()
+    return _get_active_config_manager().get()
 
 
 def reload_config() -> confuse.Configuration:
-    return config_manager.reload()
+    return _get_active_config_manager().reload()
 
 
 def register_config_listener(callback: Callable[[confuse.Configuration], None]) -> None:
-    config_manager.register_callback(callback)
+    _get_active_config_manager().register_callback(callback)
 
 
 def set_project_config_path(config_path: Path) -> confuse.Configuration:
-    return config_manager.set_project_config(config_path)
+    return _get_active_config_manager().set_project_config(config_path)
 
 
 def get_project_config_dir() -> Optional[Path]:
-    return config_manager.get_project_config_dir()
+    return _get_active_config_manager().get_project_config_dir()
 
 
 def get_project_config_path() -> Optional[Path]:
-    return config_manager.get_project_config_path()
+    return _get_active_config_manager().get_project_config_path()
 
 
 def get_primary_config_path() -> Optional[Path]:

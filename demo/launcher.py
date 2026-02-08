@@ -7,6 +7,7 @@ Usage:
     monitorat demo                          # (same as above)
     monitorat demo --mode advanced          # Start advanced demo
     monitorat demo --mode federation        # Start federation demo
+    monitorat demo --mode suite             # Start simple+advanced+layout in one server
     monitorat demo --background             # Daemonize
     monitorat demo --stop                   # Stop all demo servers
 """
@@ -25,6 +26,22 @@ from docs import generate_docs
 DEMO_DIR = Path(__file__).parent
 
 NODES = {
+    "suite": {
+        "name": "suite",
+        "config": DEMO_DIR / "simple" / "config.yaml",
+        "port": 6100,
+        "is_head": True,
+        "command": [
+            "uv",
+            "run",
+            "python",
+            str(DEMO_DIR / "suite.py"),
+            "--host",
+            "0.0.0.0",
+            "--port",
+            "6100",
+        ],
+    },
     "simple": {
         "name": "simple",
         "config": DEMO_DIR / "simple" / "config.yaml",
@@ -70,6 +87,7 @@ NODES = {
 }
 
 MODES = {
+    "suite": ["suite"],
     "simple": ["simple"],
     "advanced": ["advanced"],
     "editor": ["editor"],
@@ -156,24 +174,28 @@ def is_process_running(pid: int) -> bool:
 
 def start_server(node: dict, background: bool = False) -> subprocess.Popen | int | None:
     """Start a server process for the given node."""
-    config_path = node["config"]
+    custom_command = node.get("command")
+    if custom_command is not None:
+        cmd = custom_command
+    else:
+        config_path = node["config"]
 
-    if not config_path.exists():
-        print(f"  ERROR: Config not found: {config_path}")
-        return None
+        if not config_path.exists():
+            print(f"  ERROR: Config not found: {config_path}")
+            return None
 
-    cmd = [
-        "uv",
-        "run",
-        "monitorat",
-        "-c",
-        str(config_path),
-        "server",
-        "--host",
-        "0.0.0.0",
-        "--port",
-        str(node["port"]),
-    ]
+        cmd = [
+            "uv",
+            "run",
+            "monitorat",
+            "-c",
+            str(config_path),
+            "server",
+            "--host",
+            "0.0.0.0",
+            "--port",
+            str(node["port"]),
+        ]
 
     if background:
         proc = subprocess.Popen(
@@ -293,16 +315,20 @@ def main():
     mode_to_manifest = {
         "simple": DEMO_DIR / "simple" / "index.yml",
         "advanced": DEMO_DIR / "advanced" / "index.yml",
+        "layout": DEMO_DIR / "layout" / "index.yml",
         "editor": DEMO_DIR / "editor" / "index.yml",
         "federation": DEMO_DIR / "federation" / "index.yml",
     }
     manifest = mode_to_manifest.get(args.mode)
     if manifest:
         generate_docs(manifest)
+    if args.mode == "suite":
+        for demo_name in ("simple", "advanced", "layout"):
+            generate_docs(mode_to_manifest[demo_name])
 
-    if args.mode in ("simple", "advanced"):
+    if args.mode in ("simple", "advanced", "layout", "suite"):
         bootstrap_demo_data()
-    elif args.mode == "editor":
+    if args.mode == "editor":
         bootstrap_editor_fixtures()
 
     nodes_to_start = [NODES[name] for name in MODES[args.mode]]
