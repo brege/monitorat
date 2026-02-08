@@ -13,8 +13,6 @@
   <link rel="stylesheet" href="controls/controls.css">
   <link rel="stylesheet" href="alerts/alerts.css">
   <link rel="stylesheet" href="history/history.css">
-  <link rel="stylesheet" href="theme-overlay.css" onerror="this.remove()">
-  <link rel="stylesheet" href="theme.css" onerror="this.remove()">
   <script>
     (function () {
       try {
@@ -23,14 +21,12 @@
           document.documentElement.setAttribute('data-theme', storedTheme);
         }
         var colorTheme = localStorage.getItem('monitor-color-theme');
-        var overlay = document.querySelector('link[href*="theme-overlay"]');
-        if (colorTheme === 'default') {
-          if (overlay) overlay.remove();
-        } else if (colorTheme && colorTheme !== 'default') {
-          if (overlay) {
-            overlay.href = 'themes/' + colorTheme + '.css';
-            overlay.dataset.colorTheme = colorTheme;
-          }
+        if (colorTheme && colorTheme !== 'default') {
+          var overlay = document.createElement('link');
+          overlay.rel = 'stylesheet';
+          overlay.href = 'themes/' + colorTheme + '.css';
+          overlay.dataset.colorTheme = colorTheme;
+          document.head.appendChild(overlay);
         }
       } catch (_) {
         /* localStorage may be unavailable */

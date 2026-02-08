@@ -215,6 +215,29 @@ ASSET_URLS = {
     "markdown-it-toc-done-right.min.js": "https://cdn.jsdelivr.net/npm/markdown-it-toc-done-right@4/dist/markdownItTocDoneRight.umd.min.js",
     "mermaid.js": "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.js",
     "chart.min.js": "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js",
+    "katex.min.css": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css",
+    "katex.min.js": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js",
+    "auto-render.min.js": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js",
+    "fonts/KaTeX_AMS-Regular.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_AMS-Regular.woff2",
+    "fonts/KaTeX_Caligraphic-Bold.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Caligraphic-Bold.woff2",
+    "fonts/KaTeX_Caligraphic-Regular.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Caligraphic-Regular.woff2",
+    "fonts/KaTeX_Fraktur-Bold.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Fraktur-Bold.woff2",
+    "fonts/KaTeX_Fraktur-Regular.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Fraktur-Regular.woff2",
+    "fonts/KaTeX_Main-Bold.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Main-Bold.woff2",
+    "fonts/KaTeX_Main-BoldItalic.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Main-BoldItalic.woff2",
+    "fonts/KaTeX_Main-Italic.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Main-Italic.woff2",
+    "fonts/KaTeX_Main-Regular.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Main-Regular.woff2",
+    "fonts/KaTeX_Math-BoldItalic.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Math-BoldItalic.woff2",
+    "fonts/KaTeX_Math-Italic.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Math-Italic.woff2",
+    "fonts/KaTeX_SansSerif-Bold.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_SansSerif-Bold.woff2",
+    "fonts/KaTeX_SansSerif-Italic.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_SansSerif-Italic.woff2",
+    "fonts/KaTeX_SansSerif-Regular.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_SansSerif-Regular.woff2",
+    "fonts/KaTeX_Script-Regular.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Script-Regular.woff2",
+    "fonts/KaTeX_Size1-Regular.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Size1-Regular.woff2",
+    "fonts/KaTeX_Size2-Regular.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Size2-Regular.woff2",
+    "fonts/KaTeX_Size3-Regular.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Size3-Regular.woff2",
+    "fonts/KaTeX_Size4-Regular.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Size4-Regular.woff2",
+    "fonts/KaTeX_Typewriter-Regular.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Typewriter-Regular.woff2",
 }
 VENDOR_URLS = ASSET_URLS
 
@@ -261,6 +284,7 @@ def ensure_assets():
     assets_path.mkdir(exist_ok=True, parents=True)
     for filename, url in ASSET_URLS.items():
         filepath = assets_path / filename
+        filepath.parent.mkdir(exist_ok=True, parents=True)
         if not filepath.exists():
             print(f"Downloading {filename}...")
             urlretrieve(url, filepath)

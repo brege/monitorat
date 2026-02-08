@@ -9,6 +9,7 @@ widgets:
         header: null
     doc: ''  # path to markdown file. use '' for monitorat's README.md
     mode: rail  # featured | seamless | rail
+    math: true  # render LaTeX math with KaTeX
   # OR set multiple wikis:
   # README: 
   #   type: wiki

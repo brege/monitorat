@@ -50,6 +50,23 @@ On headless machines (Raspberry Pi, a NAS, NUC, or Beelink), monitorat becomes b
 
 Monitorat's text editor for Markdown files is in beta. If you make edits with an editor like [Neovim](https://neovim.io/) or [Obsidian](https://obsidian.md/), simply save and refresh.
 
+### Math Rendering Test
+
+This section is a KaTeX smoke test for wiki math rendering.
+
+Inline Euler identity: $e^{i\pi} + 1 = 0$
+
+Display form:
+
+$$
+\exp(i\pi) + 1 = 0
+$$
+
+Quadratic formula:
+
+$$
+x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+$$
 
 See the full project [README](https://github.com/brege/monitorat/#readme) for more information.
 

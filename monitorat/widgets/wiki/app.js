@@ -6,6 +6,7 @@ class WikiWidget {
     this.config = config;
     this.apiPrefix = config._apiPrefix || 'wiki';
     this.editor = null;
+    this.math = null;
   }
 
   initializeFeatureHeaders() {
@@ -41,6 +42,18 @@ class WikiWidget {
       if (window.WikiEditor) {
         this.editor = new window.WikiEditor(this);
         this.addEditButton();
+      }
+    }
+
+    if (this.isMathEnabled()) {
+      if (!window.WikiMath && window.monitorShared?.loadScript) {
+        await window.monitorShared.loadScript(
+          'widgets/wiki/features/math.js',
+          'WikiMath',
+        );
+      }
+      if (window.WikiMath) {
+        this.math = new window.WikiMath();
       }
     }
 
@@ -106,6 +119,7 @@ class WikiWidget {
         notesElement.innerHTML = md.render(text);
         this.wrapTables(notesElement);
         this.renderMermaid(notesElement);
+        await this.renderMath(notesElement);
       }
     } catch (error) {
       const notesElement = this.container.querySelector('#about-notes');
@@ -144,6 +158,7 @@ class WikiWidget {
     }
 
     this.renderMermaid(notesElement);
+    await this.renderMath(notesElement);
   }
 
   wrapTables(container) {
@@ -197,6 +212,25 @@ class WikiWidget {
     if (typeof mermaidInit === 'function') {
       mermaidInit(undefined, diagramNodes);
     }
+  }
+
+  isMathEnabled() {
+    const widgetMath = this.config.math;
+    if (typeof widgetMath === 'boolean') {
+      return widgetMath;
+    }
+
+    const featureMath = this.config.features?.content?.math;
+    if (typeof featureMath === 'boolean') {
+      return featureMath;
+    }
+
+    return false;
+  }
+
+  async renderMath(notesElement) {
+    if (!notesElement || !this.math) return;
+    await this.math.render(notesElement, this.isMathEnabled());
   }
 
   shouldShowBadges() {

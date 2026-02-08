@@ -4,6 +4,7 @@ widgets:
     mode: seamless
     name: null
     doc: ../README.md
+    math: true
     section: overview
     group: overview-main
     collapsible: false
