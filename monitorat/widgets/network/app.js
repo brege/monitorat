@@ -326,6 +326,7 @@ class NetworkWidget {
           available: s.available,
           expected: s.expected,
           observed: s.observed,
+          failed: s.failed ?? 0,
           missed: s.missed,
           uptime: s.uptime,
           coverage: s.coverage,
@@ -484,8 +485,10 @@ function applySegmentClasses(element, segment, gradientConfig) {
     'future',
     'unknown',
     'gradient',
+    'meter',
   );
-  element.style.removeProperty('--pip-severity');
+  element.style.removeProperty('--pip-ok-end');
+  element.style.removeProperty('--pip-unknown-end');
 
   if (segment.available === 0) {
     element.classList.add('future');
@@ -500,14 +503,32 @@ function applySegmentClasses(element, segment, gradientConfig) {
     return;
   }
 
-  if (
-    gradientConfig &&
-    segment.uptime !== null &&
-    segment.uptime !== undefined
-  ) {
-    const severity = calculateUptimeSeverity(segment.uptime, gradientConfig);
-    element.classList.add('gradient');
-    element.style.setProperty('--pip-severity', severity);
+  if (gradientConfig && segment.expected && segment.expected > 0) {
+    const unknownRatio = clampRatio(segment.missed / segment.expected);
+    const failedRatio = clampRatio((segment.failed || 0) / segment.expected);
+    const unknownEnd = clampRatio(1 - failedRatio);
+    const okEnd = clampRatio(unknownEnd - unknownRatio);
+
+    if (okEnd <= 0) {
+      if (failedRatio > 0) {
+        element.classList.add('bad');
+      } else {
+        element.classList.add('unknown');
+      }
+      return;
+    }
+
+    if (failedRatio <= 0 && unknownRatio <= 0) {
+      element.classList.add('ok');
+      return;
+    }
+
+    element.classList.add('meter');
+    element.style.setProperty('--pip-ok-end', `${(okEnd * 100).toFixed(3)}%`);
+    element.style.setProperty(
+      '--pip-unknown-end',
+      `${(unknownEnd * 100).toFixed(3)}%`,
+    );
   } else if (segment.status === 'connectionFailure') {
     element.classList.add('bad');
   } else {
@@ -515,19 +536,11 @@ function applySegmentClasses(element, segment, gradientConfig) {
   }
 }
 
-function calculateUptimeSeverity(uptime, config) {
-  const perfect = config.perfect ?? 100;
-  const good = config.good ?? 95;
-  const acceptable = config.acceptable ?? 80;
-
-  if (uptime >= perfect) return 0;
-  if (uptime >= good) {
-    return ((perfect - uptime) / (perfect - good)) * 0.33;
+function clampRatio(value) {
+  if (!Number.isFinite(value)) {
+    return 0;
   }
-  if (uptime >= acceptable) {
-    return 0.33 + ((good - uptime) / (good - acceptable)) * 0.34;
-  }
-  return 0.67 + ((acceptable - uptime) / acceptable) * 0.33;
+  return Math.max(0, Math.min(1, value));
 }
 
 function buildSegmentTooltip(windowLabel, segment, expectedIntervalMs) {

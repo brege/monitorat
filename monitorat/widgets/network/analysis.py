@@ -117,6 +117,7 @@ class Segment:
     available: int
     expected: int
     observed: int
+    failed: int
     missed: int
     uptime: Optional[float]
     coverage: float
@@ -532,6 +533,7 @@ def compute_window_stats(
                     available=available,
                     expected=expected,
                     observed=observed,
+                    failed=failures,
                     missed=missed,
                     uptime=uptime,
                     coverage=coverage,
@@ -648,6 +650,7 @@ def serialize_segment(segment: Segment) -> dict:
         "available": segment.available,
         "expected": segment.expected,
         "observed": segment.observed,
+        "failed": segment.failed,
         "missed": segment.missed,
         "uptime": segment.uptime,
         "coverage": segment.coverage,

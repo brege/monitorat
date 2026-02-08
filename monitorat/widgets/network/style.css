@@ -110,6 +110,17 @@
     rgb(var(--status-critical-rgb)) calc(var(--pip-severity, 0) * 100%)
   );
 }
+
+.network-container .uptime-pill.meter {
+  --pip-ok-end: 100%;
+  --pip-unknown-end: 100%;
+  background: linear-gradient(
+    to right,
+    rgb(var(--status-ok-rgb)) 0 var(--pip-ok-end),
+    var(--uptime-pill-idle) var(--pip-ok-end) var(--pip-unknown-end),
+    rgb(var(--status-critical-rgb)) var(--pip-unknown-end) 100%
+  );
+}
 .network-container .uptime-meta {
   font-size: 0.8rem;
   color: var(--text-muted);
