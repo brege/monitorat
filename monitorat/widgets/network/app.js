@@ -326,6 +326,7 @@ class NetworkWidget {
           uptime: s.uptime,
           coverage: s.coverage,
           status: s.status,
+          timelineRuns: Array.isArray(s.timelineRuns) ? s.timelineRuns : [],
         })),
       })),
     };

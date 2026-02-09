@@ -122,6 +122,7 @@ class Segment:
     uptime: Optional[float]
     coverage: float
     status: str
+    timeline_runs: list[dict]
 
 
 @dataclass
@@ -417,6 +418,42 @@ def count_slots_in_range(slots: list[int], start_slot: int, end_slot: int) -> in
     return max(0, end_index - start_index)
 
 
+def build_segment_timeline_runs(
+    start_slot: int,
+    end_slot: int,
+    success_slot_set: set[int],
+    failure_slot_set: set[int],
+) -> list[dict]:
+    if start_slot > end_slot:
+        return []
+
+    runs = []
+    current_state = None
+    current_slots = 0
+
+    for slot in range(start_slot, end_slot + 1):
+        if slot in failure_slot_set:
+            state = "failed"
+        elif slot in success_slot_set:
+            state = "ok"
+        else:
+            state = "unknown"
+
+        if state == current_state:
+            current_slots += 1
+            continue
+
+        if current_state is not None:
+            runs.append({"state": current_state, "slots": current_slots})
+        current_state = state
+        current_slots = 1
+
+    if current_state is not None and current_slots > 0:
+        runs.append({"state": current_state, "slots": current_slots})
+
+    return runs
+
+
 def format_period_label(period: str) -> str:
     match = re.match(r"^1\s+(hour|day|week|month|year)s?$", period, re.IGNORECASE)
     if match:
@@ -455,6 +492,8 @@ def compute_window_stats(
     first_slot = (
         int(entries[0].timestamp.timestamp() * 1000 / interval_ms) if entries else 0
     )
+    success_slot_set = set(success_slots)
+    failure_slot_set = set(failure_slots)
 
     results = []
     for index, period_config in enumerate(periods_config):
@@ -520,6 +559,16 @@ def compute_window_stats(
             known = observed + failures
             uptime = (observed / known * 100) if known > 0 else None
             coverage = expected / available if available > 0 else 0
+            timeline_runs = (
+                build_segment_timeline_runs(
+                    effective_start,
+                    clamped_end_slot,
+                    success_slot_set,
+                    failure_slot_set,
+                )
+                if expected > 0
+                else []
+            )
 
             end_ms_clamped = min(end_ms, (clamped_end_slot + 1) * interval_ms)
             status = resolve_segment_status(int(start_ms), int(end_ms_clamped), alerts)
@@ -538,6 +587,7 @@ def compute_window_stats(
                     uptime=uptime,
                     coverage=coverage,
                     status=status,
+                    timeline_runs=timeline_runs,
                 )
             )
 
@@ -655,6 +705,7 @@ def serialize_segment(segment: Segment) -> dict:
         "uptime": segment.uptime,
         "coverage": segment.coverage,
         "status": segment.status,
+        "timelineRuns": segment.timeline_runs,
     }
 
 

@@ -151,7 +151,11 @@ class NetworkUptime {
     meta.appendChild(counts);
 
     const misses = document.createElement('span');
-    misses.textContent = `${this.widget.helpers.formatNumber(stat.missed)} unknown (${this.widget.helpers.formatDuration(stat.missed * this.widget.expectedIntervalMs)})`;
+    if (stat.missed > 0) {
+      misses.textContent = `${this.widget.helpers.formatNumber(stat.missed)} unknown (${this.widget.helpers.formatDuration(stat.missed * this.widget.expectedIntervalMs)})`;
+    } else {
+      misses.textContent = '0 unknown';
+    }
     meta.appendChild(misses);
 
     const failures = document.createElement('span');
@@ -172,8 +176,7 @@ class NetworkUptime {
       'gradient',
       'meter',
     );
-    element.style.removeProperty('--pip-ok-end');
-    element.style.removeProperty('--pip-unknown-end');
+    element.style.removeProperty('--pip-meter-gradient');
 
     if (segment.available === 0) {
       element.classList.add('future');
@@ -183,80 +186,76 @@ class NetworkUptime {
       element.classList.add('idle');
       return;
     }
-    if (segment.status === 'systemDown') {
-      element.classList.add('unknown');
+    if (gradientConfig && segment.expected > 0) {
+      const gradient = this.buildTimelineGradient(segment);
+      if (gradient) {
+        element.classList.add('meter');
+        element.style.setProperty('--pip-meter-gradient', gradient);
+        return;
+      }
+      if (segment.failed > 0) {
+        element.classList.add('bad');
+      } else if (segment.missed > 0) {
+        element.classList.add('unknown');
+      } else {
+        element.classList.add('ok');
+      }
       return;
     }
-
-    if (gradientConfig && segment.expected > 0) {
-      const rawUnknownRatio = this.clampRatio(
-        segment.missed / segment.expected,
-      );
-      const rawFailedRatio = this.clampRatio(
-        (segment.failed || 0) / segment.expected,
-      );
-      const { unknownRatio, failedRatio } = this.applyMeterVisualFloor(
-        rawUnknownRatio,
-        rawFailedRatio,
-        segment.uptime,
-      );
-      const unknownEnd = this.clampRatio(1 - failedRatio);
-      const okEnd = this.clampRatio(unknownEnd - unknownRatio);
-
-      if (okEnd <= 0) {
-        if (failedRatio > 0) {
-          element.classList.add('bad');
-        } else {
-          element.classList.add('unknown');
-        }
-        return;
-      }
-
-      if (failedRatio <= 0 && unknownRatio <= 0) {
-        element.classList.add('ok');
-        return;
-      }
-
-      element.classList.add('meter');
-      element.style.setProperty('--pip-ok-end', `${(okEnd * 100).toFixed(3)}%`);
-      element.style.setProperty(
-        '--pip-unknown-end',
-        `${(unknownEnd * 100).toFixed(3)}%`,
-      );
-    } else if (segment.status === 'connectionFailure') {
+    if (segment.status === 'connectionFailure') {
       element.classList.add('bad');
     } else {
       element.classList.add('ok');
     }
   }
 
-  clampRatio(value) {
-    if (!Number.isFinite(value)) {
-      return 0;
-    }
-    return Math.max(0, Math.min(1, value));
-  }
-
-  applyMeterVisualFloor(unknownRatio, failedRatio, uptime) {
-    const nonOk = this.clampRatio(unknownRatio + failedRatio);
-    if (nonOk <= 0) {
-      return { unknownRatio: 0, failedRatio: 0 };
+  buildTimelineGradient(segment) {
+    if (!Array.isArray(segment.timelineRuns) || !segment.timelineRuns.length) {
+      return null;
     }
 
-    if (uptime === null || uptime === undefined || uptime < 90) {
-      return { unknownRatio, failedRatio };
-    }
-
-    const minimumNonOkWidth = 0.08;
-    if (nonOk >= minimumNonOkWidth) {
-      return { unknownRatio, failedRatio };
-    }
-
-    const scale = minimumNonOkWidth / nonOk;
-    return {
-      unknownRatio: this.clampRatio(unknownRatio * scale),
-      failedRatio: this.clampRatio(failedRatio * scale),
+    const colorByState = {
+      ok: 'rgb(var(--status-ok-rgb))',
+      unknown: 'var(--uptime-pill-idle)',
+      failed: 'rgb(var(--status-critical-rgb))',
     };
+    const runs = [];
+    let totalSlots = 0;
+    let nonOkSlots = 0;
+
+    for (const run of segment.timelineRuns) {
+      const slots = Number(run?.slots);
+      const state = run?.state;
+      if (!Number.isFinite(slots) || slots <= 0 || !(state in colorByState)) {
+        continue;
+      }
+      const normalizedSlots = Math.round(slots);
+      if (normalizedSlots <= 0) {
+        continue;
+      }
+      runs.push({ state, slots: normalizedSlots });
+      totalSlots += normalizedSlots;
+      if (state !== 'ok') {
+        nonOkSlots += normalizedSlots;
+      }
+    }
+
+    if (!totalSlots || nonOkSlots <= 0) {
+      return null;
+    }
+
+    let offset = 0;
+    const stops = [];
+    for (const run of runs) {
+      const start = (offset / totalSlots) * 100;
+      offset += run.slots;
+      const end = (offset / totalSlots) * 100;
+      stops.push(
+        `${colorByState[run.state]} ${start.toFixed(3)}% ${end.toFixed(3)}%`,
+      );
+    }
+
+    return `linear-gradient(to right, ${stops.join(', ')})`;
   }
 
   buildSegmentTooltip(windowLabel, segment, expectedIntervalMs) {
