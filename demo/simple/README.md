@@ -9,9 +9,13 @@ Its varphilosophy is to make system monitoring and documentation continuous, muc
 uv tool install monitorat
 monitorat demo
 ```
-then open your browser at [http://localhost:6100](http://localhost:6100).  Or checkout the [advanced](http://monitorat.brege.org/advanced), [layout](http://monitorat.brege.org/layout), and [federation](http://monitorat.brege.org/federation) demos.
+Open your browser at 
+[http://localhost:6100](http://localhost:6100).  Or checkout the
+[advanced](http://monitorat.brege.org/advanced),
+[layout](http://monitorat.brege.org/layout), and
+[federation](http://monitorat.brege.org/federation) demos.
 
-This dashboard is a read-only instance of [**monitorat**](https://github.com/brege/monitorat). It's similar to the one you could be using on your machine, just with synthetic data. Being scroll-focused and continuous, monitorat aims to be a dashboard that's a knowledge base and not a knowledge sink.
+This dashboard is a read-only instance of [**monitorat**](https://github.com/brege/monitorat). It's similar to the one you could be using on your machine, just with synthetic data. monitorat aims to be a dashboard that's a knowledge base and not a knowledge sink.
 
 ### Demos
 
@@ -31,12 +35,15 @@ There are several demos.
 - [Federation](http://monitorat.brege.org/federation) is a multi-node demo that demonstrates how widgets can be shared and used from a central command. *Simple is a prerequisite for Advanced. Advanced is a prerequisite for Federation.* This demo launches 3 servers on ports `6300` (head), `6301` & `6302` (nodes).
 
 ### Widgets
-- [Wiki](#overview)
-- [Metrics](#metrics-widget)
-- [Network](#network-widget)
-- [Services](#services-widget)
-- [Speedtest](#speedtest-widget)
-- [Reminders](#reminders-widget)
+
+| Widget                          | Features |
+|:------------------------------- |:-------- |
+| [Wiki](#overview)               | GitHub-flavored Markdown, Live Editor, Math, Tables, Shortcodes/Includes |
+| [Metrics](#metrics-widget)      | Performance Snapshots, Logging, Charts, Tables, Notifications |
+| [Network](#network-widget)      | Built-in or ddclient Logs, Outages, IP Changes, Stats, Logging, Notifications |
+| [Services](#services-widget)    | Docker and Systemd Services, Timers, Local and External URLs, Web Editor |
+| [Speedtest](#speedtest-widget)  | Speedtest Tracking, Tables, Charts |
+| [Reminders](#reminders-widget)  | Web Editor, Calendar, Apprise Notifications |
 
 For this (simple) demo, each widget is chased by a corresponding ["Wiki" widget](/#wiki) that provides the documentation for that widget.
 
@@ -71,6 +78,8 @@ $$
 See the full project [README](https://github.com/brege/monitorat/#readme) for more information.
 
 ### Config Snippets
+
+Wikis can include YAML files with <code>{{ include&#58;code path="config.yaml" lang="yaml" }}</code> snippets.
 
 <details>
 <summary><b>Show config</b></summary>
