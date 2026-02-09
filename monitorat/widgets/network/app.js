@@ -48,6 +48,7 @@ class NetworkWidget {
     this.bindEvents();
     this.initializeFeatures();
     this.applyVisibilityConfig();
+    this.hydrateCachedUptime();
     await this.loadUptime();
   }
 
@@ -207,7 +208,9 @@ class NetworkWidget {
   }
 
   async loadSingleUptime() {
-    setText(this.elements.logStatus, 'Loading update data…');
+    if (!this.state.uptime) {
+      setText(this.elements.logStatus, 'Loading update data…');
+    }
 
     try {
       const response = await fetch(
@@ -225,6 +228,7 @@ class NetworkWidget {
       this.state.uptime = this.convertUptimeData(data);
       this.state.alertsExpanded = false;
       this.renderAll();
+      this.persistCachedUptime(this.state.uptime);
 
       if (data.expectedChecks > 0) {
         setText(
@@ -236,18 +240,29 @@ class NetworkWidget {
       }
     } catch (error) {
       console.error('Network update API call failed:', error);
-      setText(
-        this.elements.logStatus,
-        `Unable to load update data: ${error.message}`,
-      );
-      this.state.uptime = this.emptyUptimeState();
-      this.state.alertsExpanded = false;
-      this.renderAll();
+      if (this.state.uptime) {
+        const lastEntry = this.state.uptime.lastEntry;
+        const cachedAt = this.helpers.formatDateTime(lastEntry);
+        setText(
+          this.elements.logStatus,
+          `Showing cached update data (as of ${cachedAt}).`,
+        );
+      } else {
+        setText(
+          this.elements.logStatus,
+          `Unable to load update data: ${error.message}`,
+        );
+        this.state.uptime = this.emptyUptimeState();
+        this.state.alertsExpanded = false;
+        this.renderAll();
+      }
     }
   }
 
   async loadMergedUptime(sources) {
-    setText(this.elements.logStatus, 'Loading update data…');
+    if (!this.state.uptime) {
+      setText(this.elements.logStatus, 'Loading update data…');
+    }
 
     this.state.sources = sources;
     this.state.sourceStates = {};
@@ -288,11 +303,108 @@ class NetworkWidget {
     this.state.uptime = first ? first.uptime : this.emptyUptimeState();
     this.state.alertsExpanded = false;
     this.renderAll();
+    if (first?.uptime) {
+      this.persistCachedUptime(first.uptime);
+    }
 
-    setText(
-      this.elements.logStatus,
-      `Loaded update data from ${sources.length} sources.`,
-    );
+    if (first?.uptime) {
+      setText(
+        this.elements.logStatus,
+        `Loaded update data from ${sources.length} sources.`,
+      );
+    } else if (this.state.uptime) {
+      const cachedAt = this.helpers.formatDateTime(this.state.uptime.lastEntry);
+      setText(
+        this.elements.logStatus,
+        `Showing cached update data (as of ${cachedAt}).`,
+      );
+    } else {
+      setText(
+        this.elements.logStatus,
+        `Unable to load update data from ${sources.length} sources.`,
+      );
+    }
+  }
+
+  hydrateCachedUptime() {
+    try {
+      const raw = sessionStorage.getItem(this.getUptimeCacheKey());
+      if (!raw) {
+        return;
+      }
+      const cached = this.convertUptimeData(JSON.parse(raw));
+      if (!cached || !cached.expectedChecks) {
+        return;
+      }
+      this.state.uptime = cached;
+      this.state.alertsExpanded = false;
+      this.renderAll();
+      const cachedAt = this.helpers.formatDateTime(cached.lastEntry);
+      setText(
+        this.elements.logStatus,
+        `Showing cached update data (as of ${cachedAt}). Refreshing…`,
+      );
+    } catch (error) {
+      console.warn('Failed to restore cached network uptime:', error);
+    }
+  }
+
+  persistCachedUptime(uptime) {
+    if (!uptime) {
+      return;
+    }
+    try {
+      const payload = {
+        loggedChecks: uptime.loggedChecks ?? 0,
+        uptimeValue: uptime.uptimeValue,
+        uptimeText: uptime.uptimeText,
+        missedChecks: uptime.missedChecks,
+        expectedChecks: uptime.expectedChecks,
+        firstEntry:
+          uptime.firstEntry instanceof Date
+            ? uptime.firstEntry.toISOString()
+            : null,
+        lastEntry:
+          uptime.lastEntry instanceof Date
+            ? uptime.lastEntry.toISOString()
+            : null,
+        windowStats: (uptime.windowStats || []).map((ws) => ({
+          key: ws.key,
+          label: ws.label,
+          observed: ws.observed,
+          expected: ws.expected,
+          missed: ws.missed,
+          failed: ws.failed ?? 0,
+          uptime: ws.uptime,
+          coverage: ws.coverage,
+          segments: (ws.segments || []).map((s) => ({
+            key: s.key,
+            label: s.label,
+            start: s.start instanceof Date ? s.start.toISOString() : null,
+            end: s.end instanceof Date ? s.end.toISOString() : null,
+            available: s.available,
+            expected: s.expected,
+            observed: s.observed,
+            failed: s.failed ?? 0,
+            missed: s.missed,
+            uptime: s.uptime,
+            coverage: s.coverage,
+            status: s.status,
+            timelineRuns: Array.isArray(s.timelineRuns) ? s.timelineRuns : [],
+          })),
+        })),
+      };
+      sessionStorage.setItem(this.getUptimeCacheKey(), JSON.stringify(payload));
+    } catch (error) {
+      console.warn('Failed to persist network uptime cache:', error);
+    }
+  }
+
+  getUptimeCacheKey() {
+    const nodes = this.config.federation?.nodes;
+    const sourceKey =
+      Array.isArray(nodes) && nodes.length ? nodes.join(',') : 'local';
+    return `monitorat:network:uptime:${this.getApiBase()}:${sourceKey}`;
   }
 
   convertUptimeData(data) {
