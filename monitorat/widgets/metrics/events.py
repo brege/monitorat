@@ -314,7 +314,7 @@ def get_metrics_events_for_demo(limit: int = 100) -> list[dict]:
 
 def register_metrics_observer():
     """Register metrics event source with the observer."""
-    register_observer_source("metrics", process_metrics_csv)
+    register_observer_source("metrics", process_metrics_csv, interval_seconds=300)
     observer = get_observer()
     if observer is None:
         return

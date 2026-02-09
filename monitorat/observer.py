@@ -115,21 +115,42 @@ class EventStore:
 # Type for source handlers: (observer) -> list[Event]
 SourceHandler = Callable[["Observer"], list]
 
-_registered_sources: dict[str, SourceHandler] = {}
+
+@dataclass
+class SourceRegistration:
+    handler: SourceHandler
+    interval_seconds: int
+    next_run_at: float = 0.0
 
 
-def register_observer_source(name: str, handler: SourceHandler) -> None:
+_registered_sources: dict[str, SourceRegistration] = {}
+
+
+def register_observer_source(
+    name: str,
+    handler: SourceHandler,
+    interval_seconds: int = 300,
+) -> None:
     """
     Register a widget's event source with the observer.
 
     Args:
         name: Widget name (e.g., "network", "metrics")
         handler: Callable that takes Observer and returns list of Events
+        interval_seconds: Run interval for this source
     """
     if name in _registered_sources:
         logger.warning(f"Observer source '{name}' already registered, replacing")
-    _registered_sources[name] = handler
-    logger.info(f"Registered observer source: {name}")
+    _registered_sources[name] = SourceRegistration(
+        handler=handler,
+        interval_seconds=max(1, int(interval_seconds)),
+        next_run_at=0.0,
+    )
+    logger.info(
+        "Registered observer source: %s (interval=%ss)",
+        name,
+        _registered_sources[name].interval_seconds,
+    )
 
 
 class Observer:
@@ -190,20 +211,36 @@ class Observer:
         """Main daemon loop."""
         while self._running:
             try:
-                self._tick()
+                delay_seconds = self._tick()
             except Exception as error:
                 logger.error(f"Observer tick error: {error}")
-            time.sleep(self.interval_seconds)
+                delay_seconds = 1.0
+            time.sleep(max(0.25, delay_seconds))
 
     def _tick(self):
-        """Run all registered sources."""
-        for name, handler in _registered_sources.items():
+        """Run all due registered sources and return seconds until next due."""
+        if not _registered_sources:
+            return float(self.interval_seconds)
+
+        now = time.monotonic()
+        next_due_in = float(self.interval_seconds)
+
+        for name, registration in list(_registered_sources.items()):
+            if now < registration.next_run_at:
+                next_due_in = min(next_due_in, registration.next_run_at - now)
+                continue
+
             try:
-                events = handler(self)
+                events = registration.handler(self)
                 if events:
                     logger.debug(f"Source '{name}' produced {len(events)} events")
             except Exception as error:
                 logger.error(f"Observer source '{name}' error: {error}")
+
+            registration.next_run_at = now + registration.interval_seconds
+            next_due_in = min(next_due_in, registration.interval_seconds)
+
+        return max(0.25, next_due_in)
 
 
 _observer_instance: Optional[Observer] = None

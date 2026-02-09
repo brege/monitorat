@@ -25,6 +25,7 @@ try:
 except ImportError:
     from monitor import config
 from .analysis import (
+    analyze_log_file,
     get_log_file_path,
     get_expected_interval,
     parse_log,
@@ -184,6 +185,18 @@ def process_network_log(observer: Observer) -> list[Event]:
     return process_network_log_from_path(observer, log_path, get_source())
 
 
+def warm_network_analysis(_: Observer) -> list[Event]:
+    """Refresh network analysis cache without emitting events."""
+    log_path = get_log_file_path()
+    if not log_path or not log_path.exists():
+        return []
+    try:
+        analyze_log_file(log_path)
+    except OSError as error:
+        logger.debug("Network analysis warm skipped: %s", error)
+    return []
+
+
 def process_network_log_from_path(
     observer: Observer, log_path, source: str
 ) -> list[Event]:
@@ -244,7 +257,12 @@ def process_network_log_from_path(
 
 def register_network_observer():
     """Register network event source with the observer."""
-    register_observer_source("network", process_network_log)
+    register_observer_source("network", process_network_log, interval_seconds=300)
+    register_observer_source(
+        "network-warm",
+        warm_network_analysis,
+        interval_seconds=60,
+    )
     observer = get_observer()
     if observer is None:
         return
