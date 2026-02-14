@@ -8,6 +8,7 @@ import importlib.metadata
 import logging
 import csv
 import json
+import re
 from typing import List, Optional, Set
 from pytimeparse import parse as parse_duration
 
@@ -124,11 +125,23 @@ def resolve_period_cutoff(period_str: Optional[str], now: Optional[datetime] = N
     """Return the datetime cutoff for a natural-language period."""
     if not period_str or period_str.lower() == "all":
         return None
+    reference = now or datetime.now()
+    month_year_match = re.match(
+        r"^\s*(\d+)\s*(months?|years?)\s*$", period_str, re.IGNORECASE
+    )
+    if month_year_match:
+        amount = int(month_year_match.group(1))
+        if amount < 1:
+            return None
+        unit = month_year_match.group(2).lower()
+        if unit.startswith("month"):
+            return reference - timedelta(days=31 * amount)
+        if unit.startswith("year"):
+            return reference - timedelta(days=365 * amount)
     try:
         seconds = parse_duration(period_str)
         if not seconds:
             return None
-        reference = now or datetime.now()
         return reference - timedelta(seconds=seconds)
     except Exception:
         return None
