@@ -32,6 +32,13 @@ class WikiWidget {
 
     this.initializeFeatureHeaders();
 
+    if (!window.WikiAdmonitions && window.monitorShared?.loadScript) {
+      await window.monitorShared.loadScript(
+        'widgets/wiki/features/admonitions.js',
+        'WikiAdmonitions',
+      );
+    }
+
     if (window.monitorShared?.isEditModeEnabled?.() === true) {
       if (!window.WikiEditor && window.monitorShared?.loadScript) {
         await window.monitorShared.loadScript(
@@ -75,15 +82,20 @@ class WikiWidget {
   }
 
   getMarkdownRenderer() {
-    return window
+    const renderer = window
       .markdownit({ html: true })
       .use(window.markdownItAnchor, {
         permalink: window.markdownItAnchor.permalink.linkInsideHeader({
           symbol: '#',
           placement: 'after',
         }),
-      })
-      .use(window.markdownItTocDoneRight);
+      });
+
+    if (window.WikiAdmonitions) {
+      renderer.use(window.WikiAdmonitions);
+    }
+
+    return renderer.use(window.markdownItTocDoneRight);
   }
 
   async loadContent() {

@@ -1,6 +1,19 @@
 ## Changelog
 
-### 2026-05-08
+### 2026-02-14 -- [0acceac..b80e139](https://github.com/brege/monitorat/compare/0acceac..b80e139)
+
+- Fixed 'month' selection in Speedtest dropdown be a rolling 31 day window
+- Add support for GitHub admonitions in the Wiki widget
+- Bump version to v0.12.4
+
+### 2026-02-09 -- [11a7f1e..28d8d9f](https://github.com/brege/monitorat/compare/11a7f1e..28d8d9f)
+
+- Significantly improve network widget loading by pre-warming log state
+- Make observer multi-cadence for use by multiple widgets
+- Add Markdown features (like math) to simple demo README
+- Make network uptime pill meter by event segments
+
+### 2026-05-08 -- [1e9007c..30ac3f8](https://github.com/brege/monitorat/compare/1e9007c..30ac3f8)
 
 - Improve all documentation of and backlinks to layout demo
 - Use 'assets', not 'vendors', since these are not proprietary moneyware

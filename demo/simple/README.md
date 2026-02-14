@@ -77,6 +77,19 @@ $$
 
 See the full project [README](https://github.com/brege/monitorat/#readme) for more information.
 
+### Admonitions
+
+> [!NOTE]
+> Highlights information with colors and icons. See [antfu/markdown-it-github-alerts](https://github.com/antfu/markdown-it-github-alerts) on GitHub for examples.
+
+> [!TIP]
+> Use `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, AND `[!CAUTION]` for different types of admonitions.
+> ```markdown
+> [!TIP]
+> This is a tip.
+> ```
+
+
 ### Config Snippets
 
 Wikis can include YAML files with <code>{{ include&#58;code path="config.yaml" lang="yaml" }}</code> snippets.

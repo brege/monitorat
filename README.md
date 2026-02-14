@@ -72,7 +72,6 @@ Documentation is editable in-browser and handled by proliferating Wiki widgets a
 - Even runs on Raspberry Pi 2/3 w/ Pi-Hole, Unraid, and other homelab systems.
 - Has [**federation**](https://monitorat.brege.org/federation): you can monitor services, metrics data, and documentation across many machines from a central command.
 
-
 ---
 
 ## Installation
@@ -173,6 +172,8 @@ Widgets are also quite easy to build with AI. Widget built with Codex in 12 minu
 - can columnate multiple documents/Markdown fragments
 - editor can be used to spruce up system docs in the browser
 - supports [Mermaid](https://mermaid-js.github.io/mermaid/#/) diagrams
+- inline LaTeX math via [KaTeX](https://katex.org/)
+- supports [GitHub admonitions](https://github.com/antfu/markdown-it-github-alerts)
 
 ### **System Metrics**  
 - provides an overview of system performance over time in `metrics.csv`
