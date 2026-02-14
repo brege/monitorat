@@ -5,7 +5,8 @@ WORKDIR /app
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends systemd dbus docker.io docker-cli \
     && rm -rf /var/lib/apt/lists/*
-RUN python -m pip install --no-cache-dir monitorat
+ARG MONITORAT_VERSION=""
+RUN if [ -n "$MONITORAT_VERSION" ]; then python -m pip install --no-cache-dir "monitorat==${MONITORAT_VERSION}"; else python -m pip install --no-cache-dir monitorat; fi
 ARG USER_IDENTIFIER=1000
 ARG GROUP_IDENTIFIER=1000
 ARG DOCKER_GROUP_IDENTIFIER=115

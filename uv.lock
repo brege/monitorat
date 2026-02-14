@@ -473,7 +473,7 @@ wheels = [
 
 [[package]]
 name = "monitorat"
-version = "0.13"
+version = "0.13.2"
 source = { editable = "." }
 dependencies = [
     { name = "apprise" },
