@@ -10,10 +10,8 @@
   padding: 16px 18px;
 }
 .notes .editor-edit-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 2;
+  float: right;
+  margin: 10px 10px 0 0;
 }
 .notes[data-mode="seamless"],
 .notes[data-mode="rail"] {
@@ -32,8 +30,7 @@
 }
 .notes[data-mode="seamless"] .editor-edit-btn,
 .notes[data-mode="rail"] .editor-edit-btn {
-  top: 0;
-  right: 0;
+  margin: 0 0 8px 8px;
 }
 .notes .markdown-body details {
   margin-bottom: 1em;

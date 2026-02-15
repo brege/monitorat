@@ -308,9 +308,9 @@ class WikiWidget {
   }
 
   addEditButton() {
-    const targetElement =
-      this.container.querySelector('.notes') ||
-      this.container.querySelector('.markdown-body');
+    const notesContainer = this.container.querySelector('.notes');
+    const markdownBody = this.container.querySelector('.markdown-body');
+    const targetElement = notesContainer || markdownBody;
 
     if (!targetElement) return;
 
@@ -333,7 +333,13 @@ class WikiWidget {
       }
     });
 
-    targetElement.appendChild(editBtn);
+    if (notesContainer) {
+      notesContainer.insertBefore(editBtn, notesContainer.firstChild);
+    } else if (markdownBody) {
+      markdownBody.insertBefore(editBtn, markdownBody.firstChild);
+    } else {
+      targetElement.appendChild(editBtn);
+    }
   }
 }
 
