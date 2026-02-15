@@ -4,7 +4,9 @@
 
 - Fixed 'month' selection in Speedtest dropdown be a rolling 31 day window
 - Add support for GitHub admonitions in the Wiki widget
-- Bump version to v0.12.4
+- Supply a pre-build Docker container via GitHub Container Registry
+- Fix overlapping editor buttons with wiki content text
+- Bump version to v0.13.2
 
 ### 2026-02-09 -- [11a7f1e..28d8d9f](https://github.com/brege/monitorat/compare/11a7f1e..28d8d9f)
 
