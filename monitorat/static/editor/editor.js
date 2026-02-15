@@ -26,12 +26,20 @@ window.Editor = (() => {
   let labels = { edit: 'Editor', preview: 'Preview' };
 
   function getMarkdownRenderer() {
-    return window.markdownit({ html: true }).use(window.markdownItAnchor, {
-      permalink: window.markdownItAnchor.permalink.linkInsideHeader({
-        symbol: '#',
-        placement: 'after',
-      }),
-    });
+    const renderer = window
+      .markdownit({ html: true })
+      .use(window.markdownItAnchor, {
+        permalink: window.markdownItAnchor.permalink.linkInsideHeader({
+          symbol: '#',
+          placement: 'after',
+        }),
+      });
+
+    if (window.WikiAdmonitions) {
+      renderer.use(window.WikiAdmonitions);
+    }
+
+    return renderer;
   }
 
   function saveDraft(file, content) {

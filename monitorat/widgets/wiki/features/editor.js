@@ -23,6 +23,13 @@ class WikiEditor {
     const widgetName = this.widget.config._widgetName || 'wiki';
 
     try {
+      if (!window.WikiAdmonitions && window.monitorShared?.loadScript) {
+        await window.monitorShared.loadScript(
+          'widgets/wiki/features/admonitions.js',
+          'WikiAdmonitions',
+        );
+      }
+
       const response = await fetch(`api/wiki/source?widget=${widgetName}`);
       if (!response.ok) {
         const error = await response.json();
