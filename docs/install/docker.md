@@ -14,9 +14,10 @@ cp compose.yml ~/docker/monitorat/compose.yml
    - Messagebus group: `getent group messagebus | cut -d: -f3` (if non-standard)
    - Port and container name (for multiple instances on one host)
 
-3. Build and run:
+3. Pull and run (image is published to `ghcr.io/brege/monitorat`):
 ```bash
-docker compose -f compose.yml up --build --detach
+docker compose -f compose.yml pull
+docker compose -f compose.yml up --detach
 ```
 
 4. Access at `http://localhost:PORT` (default PORT=6161)

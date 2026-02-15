@@ -1,12 +1,13 @@
 services:
   monitorat:
-    build:
-      context: .
-      args:
-        USER_IDENTIFIER: 1000             # CHANGE: run: id -u
-        GROUP_IDENTIFIER: 1000            # CHANGE: run: id -g
-        DOCKER_GROUP_IDENTIFIER: 115      # CHANGE: run: getent group docker | cut -d: -f3
-        MESSAGEBUS_GID: 991               # CHANGE: run: getent group messagebus | cut -d: -f3
+    image: ghcr.io/brege/monitorat:latest
+    # build:
+    #   context: .
+    #   args:
+    #     USER_IDENTIFIER: 1000             # CHANGE: run: id -u
+    #     GROUP_IDENTIFIER: 1000            # CHANGE: run: id -g
+    #     DOCKER_GROUP_IDENTIFIER: 115      # CHANGE: run: getent group docker | cut -d: -f3
+    #     MESSAGEBUS_GID: 991               # CHANGE: run: getent group messagebus | cut -d: -f3
     container_name: monitorat             # optional: change for multiple instances
     user: "1000:1000"                     # CHANGE: use: USER_IDENTIFIER:GROUP_IDENTIFIER
     group_add:
