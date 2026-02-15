@@ -14,7 +14,7 @@ cp compose.yml ~/docker/monitorat/compose.yml
    - Messagebus group: `getent group messagebus | cut -d: -f3` (if non-standard)
    - Port and container name (for multiple instances on one host)
 
-3. Pull and run (image is published to `ghcr.io/brege/monitorat`):
+3. Pull image and run ([`ghcr.io/brege/monitorat`](https://github.com/brege/monitorat/pkgs/container/monitorat)):
 ```bash
 docker compose -f compose.yml pull
 docker compose -f compose.yml up --detach

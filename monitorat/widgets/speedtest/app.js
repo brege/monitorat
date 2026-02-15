@@ -146,7 +146,7 @@ class SpeedtestWidget {
 
     const response = await fetch('widgets/speedtest/index.html');
     const html = await response.text();
-    container.innerHTML = html;
+    await window.monitorShared.renderWidgetTemplate(container, html);
 
     this.applyVisibilityConfig();
     this.initializeFeatureHeaders();

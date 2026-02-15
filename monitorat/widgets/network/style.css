@@ -194,7 +194,7 @@
   --alert-color: var(--alert-color-unknown);
 }
 .network-container .hidden {
-  display: none !important;
+  display: none;
 }
 :root[data-theme="dark"] .network-container {
   --uptime-pill-base: rgba(var(--status-unknown-rgb), 0.35);

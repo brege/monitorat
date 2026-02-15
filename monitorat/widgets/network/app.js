@@ -40,7 +40,7 @@ class NetworkWidget {
 
     const response = await fetch('widgets/network/index.html');
     const html = await response.text();
-    container.innerHTML = html;
+    await window.monitorShared.renderWidgetTemplate(container, html);
 
     await this.loadFeatureScripts();
     this.initializeFeatureHeaders();

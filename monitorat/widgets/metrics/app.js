@@ -193,7 +193,7 @@ class MetricsWidget {
           unitFormat: unitSpec.format,
           unitDecimals: unitSpec.decimals,
           fields: fields
-            .filter((field) => field && field.field && field.source)
+            .filter((field) => field?.field && field?.source)
             .map((field) => ({
               field: field.field,
               label: field.label || field.field,
@@ -227,7 +227,7 @@ class MetricsWidget {
 
     const response = await fetch('widgets/metrics/index.html');
     const html = await response.text();
-    container.innerHTML = html;
+    await window.monitorShared.renderWidgetTemplate(container, html);
 
     this.applyVisibilityConfig();
     this.initializeFeatureHeaders();

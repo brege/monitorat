@@ -43,7 +43,7 @@
   color: var(--text-muted);
 }
 .reminder-alert-description {
-  color: var(--text-muted) !important;
+  color: var(--text-muted);
 }
 .reminder-alert.status-disabled {
   --status-bg: rgba(var(--status-unknown-rgb), 0.08);

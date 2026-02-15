@@ -112,8 +112,33 @@ window.monitorShared.ensureStylesheet = (href) =>
     stylesheet.onload = () => resolve();
     stylesheet.onerror = () =>
       reject(new Error(`Failed to load stylesheet: ${href}`));
+    const colorThemeLink = document.querySelector('link[data-color-theme]');
+    if (colorThemeLink?.parentNode) {
+      colorThemeLink.parentNode.insertBefore(stylesheet, colorThemeLink);
+      return;
+    }
     document.head.appendChild(stylesheet);
   });
+
+window.monitorShared.renderWidgetTemplate = async (container, html) => {
+  const template = document.createElement('template');
+  template.innerHTML = html;
+  const stylesheetLinks = Array.from(
+    template.content.querySelectorAll('link[rel="stylesheet"][href]'),
+  );
+  await Promise.all(
+    stylesheetLinks.map((link) => {
+      const href = link.getAttribute('href');
+      return href
+        ? window.monitorShared.ensureStylesheet(href)
+        : Promise.resolve();
+    }),
+  );
+  stylesheetLinks.forEach((link) => {
+    link.remove();
+  });
+  container.replaceChildren(template.content);
+};
 
 window.monitorShared.ensureEditorAssets = async () => {
   await Promise.all([

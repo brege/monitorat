@@ -237,7 +237,7 @@ class RemindersWidget {
 
     const response = await fetch('widgets/reminders/index.html');
     const html = await response.text();
-    container.innerHTML = html;
+    await window.monitorShared.renderWidgetTemplate(container, html);
 
     this.initializeFeatureHeaders();
     await this.loadFeatureScripts();

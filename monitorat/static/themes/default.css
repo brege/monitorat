@@ -642,8 +642,8 @@ h6:hover .header-anchor {
   overflow-x: auto;
   max-width: 100%;
 }
-.alerts-toggle:hover {
-  background: none !important;
+.section-header .alerts-toggle:hover {
+  background: none;
 }
 
 .source-badge {

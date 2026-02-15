@@ -236,21 +236,21 @@ The network widget is best used on machines with continuous uptime. Two options:
       <td>S. Metrics</td>
       <td><a href="https://monitorat.brege.org/#section-metrics">Y</a></td>
       <td>-</td>
-      <td>Y (tiles)</td>
+      <td>Y(tiles)</td>
       <td>Y</td>
-      <td>N</td>
-      <td><a href="https://monitorat.brege.org/federation/#section-metrics">Y (chart)</a></td>
-      <td>Y (alert)</td>
+      <td>Y(tiles)</td>
+      <td><a href="https://monitorat.brege.org/federation/#section-metrics">chart</a></td>
+      <td>Y(alert)</td>
     </tr>
     <tr>
       <td>Network</td>
-      <td><a href="https://monitorat.brege.org/#section-network">Y (pips)</a></td>
-      <td>Y (outages)</td>
-      <td>Y (tiles)</td>
+      <td><a href="https://monitorat.brege.org/#section-network">Y(pips)</a></td>
+      <td>Y(outages)</td>
+      <td>Y(tiles)</td>
       <td>Y</td>
       <td>N</td>
-      <td><a href="https://monitorat.brege.org/federation/#section-network">Y (interleave)</a></td>
-      <td>N</td>
+      <td><a href="https://monitorat.brege.org/federation/#section-network">interleave</a></td>
+      <td>Y(alert)</td>
     </tr>
     <tr>
       <td>Speedtest</td>
@@ -259,17 +259,17 @@ The network widget is best used on machines with continuous uptime. Two options:
       <td>-</td>
       <td>N</td>
       <td>-</td>
-      <td><a href="https://monitorat.brege.org/federation/#section-speedtest">Y (chart)</a></td>
+      <td><a href="https://monitorat.brege.org/federation/#section-speedtest">chart</a></td>
       <td>N</td>
     </tr>
     <tr>
       <td>Services</td>
       <td>-</td>
       <td><a href="https://monitorat.brege.org/#section-services">Y</a></td>
-      <td>Y (cards)</td>
+      <td>Y(cards)</td>
       <td>N</td>
       <td>Y</td>
-      <td><a href="https://monitorat.brege.org/federation/#section-services">Y (interleave)</a></td>
+      <td><a href="https://monitorat.brege.org/federation/#section-services">interleave</a></td>
       <td>N</td>
     </tr>
     <tr>
@@ -279,7 +279,7 @@ The network widget is best used on machines with continuous uptime. Two options:
       <td>-</td>
       <td>-</td>
       <td>Y</td>
-      <td><a href="https://monitorat.brege.org/federation/#section-reminders">Y (interleave)</a></td>
+      <td><a href="https://monitorat.brege.org/federation/#section-reminders">interleave</a></td>
       <td>Y</td>
     </tr>
     <tr>
@@ -289,12 +289,13 @@ The network widget is best used on machines with continuous uptime. Two options:
       <td>-</td>
       <td>-</td>
       <td>Y</td>
-      <td>Y (continuous)</td>
+      <td>continuous</td>
       <td>-</td>
     </tr>
   </tbody>
 </table>
 
+> [!NOTE] Key 
 > Y = supported | N = planned / potential feature | \- = not applicable
 
 ## General Features

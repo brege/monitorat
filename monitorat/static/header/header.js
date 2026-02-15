@@ -180,14 +180,7 @@ function applyColorTheme(themeName) {
     link.rel = 'stylesheet';
     link.href = `themes/${themeName}.css`;
     link.dataset.colorTheme = themeName;
-    const defaultTheme = document.querySelector(
-      'link[href*="themes/default.css"]',
-    );
-    if (defaultTheme?.nextSibling) {
-      defaultTheme.parentNode.insertBefore(link, defaultTheme.nextSibling);
-    } else {
-      document.head.appendChild(link);
-    }
+    document.head.appendChild(link);
   }
 
   try {

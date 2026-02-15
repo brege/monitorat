@@ -359,8 +359,8 @@ summary {
 
 /* Network uptime pills - circular dots on a line */
 .network-container .uptime-pills {
-  display: flex !important;
-  gap: 0 !important;
+  display: flex;
+  gap: 0;
   align-items: center;
   justify-content: space-between;
   position: relative;
@@ -378,11 +378,11 @@ summary {
 }
 
 .network-container .uptime-pill {
-  height: 10px !important;
-  width: 10px !important;
-  min-width: 10px !important;
-  max-width: 10px !important;
-  border-radius: 50% !important;
+  height: 10px;
+  width: 10px;
+  min-width: 10px;
+  max-width: 10px;
+  border-radius: 50%;
   flex-shrink: 0;
   flex-grow: 0;
   position: relative;
@@ -392,5 +392,5 @@ summary {
 /* Remove top margin from first element in wiki columns */
 .layout-column .markdown-body :first-child,
 .wiki-source-content .markdown-body :first-child {
-  margin-top: 0 !important;
+  margin-top: 0;
 }

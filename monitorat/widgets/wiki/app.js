@@ -28,7 +28,7 @@ class WikiWidget {
 
     const response = await fetch('widgets/wiki/index.html');
     const html = await response.text();
-    container.innerHTML = html;
+    await window.monitorShared.renderWidgetTemplate(container, html);
 
     this.initializeFeatureHeaders();
 
