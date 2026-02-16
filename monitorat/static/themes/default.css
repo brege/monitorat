@@ -300,7 +300,7 @@ button:disabled {
 /* Status card base styling */
 .status-card {
   background: var(--status-bg, var(--bg-card));
-  border-left: 4px solid var(--status-border, transparent);
+  border-inline-start: 4px solid var(--status-border, transparent);
 }
 
 .status-ok {
@@ -622,7 +622,7 @@ select.alerts-toggle:disabled {
 }
 
 .header-anchor {
-  margin-left: 0.5em;
+  margin-inline-start: 0.5em;
   color: var(--accent);
   opacity: 0;
   text-decoration: none;
@@ -681,7 +681,7 @@ h6:hover .header-anchor {
 }
 
 .feature-header .source-badge {
-  margin-left: 8px;
+  margin-inline-start: 8px;
   text-transform: none;
   font-weight: 500;
 }

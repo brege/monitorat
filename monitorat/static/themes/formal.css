@@ -190,9 +190,9 @@ h6 {
 
 .markdown-body blockquote {
   font-style: italic;
-  border-left: 3px solid var(--border-muted);
-  padding-left: 1.25em;
-  margin-left: 0;
+  border-inline-start: 3px solid var(--border-muted);
+  padding-inline-start: 1.25em;
+  margin-inline-start: 0;
   color: var(--text-muted);
 }
 
@@ -289,7 +289,7 @@ tr:nth-child(even) td {
 .service-card,
 .reminder-alert {
   border-radius: 4px;
-  border-left-width: 3px;
+  border-inline-start-width: 3px;
 }
 
 .service-name,
@@ -336,7 +336,7 @@ tr:nth-child(even) td {
 .reminder-alert,
 .network-container .alert {
   border-radius: 4px;
-  border-left-width: 3px;
+  border-inline-start-width: 3px;
 }
 
 .alert-list {
@@ -370,8 +370,8 @@ summary {
   content: "";
   position: absolute;
   top: 50%;
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   height: 1px;
   background: var(--border-muted);
   z-index: 0;

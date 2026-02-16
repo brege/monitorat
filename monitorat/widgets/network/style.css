@@ -20,6 +20,8 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+  --uptime-label-width: 150px;
+  --uptime-value-width: 72px;
   --uptime-pill-base: var(--border-muted);
   --uptime-pill-idle: rgba(var(--status-unknown-rgb), 0.6);
   --uptime-pill-future: rgba(var(--status-unknown-rgb), 0.35);
@@ -59,7 +61,7 @@
 }
 .network-container .uptime-row {
   display: grid;
-  grid-template-columns: 150px 1fr 72px;
+  grid-template-columns: var(--uptime-label-width) 1fr var(--uptime-value-width);
   align-items: center;
   gap: 18px;
 }
@@ -69,7 +71,7 @@
 }
 .network-container .uptime-value {
   font-variant-numeric: tabular-nums;
-  text-align: right;
+  text-align: end;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -118,7 +120,7 @@
   font-size: 0.8rem;
   color: var(--text-muted);
   margin-top: 6px;
-  margin-left: 150px;
+  margin-inline-start: var(--uptime-label-width);
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
@@ -244,10 +246,10 @@
     gap: 10px;
   }
   .network-container .uptime-value {
-    text-align: left;
+    text-align: start;
   }
   .network-container .uptime-meta {
-    margin-left: 0;
+    margin-inline-start: 0;
   }
 }
 .network-tile-columns {

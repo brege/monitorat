@@ -10,8 +10,10 @@
   padding: 16px 18px;
 }
 .notes .editor-edit-btn {
-  float: right;
-  margin: 10px 10px 0 0;
+  float: inline-end;
+  margin-block-start: 10px;
+  margin-inline-end: 10px;
+  margin-inline-start: 0;
 }
 .notes[data-mode="seamless"],
 .notes[data-mode="rail"] {
@@ -25,12 +27,14 @@
   padding: 0;
 }
 .notes[data-mode="rail"] {
-  border-left: 2px solid var(--border-muted);
-  padding-left: 16px;
+  border-inline-start: 2px solid var(--border-muted);
+  padding-inline-start: 16px;
 }
 .notes[data-mode="seamless"] .editor-edit-btn,
 .notes[data-mode="rail"] .editor-edit-btn {
-  margin: 0 0 8px 8px;
+  margin-block: 0 8px;
+  margin-inline-start: 8px;
+  margin-inline-end: 0;
 }
 .notes .markdown-body details {
   margin-bottom: 1em;
@@ -46,7 +50,7 @@
 .notes .markdown-body .header-anchor {
   opacity: 0;
   text-decoration: none;
-  margin-left: 0.5em;
+  margin-inline-start: 0.5em;
   color: var(--accent);
   transition: opacity 0.2s ease;
 }
@@ -132,7 +136,7 @@
   padding: 0.5rem 1rem;
   margin-bottom: 16px;
   color: inherit;
-  border-left: 0.25em solid var(--border-muted);
+  border-inline-start: 0.25em solid var(--border-muted);
 }
 
 .wiki .markdown-admonition > :first-child {
@@ -151,7 +155,7 @@
 }
 
 .wiki .markdown-admonition-title .octicon {
-  margin-right: 0.5rem;
+  margin-inline-end: 0.5rem;
   display: inline-block;
   overflow: visible;
   vertical-align: text-bottom;
@@ -159,7 +163,7 @@
 }
 
 .wiki .markdown-admonition-note {
-  border-left-color: var(--admonition-note);
+  border-inline-start-color: var(--admonition-note);
 }
 
 .wiki .markdown-admonition-note .markdown-admonition-title {
@@ -167,7 +171,7 @@
 }
 
 .wiki .markdown-admonition-important {
-  border-left-color: var(--admonition-important);
+  border-inline-start-color: var(--admonition-important);
 }
 
 .wiki .markdown-admonition-important .markdown-admonition-title {
@@ -175,7 +179,7 @@
 }
 
 .wiki .markdown-admonition-warning {
-  border-left-color: var(--admonition-warning);
+  border-inline-start-color: var(--admonition-warning);
 }
 
 .wiki .markdown-admonition-warning .markdown-admonition-title {
@@ -183,7 +187,7 @@
 }
 
 .wiki .markdown-admonition-tip {
-  border-left-color: var(--admonition-tip);
+  border-inline-start-color: var(--admonition-tip);
 }
 
 .wiki .markdown-admonition-tip .markdown-admonition-title {
@@ -191,7 +195,7 @@
 }
 
 .wiki .markdown-admonition-caution {
-  border-left-color: var(--admonition-caution);
+  border-inline-start-color: var(--admonition-caution);
 }
 
 .wiki .markdown-admonition-caution .markdown-admonition-title {
