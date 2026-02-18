@@ -1,5 +1,9 @@
 ## Changelog
 
+### 2026-02-16 -- [cde1281..e313094](https://github.com/brege/monitorat/compare/3d2cd7b..e313094)
+
+- Applied modern CSS design after reading https://modern-css.com
+
 ### 2026-02-14 -- [0acceac..b80e139](https://github.com/brege/monitorat/compare/0acceac..b80e139)
 
 - Fixed 'month' selection in Speedtest dropdown be a rolling 31 day window

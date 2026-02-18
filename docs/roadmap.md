@@ -2,11 +2,10 @@
 
 ## Features
 
-Editors/UI Configuration
 - Network: log\_file path, enable chirper, pips and ranges
   - Status: **Wait.** There are other finer network widget features to add:
     1. click on a pill for finer details for that datetime range
-    2. syncronize events log with this datetime range
+    2. synchronize events log with this datetime range
 
 ## Backend / API
 

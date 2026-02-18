@@ -447,7 +447,7 @@ def send_notifications():
                 priority = 1  # high priority for all overdue items
             elif is_urgent:
                 title = f"{reminder['name']} - {days_remaining} days left"
-                body = f"Login expires in {days_remaining} days"
+                body = f"Task expires in {days_remaining} days"
                 priority = 1  # urgent
             else:  # nudge
                 title = f"{reminder['name']} - {days_remaining} days remaining"
