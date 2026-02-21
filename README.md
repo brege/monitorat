@@ -1,4 +1,4 @@
-<img src="./docs/img/masthead.svg" alt="monitor@/monitorat masthead that shows the french IPA phonetics and the tagline 'a system for observing and documenting status' and an icon with a monitor and superimposed at-character" width="100%">
+<a href="https://monitorat.brege.org"><img src="./docs/img/masthead.svg" alt="monitor@/monitorat masthead that shows the french IPA phonetics and the tagline 'a system for observing and documenting status' and an icon with a monitor and superimposed at-character" width="100%"></a>
 
 # <div align=center> [ [demo](https://monitorat.brege.org) ] </div>
 
