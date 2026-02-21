@@ -49,15 +49,13 @@ See `pyproject.toml` for dependencies.
 
 For repetitive, non-user-facing parameters, please create a `schema.json` for your widget.
 
-#### Linting and formatting
-
 ### Linters / Formatters
 
+Install [pre-commit](https://pre-commit.com/) hooks for linting and formatting of the following:
 ```bash
 pre-commit install
+uv sync --dev
 ```
-
-This will install [pre-commit](https://pre-commit.com/) hooks for linting and formatting of the following:
 
 <table>
   <thead>
@@ -88,19 +86,17 @@ This will install [pre-commit](https://pre-commit.com/) hooks for linting and fo
 
 
 ### Adding widgets
-
-Structure:
-
+#### Widget directory structure
 ```
 ~/.config/monitorat/widgets/
 └── my-widget
-    ├── api.py              # backend and routing
-    ├── default.yaml        # preset user-configurable parameters
-    ├── schema.json         # repetitive parameters
-    ├── index.html          # main layout
-    ├── style.css           # only widget-specifc CSS
-    ├── features/*.js       # (optional) if using app.js as an index/orchestrator of <features>.js
-    └── app.js              # main client-side JS
+    ├── api.py              backend and routing
+    ├── default.yaml        preset user-configurable parameters
+    ├── schema.json         repetitive parameters
+    ├── index.html          main layout
+    ├── style.css           only widget-specifc CSS
+    ├── features/*.js       (optional) if using app.js as an index/orchestrator of <features>.js
+    └── app.js              main client-side JS
 ```
 
 Monitorat will automatically load the matching backend `api.py` and its presets (a *local* `default.yaml`) and serve the widget's HTML/JS from that directory.
