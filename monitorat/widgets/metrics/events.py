@@ -11,20 +11,13 @@ from pathlib import Path
 
 import psutil
 
-try:
-    from monitorat.observer import (
-        Event,
-        Observer,
-        register_observer_source,
-        get_observer,
-    )
-except ImportError:
-    from observer import Event, Observer, register_observer_source, get_observer
-
-try:
-    from monitorat.monitor import config, get_data_path, parse_iso_timestamp
-except ImportError:
-    from monitor import config, get_data_path, parse_iso_timestamp
+from monitorat.observer import (
+    Event,
+    Observer,
+    register_observer_source,
+    get_observer,
+)
+from monitorat.monitor import config, get_data_path, parse_iso_timestamp
 
 from .registry import METRIC_REGISTRY
 

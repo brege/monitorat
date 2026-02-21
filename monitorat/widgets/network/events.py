@@ -9,21 +9,13 @@ import json
 import logging
 from datetime import datetime
 
-
-try:
-    from monitorat.observer import (
-        Event,
-        Observer,
-        register_observer_source,
-        get_observer,
-    )
-except ImportError:
-    from observer import Event, Observer, register_observer_source, get_observer
-
-try:
-    from monitorat.monitor import config
-except ImportError:
-    from monitor import config
+from monitorat.observer import (
+    Event,
+    Observer,
+    register_observer_source,
+    get_observer,
+)
+from monitorat.monitor import config
 from .analysis import (
     analyze_log_file,
     get_log_file_path,
@@ -45,6 +37,8 @@ def get_source() -> str:
 def alert_to_event(alert: Alert, source: str = "local") -> Event:
     """Convert Alert to observer Event."""
     if alert.type == "outage":
+        start = alert.start or alert.timestamp
+        end = alert.end or alert.timestamp
         return Event(
             timestamp=alert.timestamp.isoformat(),
             widget="network",
@@ -56,8 +50,8 @@ def alert_to_event(alert: Alert, source: str = "local") -> Event:
             message=f"{alert.missed_checks} missing",
             source=source,
             details={
-                "start": alert.start.isoformat(),
-                "end": alert.end.isoformat(),
+                "start": start.isoformat(),
+                "end": end.isoformat(),
                 "missedChecks": alert.missed_checks,
                 "open": alert.open,
             },

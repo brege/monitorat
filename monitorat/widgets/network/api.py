@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from flask import jsonify, Response
 from pathlib import Path
-from monitor import config, get_data_path, is_demo_enabled
+from monitorat.monitor import config, get_data_path, is_demo_enabled
 import logging
 import threading
 import time
@@ -235,10 +235,7 @@ def register_routes(app):
                 return jsonify({"events": events})
             return jsonify({"events": events[:limit]})
 
-        try:
-            from monitorat.observer import get_observer
-        except ImportError:
-            from observer import get_observer
+        from monitorat.observer import get_observer
 
         observer = get_observer()
         if observer is None:

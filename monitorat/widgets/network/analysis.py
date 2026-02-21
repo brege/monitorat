@@ -16,9 +16,9 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TypedDict
 
-from monitor import config, get_data_path
+from monitorat.monitor import config, get_data_path
 from pytimeparse import parse as parse_duration
 
 logger = logging.getLogger(__name__)
@@ -152,7 +152,14 @@ class AnalysisResult:
     window_stats: list
 
 
-_cache = {
+class EntryCache(TypedDict):
+    hash: Optional[str]
+    entries: Optional[list[LogEntry]]
+    success_slots: Optional[list[int]]
+    failure_slots: Optional[list[int]]
+
+
+_cache: EntryCache = {
     "hash": None,
     "entries": None,
     "success_slots": None,
@@ -270,8 +277,16 @@ def build_slot_sets(
 def get_cached_entries(text: str) -> tuple[list[LogEntry], list[int], list[int]]:
     """Parse log with caching based on content hash."""
     text_hash = compute_hash(text)
-    if _cache["hash"] == text_hash and _cache["entries"] is not None:
-        return _cache["entries"], _cache["success_slots"], _cache["failure_slots"]
+    cached_entries = _cache["entries"]
+    cached_success = _cache["success_slots"]
+    cached_failure = _cache["failure_slots"]
+    if (
+        _cache["hash"] == text_hash
+        and cached_entries is not None
+        and cached_success is not None
+        and cached_failure is not None
+    ):
+        return cached_entries, cached_success, cached_failure
 
     entries = parse_log(text)
     interval_ms = get_expected_interval() * 1000
@@ -376,6 +391,8 @@ def resolve_segment_status(start_ms: int, end_ms: int, alerts: list[Alert]) -> s
     has_failure = False
     for alert in alerts:
         if alert.type == "outage":
+            if alert.start is None or alert.end is None:
+                continue
             alert_start = alert.start.timestamp() * 1000
             alert_end = alert.end.timestamp() * 1000
             if start_ms <= alert_end and end_ms >= alert_start:
@@ -634,7 +651,7 @@ def analyze_log(text: str, now: Optional[datetime] = None) -> AnalysisResult:
             uptime_text="–",
             first_entry=None,
             last_entry=None,
-            window_stats=compute_window_stats([], [], [], periods, interval, now),
+            window_stats=compute_window_stats([], [], [], [], periods, interval, now),
         )
 
     interval = get_expected_interval()
@@ -726,8 +743,10 @@ def serialize_window_stats(stats: WindowStats) -> dict:
 def serialize_alert(alert: Alert) -> dict:
     result = {"type": alert.type, "timestamp": alert.timestamp.isoformat()}
     if alert.type == "outage":
-        result["start"] = alert.start.isoformat()
-        result["end"] = alert.end.isoformat()
+        start = alert.start or alert.timestamp
+        end = alert.end or alert.timestamp
+        result["start"] = start.isoformat()
+        result["end"] = end.isoformat()
         result["missedChecks"] = alert.missed_checks
         result["open"] = alert.open
     elif alert.type == "ipchange":

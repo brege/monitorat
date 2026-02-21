@@ -154,6 +154,8 @@ class ConfigManager:
         config_object: confuse.Configuration,
         default_config_directory: Path,
     ) -> None:
+        if self._project_config is None:
+            return
         candidate = self._project_config.expanduser()
         if not candidate.exists():
             return

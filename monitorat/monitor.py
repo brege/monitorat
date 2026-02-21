@@ -12,34 +12,19 @@ import re
 from typing import List, Optional, Set
 from pytimeparse import parse as parse_duration
 
-try:
-    from .config import (
-        config,
-        reload_config,
-        register_config_listener,
-        get_project_config_dir,
-        find_widget_items_source,
-        load_widget_items_from_file,
-        write_widget_items_to_file,
-    )
-    from .notify import NotificationHandler, setup_observer_notifications
-    from .auth import require_auth_for_api
-    from .federation import federation_client
-    from .observer import start_observer, get_observer
-except ImportError:
-    from config import (
-        config,
-        reload_config,
-        register_config_listener,
-        get_project_config_dir,
-        find_widget_items_source,
-        load_widget_items_from_file,
-        write_widget_items_to_file,
-    )
-    from notify import NotificationHandler, setup_observer_notifications
-    from auth import require_auth_for_api
-    from federation import federation_client
-    from observer import start_observer, get_observer
+from monitorat.config import (
+    config,
+    reload_config,
+    register_config_listener,
+    get_project_config_dir,
+    find_widget_items_source,
+    load_widget_items_from_file,
+    write_widget_items_to_file,
+)
+from monitorat.notify import NotificationHandler, setup_observer_notifications
+from monitorat.auth import require_auth_for_api
+from monitorat.federation import federation_client
+from monitorat.observer import start_observer, get_observer
 
 __all__ = [
     "config",
@@ -621,11 +606,7 @@ _CUSTOM_WIDGET_PATHS: Set[str] = set()
 
 def extend_widget_package_path():
     """Add configured widget directories to the widgets package search path."""
-    try:
-        import widgets
-    except ImportError:
-        logging.getLogger(__name__).warning("Widgets package not available")
-        return
+    from monitorat import widgets
 
     package_path = getattr(widgets, "__path__", None)
     if package_path is None:

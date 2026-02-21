@@ -9,10 +9,7 @@ from datetime import datetime
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 from apprise import Apprise, common as apprise_common
 
-try:
-    from .config import config
-except ImportError:
-    from config import config
+from monitorat.config import config
 
 
 class NotificationHandler:

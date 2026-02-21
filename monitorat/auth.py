@@ -4,10 +4,7 @@ import logging
 from flask import request, jsonify
 from flask_httpauth import HTTPTokenAuth
 
-try:
-    from .config import config
-except ImportError:
-    from config import config
+from monitorat.config import config
 
 logger = logging.getLogger(__name__)
 

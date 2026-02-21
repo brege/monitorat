@@ -7,7 +7,7 @@ from typing import List
 from pathlib import Path
 import json
 
-from monitor import (
+from monitorat.monitor import (
     CSVHandler,
     parse_iso_timestamp,
     resolve_period_cutoff,

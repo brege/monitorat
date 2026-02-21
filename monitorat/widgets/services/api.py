@@ -10,7 +10,7 @@ from pathlib import Path
 import shutil
 import subprocess
 
-from monitor import (
+from monitorat.monitor import (
     config,
     register_snapshot_provider,
     get_data_path,

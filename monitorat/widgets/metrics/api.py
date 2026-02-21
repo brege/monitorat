@@ -5,13 +5,13 @@ import logging
 import threading
 import time
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 import confuse
 import psutil
 import yaml
 
-from monitor import (
+from monitorat.monitor import (
     config,
     parse_iso_timestamp,
     resolve_period_cutoff,
@@ -24,7 +24,13 @@ from monitor import (
 )
 from flask import request, send_file, jsonify
 
-from .registry import METRIC_REGISTRY, MetricContext, MetricValue, build_metric_context
+from .registry import (
+    METRIC_REGISTRY,
+    MetricContext,
+    MetricValue,
+    MetricValueType,
+    build_metric_context,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -181,9 +187,9 @@ def build_metric_statuses(
     statuses: Dict[str, str] = {}
     for key, rules in thresholds.items():
         value = values[key].value
-        if value is None:
+        if not isinstance(value, (int, float)):
             continue
-        statuses[key] = get_metric_status(key, value, rules)
+        statuses[key] = get_metric_status(key, float(value), rules)
     return statuses
 
 
@@ -265,8 +271,8 @@ def get_demo_metrics() -> Dict[str, object]:
 
 def serialize_metric_values(
     values: Dict[str, MetricValue], keys: List[str]
-) -> Dict[str, Dict[str, Optional[float]]]:
-    serialized: Dict[str, Dict[str, Optional[float]]] = {}
+) -> Dict[str, Dict[str, MetricValueType]]:
+    serialized: Dict[str, Dict[str, MetricValueType]] = {}
     for key in keys:
         value = values[key]
         serialized[key] = {
@@ -467,10 +473,7 @@ def register_routes(app):
 
             return {"events": get_metrics_events_for_demo(limit=limit)}
 
-        try:
-            from monitorat.observer import get_observer
-        except ImportError:
-            from observer import get_observer
+        from monitorat.observer import get_observer
 
         observer = get_observer()
         if observer is None:

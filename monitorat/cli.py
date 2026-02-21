@@ -5,10 +5,7 @@ from pathlib import Path
 import subprocess
 import sys
 
-try:
-    from .config import config_manager, get_widgets_paths, set_project_config_path
-except ImportError:
-    from config import config_manager, get_widgets_paths, set_project_config_path
+from monitorat.config import config_manager, get_widgets_paths, set_project_config_path
 
 
 def command_config(args):
@@ -58,10 +55,7 @@ def get_widget_type(widget_name: str, config_obj) -> str:
 
 def extend_widget_package_path():
     """Add configured widget directories to the widgets package search path."""
-    try:
-        import widgets
-    except ImportError:
-        return
+    from monitorat import widgets
 
     package_path = getattr(widgets, "__path__", None)
     if package_path is None:
@@ -109,10 +103,7 @@ def get_custom_widgets() -> dict:
 
 def command_server(args):
     """Run the development server."""
-    try:
-        from .monitor import app as flask_app, is_demo_enabled
-    except ImportError:
-        from monitor import app as flask_app, is_demo_enabled
+    from monitorat.monitor import app as flask_app, is_demo_enabled
 
     mode_label = "on" if is_demo_enabled() else "off"
     print(f" * Demo mode: {mode_label}")

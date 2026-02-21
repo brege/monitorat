@@ -9,14 +9,20 @@ To add a new observable (quantity):
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Callable, Dict, Iterable, List, Optional, Tuple
+from typing import Callable, Dict, Iterable, List, Optional, Tuple, TypeVar, cast
 
 import os
 import psutil
 
 
-def identity_value(value: Optional[float]) -> Optional[float]:
-    return value
+MetricValueType = Optional[float | str]
+T = TypeVar("T")
+
+
+def identity_value(value: MetricValueType) -> Optional[float]:
+    if isinstance(value, (int, float)):
+        return float(value)
+    return None
 
 
 class MetricContext:
@@ -25,7 +31,7 @@ class MetricContext:
         self.storage_mounts = storage_mounts
         self._cache: Dict[str, object] = {}
 
-    def _cache_value(self, key: str, value: object) -> object:
+    def _cache_value(self, key: str, value: T) -> T:
         self._cache[key] = value
         return value
 
@@ -33,19 +39,21 @@ class MetricContext:
         return self._cache.get(key)
 
     def get_cpu_percent(self) -> Optional[float]:
-        cached = self._get_cached("cpu_percent")
+        cached = cast(Optional[float], self._get_cached("cpu_percent"))
         if cached is not None:
             return cached
         return self._cache_value("cpu_percent", psutil.cpu_percent(interval=0.1))
 
     def get_memory_percent(self) -> Optional[float]:
-        cached = self._get_cached("memory_percent")
+        cached = cast(Optional[float], self._get_cached("memory_percent"))
         if cached is not None:
             return cached
         return self._cache_value("memory_percent", psutil.virtual_memory().percent)
 
     def get_memory_usage(self) -> Optional[Tuple[int, int, float]]:
-        cached = self._get_cached("memory_usage")
+        cached = cast(
+            Optional[Tuple[int, int, float]], self._get_cached("memory_usage")
+        )
         if cached is not None:
             return cached
         memory = psutil.virtual_memory()
@@ -66,7 +74,9 @@ class MetricContext:
         return self._cache_value("network_io", psutil.net_io_counters())
 
     def get_load_averages(self) -> Optional[Tuple[float, float, float]]:
-        cached = self._get_cached("load_averages")
+        cached = cast(
+            Optional[Tuple[float, float, float]], self._get_cached("load_averages")
+        )
         if cached is not None:
             return cached
         try:
@@ -75,12 +85,15 @@ class MetricContext:
             return self._cache_value("load_averages", None)
 
     def get_temperature_c(self) -> Optional[float]:
-        cached = self._get_cached("temperature_c")
+        cached = cast(Optional[float], self._get_cached("temperature_c"))
         if cached is not None:
             return cached
+        sensors_temperatures = getattr(psutil, "sensors_temperatures", None)
+        if sensors_temperatures is None:
+            return self._cache_value("temperature_c", None)
         try:
-            sensors = psutil.sensors_temperatures()
-        except (AttributeError, OSError):
+            sensors = sensors_temperatures()
+        except OSError:
             return self._cache_value("temperature_c", None)
 
         if not sensors:
@@ -101,33 +114,36 @@ class MetricContext:
         return self._cache_value("temperature_c", None)
 
     def get_battery_percent(self) -> Optional[float]:
-        cached = self._get_cached("battery_percent")
+        cached = cast(Optional[float], self._get_cached("battery_percent"))
         if cached is not None:
             return cached
+        sensors_battery = getattr(psutil, "sensors_battery", None)
+        if sensors_battery is None:
+            return self._cache_value("battery_percent", None)
         try:
-            battery = psutil.sensors_battery()
-        except (AttributeError, OSError):
+            battery = sensors_battery()
+        except OSError:
             return self._cache_value("battery_percent", None)
         if not battery:
             return self._cache_value("battery_percent", None)
         return self._cache_value("battery_percent", battery.percent)
 
     def get_disk_percent(self) -> Optional[float]:
-        cached = self._get_cached("disk_percent")
+        cached = cast(Optional[float], self._get_cached("disk_percent"))
         if cached is not None:
             return cached
         usage = self.get_disk_usage()
         return self._cache_value("disk_percent", usage[2] if usage else None)
 
     def get_storage_percent(self) -> Optional[float]:
-        cached = self._get_cached("storage_percent")
+        cached = cast(Optional[float], self._get_cached("storage_percent"))
         if cached is not None:
             return cached
         usage = self.get_storage_usage()
         return self._cache_value("storage_percent", usage[2] if usage else None)
 
     def get_uptime_seconds(self) -> Optional[float]:
-        cached = self._get_cached("uptime_seconds")
+        cached = cast(Optional[float], self._get_cached("uptime_seconds"))
         if cached is not None:
             return cached
         try:
@@ -139,14 +155,16 @@ class MetricContext:
             return self._cache_value("uptime_seconds", None)
 
     def get_disk_usage(self) -> Optional[Tuple[int, int, float]]:
-        cached = self._get_cached("disk_usage")
+        cached = cast(Optional[Tuple[int, int, float]], self._get_cached("disk_usage"))
         if cached is not None:
             return cached
         usage = psutil.disk_usage("/")
         return self._cache_value("disk_usage", (usage.used, usage.total, usage.percent))
 
     def get_storage_usage(self) -> Optional[Tuple[int, int, float]]:
-        cached = self._get_cached("storage_usage")
+        cached = cast(
+            Optional[Tuple[int, int, float]], self._get_cached("storage_usage")
+        )
         if cached is not None:
             return cached
         for path in self.storage_mounts:
@@ -157,9 +175,6 @@ class MetricContext:
                 "storage_usage", (usage.used, usage.total, usage.percent)
             )
         return self._cache_value("storage_usage", None)
-
-
-MetricValueType = Optional[float | str]
 
 
 @dataclass(frozen=True)

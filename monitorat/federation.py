@@ -5,10 +5,7 @@ from urllib.parse import urljoin
 
 import httpx
 
-try:
-    from .config import config
-except ImportError:
-    from config import config
+from monitorat.config import config
 
 logger = logging.getLogger(__name__)
 

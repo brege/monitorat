@@ -7,15 +7,13 @@ import threading
 import time as time_module
 from datetime import datetime
 from pathlib import Path
-import sys
 import re
 import math
 
 from confuse import ConfigError
 from pytimeparse import parse as parse_duration
 
-sys.path.append(str(Path(__file__).parent.parent))
-from monitor import (  # noqa: E402
+from monitorat.monitor import (
     NotificationHandler,
     config,
     get_data_path,

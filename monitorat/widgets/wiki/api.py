@@ -6,7 +6,7 @@ import re
 import shutil
 from datetime import datetime
 
-from monitor import BASE, config, get_project_config_dir
+from monitorat.monitor import BASE, config, get_project_config_dir
 
 INCLUDE_CODE_PATTERN = re.compile(
     r"\{\{\s*include:code\s+path=\"([^\"]+)\"\s+lang=\"([^\"]+)\"\s*\}\}"
