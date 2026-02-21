@@ -1,5 +1,11 @@
 ## Changelog
 
+### 2026-02-21 -- [a394f5f..d17ab69](https://github.com/brege/monitorat/compare/a394f5f..d17ab69)
+
+- Add [ty](https://github.com/astral-sh/ty) to pre-commit linting and fix all errors
+- Updated README masthead to link to demo
+- Bump version to v0.14
+
 ### 2026-02-16 -- [cde1281..e313094](https://github.com/brege/monitorat/compare/3d2cd7b..e313094)
 
 - Applied modern CSS design after reading https://modern-css.com

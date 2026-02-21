@@ -51,11 +51,41 @@ For repetitive, non-user-facing parameters, please create a `schema.json` for yo
 
 #### Linting and formatting
 
+### Linters / Formatters
+
 ```bash
 pre-commit install
 ```
 
-This will install [pre-commit](https://pre-commit.com/) hooks for linting and formatting via [**biome**](https://biomejs.dev/) (JS/CSS/JSON) and [**ruff**](https://github.com/astral-sh/ruff) (Python).
+This will install [pre-commit](https://pre-commit.com/) hooks for linting and formatting of the following:
+
+<table>
+  <thead>
+    <tr>
+      <th>Formatter</th>
+      <th>Extension</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><a href="https://github.com/astral-sh/ruff"><b>ruff</b></a></td>
+      <td><code>.py</code></td>
+      <td>general purpose python linter and formatter</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/astral-sh/ty"><b>ty</b></a></td>
+      <td><code>.py</code></td>
+      <td>static type checker</td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/biomejs/biome"><b>biome</b></a></td>
+      <td><code>.js</code>, <code>.css</code>, <code>.html</code></td>
+      <td>formats client-side code</td>
+    </tr>
+  </tbody>
+</table>
+
 
 ### Adding widgets
 
