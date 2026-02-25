@@ -237,7 +237,6 @@ ASSET_URLS = {
     "fonts/KaTeX_Size4-Regular.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Size4-Regular.woff2",
     "fonts/KaTeX_Typewriter-Regular.woff2": "https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/fonts/KaTeX_Typewriter-Regular.woff2",
 }
-VENDOR_URLS = ASSET_URLS
 
 
 def strip_source_map_reference(path: Path) -> None:
@@ -256,13 +255,7 @@ def strip_source_map_reference(path: Path) -> None:
 
 
 def resolve_assets_config():
-    paths_view = config["paths"]
-    path_keys = set(paths_view.keys())
-    if "assets" in path_keys:
-        return paths_view["assets"].get()
-    if "vendors" in path_keys:
-        return paths_view["vendors"].get()
-    return "assets/"
+    return config["paths"]["assets"].get()
 
 
 def resolve_assets_path() -> Optional[Path]:
@@ -288,10 +281,6 @@ def ensure_assets():
             urlretrieve(url, filepath)
             print(f"Downloaded {filename}")
         strip_source_map_reference(filepath)
-
-
-def ensure_vendors():
-    ensure_assets()
 
 
 ensure_assets()

@@ -27,4 +27,4 @@ repos:
     rev: lychee-v0.23.0
     hooks:
       - id: lychee
-        args: [--offline, --exclude, ^file://.*/monitorat/static/assets/.*$]
+        args: [--offline]
