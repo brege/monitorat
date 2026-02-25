@@ -38,9 +38,14 @@ class NetworkWidget {
 
     await this.loadSchema();
 
-    const response = await fetch('widgets/network/index.html');
+    const templateUrl = 'widgets/network/index.html';
+    const response = await fetch(templateUrl);
     const html = await response.text();
-    await window.monitorShared.renderWidgetTemplate(container, html);
+    await window.monitorShared.renderWidgetTemplate(
+      container,
+      html,
+      templateUrl,
+    );
 
     await this.loadFeatureScripts();
     this.initializeFeatureHeaders();

@@ -45,7 +45,7 @@ There are several demos.
 | [Speedtest](#speedtest-widget)  | Speedtest Tracking, Tables, Charts |
 | [Reminders](#reminders-widget)  | Web Editor, Calendar, Apprise Notifications |
 
-For this (simple) demo, each widget is chased by a corresponding ["Wiki" widget](/#wiki) that provides the documentation for that widget.
+For this (simple) demo, each widget is chased by a corresponding ["Wiki" widget](#wiki) that provides the documentation for that widget.
 
 On headless machines (Raspberry Pi, a NAS, NUC, or Beelink), monitorat becomes both a central dashboard and a system's bible.
 

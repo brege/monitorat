@@ -144,9 +144,14 @@ class SpeedtestWidget {
           ? preferredMetric
           : metricFields[0] || 'all';
 
-    const response = await fetch('widgets/speedtest/index.html');
+    const templateUrl = 'widgets/speedtest/index.html';
+    const response = await fetch(templateUrl);
     const html = await response.text();
-    await window.monitorShared.renderWidgetTemplate(container, html);
+    await window.monitorShared.renderWidgetTemplate(
+      container,
+      html,
+      templateUrl,
+    );
 
     this.applyVisibilityConfig();
     this.initializeFeatureHeaders();

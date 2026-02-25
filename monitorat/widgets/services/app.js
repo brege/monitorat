@@ -200,9 +200,14 @@ class ServicesWidget {
     this.container = container;
     this.config = { ...this.config, ...config };
 
-    const response = await fetch('widgets/services/index.html');
+    const templateUrl = 'widgets/services/index.html';
+    const response = await fetch(templateUrl);
     const html = await response.text();
-    await window.monitorShared.renderWidgetTemplate(container, html);
+    await window.monitorShared.renderWidgetTemplate(
+      container,
+      html,
+      templateUrl,
+    );
 
     this.initializeFeatureHeaders();
     await this.loadFeatureScripts();

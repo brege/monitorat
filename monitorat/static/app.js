@@ -120,7 +120,11 @@ window.monitorShared.ensureStylesheet = (href) =>
     document.head.appendChild(stylesheet);
   });
 
-window.monitorShared.renderWidgetTemplate = async (container, html) => {
+window.monitorShared.renderWidgetTemplate = async (
+  container,
+  html,
+  templateUrl,
+) => {
   const template = document.createElement('template');
   template.innerHTML = html;
   const stylesheetLinks = Array.from(
@@ -129,9 +133,14 @@ window.monitorShared.renderWidgetTemplate = async (container, html) => {
   await Promise.all(
     stylesheetLinks.map((link) => {
       const href = link.getAttribute('href');
-      return href
-        ? window.monitorShared.ensureStylesheet(href)
-        : Promise.resolve();
+      if (!href) {
+        return Promise.resolve();
+      }
+      const templateBaseUrl = templateUrl
+        ? new URL(templateUrl, window.location.href).toString()
+        : window.location.href;
+      const resolvedHref = new URL(href, templateBaseUrl).pathname;
+      return window.monitorShared.ensureStylesheet(resolvedHref);
     }),
   );
   stylesheetLinks.forEach((link) => {
