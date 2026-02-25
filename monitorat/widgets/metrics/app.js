@@ -225,9 +225,14 @@ class MetricsWidget {
         ? preferredMetric
         : metricFields[0] || computedGroups[0] || preferredMetric;
 
-    const response = await fetch('widgets/metrics/index.html');
+    const templateUrl = 'widgets/metrics/index.html';
+    const response = await fetch(templateUrl);
     const html = await response.text();
-    await window.monitorShared.renderWidgetTemplate(container, html);
+    await window.monitorShared.renderWidgetTemplate(
+      container,
+      html,
+      templateUrl,
+    );
 
     this.applyVisibilityConfig();
     this.initializeFeatureHeaders();

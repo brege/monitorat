@@ -23,3 +23,8 @@ repos:
         entry: python demo/docs.py
         language: system
         pass_filenames: false
+  - repo: https://github.com/lycheeverse/lychee
+    rev: lychee-v0.23.0
+    hooks:
+      - id: lychee
+        args: [--offline, --exclude, ^file://.*/monitorat/static/assets/.*$]

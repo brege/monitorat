@@ -26,9 +26,14 @@ class WikiWidget {
     this.config = { ...this.config, ...config };
     this.apiPrefix = config._apiPrefix || this.apiPrefix;
 
-    const response = await fetch('widgets/wiki/index.html');
+    const templateUrl = 'widgets/wiki/index.html';
+    const response = await fetch(templateUrl);
     const html = await response.text();
-    await window.monitorShared.renderWidgetTemplate(container, html);
+    await window.monitorShared.renderWidgetTemplate(
+      container,
+      html,
+      templateUrl,
+    );
 
     this.initializeFeatureHeaders();
 
