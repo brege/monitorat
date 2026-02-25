@@ -664,12 +664,12 @@ h6:hover .header-anchor {
 }
 
 .feature-header {
-  margin: 16px 0 8px 0;
-  font-size: 0.9rem;
+  margin: 24px 0 16px 0;
+  font-size: 1.1rem;
+  line-height: 1.25;
   font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: var(--text-heading);
+  padding: 0;
 }
 
 .feature-header:first-child {
@@ -703,7 +703,7 @@ h6:hover .header-anchor {
     .feature-header[data-network-section-header="uptime"],
     .feature-header[data-network-section-header="alerts"]
   ) {
-  margin: 0 0 8px 0;
+  margin: 0 0 16px 0;
 }
 
 .layout-columns {

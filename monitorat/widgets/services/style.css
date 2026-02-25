@@ -35,6 +35,7 @@
   user-select: none;
   position: relative;
 }
+
 .service-card * {
   pointer-events: none;
 }

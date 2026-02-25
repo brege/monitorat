@@ -22,6 +22,8 @@
   gap: 0;
   --uptime-label-width: 150px;
   --uptime-value-width: 72px;
+  --uptime-pill-gap: 2px;
+  --uptime-pill-height: 10px;
   --uptime-pill-base: var(--border-muted);
   --uptime-pill-idle: rgba(var(--status-unknown-rgb), 0.6);
   --uptime-pill-future: rgba(var(--status-unknown-rgb), 0.35);
@@ -77,12 +79,12 @@
 }
 .network-container .uptime-pills {
   display: grid;
-  gap: 4px;
+  gap: var(--uptime-pill-gap);
   align-items: stretch;
   width: 100%;
 }
 .network-container .uptime-pill {
-  height: 14px;
+  height: var(--uptime-pill-height);
   border-radius: 999px;
   background: var(--uptime-pill-base);
   transition: opacity 0.15s ease;
