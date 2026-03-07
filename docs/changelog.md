@@ -1,5 +1,19 @@
 ## Changelog
 
+### 2026-03-07 -- [37dc99b..f467cc7](https://github.com/brege/monitorat/compare/37dc99b..f467cc7)
+
+- Fixed editing reminders that have 0 days as reminder expiration
+- Fixed incorrect time rollover from 365/2 = 182 days causing poisoned events data
+- Bump version to v0.14.2
+
+### 2026-02-25 -- [071f5b1..27f18fd](https://github.com/brege/monitorat/compare/071f5b1..27f18fd)
+
+- Drop legacy vendors/ (assume assets/ always)
+- Make Markdown headers and feature-headers same format for better continuity
+- Add lychee for link checks and apply fixes
+- Bump version to v0.14.1
+
+
 ### 2026-02-21 -- [a394f5f..d17ab69](https://github.com/brege/monitorat/compare/a394f5f..d17ab69)
 
 - Add [ty](https://github.com/astral-sh/ty) to pre-commit linting and fix all errors
