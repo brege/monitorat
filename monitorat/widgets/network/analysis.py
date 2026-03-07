@@ -187,7 +187,7 @@ def parse_period_seconds(value: str) -> Optional[int]:
     return None
 
 
-def parse_timestamp(label: str) -> Optional[datetime]:
+def parse_timestamp(label: str, now: Optional[datetime] = None) -> Optional[datetime]:
     match = re.match(
         r"^([A-Za-z]{3})\s+(\d{1,2})\s+(\d{2}):(\d{2}):(\d{2})$",
         label.strip(),
@@ -200,14 +200,9 @@ def parse_timestamp(label: str) -> Optional[datetime]:
     if month is None:
         return None
 
-    now = datetime.now()
+    now = now or datetime.now()
     candidate = datetime(now.year, month, int(day), int(hour), int(minute), int(second))
-
-    half_year_days = 182
-    diff_days = (candidate - now).days
-    if diff_days > half_year_days:
-        candidate = candidate.replace(year=now.year - 1)
-    elif diff_days < -half_year_days and month > now.month:
+    if candidate > now:
         candidate = candidate.replace(year=now.year - 1)
 
     return candidate
@@ -219,37 +214,72 @@ def normalize_failure_message(message: str) -> str:
     return cleaned or message
 
 
-def parse_log(text: str) -> list[LogEntry]:
+def parse_line(line: str) -> Optional[tuple[str, str, str, bool]]:
+    if "detected IPv4 address" in line:
+        match = DETECTED_PATTERN.match(line)
+        if not match:
+            return None
+        return match.group(1), "detect", match.group(2).strip(), False
+
+    if "FAILED:" in line:
+        match = FAILED_PATTERN.match(line)
+        if not match:
+            return None
+        return (
+            match.group(1),
+            "fail",
+            normalize_failure_message(match.group(2).strip()),
+            True,
+        )
+
+    return None
+
+
+def parse_log(text: str, now: Optional[datetime] = None) -> list[LogEntry]:
+    now = now or datetime.now()
     entries = []
     last_ip = None
 
     for line in text.split("\n"):
-        if "detected IPv4 address" in line:
-            match = DETECTED_PATTERN.match(line)
-            if not match:
-                continue
-            timestamp = parse_timestamp(match.group(1))
-            if not timestamp:
-                continue
-            last_ip = match.group(2).strip()
-            entries.append(LogEntry(timestamp=timestamp, ip=last_ip))
+        parsed = parse_line(line)
+        if not parsed:
+            continue
+        label, kind, value, failure = parsed
+        entries.append((label, kind, value, failure, last_ip))
+        if kind == "detect":
+            last_ip = value
 
-        elif "FAILED:" in line:
-            match = FAILED_PATTERN.match(line)
-            if not match:
-                continue
-            timestamp = parse_timestamp(match.group(1))
-            if not timestamp:
-                continue
-            if not last_ip:
-                continue
-            message = normalize_failure_message(match.group(2).strip())
-            entries.append(
-                LogEntry(timestamp=timestamp, ip=last_ip, failure=True, message=message)
-            )
+    if not entries:
+        return []
 
-    entries.sort(key=lambda e: e.timestamp)
-    return entries
+    resolved = [None] * len(entries)
+    next_timestamp = None
+
+    # Syslog omits the year, so resolve from the newest line backward to keep
+    # the reconstructed timeline monotonic across month/year boundaries.
+    for index in range(len(entries) - 1, -1, -1):
+        label, kind, value, failure, current_ip = entries[index]
+        anchor = next_timestamp or now
+        timestamp = parse_timestamp(label, anchor)
+        if not timestamp:
+            continue
+        while next_timestamp and timestamp > next_timestamp:
+            timestamp = timestamp.replace(year=timestamp.year - 1)
+
+        ip = value if kind == "detect" else current_ip
+        if not ip:
+            next_timestamp = timestamp
+            continue
+
+        resolved[index] = LogEntry(
+            timestamp=timestamp,
+            ip=ip,
+            failure=failure,
+            message=value if failure else None,
+        )
+        next_timestamp = timestamp
+
+    return [entry for entry in resolved if entry is not None]
 
 
 def compute_hash(text: str) -> str:
