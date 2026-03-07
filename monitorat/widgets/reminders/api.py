@@ -126,7 +126,7 @@ def normalize_editor_reminder(reminder: dict) -> dict:
     if "expiry" in item or "expiry_days" in item:
         expiry_value = item.get("expiry", item.get("expiry_days"))
         item["expiry_days"] = parse_duration_days(
-            expiry_value, "expiry_days", allow_zero=False
+            expiry_value, "expiry_days", allow_zero=True
         )
     return item
 
@@ -166,10 +166,7 @@ def normalize_reminder_entry(reminder_id, reminder):
     if not isinstance(reason, str) or not reason.strip():
         raise ValueError("Reminder reason is required.")
 
-    expiry_days = parse_duration_days(expiry_value, "expiry_days", allow_zero=False)
-
-    if expiry_days <= 0:
-        raise ValueError("Reminder expiry_days must be greater than zero.")
+    expiry_days = parse_duration_days(expiry_value, "expiry_days", allow_zero=True)
 
     normalized = dict(reminder)
     normalized["name"] = name

@@ -14,8 +14,8 @@ const RemindersEditor = (() => {
     }
     if (strict) {
       const numericExpiry = Number(expiryDays);
-      if (!Number.isFinite(numericExpiry) || numericExpiry <= 0) {
-        throw new Error('Expiry days must be greater than zero.');
+      if (!Number.isFinite(numericExpiry) || numericExpiry < 0) {
+        throw new Error('Expiry days must be zero or greater.');
       }
       expiryDays = numericExpiry;
     }
@@ -69,7 +69,7 @@ const RemindersEditor = (() => {
       <label class="form-field">
         <span class="form-label">Expiry</span>
         <div class="form-inline">
-          <input class="form-input" type="number" name="expiry_days" min="1">
+          <input class="form-input" type="number" name="expiry_days" min="0">
           <span class="form-suffix">days</span>
           <span class="form-or">or</span>
           <input class="form-input" type="date" name="expires_on">
