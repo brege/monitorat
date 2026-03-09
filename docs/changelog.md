@@ -1,5 +1,12 @@
 ## Changelog
 
+### 2026-03-08 -- [0b705d6..0b705d6](https://github.com/brege/monitorat/compare/0b705d6..0b705d6)
+
+- Make compact cards in services more dynamic like app icons are in Firefox's startpage
+- Allow enable/disable status indicators in compact mode view in services widget
+- Allow enable/disable of controls bar in services widget
+- Bump version to v0.14.3
+
 ### 2026-03-07 -- [37dc99b..f467cc7](https://github.com/brege/monitorat/compare/37dc99b..f467cc7)
 
 - Fixed editing reminders that have 0 days as reminder expiration
