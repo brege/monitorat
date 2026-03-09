@@ -7,7 +7,9 @@ widgets:
     features:
       services:
         header: null
+    controls: true
     mode: tiles  # tiles | compact
     compact_icon_scale: 1.33
+    status_indicator: true
     uid: 1000
     items: {}  # { plex: { user: false } ; jellyfin: {} ; ... }

@@ -124,6 +124,14 @@ class ServicesWidget {
     return this.config.mode || 'tiles';
   }
 
+  showControls() {
+    return this.config.controls !== false;
+  }
+
+  showStatusIndicator() {
+    return this.config.status_indicator !== false;
+  }
+
   getCompactIconScale() {
     const scale = this.config.compact_icon_scale;
     if (typeof scale !== 'number' || Number.isNaN(scale)) {

@@ -42,10 +42,21 @@ class ServicesControls {
       },
     });
     this.listingControls.initialize();
+    this.syncVisibility();
   }
 
   updateSources(sources, selectedSource) {
     this.listingControls?.updateSources(sources, selectedSource);
+  }
+
+  syncVisibility() {
+    const controlsRow = this.widget.container?.querySelector(
+      '[data-services="widget-controls"]',
+    );
+    if (!controlsRow) {
+      return;
+    }
+    controlsRow.style.display = this.widget.showControls() ? '' : 'none';
   }
 }
 

@@ -60,37 +60,47 @@ class ServicesSnapshot {
     if (!container) return;
 
     const scale = this.widget.getCompactIconScale();
+    const cardSize = Math.round(52 * scale);
+    const iconMaxSize = Math.round(28 * scale * 0.92);
+    const dotSize = Math.round(14 * scale);
+    const dotRing = Math.max(2, Math.round(2.5 * scale));
+    container.style.setProperty('--service-compact-card-size', `${cardSize}px`);
     container.style.setProperty(
-      '--service-compact-icon-size',
-      `${Math.round(28 * scale)}px`,
+      '--service-compact-card-max-size',
+      `${Math.round(cardSize * 1.28)}px`,
     );
     container.style.setProperty(
-      '--service-compact-card-size',
-      `${Math.round(52 * scale)}px`,
+      '--service-compact-icon-max-size',
+      `${iconMaxSize}px`,
     );
     container.style.setProperty(
-      '--service-compact-padding',
-      `${Math.round(8 * scale)}px`,
+      '--service-compact-gap',
+      `${Math.max(8, Math.round(10 * scale))}px`,
     );
     container.style.setProperty(
-      '--service-compact-dot-size',
-      `${Math.round(10 * scale)}px`,
+      '--service-compact-frame-inset',
+      `${Math.max(10, Math.round(10 * scale))}px`,
     );
     container.style.setProperty(
-      '--service-compact-dot-offset',
-      `${Math.round(6 * scale)}px`,
+      '--service-compact-frame-radius',
+      `${Math.max(10, Math.round(11 * scale))}px`,
     );
+    container.style.setProperty('--service-compact-dot-size', `${dotSize}px`);
+    container.style.setProperty('--service-compact-dot-ring', `${dotRing}px`);
   }
 
   clearCompactSizing() {
     const container = this.widget.container;
     if (!container) return;
 
-    container.style.removeProperty('--service-compact-icon-size');
     container.style.removeProperty('--service-compact-card-size');
-    container.style.removeProperty('--service-compact-padding');
+    container.style.removeProperty('--service-compact-card-max-size');
+    container.style.removeProperty('--service-compact-icon-max-size');
+    container.style.removeProperty('--service-compact-gap');
+    container.style.removeProperty('--service-compact-frame-inset');
+    container.style.removeProperty('--service-compact-frame-radius');
     container.style.removeProperty('--service-compact-dot-size');
-    container.style.removeProperty('--service-compact-dot-offset');
+    container.style.removeProperty('--service-compact-dot-ring');
   }
 
   createServiceCard(service, showBadge) {
@@ -100,7 +110,7 @@ class ServicesSnapshot {
     const baseClass =
       mode === 'compact'
         ? 'service-card compact'
-        : 'service-card card status-card hover-expand-parent';
+        : 'service-card card status-card';
     card.className = `${baseClass}${hasBadge ? ' has-badge' : ''}`;
     card.setAttribute('data-service-key', service._key);
     card.setAttribute('data-service-source', service._source || '');
@@ -114,7 +124,7 @@ class ServicesSnapshot {
     }
 
     const iconContainer = document.createElement('div');
-    iconContainer.className = 'service-icon hover-expand';
+    iconContainer.className = 'service-icon';
     const imgBase = service._source
       ? `api/proxy/${service._source}/img`
       : this.widget.getImgBase();
@@ -125,41 +135,47 @@ class ServicesSnapshot {
       { chrome: Boolean(service.chrome) },
     );
 
-    const info = document.createElement('div');
-    info.className = 'service-info';
-
-    const name = document.createElement('div');
-    name.className = 'service-name';
-    name.textContent = service.name;
-
-    const status = document.createElement('div');
-    status.className = 'service-status';
-    status.textContent = 'Loading...';
-
-    info.appendChild(name);
-    info.appendChild(status);
-
-    card.appendChild(iconContainer);
-    card.appendChild(info);
-
     if (mode === 'compact') {
-      const statusDot = document.createElement('button');
-      statusDot.type = 'button';
-      statusDot.className = 'service-status-dot';
-      statusDot.title = 'Service details';
-      statusDot.setAttribute(
-        'aria-label',
-        `Service details for ${service.name}`,
-      );
-      statusDot.addEventListener('click', (event) => {
-        event.stopPropagation();
-        this.info.open(service);
-      });
-      card.appendChild(statusDot);
+      const frame = document.createElement('div');
+      frame.className = 'service-compact-frame';
+      frame.appendChild(iconContainer);
+      card.appendChild(frame);
+
+      if (this.widget.showStatusIndicator()) {
+        const statusDot = document.createElement('button');
+        statusDot.type = 'button';
+        statusDot.className = 'service-status-dot';
+        statusDot.title = 'Service details';
+        statusDot.setAttribute(
+          'aria-label',
+          `Service details for ${service.name}`,
+        );
+        statusDot.addEventListener('click', (event) => {
+          event.stopPropagation();
+          this.info.open(service);
+        });
+        frame.appendChild(statusDot);
+      }
     } else {
+      const info = document.createElement('div');
+      info.className = 'service-info';
+
+      const name = document.createElement('div');
+      name.className = 'service-name';
+      name.textContent = service.name;
+
+      const status = document.createElement('div');
+      status.className = 'service-status';
+      status.textContent = 'Loading...';
+
+      info.appendChild(name);
+      info.appendChild(status);
+
+      card.appendChild(iconContainer);
+      card.appendChild(info);
       const infoBtn = document.createElement('button');
       infoBtn.type = 'button';
-      infoBtn.className = 'service-info-btn info-button hover-expand';
+      infoBtn.className = 'service-info-btn service-action-btn info-button';
       infoBtn.innerHTML = this.info.getInfoIcon();
       infoBtn.title = 'Service details';
       infoBtn.addEventListener('click', (event) => {
@@ -171,7 +187,8 @@ class ServicesSnapshot {
       if (this.widget.canEditServices()) {
         const editBtn = document.createElement('button');
         editBtn.type = 'button';
-        editBtn.className = 'service-edit-btn editor-edit-btn hover-expand';
+        editBtn.className =
+          'service-edit-btn service-action-btn editor-edit-btn';
         editBtn.innerHTML = this.getEditIcon();
         editBtn.title = 'Edit service';
         editBtn.addEventListener('click', (event) => {
@@ -304,7 +321,7 @@ class ServicesSnapshot {
       const isCompact = card.classList.contains('compact');
       const baseClass = isCompact
         ? 'service-card compact'
-        : 'service-card card status-card hover-expand-parent';
+        : 'service-card card status-card';
       const statusClass = this.widget.getStatusClass(overallStatus);
       card.className = `${baseClass}${hasBadge ? ' has-badge' : ''} ${statusClass}`;
 
