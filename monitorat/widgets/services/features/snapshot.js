@@ -170,27 +170,17 @@ class ServicesSnapshot {
 
       card.appendChild(iconContainer);
       card.appendChild(info);
-      const infoBtn = document.createElement('button');
-      infoBtn.type = 'button';
-      infoBtn.className = 'service-info-btn service-action-btn info-button';
-      infoBtn.innerHTML = this.info.getInfoIcon();
-      infoBtn.title = 'Service details';
-      infoBtn.addEventListener('click', (event) => {
-        event.stopPropagation();
-        this.info.open(service);
-      });
-      card.appendChild(infoBtn);
 
       if (canEdit) {
         const controls = window.monitorShared?.EditorControls;
         const editAction = controls?.createCardOverflowButton({
-          title: 'Edit service',
-          label: 'Edit service',
+          title: 'Service details',
+          label: 'Service details',
         });
         const editBtn = editAction?.button || document.createElement('button');
         editBtn.addEventListener('click', (event) => {
           event.stopPropagation();
-          this.widget.openServiceEditor(service);
+          this.info.open(service);
         });
         card.appendChild(editAction?.container || editBtn);
       }
@@ -204,7 +194,6 @@ class ServicesSnapshot {
         return;
       }
       if (
-        event.target.closest('.service-info-btn') ||
         event.target.closest('.service-status-dot') ||
         event.target.closest('.editor-affordance-card-action')
       ) {
