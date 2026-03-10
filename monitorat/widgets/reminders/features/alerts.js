@@ -128,18 +128,16 @@ class RemindersAlerts {
     const actions = [];
     if (canEdit) {
       const controls = window.monitorShared?.EditorControls;
-      const editButton =
-        controls?.createOverflowButton({
-          className:
-            'editor-affordance-corner editor-affordance-corner-surface',
-          title: 'Edit reminder',
-          label: 'Edit reminder',
-        }) || document.createElement('button');
+      const editAction = controls?.createCardOverflowButton({
+        title: 'Edit reminder',
+        label: 'Edit reminder',
+      });
+      const editButton = editAction?.button || document.createElement('button');
       editButton.addEventListener('click', (event) => {
         event.stopPropagation();
         this.widget.openReminderEditor(reminder);
       });
-      actions.push(editButton);
+      actions.push(editAction?.container || editButton);
     }
 
     const Alerts = window.monitorShared.Alerts;

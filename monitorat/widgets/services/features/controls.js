@@ -36,6 +36,12 @@ class ServicesControls {
       },
       add: {
         enabled: this.widget.canEditServices(),
+        affordance: {
+          type: 'overflow',
+          visible: true,
+          title: 'Add service',
+          label: 'Add service',
+        },
         onClick: () => {
           this.widget.openServiceEditor(null);
         },

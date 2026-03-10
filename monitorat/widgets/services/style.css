@@ -125,6 +125,7 @@
 }
 .service-info {
   flex: 1;
+  padding-right: 28px;
 }
 .service-card.compact .service-info {
   display: none;
@@ -184,10 +185,11 @@
   bottom: 6px;
   pointer-events: auto;
 }
-.service-edit-btn {
-  position: absolute;
-  right: 38px;
-  bottom: 6px;
+.service-card .editor-affordance-card-action {
+  pointer-events: auto;
+  z-index: 2;
+}
+.service-card .editor-affordance-card-action .editor-affordance-btn {
   pointer-events: auto;
 }
 .service-action-btn {
@@ -435,4 +437,10 @@
 .url-picker-icon-btn svg {
   width: 18px;
   height: 18px;
+}
+
+.service-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }

@@ -98,6 +98,7 @@ class ServicesInfo {
       service.local &&
       service.local !== service.url &&
       service.local.trim() !== '';
+    const canEdit = this.widget.canEditServices() && !service._source;
     const imgBase = service._source
       ? `api/proxy/${service._source}/img`
       : this.widget.getImgBase();
@@ -168,6 +169,18 @@ class ServicesInfo {
             : ''
         }
       </div>
+      ${
+        canEdit
+          ? `
+      <div class="service-modal-actions">
+        <button type="button" class="icon-label service-modal-edit" aria-label="Edit service">
+          <span class="icon-label-icon">${window.monitorShared.IconHandler.getActionIcon('overflow')}</span>
+          <span class="icon-label-text">Edit</span>
+        </button>
+      </div>
+      `
+          : ''
+      }
     `;
 
     window.Modal.show({
@@ -201,6 +214,13 @@ class ServicesInfo {
             row.classList.remove('is-copied');
           }, 1400);
         }
+      });
+    });
+
+    document.querySelectorAll('.service-modal-edit').forEach((button) => {
+      button.addEventListener('click', () => {
+        window.Modal.hide();
+        this.widget.openServiceEditor(service);
       });
     });
   }

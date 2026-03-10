@@ -357,13 +357,18 @@ window.monitorShared.EditorControls = (() => {
       title = '',
       label = '',
       visible = false,
+      state = visible ? 'visible' : 'reveal',
     } = options;
 
     const button = document.createElement('button');
     button.type = 'button';
     button.className = [
       'editor-affordance-btn',
-      visible ? 'editor-affordance-visible' : 'editor-affordance-reveal',
+      state === 'visible'
+        ? 'editor-affordance-visible'
+        : state === 'reveal'
+          ? 'editor-affordance-reveal'
+          : '',
       className,
     ]
       .filter(Boolean)
@@ -395,8 +400,32 @@ window.monitorShared.EditorControls = (() => {
     });
   }
 
+  function wrapCardAction(button, className = '') {
+    const container = document.createElement('div');
+    container.className = [
+      'editor-affordance-card-action',
+      'editor-affordance-corner',
+      'editor-affordance-reveal',
+      className,
+    ]
+      .filter(Boolean)
+      .join(' ');
+    container.appendChild(button);
+    return { button, container };
+  }
+
+  function createCardOverflowButton(options = {}) {
+    const { className = '', ...buttonOptions } = options;
+    const button = createOverflowButton({
+      ...buttonOptions,
+      state: 'none',
+    });
+    return wrapCardAction(button, className);
+  }
+
   return {
     createActionButton,
+    createCardOverflowButton,
     createEditButton,
     createOverflowButton,
   };

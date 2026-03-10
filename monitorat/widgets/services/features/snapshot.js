@@ -4,17 +4,10 @@
 // Single-source is the trivial case: one source, no badges.
 // Multi-source merges all services with source badges.
 
-const EDIT_ICON =
-  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>';
-
 class ServicesSnapshot {
   constructor(widget) {
     this.widget = widget;
     this.info = widget.features.info;
-  }
-
-  getEditIcon() {
-    return EDIT_ICON;
   }
 
   render() {
@@ -107,11 +100,15 @@ class ServicesSnapshot {
     const card = document.createElement('div');
     const mode = this.widget.getDisplayMode();
     const hasBadge = showBadge && service._source;
+    const canEdit = mode !== 'compact' && this.widget.canEditServices();
     const baseClass =
       mode === 'compact'
         ? 'service-card compact'
         : 'service-card card status-card';
     card.className = `${baseClass}${hasBadge ? ' has-badge' : ''}`;
+    if (canEdit) {
+      card.classList.add('editor-affordance-reveal-parent');
+    }
     card.setAttribute('data-service-key', service._key);
     card.setAttribute('data-service-source', service._source || '');
 
@@ -184,18 +181,18 @@ class ServicesSnapshot {
       });
       card.appendChild(infoBtn);
 
-      if (this.widget.canEditServices()) {
-        const editBtn = document.createElement('button');
-        editBtn.type = 'button';
-        editBtn.className =
-          'service-edit-btn service-action-btn editor-edit-btn';
-        editBtn.innerHTML = this.getEditIcon();
-        editBtn.title = 'Edit service';
+      if (canEdit) {
+        const controls = window.monitorShared?.EditorControls;
+        const editAction = controls?.createCardOverflowButton({
+          title: 'Edit service',
+          label: 'Edit service',
+        });
+        const editBtn = editAction?.button || document.createElement('button');
         editBtn.addEventListener('click', (event) => {
           event.stopPropagation();
           this.widget.openServiceEditor(service);
         });
-        card.appendChild(editBtn);
+        card.appendChild(editAction?.container || editBtn);
       }
     }
 
@@ -209,7 +206,7 @@ class ServicesSnapshot {
       if (
         event.target.closest('.service-info-btn') ||
         event.target.closest('.service-status-dot') ||
-        event.target.closest('.service-edit-btn')
+        event.target.closest('.editor-affordance-card-action')
       ) {
         return;
       }
@@ -317,13 +314,12 @@ class ServicesSnapshot {
         });
       }
 
-      const hasBadge = card.classList.contains('has-badge');
-      const isCompact = card.classList.contains('compact');
-      const baseClass = isCompact
-        ? 'service-card compact'
-        : 'service-card card status-card';
       const statusClass = this.widget.getStatusClass(overallStatus);
-      card.className = `${baseClass}${hasBadge ? ' has-badge' : ''} ${statusClass}`;
+      const statusClasses = this.widget
+        .getStatusSeverity()
+        .map((status) => this.widget.getStatusClass(status));
+      card.classList.remove(...statusClasses);
+      card.classList.add(statusClass);
 
       const statusTextElement = card.querySelector('.service-status');
       if (statusTextElement) {
