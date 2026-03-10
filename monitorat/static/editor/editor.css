@@ -159,35 +159,6 @@
   font-weight: 500;
 }
 
-.editor-edit-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  padding: 4px;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-  width: 28px;
-  height: 28px;
-  margin-left: 8px;
-}
-
-.editor-edit-btn svg {
-  width: 16px;
-  height: 16px;
-  display: block;
-}
-
-.editor-edit-btn:hover {
-  background: transparent;
-  color: var(--text-primary);
-}
-
 .editor-affordance-btn {
   display: inline-flex;
   align-items: center;
