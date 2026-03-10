@@ -35,7 +35,7 @@ class MetricsEditor {
       file: sourcePath,
       content: '',
       useForm: true,
-      title: 'Snapshot Tiles',
+      title: 'Metrics Snapshot Tiles',
       labels: { edit: 'Configure', preview: 'Preview' },
       onSave: async () => {
         const payload = this.collectQuantities(formContainer);

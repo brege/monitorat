@@ -294,19 +294,22 @@ class MetricsWidget {
   }
 
   addEditButton() {
-    const controlsRow = this.container.querySelector(
-      '[data-metrics="widget-controls"]',
+    const snapshotHeader = this.container.querySelector(
+      '[data-metrics-section-header="snapshot"]',
     );
-    if (!controlsRow) return;
+    if (!snapshotHeader) return;
 
-    controlsRow.style.display = '';
-    const configureBtn = controlsRow.querySelector('.metrics-configure');
-    if (!configureBtn) return;
-
-    configureBtn.style.display = '';
+    const controls = window.monitorShared?.EditorControls;
+    const configureBtn =
+      controls?.createOverflowButton({
+        visible: true,
+        title: 'Configure metrics',
+        label: 'Configure metrics',
+      }) || document.createElement('button');
     configureBtn.addEventListener('click', () => {
       this.openMetricsEditor();
     });
+    snapshotHeader.appendChild(configureBtn);
   }
 
   setupEventListeners() {

@@ -125,6 +125,7 @@
 }
 .service-info {
   flex: 1;
+  padding-right: 28px;
 }
 .service-card.compact .service-info {
   display: none;
@@ -178,41 +179,12 @@
 .service-card.status-never .service-status-dot {
   background: rgb(var(--status-unknown-rgb));
 }
-.service-info-btn {
-  position: absolute;
-  right: 6px;
-  bottom: 6px;
+.service-card .editor-affordance-card-action {
   pointer-events: auto;
+  z-index: 2;
 }
-.service-edit-btn {
-  position: absolute;
-  right: 38px;
-  bottom: 6px;
+.service-card .editor-affordance-card-action .editor-affordance-btn {
   pointer-events: auto;
-}
-.service-action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  padding: 7px;
-  margin: 0;
-  opacity: 0.58;
-}
-.service-action-btn:hover,
-.service-action-btn:focus-visible {
-  opacity: 1;
-  transform: none;
-}
-.service-action-btn svg {
-  width: 100%;
-  height: 100%;
-  transition: transform 0.15s ease;
-}
-.service-action-btn:hover svg,
-.service-action-btn:focus-visible svg {
-  transform: scale(1.14);
 }
 .service-card.has-badge {
   position: relative;
@@ -241,8 +213,16 @@
 .url-picker-service {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 16px;
+}
+
+.url-picker-service-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
 }
 
 .url-picker-title {
@@ -306,6 +286,7 @@
   font-size: 1.1rem;
   font-weight: 500;
   color: var(--text-primary);
+  min-width: 0;
 }
 
 .url-picker-links {
@@ -433,6 +414,16 @@
 }
 
 .url-picker-icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.service-modal-edit {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.service-modal-edit svg {
   width: 18px;
   height: 18px;
 }

@@ -9,11 +9,20 @@
   background: transparent;
   padding: 16px 18px;
 }
-.notes .editor-edit-btn {
-  float: inline-end;
-  margin-block-start: 10px;
-  margin-inline-end: 10px;
-  margin-inline-start: 0;
+.wiki .feature-header[data-wiki-section-header="content"] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wiki
+  .feature-header[data-wiki-section-header="content"]
+  > .editor-affordance-btn {
+  margin-inline-start: auto;
+}
+.notes .wiki-edit-floating-btn {
+  top: 10px;
+  right: 10px;
+  z-index: 2;
 }
 .notes[data-mode="seamless"],
 .notes[data-mode="rail"] {
@@ -30,11 +39,10 @@
   border-inline-start: 2px solid var(--border-muted);
   padding-inline-start: 16px;
 }
-.notes[data-mode="seamless"] .editor-edit-btn,
-.notes[data-mode="rail"] .editor-edit-btn {
-  margin-block: 0 8px;
-  margin-inline-start: 8px;
-  margin-inline-end: 0;
+.notes[data-mode="seamless"] .wiki-edit-floating-btn,
+.notes[data-mode="rail"] .wiki-edit-floating-btn {
+  top: 0;
+  right: 0;
 }
 .notes .markdown-body details {
   margin-bottom: 1em;

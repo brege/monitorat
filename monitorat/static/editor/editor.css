@@ -159,33 +159,119 @@
   font-weight: 500;
 }
 
-.editor-edit-btn {
+.editor-affordance-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin: 0;
   border: none;
-  padding: 4px;
-  border-radius: 999px;
+  border-radius: 8px;
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
+  opacity: 0.42;
   transition:
-    background 0.15s ease,
+    background-color 0.15s ease,
+    opacity 0.15s ease,
     color 0.15s ease;
-  width: 28px;
-  height: 28px;
-  margin-left: 8px;
 }
 
-.editor-edit-btn svg {
+.editor-affordance-btn svg {
   width: 16px;
   height: 16px;
   display: block;
+  transition: transform 0.15s ease;
 }
 
-.editor-edit-btn:hover {
-  background: transparent;
+.editor-affordance-btn:hover,
+.editor-affordance-btn:focus-visible {
+  background: color-mix(in srgb, var(--text-primary) 12%, transparent);
+  opacity: 1;
   color: var(--text-primary);
+}
+
+.editor-affordance-btn:hover svg,
+.editor-affordance-btn:focus-visible svg {
+  transform: scale(1.14);
+}
+
+.editor-affordance-btn:focus-visible {
+  outline: 2px solid var(--border-muted);
+  outline-offset: 2px;
+}
+
+.editor-affordance-visible {
+  opacity: 0.34;
+}
+
+.editor-affordance-reveal-parent {
+  position: relative;
+}
+
+.editor-affordance-corner {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+
+.editor-affordance-card-action {
+  top: 0;
+  right: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 0 8px 0 10px;
+  color: var(--text-muted);
+  transition: background-color 0.15s ease;
+}
+
+.editor-affordance-card-action .editor-affordance-btn {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  opacity: 1;
+  color: inherit;
+}
+
+.editor-affordance-card-action .editor-affordance-btn:hover,
+.editor-affordance-card-action .editor-affordance-btn:focus-visible {
+  background: transparent;
+}
+
+.editor-affordance-card-action:hover,
+.editor-affordance-card-action:focus-within {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--text-primary) 12%, transparent);
+}
+
+.editor-affordance-reveal {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.94);
+}
+
+.editor-affordance-reveal-parent:hover .editor-affordance-reveal,
+.editor-affordance-reveal-parent:focus-within .editor-affordance-reveal,
+.editor-affordance-reveal:hover,
+.editor-affordance-reveal:focus-visible {
+  opacity: 0.58;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.editor-affordance-reveal:hover,
+.editor-affordance-reveal:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .editor-affordance-reveal {
+    opacity: 0.42;
+    pointer-events: auto;
+    transform: scale(1);
+  }
 }
 
 @media (max-height: 600px) {

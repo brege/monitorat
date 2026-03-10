@@ -313,23 +313,19 @@ class WikiWidget {
   }
 
   addEditButton() {
+    const headerElement = this.container.querySelector(
+      '[data-wiki-section-header="content"]',
+    );
     const notesContainer = this.container.querySelector('.notes');
-    const markdownBody = this.container.querySelector('.markdown-body');
-    const targetElement = notesContainer || markdownBody;
+    if (!notesContainer) return;
 
-    if (!targetElement) return;
-
-    const editBtn = document.createElement('button');
-    editBtn.className = 'editor-edit-btn hover-expand';
-    editBtn.type = 'button';
-    editBtn.title = 'Edit';
-    editBtn.setAttribute('aria-label', 'Edit document');
-    editBtn.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-      </svg>
-    `;
+    const controls = window.monitorShared?.EditorControls;
+    const editBtn =
+      controls?.createEditButton({
+        title: 'Edit',
+        label: 'Edit document',
+        iconName: 'edit-doc',
+      }) || document.createElement('button');
 
     editBtn.addEventListener('click', (event) => {
       event.stopPropagation();
@@ -338,13 +334,15 @@ class WikiWidget {
       }
     });
 
-    if (notesContainer) {
-      notesContainer.insertBefore(editBtn, notesContainer.firstChild);
-    } else if (markdownBody) {
-      markdownBody.insertBefore(editBtn, markdownBody.firstChild);
-    } else {
-      targetElement.appendChild(editBtn);
+    if (headerElement?.textContent?.trim()) {
+      headerElement.classList.add('editor-affordance-reveal-parent');
+      headerElement.appendChild(editBtn);
+      return;
     }
+
+    notesContainer.classList.add('editor-affordance-reveal-parent');
+    editBtn.classList.add('editor-affordance-corner', 'wiki-edit-floating-btn');
+    notesContainer.appendChild(editBtn);
   }
 }
 

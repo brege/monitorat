@@ -945,12 +945,18 @@ h6:hover .header-anchor {
 
 /* Utilities */
 .hover-expand {
+  color: var(--text-muted);
   transform: scale(1);
   transform-origin: center;
-  transition: transform 0.15s ease;
+  transition:
+    color 0.15s ease,
+    transform 0.15s ease;
 }
 
 .hover-expand:hover,
-.hover-expand-parent:hover .hover-expand {
+.hover-expand:focus-visible,
+.hover-expand-parent:hover .hover-expand,
+.hover-expand-parent:focus-within .hover-expand {
+  color: var(--text-primary);
   transform: scale(1.12);
 }

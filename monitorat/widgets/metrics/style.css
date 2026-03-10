@@ -12,6 +12,19 @@
   gap: 6px;
 }
 
+.metrics .alerts-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.metrics .alerts-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .metrics .metrics-events .feature-header[data-metrics-section-header="events"] {
   margin-bottom: 4px;
 }
@@ -28,17 +41,16 @@
   margin-bottom: 0;
 }
 
-.metrics .alerts-header {
+.metrics .feature-header[data-metrics-section-header="snapshot"] {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 }
 
-.metrics .alerts-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+.metrics
+  .feature-header[data-metrics-section-header="snapshot"]
+  > .editor-affordance-btn {
+  margin-inline-start: auto;
 }
 
 .metrics .alert {

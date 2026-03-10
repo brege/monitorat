@@ -40,6 +40,12 @@ class RemindersControls {
       },
       add: {
         enabled: this.widget.canEditReminders(),
+        affordance: {
+          type: 'overflow',
+          visible: true,
+          title: 'Add reminder',
+          label: 'Add reminder',
+        },
         onClick: () => {
           this.widget.openReminderEditor();
         },
