@@ -61,14 +61,7 @@
   position: relative;
 }
 .reminder-alert-content {
-  padding-right: 28px;
-}
-.reminder-edit-button {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  right: 10px;
-  margin: auto;
+  padding-right: 30px;
 }
 .reminder-editor-preview {
   padding: 12px 0;

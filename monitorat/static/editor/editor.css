@@ -203,6 +203,7 @@
   cursor: pointer;
   opacity: 0.42;
   transition:
+    background-color 0.15s ease,
     opacity 0.15s ease,
     color 0.15s ease;
 }
@@ -216,7 +217,7 @@
 
 .editor-affordance-btn:hover,
 .editor-affordance-btn:focus-visible {
-  background: transparent;
+  background: color-mix(in srgb, var(--text-primary) 12%, transparent);
   opacity: 1;
   color: var(--text-primary);
 }
@@ -243,6 +244,14 @@
   position: absolute;
   top: 6px;
   right: 6px;
+}
+
+.editor-affordance-corner-surface {
+  top: 0;
+  right: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 0 8px 0 10px;
 }
 
 .editor-affordance-reveal {

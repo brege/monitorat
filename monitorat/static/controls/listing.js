@@ -64,12 +64,31 @@ class ListingControls {
   initializeAddButton() {
     if (!this.addConfig) return;
 
-    const addButton = this.container.querySelector(this.selectors.add);
+    let addButton = this.container.querySelector(this.selectors.add);
     if (!addButton) return;
 
     if (this.addConfig.enabled === false) {
       addButton.remove();
       return;
+    }
+
+    const affordance = this.addConfig.affordance;
+    if (affordance) {
+      const controls = window.monitorShared?.EditorControls;
+      const createButton =
+        affordance.type === 'edit'
+          ? controls?.createEditButton
+          : controls?.createOverflowButton;
+      const nextButton = createButton?.({
+        className: affordance.className || '',
+        title: affordance.title || '',
+        label: affordance.label || '',
+        visible: affordance.visible !== false,
+      });
+      if (nextButton) {
+        addButton.replaceWith(nextButton);
+        addButton = nextButton;
+      }
     }
 
     if (typeof this.addConfig.onClick === 'function') {
