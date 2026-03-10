@@ -295,7 +295,8 @@ The network widget is best used on machines with continuous uptime. Two options:
   </tbody>
 </table>
 
-> [!NOTE] Key 
+> [!NOTE] 
+> #### Key 
 > Y = supported | N = planned / potential feature | \- = not applicable
 
 ## General Features
