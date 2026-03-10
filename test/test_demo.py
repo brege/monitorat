@@ -100,7 +100,7 @@ def build_urls(config: dict, mode: str) -> list[str]:
     return sorted(data_urls | schema_urls | wiki_doc_urls)
 
 
-def build_cases() -> list[pytest.ParameterSet]:
+def build_cases() -> list:
     cases = []
     for mode, config_path in MODE_TO_CONFIG.items():
         config = yaml.safe_load(ConfigManager(config_path).get().dump(full=True))

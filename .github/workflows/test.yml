@@ -22,5 +22,5 @@ jobs:
       - name: Set up uv
         uses: astral-sh/setup-uv@v3
 
-      - name: Run smoke tests
-        run: uv run python test/harness.py --set all
+      - name: Run pytest smoke suite
+        run: uv run pytest --set all
