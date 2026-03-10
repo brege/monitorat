@@ -159,7 +159,7 @@ class ConfigManager:
         candidate = self._project_config.expanduser()
         if not candidate.exists():
             return
-        config_object.set_file(candidate, base_for_paths=True)
+        config_object.set_file(str(candidate), base_for_paths=True)
         includes = self._load_includes_from_file(candidate, config_object.loader)
         include_paths = self._resolve_include_paths(
             includes,

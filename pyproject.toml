@@ -44,7 +44,25 @@ monitorat = "monitorat.cli:main"
 
 [dependency-groups]
 dev = [
+  "pytest>=8.4.0",
   "ty>=0.0.17",
+]
+
+[tool.pytest.ini_options]
+addopts = "-ra -vv"
+cache_dir = "/tmp/monitorat-pytest-cache"
+testpaths = ["test"]
+markers = [
+  "core: federation core coverage",
+  "demo: demo smoke coverage",
+  "federation: federation smoke coverage",
+  "metrics: metrics widget coverage",
+  "network: network widget coverage",
+  "reminders: reminders widget coverage",
+  "schema: schema endpoint coverage",
+  "services: services widget coverage",
+  "speedtest: speedtest widget coverage",
+  "wiki: wiki widget coverage",
 ]
 
 [tool.ty.src]

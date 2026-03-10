@@ -16,7 +16,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional, TypedDict
+from typing import Optional, TypedDict, cast
 
 from monitorat.monitor import config, get_data_path
 from pytimeparse import parse as parse_duration
@@ -159,13 +159,18 @@ class EntryCache(TypedDict):
     failure_slots: Optional[list[int]]
 
 
+class AnalysisCache(TypedDict):
+    key: Optional[tuple[int, int]]
+    result: Optional["AnalysisResult"]
+
+
 _cache: EntryCache = {
     "hash": None,
     "entries": None,
     "success_slots": None,
     "failure_slots": None,
 }
-_analysis_cache = {"key": None, "result": None}
+_analysis_cache: AnalysisCache = {"key": None, "result": None}
 
 
 def parse_period_seconds(value: str) -> Optional[int]:
@@ -252,7 +257,7 @@ def parse_log(text: str, now: Optional[datetime] = None) -> list[LogEntry]:
     if not entries:
         return []
 
-    resolved = [None] * len(entries)
+    resolved = cast(list[LogEntry | None], [None] * len(entries))
     next_timestamp = None
 
     # Syslog omits the year, so resolve from the newest line backward to keep
@@ -738,7 +743,7 @@ def analyze_log_file(log_path: Path, now: Optional[datetime] = None) -> Analysis
     return result
 
 
-def serialize_segment(segment: Segment) -> dict:
+def serialize_segment(segment: Segment) -> dict[str, object]:
     return {
         "key": segment.key,
         "label": segment.label,
@@ -756,7 +761,7 @@ def serialize_segment(segment: Segment) -> dict:
     }
 
 
-def serialize_window_stats(stats: WindowStats) -> dict:
+def serialize_window_stats(stats: WindowStats) -> dict[str, object]:
     return {
         "key": stats.key,
         "label": stats.label,
@@ -770,8 +775,11 @@ def serialize_window_stats(stats: WindowStats) -> dict:
     }
 
 
-def serialize_alert(alert: Alert) -> dict:
-    result = {"type": alert.type, "timestamp": alert.timestamp.isoformat()}
+def serialize_alert(alert: Alert) -> dict[str, object]:
+    result: dict[str, object] = {
+        "type": alert.type,
+        "timestamp": alert.timestamp.isoformat(),
+    }
     if alert.type == "outage":
         start = alert.start or alert.timestamp
         end = alert.end or alert.timestamp

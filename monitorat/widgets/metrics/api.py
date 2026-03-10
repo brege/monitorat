@@ -228,7 +228,7 @@ def log_metrics_to_csv(
     source: str,
 ) -> None:
     columns = get_history_columns()
-    row = {"timestamp": timestamp.isoformat(), "source": source}
+    row: dict[str, object] = {"timestamp": timestamp.isoformat(), "source": source}
     row.update(METRIC_REGISTRY.build_csv_row(columns, values))
     csv_handler.append(row)
 
