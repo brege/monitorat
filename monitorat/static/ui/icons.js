@@ -6,6 +6,14 @@
  */
 
 const IconHandler = (() => {
+  const ACTION_ICONS = {
+    edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>',
+    'edit-doc':
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+    overflow:
+      '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="6.5" cy="12" r="1.75"/><circle cx="12" cy="12" r="1.75"/><circle cx="17.5" cy="12" r="1.75"/></svg>',
+  };
+
   function getFileExtension(path) {
     return path?.split('.')?.pop()?.toLowerCase() || '';
   }
@@ -93,13 +101,18 @@ const IconHandler = (() => {
     const parser = new DOMParser();
     const parsed = parser.parseFromString(svgText, 'image/svg+xml');
     const root = parsed.documentElement;
-    if (root && root.tagName.toLowerCase().endsWith('svg')) {
+    if (root?.tagName.toLowerCase().endsWith('svg')) {
       return root;
     }
     return null;
   }
 
+  function getActionIcon(name) {
+    return ACTION_ICONS[name] || '';
+  }
+
   return {
+    getActionIcon,
     renderIcon,
   };
 })();

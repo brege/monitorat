@@ -7,8 +7,6 @@ window.Editor = (() => {
   const CHEVRON_UP = '<polyline points="18 15 12 9 6 15"/>';
   const ICON_SAVE =
     '<svg aria-hidden="true" viewBox="0 0 448 512" fill="currentColor"><path d="M433.941 129.941l-83.882-83.882A48 48 0 0 0 316.118 32H48C21.49 32 0 53.49 0 80v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V163.882a48 48 0 0 0-14.059-33.941zM224 416c-35.346 0-64-28.654-64-64 0-35.346 28.654-64 64-64s64 28.654 64 64c0 35.346-28.654 64-64 64zm96-304.52V212c0 6.627-5.373 12-12 12H76c-6.627 0-12-5.373-12-12V108c0-6.627 5.373-12 12-12h228.52c3.183 0 6.235 1.264 8.485 3.515l3.48 3.48A11.996 11.996 0 0 1 320 111.48z"></path></svg>';
-  const ICON_RESTORE =
-    '<svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path fill="none" d="M0 0h24v24H0V0z"></path><path d="M13 3a9 9 0 0 0-9 9H1l4 3.99L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.25 2.52.77-1.28-3.52-2.09V8z"></path></svg>';
   const ICON_DELETE =
     '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
   const ICON_CANCEL =
@@ -346,5 +344,60 @@ window.Editor = (() => {
     saveDraft,
     loadDraft,
     clearDraft,
+  };
+})();
+
+window.monitorShared = window.monitorShared || {};
+window.monitorShared.EditorControls = (() => {
+  function createActionButton(options = {}) {
+    const {
+      className = '',
+      icon = '',
+      iconName = '',
+      title = '',
+      label = '',
+      visible = false,
+    } = options;
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = [
+      'editor-affordance-btn',
+      visible ? 'editor-affordance-visible' : 'editor-affordance-reveal',
+      className,
+    ]
+      .filter(Boolean)
+      .join(' ');
+    if (title) {
+      button.title = title;
+    }
+    if (label) {
+      button.setAttribute('aria-label', label);
+    }
+    button.innerHTML =
+      icon || window.monitorShared.IconHandler.getActionIcon(iconName);
+    return button;
+  }
+
+  function createOverflowButton(options = {}) {
+    return createActionButton({
+      ...options,
+      icon:
+        options.icon ||
+        window.monitorShared.IconHandler.getActionIcon('overflow'),
+    });
+  }
+
+  function createEditButton(options = {}) {
+    return createActionButton({
+      ...options,
+      iconName: options.iconName || 'edit',
+    });
+  }
+
+  return {
+    createActionButton,
+    createEditButton,
+    createOverflowButton,
   };
 })();
