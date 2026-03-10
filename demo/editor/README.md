@@ -4,7 +4,14 @@ This is the **editor demo** for monitorat. Any widget that can be edited or conf
 
 ### How to Edit
 
-Click the pencil icon next to or on any wiki or card, or create a new entry with "Add Widget item" button, to open the editor.
+Use the widget affordances:
+
+- Wiki: hover the wiki header and click the pencil-paper icon
+- Reminders: click the header `...` to add a reminder, or hover a card and
+  click its corner `...` to edit it
+- Services: click the header `...` to add a service, or hover a card and click
+  its corner `...` to open the info modal, then use the wrench to edit
+- Metrics: click the `...` in the snapshot header to configure snapshot tiles
 
 ### Features
 
@@ -21,15 +28,14 @@ Click the pencil icon next to or on any wiki or card, or create a new entry with
 
 ### Card Editors
 
-- **Add**: Click the "Add Widget Item" button to add a new display card for
+- **Add**: Click the header `...` action to add a new display card for
   - System Metrics
   - Services
   - Reminders
-- **Edit**: Click the pencil icon to edit a display card
+- **Edit**: Use the card `...` action or modal wrench for widget items
 - **Save**: Click Save to persist changes
 
 ### Caveats
 
 - **Histories**: Charts and Tables, in addition to their display quantities and dropdowns, are only editable through YAML
 - **Notifications**: Apprise URLs for the notification harness are also YAML-only (used by multiple widgets)
-
