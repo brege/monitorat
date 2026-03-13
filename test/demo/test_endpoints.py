@@ -1,42 +1,24 @@
-from pathlib import Path
-
 import pytest
 import yaml
 
 from monitorat.config import ConfigManager
-
+from helpers import PROJECT_ROOT
 
 pytestmark = pytest.mark.demo
 
-DEMO_DIR = Path(__file__).resolve().parent.parent / "demo"
+DEMO_DIR = PROJECT_ROOT / "demo"
 MODE_TO_CONFIG = {
     "simple": DEMO_DIR / "simple" / "config.yaml",
     "advanced": DEMO_DIR / "advanced" / "config.yaml",
     "federation": DEMO_DIR / "federation" / "central" / "config.yaml",
 }
 
-
 DATA_ENDPOINTS = {
-    "metrics": {
-        "local": "/api/metrics",
-        "remote": "/api/{name}",
-    },
-    "services": {
-        "local": "/api/services",
-        "remote": "/api/{name}",
-    },
-    "reminders": {
-        "local": "/api/reminders",
-        "remote": "/api/{name}",
-    },
-    "speedtest": {
-        "local": "/api/speedtest/history",
-        "remote": "/api/{name}/history",
-    },
-    "network": {
-        "local": "/api/network/log",
-        "remote": "/api/{name}/log",
-    },
+    "metrics": {"local": "/api/metrics", "remote": "/api/{name}"},
+    "services": {"local": "/api/services", "remote": "/api/{name}"},
+    "reminders": {"local": "/api/reminders", "remote": "/api/{name}"},
+    "speedtest": {"local": "/api/speedtest/history", "remote": "/api/{name}/history"},
+    "network": {"local": "/api/network/log", "remote": "/api/{name}/log"},
 }
 
 FEDERATION_ENDPOINTS = {

@@ -1,167 +1,106 @@
-# Federation Tests
+# Tests
 
 ## Quick Start
 
 ```bash
-uv run python demo/setup.py --test      # Generate test data
-uv run python test/harness.py           # Run all 26 smoke tests
+uv run python demo/setup.py --test      # generate test data
+uv run pytest                           # run all 98 tests
 ```
 
-## Automated Tests
-
-The harness spawns nas-1, nas-2, and central servers, runs smoke tests, then terminates cleanly.
+## Test Sets
 
 ```bash
-# Run all tests
-uv run python test/harness.py
-
-# Run tests for a specific widget
-uv run python test/harness.py --widget metrics
-uv run python test/harness.py --widget services
-uv run python test/harness.py --widget reminders
-uv run python test/harness.py --widget speedtest
-uv run python test/harness.py --widget network
-uv run python test/harness.py --widget wiki
-uv run python test/harness.py --widget schema
-
-# List available widget filters
-uv run python test/harness.py --list
+uv run pytest --set demo               # demo endpoint tests only
+uv run pytest --set federation         # federation tests only
 ```
 
-## Interactive Development
+## Widget Filtering (federation tests)
 
-For UI exploration, use the demo launcher:
+Runs core auth/client tests plus one widget group:
 
 ```bash
-python demo/launcher.py --mode federation
+uv run pytest --widget metrics
+uv run pytest --widget services
+uv run pytest --widget reminders
+uv run pytest --widget speedtest
+uv run pytest --widget network
+uv run pytest --widget wiki
+uv run pytest --widget schema
 ```
 
-Press Ctrl+C to stop all servers.
+## Test Coverage
 
-## Manual Testing (Multi-Terminal)
-
-For browser-based inspection, start servers in separate terminals:
-
-```bash
-# Terminal 1: Remote node nas-1 (auth required)
-uv run monitorat -c test/fixtures/nas-1/config.yaml server --port 6601
-
-# Terminal 2: Remote node nas-2 (auth required)
-uv run monitorat -c test/fixtures/nas-2/config.yaml server --port 6602
-
-# Terminal 3: Central node (federation enabled, no auth)
-uv run monitorat -c test/fixtures/central/config.yaml server --port 6100
-```
-
-### Browser URLs
-
-| URL | Description |
-|-----|-------------|
-| http://localhost:6100 | Central dashboard with all remote widgets |
-| http://localhost:6100/api/federation/status | Health status JSON for all remotes |
-| http://localhost:6601 | Direct nas-1 (requires auth for /api/*) |
-| http://localhost:6602 | Direct nas-2 (requires auth for /api/*) |
-
-### Proxied Widget Endpoints (via central)
-
-| Widget | nas-1 | nas-2 |
-|--------|-------|-------|
-| metrics | /api/metrics-nas-1 | /api/metrics-nas-2 |
-| services | /api/services-nas-1 | /api/services-nas-2 |
-| reminders | /api/reminders-nas-1 | /api/reminders-nas-2 |
-| speedtest | /api/speedtest-nas-1/history | /api/speedtest-nas-2/history |
-| network | /api/network-nas-1/log | /api/network-nas-2/log |
-| wiki | /api/wiki-nas-1/doc | /api/wiki-nas-2/doc |
-| merged | /api/metrics-combined/history | (merges both sources) |
-
-#### Schema Endpoints (via proxy)
-
-| Widget | Endpoint |
-|--------|----------|
-| metrics | /api/metrics-nas-1/schema |
-| services | /api/services-nas-1/schema |
-| reminders | /api/reminders-nas-1/schema |
-| speedtest | /api/speedtest-nas-1/schema |
-| network | /api/network-nas-1/schema |
-| wiki | /api/wiki-nas-1/schema |
-
-### Visual: Status Indicators
-
-Open http://localhost:6100 to see the central dashboard. Remote widgets display health indicators (colored dots) next to their titles:
-
-- Green dot: remote is online
-- Yellow dot: remote is slow or degraded
-- Red dot: remote is offline
-
-Try stopping nas-1 (`Ctrl+C` in terminal 1), then refresh http://localhost:6100 to see the indicator turn red.
-
-### API Testing
-
-```bash
-# Federation status (all remotes)
-curl -s http://localhost:6100/api/federation/status | jq .
-
-# Direct to remote without auth (should return 401)
-curl -s -w "\n%{http_code}\n" http://localhost:6601/api/config
-
-# Direct to remote with auth
-curl -s -H "X-API-Key: nas-1-secret" http://localhost:6601/api/config | jq .site
-
-# Proxied through central (no auth needed on central)
-curl -s http://localhost:6100/api/metrics-nas-1 | jq .metrics
-
-# Merged metrics from all sources
-curl -s http://localhost:6100/api/metrics-combined/history | jq '.sources, (.data | length)'
-
-# Widget schema (available for all widgets)
-curl -s http://localhost:6100/api/metrics-nas-1/schema | jq '.widget, .version, .endpoints'
-```
+| Category                                    | Tests  |
+|---------------------------------------------|--------|
+| demo (simple, advanced, federation configs) | 72     |
+| federation core (auth, client, status)      | 7      |
+| metrics (proxy + history + merge)           | 4      |
+| wiki                                        | 1      |
+| services                                    | 2      |
+| reminders                                   | 2      |
+| speedtest                                   | 2      |
+| network                                     | 2      |
+| schema (all widgets)                        | 6      |
+| **Total**                                   | **98** |
 
 ## Test Data
 
-Test data lives in `test/fixtures/{node}/data/` and is generated by:
+Lives in `test/fixtures/{node}/data/`, generated by:
 
 ```bash
 uv run python demo/setup.py --test
 ```
 
-Each node gets a distinct waveform pattern for metrics:
+Metric waveform patterns per node:
 - nas-1: sawtooth
 - nas-2: sine
 
-This makes metrics visually distinguishable when charted.
+## Interactive Development
 
-Additional fixture data (speedtest.csv, network.log, reminders.json) is pre-created in each fixture's data directory.
-
-## Fixtures
-
-Test configs are in `test/fixtures/`:
-
-```
-test/fixtures/
-├── central/
-│   ├── config.yaml    # Central node with federation enabled
-│   └── data/
-├── nas-1/
-│   ├── config.yaml    # Remote node with auth (api_key: nas-1-secret)
-│   ├── data/          # metrics.csv, speedtest.csv, network.log, reminders.json
-│   └── docs/          # Wiki test documents
-└── nas-2/
-    ├── config.yaml    # Remote node with auth (api_key: nas-2-secret)
-    ├── data/
-    └── docs/
+```bash
+python demo/launcher.py --mode federation
 ```
 
-## Test Coverage
+Ctrl+C stops all servers.
 
-| Category | Tests |
-|----------|-------|
-| Core (auth, federation client) | 7 |
-| metrics (proxy + merge) | 4 |
-| wiki | 1 |
-| services | 2 |
-| reminders | 2 |
-| speedtest | 2 |
-| network | 2 |
-| schema (all widgets) | 6 |
-| **Total** | **26** |
+### Browser URLs
+
+| URL                                          | Description                       |
+|----------------------------------------------|-----------------------------------|
+| http://localhost:6100                        | Central dashboard                 |
+| http://localhost:6100/api/federation/status  | Remote health JSON                |
+| http://localhost:6601                        | nas-1 direct (auth required)      |
+| http://localhost:6602                        | nas-2 direct (auth required)      |
+
+### Proxied Widget Endpoints (via central)
+
+| Widget    | nas-1                          | nas-2                          |
+|-----------|--------------------------------|--------------------------------|
+| metrics   | /api/metrics-nas-1             | /api/metrics-nas-2             |
+| services  | /api/services-nas-1            | /api/services-nas-2            |
+| reminders | /api/reminders-nas-1           | /api/reminders-nas-2           |
+| speedtest | /api/speedtest-nas-1/history   | /api/speedtest-nas-2/history   |
+| network   | /api/network-nas-1/log         | /api/network-nas-2/log         |
+| wiki      | /api/wiki-nas-1/doc            | /api/wiki-nas-2/doc            |
+| merged    | /api/metrics-combined/history  |                                |
+
+### Schema Endpoints (via proxy)
+
+| Widget    | Endpoint                       |
+|-----------|--------------------------------|
+| metrics   | /api/metrics-nas-1/schema      |
+| services  | /api/services-nas-1/schema     |
+| reminders | /api/reminders-nas-1/schema    |
+| speedtest | /api/speedtest-nas-1/schema    |
+| network   | /api/network-nas-1/schema      |
+| wiki      | /api/wiki-nas-1/schema         |
+
+### API Testing
+
+```bash
+curl -s http://localhost:6100/api/federation/status | jq .
+```
+
+### Status Indicators
+
+Open http://localhost:6100 to see the central dashboard. Stop nas-1 and refresh to see the remote indicator turn red.
