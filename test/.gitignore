@@ -1,2 +1,6 @@
 data/
 .*-filtered.yaml
+/fixtures/central/
+/fixtures/nas-1/
+/fixtures/nas-2/
+/fixtures/nas-3/
