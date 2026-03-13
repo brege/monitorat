@@ -8,6 +8,10 @@ Demo mode (-d/--demo):
 Test mode (-t/--test):
   Generates metrics.csv with distinguishable curves per node.
   Each node gets a different waveform for visual distinction.
+
+Federation mode (-f/--federation):
+  Unpacks the premade federation seed and layers synthetic node data
+  onto the demo federation directories.
 """
 
 from __future__ import annotations
@@ -16,6 +20,8 @@ import argparse
 import csv
 import math
 import random
+import shutil
+import tarfile
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -53,6 +59,24 @@ TEST_NODE_REMINDERS = {
     ],
 }
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+FIXTURE_ARCHIVE = PROJECT_ROOT / "demo" / "federation" / "fixtures.tar.gz"
+FIXTURE_ROOT = PROJECT_ROOT / "test" / "fixtures"
+FIXTURE_DIRS = [
+    FIXTURE_ROOT / "central",
+    FIXTURE_ROOT / "nas-1",
+    FIXTURE_ROOT / "nas-2",
+    FIXTURE_ROOT / "nas-3",
+]
+FEDERATION_ROOT = PROJECT_ROOT / "demo" / "federation"
+FEDERATION_DIRS = [
+    FEDERATION_ROOT / "central" / "data",
+    FEDERATION_ROOT / "nas-1" / "data",
+    FEDERATION_ROOT / "nas-1" / "docs",
+    FEDERATION_ROOT / "nas-2" / "data",
+    FEDERATION_ROOT / "nas-2" / "docs",
+]
+
 
 @dataclass
 class NetworkLine:
@@ -77,6 +101,12 @@ def parse_arguments() -> argparse.Namespace:
         action="store_true",
         help="generate test data (metrics.csv per node)",
     )
+    mode_group.add_argument(
+        "-f",
+        "--federation",
+        action="store_true",
+        help="bootstrap demo federation seed and synthetic data",
+    )
     parser.add_argument(
         "--data-dir",
         help="directory to write data files (default: demo/simple/data or test/data)",
@@ -93,6 +123,68 @@ def parse_arguments() -> argparse.Namespace:
         help="hours of test data to generate (default: 24)",
     )
     return parser.parse_args()
+
+
+def reset_test_fixtures() -> None:
+    for path in FIXTURE_DIRS:
+        if path.exists():
+            shutil.rmtree(path)
+    if FIXTURE_ROOT.exists():
+        try:
+            FIXTURE_ROOT.rmdir()
+        except OSError:
+            pass
+
+
+def extract_test_fixtures() -> None:
+    if not FIXTURE_ARCHIVE.exists():
+        raise FileNotFoundError(f"fixture archive not found: {FIXTURE_ARCHIVE}")
+    reset_test_fixtures()
+    with tarfile.open(FIXTURE_ARCHIVE, "r:gz") as archive:
+        archive.extractall(PROJECT_ROOT)
+
+
+def reset_federation_demo() -> None:
+    for path in FEDERATION_DIRS:
+        if path.exists():
+            shutil.rmtree(path)
+
+
+def copy_fixture_tree(source: Path, target: Path) -> None:
+    if target.exists():
+        shutil.rmtree(target)
+    shutil.copytree(source, target)
+
+
+def sync_federation_demo() -> None:
+    copy_fixture_tree(
+        FIXTURE_ROOT / "central" / "data",
+        FEDERATION_ROOT / "central" / "data",
+    )
+    copy_fixture_tree(
+        FIXTURE_ROOT / "nas-1" / "data",
+        FEDERATION_ROOT / "nas-1" / "data",
+    )
+    copy_fixture_tree(
+        FIXTURE_ROOT / "nas-1" / "docs",
+        FEDERATION_ROOT / "nas-1" / "docs",
+    )
+    copy_fixture_tree(
+        FIXTURE_ROOT / "nas-2" / "data",
+        FEDERATION_ROOT / "nas-2" / "data",
+    )
+    copy_fixture_tree(
+        FIXTURE_ROOT / "nas-2" / "docs",
+        FEDERATION_ROOT / "nas-2" / "docs",
+    )
+
+
+def bootstrap_federation_demo() -> None:
+    extract_test_fixtures()
+    reset_federation_demo()
+    sync_federation_demo()
+    run_test_mode(FIXTURE_ROOT, None, 24)
+    sync_federation_demo()
 
 
 def next_fake_server_name(index: int) -> str:
@@ -521,20 +613,22 @@ def run_test_mode(fixtures_dir: Path, node: str | None, hours: int) -> None:
 
 def main() -> None:
     args = parse_arguments()
-    project_root = Path(__file__).resolve().parent.parent
 
     if args.demo:
         data_dir = (
             Path(args.data_dir)
             if args.data_dir
-            else project_root / "demo" / "simple" / "data"
+            else PROJECT_ROOT / "demo" / "simple" / "data"
         )
         run_demo_mode(data_dir)
     elif args.test:
         fixtures_dir = (
-            Path(args.data_dir) if args.data_dir else project_root / "test" / "fixtures"
+            Path(args.data_dir) if args.data_dir else PROJECT_ROOT / "test" / "fixtures"
         )
+        extract_test_fixtures()
         run_test_mode(fixtures_dir, args.node, args.hours)
+    elif args.federation:
+        bootstrap_federation_demo()
 
     print("Done")
 

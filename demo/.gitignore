@@ -11,3 +11,8 @@ events.jsonl
 editor/data/*
 editor/img/*
 editor/snippets/*
+federation/central/data/
+federation/nas-1/data/
+federation/nas-1/docs/
+federation/nas-2/data/
+federation/nas-2/docs/

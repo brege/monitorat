@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-FIXTURE_ARCHIVE = Path(__file__).resolve().parent / "fixtures.tar.gz"
+FIXTURE_ARCHIVE = PROJECT_ROOT / "demo" / "federation" / "fixtures.tar.gz"
 FIXTURE_ROOT = Path(__file__).resolve().parent / "fixtures"
 FIXTURE_DIRS = [
     FIXTURE_ROOT / "central",

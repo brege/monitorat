@@ -77,7 +77,6 @@ include = [
   "/LICENSE",
   "/docs",
   "/systemd",
-  "/test/fixtures",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -89,4 +88,3 @@ packages = ["monitorat"]
 "demo" = "monitorat/demo"
 "docs" = "monitorat/docs"
 "systemd" = "monitorat/systemd"
-"test/fixtures" = "monitorat/test/fixtures"

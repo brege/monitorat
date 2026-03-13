@@ -18,6 +18,7 @@ import argparse
 import atexit
 import os
 import signal
+import shutil
 import subprocess
 import sys
 import time
@@ -26,6 +27,20 @@ from pathlib import Path
 from docs import generate_docs
 
 DEMO_DIR = Path(__file__).parent
+FIXTURE_ROOT = DEMO_DIR.parent / "test" / "fixtures"
+FIXTURE_DIRS = [
+    FIXTURE_ROOT / "central",
+    FIXTURE_ROOT / "nas-1",
+    FIXTURE_ROOT / "nas-2",
+    FIXTURE_ROOT / "nas-3",
+]
+FEDERATION_RUNTIME_DIRS = [
+    DEMO_DIR / "federation" / "central" / "data",
+    DEMO_DIR / "federation" / "nas-1" / "data",
+    DEMO_DIR / "federation" / "nas-1" / "docs",
+    DEMO_DIR / "federation" / "nas-2" / "data",
+    DEMO_DIR / "federation" / "nas-2" / "docs",
+]
 
 NODES = {
     "suite": {
@@ -98,10 +113,26 @@ MODES = {
 }
 
 running_processes: list[subprocess.Popen] = []
+prepared_federation_bootstrap = False
+
+
+def reset_federation_bootstrap():
+    for path in FEDERATION_RUNTIME_DIRS:
+        if path.exists():
+            shutil.rmtree(path)
+    for path in FIXTURE_DIRS:
+        if path.exists():
+            shutil.rmtree(path)
+    if FIXTURE_ROOT.exists():
+        try:
+            FIXTURE_ROOT.rmdir()
+        except OSError:
+            pass
 
 
 def cleanup():
     """Terminate all running processes."""
+    global prepared_federation_bootstrap
     for proc in running_processes:
         if proc.poll() is None:
             proc.terminate()
@@ -110,6 +141,9 @@ def cleanup():
             except subprocess.TimeoutExpired:
                 proc.kill()
                 proc.wait()
+    if prepared_federation_bootstrap:
+        reset_federation_bootstrap()
+        prepared_federation_bootstrap = False
 
 
 atexit.register(cleanup)
@@ -270,7 +304,7 @@ def print_banner(nodes: list[dict], background: bool = False):
 def bootstrap_demo_data():
     """Generate demo data for simple/advanced modes."""
     subprocess.run(
-        ["uv", "run", "python", str(DEMO_DIR / "setup.py"), "--demo"],
+        [sys.executable, str(DEMO_DIR / "setup.py"), "--demo"],
         cwd=DEMO_DIR,
         check=True,
     )
@@ -279,10 +313,20 @@ def bootstrap_demo_data():
 def bootstrap_editor_fixtures():
     """Generate fixtures for editor demo."""
     subprocess.run(
-        ["uv", "run", "python", str(DEMO_DIR / "editor" / "setup.py")],
+        [sys.executable, str(DEMO_DIR / "editor" / "setup.py")],
         cwd=DEMO_DIR,
         check=True,
     )
+
+
+def bootstrap_federation_fixtures():
+    global prepared_federation_bootstrap
+    subprocess.run(
+        [sys.executable, str(DEMO_DIR / "setup.py"), "--federation"],
+        cwd=DEMO_DIR,
+        check=True,
+    )
+    prepared_federation_bootstrap = True
 
 
 def main():
@@ -332,6 +376,8 @@ def main():
         bootstrap_demo_data()
     if args.mode == "editor":
         bootstrap_editor_fixtures()
+    if args.mode == "federation":
+        bootstrap_federation_fixtures()
 
     nodes_to_start = [NODES[name] for name in MODES[args.mode]]
 
