@@ -14,9 +14,7 @@
   align-items: center;
   gap: 8px;
 }
-.wiki
-  .feature-header[data-wiki-section-header="content"]
-  > .editor-affordance-btn {
+.wiki .feature-header[data-wiki-section-header="content"] > .affordance-btn {
   margin-inline-start: auto;
 }
 .notes .wiki-edit-floating-btn {

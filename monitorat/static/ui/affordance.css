@@ -1,0 +1,114 @@
+.affordance-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  opacity: 0.42;
+  transition:
+    background-color 0.15s ease,
+    opacity 0.15s ease,
+    color 0.15s ease;
+}
+
+.affordance-btn svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  transition: transform 0.15s ease;
+}
+
+.affordance-btn:hover,
+.affordance-btn:focus-visible {
+  background: color-mix(in srgb, var(--text-primary) 12%, transparent);
+  opacity: 1;
+  color: var(--text-primary);
+}
+
+.affordance-btn:hover svg,
+.affordance-btn:focus-visible svg {
+  transform: scale(1.14);
+}
+
+.affordance-btn:focus-visible {
+  outline: 2px solid var(--border-muted);
+  outline-offset: 2px;
+}
+
+.affordance-visible {
+  opacity: 0.34;
+}
+
+.affordance-reveal-parent {
+  position: relative;
+}
+
+.affordance-corner {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+}
+
+.affordance-card-action {
+  top: 0;
+  right: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 0 8px 0 10px;
+  color: var(--text-muted);
+  transition: background-color 0.15s ease;
+}
+
+.affordance-card-action .affordance-btn {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  opacity: 1;
+  color: inherit;
+}
+
+.affordance-card-action .affordance-btn:hover,
+.affordance-card-action .affordance-btn:focus-visible {
+  background: transparent;
+}
+
+.affordance-card-action:hover,
+.affordance-card-action:focus-within {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--text-primary) 12%, transparent);
+}
+
+.affordance-reveal {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.94);
+}
+
+.affordance-reveal-parent:hover .affordance-reveal,
+.affordance-reveal-parent:focus-within .affordance-reveal,
+.affordance-reveal:hover,
+.affordance-reveal:focus-visible {
+  opacity: 0.58;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.affordance-reveal:hover,
+.affordance-reveal:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .affordance-reveal {
+    opacity: 0.42;
+    pointer-events: auto;
+    transform: scale(1);
+  }
+}

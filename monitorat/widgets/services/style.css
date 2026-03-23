@@ -179,64 +179,17 @@
 .service-card.status-never .service-status-dot {
   background: rgb(var(--status-unknown-rgb));
 }
-.service-info-action {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  margin: 0;
-  border: none;
-  border-radius: 0 8px 0 10px;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
+.service-card .affordance-card-action {
   pointer-events: auto;
   z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transform: scale(0.94);
-  transition:
-    background-color 0.15s ease,
-    opacity 0.15s ease,
-    color 0.15s ease,
-    transform 0.15s ease;
 }
-.service-info-action svg {
-  width: 16px;
-  height: 16px;
-  display: block;
-}
-.service-card:hover .service-info-action,
-.service-card:focus-within .service-info-action,
-.service-info-action:hover,
-.service-info-action:focus-visible {
-  opacity: 0.58;
-  transform: scale(1);
-}
-.service-info-action:hover,
-.service-info-action:focus-visible {
-  opacity: 1;
-  color: var(--text-primary);
-  background: color-mix(in srgb, var(--text-primary) 12%, transparent);
-}
-.service-info-action:focus-visible {
-  outline: 2px solid var(--border-muted);
-  outline-offset: 2px;
-}
-@media (hover: none), (pointer: coarse) {
-  .service-info-action {
-    opacity: 0.42;
-    transform: scale(1);
-  }
+.service-card .affordance-card-action .affordance-btn {
+  pointer-events: auto;
 }
 .service-card.has-badge {
   position: relative;
 }
-.service-card.has-badge .service-info-action {
+.service-card.has-badge .affordance-card-action {
   right: auto;
   left: 0;
   border-radius: 8px 0 10px 0;

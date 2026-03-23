@@ -363,11 +363,11 @@ window.monitorShared.EditorControls = (() => {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = [
-      'editor-affordance-btn',
+      'affordance-btn',
       state === 'visible'
-        ? 'editor-affordance-visible'
+        ? 'affordance-visible'
         : state === 'reveal'
-          ? 'editor-affordance-reveal'
+          ? 'affordance-reveal'
           : '',
       className,
     ]
@@ -403,9 +403,9 @@ window.monitorShared.EditorControls = (() => {
   function wrapCardAction(button, className = '') {
     const container = document.createElement('div');
     container.className = [
-      'editor-affordance-card-action',
-      'editor-affordance-corner',
-      'editor-affordance-reveal',
+      'affordance-card-action',
+      'affordance-corner',
+      'affordance-reveal',
       className,
     ]
       .filter(Boolean)

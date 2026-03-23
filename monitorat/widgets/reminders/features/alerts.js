@@ -57,7 +57,7 @@ class RemindersAlerts {
       'status-card',
       `status-${statusClass}`,
       'hover-expand-parent',
-      canEdit ? 'editor-affordance-reveal-parent' : '',
+      canEdit ? 'affordance-reveal-parent' : '',
       isDisabled ? 'is-disabled' : '',
     ];
 

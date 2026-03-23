@@ -103,7 +103,7 @@ class ServicesSnapshot {
     const baseClass =
       mode === 'compact'
         ? 'service-card compact'
-        : 'service-card card status-card';
+        : 'service-card card status-card affordance-reveal-parent';
     card.className = `${baseClass}${hasBadge ? ' has-badge' : ''}`;
     card.setAttribute('data-service-key', service._key);
     card.setAttribute('data-service-source', service._source || '');
@@ -169,7 +169,7 @@ class ServicesSnapshot {
 
       const infoBtn = document.createElement('button');
       infoBtn.type = 'button';
-      infoBtn.className = 'service-info-action';
+      infoBtn.className = 'affordance-btn';
       infoBtn.title = 'Service details';
       infoBtn.setAttribute('aria-label', 'Service details');
       infoBtn.innerHTML = IconHandler.getActionIcon('overflow');
@@ -177,7 +177,11 @@ class ServicesSnapshot {
         event.stopPropagation();
         this.info.open(service);
       });
-      card.appendChild(infoBtn);
+      const infoAction = document.createElement('div');
+      infoAction.className =
+        'affordance-card-action affordance-corner affordance-reveal';
+      infoAction.appendChild(infoBtn);
+      card.appendChild(infoAction);
     }
 
     let longPressTriggered = false;
@@ -189,7 +193,7 @@ class ServicesSnapshot {
       }
       if (
         event.target.closest('.service-status-dot') ||
-        event.target.closest('.service-info-action')
+        event.target.closest('.affordance-card-action')
       ) {
         return;
       }

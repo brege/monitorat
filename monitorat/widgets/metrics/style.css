@@ -49,7 +49,7 @@
 
 .metrics
   .feature-header[data-metrics-section-header="snapshot"]
-  > .editor-affordance-btn {
+  > .affordance-btn {
   margin-inline-start: auto;
 }
 

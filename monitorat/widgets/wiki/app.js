@@ -335,13 +335,13 @@ class WikiWidget {
     });
 
     if (headerElement?.textContent?.trim()) {
-      headerElement.classList.add('editor-affordance-reveal-parent');
+      headerElement.classList.add('affordance-reveal-parent');
       headerElement.appendChild(editBtn);
       return;
     }
 
-    notesContainer.classList.add('editor-affordance-reveal-parent');
-    editBtn.classList.add('editor-affordance-corner', 'wiki-edit-floating-btn');
+    notesContainer.classList.add('affordance-reveal-parent');
+    editBtn.classList.add('affordance-corner', 'wiki-edit-floating-btn');
     notesContainer.appendChild(editBtn);
   }
 }

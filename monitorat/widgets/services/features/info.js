@@ -131,7 +131,7 @@ class ServicesInfo {
         ${
           canEdit
             ? `
-        <button type="button" class="editor-affordance-btn editor-affordance-visible service-modal-edit" aria-label="Edit service" title="Edit service">
+        <button type="button" class="affordance-btn affordance-visible service-modal-edit" aria-label="Edit service" title="Edit service">
           ${window.monitorShared.IconHandler.getActionIcon('wrench')}
         </button>
         `
