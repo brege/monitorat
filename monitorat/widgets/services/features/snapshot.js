@@ -100,15 +100,11 @@ class ServicesSnapshot {
     const card = document.createElement('div');
     const mode = this.widget.getDisplayMode();
     const hasBadge = showBadge && service._source;
-    const canEdit = mode !== 'compact' && this.widget.canEditServices();
     const baseClass =
       mode === 'compact'
         ? 'service-card compact'
         : 'service-card card status-card';
     card.className = `${baseClass}${hasBadge ? ' has-badge' : ''}`;
-    if (canEdit) {
-      card.classList.add('editor-affordance-reveal-parent');
-    }
     card.setAttribute('data-service-key', service._key);
     card.setAttribute('data-service-source', service._source || '');
 
@@ -171,19 +167,17 @@ class ServicesSnapshot {
       card.appendChild(iconContainer);
       card.appendChild(info);
 
-      if (canEdit) {
-        const controls = window.monitorShared?.EditorControls;
-        const editAction = controls?.createCardOverflowButton({
-          title: 'Service details',
-          label: 'Service details',
-        });
-        const editBtn = editAction?.button || document.createElement('button');
-        editBtn.addEventListener('click', (event) => {
-          event.stopPropagation();
-          this.info.open(service);
-        });
-        card.appendChild(editAction?.container || editBtn);
-      }
+      const infoBtn = document.createElement('button');
+      infoBtn.type = 'button';
+      infoBtn.className = 'service-info-action';
+      infoBtn.title = 'Service details';
+      infoBtn.setAttribute('aria-label', 'Service details');
+      infoBtn.innerHTML = IconHandler.getActionIcon('overflow');
+      infoBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        this.info.open(service);
+      });
+      card.appendChild(infoBtn);
     }
 
     let longPressTriggered = false;
@@ -195,7 +189,7 @@ class ServicesSnapshot {
       }
       if (
         event.target.closest('.service-status-dot') ||
-        event.target.closest('.editor-affordance-card-action')
+        event.target.closest('.service-info-action')
       ) {
         return;
       }
