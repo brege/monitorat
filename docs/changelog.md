@@ -1,5 +1,24 @@
 ## Changelog
 
+### 2026-03-23 -- [a423d05..f671970](https://github.com/brege/monitorat/compare/a423d05..f671970)
+
+- Add a card/icon view switch for the services widget so you can choose status board or app drawer view
+- Move edit and configure affordances into a shared UI layer
+- Fix missing affordances on demo status cards
+- Bump version to v0.14.6
+
+### 2026-03-13 -- [87b8713..0ab2b98](https://github.com/brege/monitorat/compare/87b8713..0ab2b98)
+
+- Rework demo and test fixtures around packed archives instead of checked-in trees or symlinks
+- Centralize fixture bootstrap logic so demos, tests, and CI regenerate the same data more reliably
+- Refresh CI setup to match the new fixture flow and newer GitHub Actions runtime assumptions
+
+### 2026-03-10 -- [d1069d1..110b5b3](https://github.com/brege/monitorat/compare/d1069d1..110b5b3)
+
+- Unify edit and configure affordances across wiki, metrics, reminders, and services
+- Simplify services editing and detail flows by routing card actions through the shared modals
+- Bump version to v0.14.5
+
 ### 2026-03-08 -- [0b705d6..0b705d6](https://github.com/brege/monitorat/compare/0b705d6..0b705d6)
 
 - Make compact cards in services more dynamic like app icons are in Firefox's startpage
