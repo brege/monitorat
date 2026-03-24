@@ -1,5 +1,9 @@
 ## Changelog
 
+### 2026-03-24 -- [4848de8..4848de8](https://github.com/brege/monitorat/compare/4848de8..4848de8)
+
+- Resolve a regression that "fixed" lychee warning that caused live-LAN CDN dependency
+
 ### 2026-03-23 -- [a423d05..f671970](https://github.com/brege/monitorat/compare/a423d05..f671970)
 
 - Add a card/icon view switch for the services widget so you can choose status board or app drawer view

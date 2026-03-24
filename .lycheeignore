@@ -1,0 +1,3 @@
+# runtime assets downloaded by ensure_assets() on first launch;
+# only index.html references these directly
+file:///.*/assets/
