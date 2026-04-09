@@ -88,7 +88,27 @@ def get_snapshot_keys() -> List[str]:
 
 
 def get_chart_quantities() -> List[str]:
-    return metrics_config()["history"]["chart"]["quantities"].get(list)
+    chart_node = metrics_config()["history"]["chart"]["quantities"]
+    if chart_node.exists():
+        return chart_node.get(list)
+
+    computed_groups = metrics_config()["history"]["computed"].get(list)
+    computed_sources = {
+        field["source"]
+        for group in computed_groups
+        if isinstance(group, dict)
+        for field in group.get("fields", [])
+        if isinstance(field, dict) and isinstance(field.get("source"), str)
+    }
+
+    chart_quantities = [
+        key for key in get_history_columns() if key not in computed_sources
+    ]
+    for group in computed_groups:
+        group_name = group.get("group") if isinstance(group, dict) else None
+        if isinstance(group_name, str):
+            chart_quantities.append(group_name)
+    return chart_quantities
 
 
 def get_storage_mounts() -> List[str]:

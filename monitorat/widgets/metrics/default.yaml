@@ -39,13 +39,6 @@ widgets:
           fill: true      # shade area under line
           interpolation: 0.3  # 0: straight lines, 1: max smoothing
           ghosts: true    # show raw data overlay
-        quantities:
-          - cpu_percent
-          - memory_percent
-          - load_1min
-          - temp_c
-          - disk_io
-          - net_io
       computed:
         - group: disk_io
           label: Disk I/O
