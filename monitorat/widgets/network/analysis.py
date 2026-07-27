@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Network log analysis: shared parsing and computation for events and uptime.
 
@@ -10,16 +9,18 @@ Provides:
 """
 
 import hashlib
-import math
 import logging
+import math
 import re
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional, TypedDict, cast
 
-from monitorat.monitor import config, get_data_path
+import confuse
 from pytimeparse import parse as parse_duration
+
+from monitorat.monitor import config, get_data_path
 
 logger = logging.getLogger(__name__)
 
@@ -58,32 +59,41 @@ FAILED_PATTERN = re.compile(
 TOLERANCE_SECONDS = 90
 
 
+def local_datetime(epoch_seconds: float) -> datetime:
+    """Convert an epoch value to an aware datetime in the host's local zone.
+
+    Log timestamps are local wall clock, so the whole module works in
+    aware-local time.
+    """
+    return datetime.fromtimestamp(epoch_seconds, timezone.utc).astimezone()
+
+
 def network_config():
     return config["widgets"]["network"]
 
 
-def get_log_file_path() -> Optional[Path]:
+def get_log_file_path() -> Path | None:
     try:
         log_file = network_config()["log_file"].get(str)
         log_path = Path(log_file)
         if not log_path.is_absolute():
             log_path = get_data_path() / log_path
         return log_path
-    except Exception:
+    except confuse.ConfigError:
         return None
 
 
 def get_expected_interval() -> int:
     try:
         return network_config()["chirper"]["interval"].get(int)
-    except Exception:
+    except confuse.ConfigError:
         return 300
 
 
 def get_uptime_periods() -> list:
     try:
         return network_config()["uptime"]["periods"].get(list)
-    except Exception:
+    except confuse.ConfigError:
         return []
 
 
@@ -92,20 +102,20 @@ class LogEntry:
     timestamp: datetime
     ip: str
     failure: bool = False
-    message: Optional[str] = None
+    message: str | None = None
 
 
 @dataclass
 class Alert:
     type: str
     timestamp: datetime
-    start: Optional[datetime] = None
-    end: Optional[datetime] = None
+    start: datetime | None = None
+    end: datetime | None = None
     missed_checks: int = 0
     open: bool = False
-    old_ip: Optional[str] = None
-    new_ip: Optional[str] = None
-    message: Optional[str] = None
+    old_ip: str | None = None
+    new_ip: str | None = None
+    message: str | None = None
 
 
 @dataclass
@@ -119,7 +129,7 @@ class Segment:
     observed: int
     failed: int
     missed: int
-    uptime: Optional[float]
+    uptime: float | None
     coverage: float
     status: str
     timeline_runs: list[dict]
@@ -134,7 +144,7 @@ class WindowStats:
     expected: int
     missed: int
     failed: int
-    uptime: Optional[float]
+    uptime: float | None
     coverage: float
 
 
@@ -145,22 +155,22 @@ class AnalysisResult:
     observed_checks: int
     missed_checks: int
     expected_checks: int
-    uptime_value: Optional[float]
+    uptime_value: float | None
     uptime_text: str
-    first_entry: Optional[datetime]
-    last_entry: Optional[datetime]
+    first_entry: datetime | None
+    last_entry: datetime | None
     window_stats: list
 
 
 class EntryCache(TypedDict):
-    hash: Optional[str]
-    entries: Optional[list[LogEntry]]
-    success_slots: Optional[list[int]]
-    failure_slots: Optional[list[int]]
+    hash: str | None
+    entries: list[LogEntry] | None
+    success_slots: list[int] | None
+    failure_slots: list[int] | None
 
 
 class AnalysisCache(TypedDict):
-    key: Optional[tuple[int, int]]
+    key: tuple[int, int] | None
     result: Optional["AnalysisResult"]
 
 
@@ -173,7 +183,7 @@ _cache: EntryCache = {
 _analysis_cache: AnalysisCache = {"key": None, "result": None}
 
 
-def parse_period_seconds(value: str) -> Optional[int]:
+def parse_period_seconds(value: str) -> int | None:
     if not isinstance(value, str):
         return None
     parsed = parse_duration(value)
@@ -192,7 +202,7 @@ def parse_period_seconds(value: str) -> Optional[int]:
     return None
 
 
-def parse_timestamp(label: str, now: Optional[datetime] = None) -> Optional[datetime]:
+def parse_timestamp(label: str, now: datetime | None = None) -> datetime | None:
     match = re.match(
         r"^([A-Za-z]{3})\s+(\d{1,2})\s+(\d{2}):(\d{2}):(\d{2})$",
         label.strip(),
@@ -205,8 +215,16 @@ def parse_timestamp(label: str, now: Optional[datetime] = None) -> Optional[date
     if month is None:
         return None
 
-    now = now or datetime.now()
-    candidate = datetime(now.year, month, int(day), int(hour), int(minute), int(second))
+    now = now or datetime.now().astimezone()
+    candidate = datetime(
+        now.year,
+        month,
+        int(day),
+        int(hour),
+        int(minute),
+        int(second),
+        tzinfo=now.tzinfo,
+    )
     if candidate > now:
         candidate = candidate.replace(year=now.year - 1)
 
@@ -219,7 +237,7 @@ def normalize_failure_message(message: str) -> str:
     return cleaned or message
 
 
-def parse_line(line: str) -> Optional[tuple[str, str, str, bool]]:
+def parse_line(line: str) -> tuple[str, str, str, bool] | None:
     if "detected IPv4 address" in line:
         match = DETECTED_PATTERN.match(line)
         if not match:
@@ -240,8 +258,8 @@ def parse_line(line: str) -> Optional[tuple[str, str, str, bool]]:
     return None
 
 
-def parse_log(text: str, now: Optional[datetime] = None) -> list[LogEntry]:
-    now = now or datetime.now()
+def parse_log(text: str, now: datetime | None = None) -> list[LogEntry]:
+    now = now or datetime.now().astimezone()
     entries = []
     last_ip = None
 
@@ -338,13 +356,13 @@ def get_cached_entries(text: str) -> tuple[list[LogEntry], list[int], list[int]]
 def detect_alerts(
     entries: list[LogEntry],
     interval_seconds: int,
-    now: Optional[datetime] = None,
+    now: datetime | None = None,
 ) -> tuple[list[Alert], int]:
     """Detect alerts from entries. Returns (alerts, missed_checks)."""
     if not entries:
         return [], 0
 
-    now = now or datetime.now()
+    now = now or datetime.now().astimezone()
     alerts = []
     missed = 0
     interval_ms = interval_seconds * 1000
@@ -514,8 +532,8 @@ def format_period_label(period: str) -> str:
 
 
 def format_segment_label(segment_ms: int, start_ms: int, end_ms: int) -> str:
-    start_dt = datetime.fromtimestamp(start_ms / 1000)
-    end_dt = datetime.fromtimestamp(end_ms / 1000)
+    start_dt = local_datetime(start_ms / 1000)
+    end_dt = local_datetime(end_ms / 1000)
 
     if segment_ms >= 86400000:
         if start_dt.month == end_dt.month:
@@ -534,9 +552,9 @@ def compute_window_stats(
     alerts: list[Alert],
     periods_config: list,
     interval_seconds: int,
-    now: Optional[datetime] = None,
+    now: datetime | None = None,
 ) -> list[WindowStats]:
-    now = now or datetime.now()
+    now = now or datetime.now().astimezone()
     now_ms = now.timestamp() * 1000
     interval_ms = interval_seconds * 1000
     now_slot = int(now_ms / interval_ms)
@@ -629,8 +647,8 @@ def compute_window_stats(
                 Segment(
                     key=f"{period_str.replace(' ', '-')}-{seg_index}",
                     label=format_segment_label(segment_ms, start_ms, end_ms),
-                    start=datetime.fromtimestamp(max(start_ms, 0) / 1000),
-                    end=datetime.fromtimestamp(max(end_ms_clamped, start_ms) / 1000),
+                    start=local_datetime(max(start_ms, 0) / 1000),
+                    end=local_datetime(max(end_ms_clamped, start_ms) / 1000),
                     available=available,
                     expected=expected,
                     observed=observed,
@@ -668,9 +686,9 @@ def compute_window_stats(
     return results
 
 
-def analyze_log(text: str, now: Optional[datetime] = None) -> AnalysisResult:
+def analyze_log(text: str, now: datetime | None = None) -> AnalysisResult:
     """Full analysis: parse log, detect alerts, compute uptime stats."""
-    now = now or datetime.now()
+    now = now or datetime.now().astimezone()
     entries, success_slots, failure_slots = get_cached_entries(text)
 
     if not entries:
@@ -724,7 +742,7 @@ def analyze_log(text: str, now: Optional[datetime] = None) -> AnalysisResult:
     )
 
 
-def analyze_log_file(log_path: Path, now: Optional[datetime] = None) -> AnalysisResult:
+def analyze_log_file(log_path: Path, now: datetime | None = None) -> AnalysisResult:
     try:
         stat = log_path.stat()
     except OSError:

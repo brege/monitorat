@@ -55,6 +55,7 @@ def run_checked(
         text=True,
         capture_output=True,
         timeout=timeout,
+        check=False,
     )
     if result.returncode != 0:
         raise RuntimeError(

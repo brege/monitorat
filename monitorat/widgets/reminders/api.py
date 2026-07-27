@@ -1,27 +1,26 @@
-#!/usr/bin/env python3
-
 import json
 import logging
-import schedule
+import math
+import re
 import threading
 import time as time_module
 from datetime import datetime
 from pathlib import Path
-import re
-import math
 
+import schedule
+import yaml
 from confuse import ConfigError
 from pytimeparse import parse as parse_duration
 
 from monitorat.monitor import (
     NotificationHandler,
     config,
+    find_widget_items_source,
     get_data_path,
     is_demo_enabled,
+    load_widget_items_from_file,
     register_config_listener,
     reload_config,
-    find_widget_items_source,
-    load_widget_items_from_file,
     write_widget_items_to_file,
 )
 
@@ -39,8 +38,8 @@ def reminders_enabled() -> bool:
         pass
 
     try:
-        return "reminders" in config["widgets"].keys()
-    except Exception:
+        return "reminders" in config["widgets"]
+    except ConfigError:
         return False
 
 
@@ -51,7 +50,7 @@ def get_reminders_view():
 def reminders_edit_enabled() -> bool:
     try:
         return config["site"]["editing"].get(bool)
-    except Exception:
+    except ConfigError:
         return False
 
 
@@ -78,7 +77,7 @@ def serialize_reminders_yaml(items: dict) -> str:
             "expiry_days",
             "reason",
         ]
-        remaining_keys = [key for key in reminder.keys() if key not in ordered_keys]
+        remaining_keys = [key for key in reminder if key not in ordered_keys]
         for key in ordered_keys + sorted(remaining_keys):
             if key not in reminder:
                 continue
@@ -104,11 +103,11 @@ def parse_duration_days(value, field_name, allow_zero=False) -> int:
             seconds = parse_duration(trimmed)
             if seconds is None:
                 raise ValueError(f"Reminder {field_name} must be a duration string.")
-            days = int(math.ceil(seconds / 86400))
+            days = math.ceil(seconds / 86400)
     elif isinstance(value, (int, float)):
         days = int(value)
     else:
-        raise ValueError(f"Reminder {field_name} must be a number or duration string.")
+        raise TypeError(f"Reminder {field_name} must be a number or duration string.")
 
     if days < 0 or (days == 0 and not allow_zero):
         raise ValueError(f"Reminder {field_name} must be greater than zero.")
@@ -117,7 +116,7 @@ def parse_duration_days(value, field_name, allow_zero=False) -> int:
 
 def parse_offset_days(values, field_name) -> list[int]:
     if not isinstance(values, list):
-        raise ValueError(f"Reminder {field_name} must be a list.")
+        raise TypeError(f"Reminder {field_name} must be a list.")
     return [parse_duration_days(value, field_name, allow_zero=True) for value in values]
 
 
@@ -135,7 +134,7 @@ def normalize_reminder_entry(reminder_id, reminder):
     if not isinstance(reminder_id, str) or not reminder_id.strip():
         raise ValueError("Reminder id must be a non-empty string.")
     if not isinstance(reminder, dict):
-        raise ValueError("Reminder entry must be a mapping.")
+        raise TypeError("Reminder entry must be a mapping.")
 
     name = reminder.get("name") or reminder_id
     url = reminder.get("url")
@@ -153,16 +152,16 @@ def normalize_reminder_entry(reminder_id, reminder):
         else:
             raise ValueError("Reminder disabled must be true or false.")
     elif not isinstance(disabled, bool):
-        raise ValueError("Reminder disabled must be true or false.")
+        raise TypeError("Reminder disabled must be true or false.")
 
     if url is None:
         url = ""
     if not isinstance(url, str):
-        raise ValueError("Reminder url must be a string.")
+        raise TypeError("Reminder url must be a string.")
     if icon is None:
         icon = ""
     if not isinstance(icon, str):
-        raise ValueError("Reminder icon must be a string.")
+        raise TypeError("Reminder icon must be a string.")
     if not isinstance(reason, str) or not reason.strip():
         raise ValueError("Reminder reason is required.")
 
@@ -250,7 +249,7 @@ def save_reminder_data(data):
 
 def touch_reminder(reminder_id):
     data = load_reminder_data()
-    data[reminder_id] = datetime.now().isoformat()
+    data[reminder_id] = datetime.now().astimezone().isoformat()
     save_reminder_data(data)
     return True
 
@@ -303,7 +302,7 @@ def get_reminder_status():
 
     nudges = parse_offset_days(reminders_view["nudges"].get(list), "nudges")
     urgents = parse_offset_days(reminders_view["urgents"].get(list), "urgents")
-    now = datetime.now()
+    now = datetime.now().astimezone()
 
     orange_min = min(urgents) if urgents else 0
     orange_max = max(nudges) if nudges else orange_min
@@ -330,6 +329,9 @@ def get_reminder_status():
         last_touch = data.get(reminder_id)
         if last_touch:
             last_touch_dt = datetime.fromisoformat(last_touch)
+            # Touches stored without an offset are local wall clock.
+            if last_touch_dt.tzinfo is None:
+                last_touch_dt = last_touch_dt.astimezone()
             days_since = (now - last_touch_dt).days
         else:
             days_since = None
@@ -634,7 +636,7 @@ def register_routes(app):
 
         try:
             edit_path = find_widget_items_source("reminders")
-        except Exception as error:
+        except (OSError, ValueError, yaml.YAMLError) as error:
             return jsonify({"error": str(error)}), 500
 
         reminder_id = request.args.get("reminder")
@@ -669,7 +671,7 @@ def register_routes(app):
 
         try:
             edit_path = find_widget_items_source("reminders")
-        except Exception as error:
+        except (OSError, ValueError, yaml.YAMLError) as error:
             return jsonify({"error": str(error)}), 500
 
         payload = request.get_json()
@@ -685,7 +687,7 @@ def register_routes(app):
 
         try:
             normalized_entry = normalize_reminder_entry(target_id, reminder_entry)
-        except ValueError as error:
+        except (TypeError, ValueError) as error:
             return jsonify({"error": str(error)}), 400
 
         existing_items = load_widget_items_from_file(edit_path, "reminders")
@@ -706,7 +708,7 @@ def register_routes(app):
 
         try:
             edit_path = find_widget_items_source("reminders")
-        except Exception as error:
+        except (OSError, ValueError, yaml.YAMLError) as error:
             return jsonify({"error": str(error)}), 500
 
         reminder_id = request.args.get("reminder")
@@ -747,7 +749,7 @@ def register_routes(app):
 
         filename = sanitize_icon_filename(Path(original_name).stem)
         if not filename:
-            filename = f"reminder-{int(datetime.now().timestamp())}"
+            filename = f"reminder-{int(datetime.now().astimezone().timestamp())}"
         filename = f"{filename}{extension}"
 
         img_root = Path(config["paths"]["img"].as_filename())
@@ -757,7 +759,8 @@ def register_routes(app):
         target_path = upload_dir / filename
         if target_path.exists():
             filename = (
-                f"{target_path.stem}-{int(datetime.now().timestamp())}{extension}"
+                f"{target_path.stem}-"
+                f"{int(datetime.now().astimezone().timestamp())}{extension}"
             )
             target_path = upload_dir / filename
 
@@ -782,7 +785,7 @@ def register_routes(app):
         reminder_entry = payload["item"]
         try:
             preview_entry = build_preview_entry(reminder_id, reminder_entry)
-        except ValueError as error:
+        except (TypeError, ValueError) as error:
             return jsonify({"error": str(error)}), 400
 
         return jsonify({"reminder": preview_entry})

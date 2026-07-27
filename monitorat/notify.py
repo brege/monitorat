@@ -1,13 +1,14 @@
-#!/usr/bin/env python3
-
 import json
 import logging
 import threading
 import time
 from dataclasses import dataclass
 from datetime import datetime
-from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
-from apprise import Apprise, common as apprise_common
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+
+import confuse
+from apprise import Apprise
+from apprise import common as apprise_common
 
 from monitorat.config import config
 
@@ -88,8 +89,8 @@ class NotificationHandler:
             else:
                 self.logger.error("Notification failed to send")
             return result
-        except Exception as e:
-            self.logger.error(f"Notification error: {e}")
+        except Exception:
+            self.logger.exception("Notification error")
             return False
 
     def send_test_notification(self, priority=0, service_name="monitorat"):
@@ -167,8 +168,8 @@ class NotificationHandler:
                     self.logger.info(f"Test notification sent to {service_name}")
                 else:
                     self.logger.error(f"Test notification failed for {service_name}")
-            except Exception as exc:
-                self.logger.error(f"Test notification error for {service_name}: {exc}")
+            except Exception:
+                self.logger.exception(f"Test notification error for {service_name}")
                 results.append({"service": service_name, "success": False})
 
         return results
@@ -186,9 +187,9 @@ class NotificationHandler:
                     notify_type=apprise_common.NotifyType.INFO,
                 )
                 success = success and bool(result)
-            except Exception as exc:
+            except Exception:
                 server_name = getattr(server, "name", repr(server))
-                self.logger.error(f"Notification error via {server_name}: {exc}")
+                self.logger.exception(f"Notification error via {server_name}")
                 success = False
         return success
 
@@ -211,7 +212,7 @@ class PendingNotification:
 def should_notify_event(event) -> bool:
     try:
         widget_cfg = config["widgets"][event.widget].get(dict)
-    except Exception:
+    except confuse.ConfigError:
         return False
 
     notify_cfg = widget_cfg.get("notify")
@@ -243,7 +244,7 @@ def build_event_notification(event) -> tuple[str, str]:
 def get_notify_priority(event) -> int:
     try:
         widget_cfg = config["widgets"][event.widget].get(dict)
-    except Exception:
+    except confuse.ConfigError:
         return 0
     notify_cfg = widget_cfg.get("notify")
     if isinstance(notify_cfg, dict):
@@ -261,7 +262,7 @@ def get_notify_priority(event) -> int:
 def get_event_notify_config(event) -> dict:
     try:
         widget_cfg = config["widgets"][event.widget].get(dict)
-    except Exception:
+    except confuse.ConfigError:
         return {}
     notify_cfg = widget_cfg.get("notify")
     if isinstance(notify_cfg, dict):
@@ -277,7 +278,7 @@ def get_event_notify_config(event) -> dict:
 def get_widget_notify_config(event) -> dict:
     try:
         widget_cfg = config["widgets"][event.widget].get(dict)
-    except Exception:
+    except confuse.ConfigError:
         return {}
     notify_cfg = widget_cfg.get("notify")
     if isinstance(notify_cfg, dict):
@@ -288,10 +289,10 @@ def get_widget_notify_config(event) -> dict:
 def get_notification_interval() -> int:
     try:
         return config["notifications"]["interval"].get(int)
-    except Exception:
+    except confuse.ConfigError:
         try:
             return config["notifications"]["interval_seconds"].get(int)
-        except Exception:
+        except confuse.ConfigError:
             return 300
 
 
@@ -348,8 +349,8 @@ class NotificationQueue:
         while self._running:
             try:
                 self.flush()
-            except Exception as exc:
-                self.logger.error(f"Notification queue error: {exc}")
+            except Exception:
+                self.logger.exception("Notification queue error")
             time.sleep(get_notification_interval())
 
     def add(self, event):
@@ -417,7 +418,7 @@ class NotificationQueue:
 def setup_observer_notifications(observer, logger) -> None:
     try:
         apprise_urls = config["notifications"]["apprise_urls"].get(list)
-    except Exception:
+    except confuse.ConfigError:
         apprise_urls = []
 
     if not apprise_urls:
@@ -432,7 +433,7 @@ def setup_observer_notifications(observer, logger) -> None:
             if not should_notify_event(event):
                 return
             queue.add(event)
-        except Exception as exc:
-            logger.error(f"Observer notification error: {exc}")
+        except Exception:
+            logger.exception("Observer notification error")
 
     observer.set_notify_callback(notify_event)

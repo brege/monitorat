@@ -1,43 +1,45 @@
 #!/usr/bin/env python3
-from flask import Flask, send_from_directory, jsonify, request, Response, redirect
-from pathlib import Path
-from urllib.request import urlretrieve
-from datetime import datetime, timedelta, timezone
+import csv
 import importlib
 import importlib.metadata
-import logging
-import csv
 import json
+import logging
 import re
-from typing import List, Optional, Set
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from urllib.request import urlretrieve
+
+import confuse
+import httpx
+from flask import Flask, Response, jsonify, redirect, request, send_from_directory
 from pytimeparse import parse as parse_duration
 
+from monitorat.auth import require_auth_for_api
 from monitorat.config import (
     config,
-    reload_config,
-    register_config_listener,
-    get_project_config_dir,
     find_widget_items_source,
+    get_project_config_dir,
     load_widget_items_from_file,
+    register_config_listener,
+    reload_config,
     write_widget_items_to_file,
 )
-from monitorat.notify import NotificationHandler, setup_observer_notifications
-from monitorat.auth import require_auth_for_api
 from monitorat.federation import federation_client
-from monitorat.observer import start_observer, get_observer
+from monitorat.notify import NotificationHandler, setup_observer_notifications
+from monitorat.observer import get_observer, start_observer
 
 __all__ = [
-    "config",
-    "reload_config",
-    "register_config_listener",
-    "find_widget_items_source",
-    "load_widget_items_from_file",
-    "write_widget_items_to_file",
-    "NotificationHandler",
     "CSVHandler",
-    "is_demo_enabled",
-    "register_snapshot_provider",
+    "NotificationHandler",
+    "config",
+    "find_widget_items_source",
     "get_project_config_dir",
+    "is_demo_enabled",
+    "load_widget_items_from_file",
+    "register_config_listener",
+    "register_snapshot_provider",
+    "reload_config",
+    "write_widget_items_to_file",
 ]
 
 BASE = Path(__file__).parent.parent
@@ -80,7 +82,7 @@ def register_snapshot_provider(name: str, provider) -> None:
     _snapshot_providers[name] = provider
 
 
-def get_widgets_paths() -> List[Path]:
+def get_widgets_paths() -> list[Path]:
     """Return list of widget search paths from config."""
     widgets_cfg = config["paths"]["widgets"].get(list)
     return [Path(p).expanduser() for p in widgets_cfg]
@@ -91,7 +93,7 @@ def setup_logging():
     try:
         log_file = get_data_path() / "monitor.log"
         log_file.parent.mkdir(parents=True, exist_ok=True)
-    except Exception:
+    except (confuse.ConfigError, OSError):
         # Fallback if config not loaded yet
         log_file = BASE / "monitor.log"
 
@@ -106,11 +108,11 @@ def setup_logging():
     )
 
 
-def resolve_period_cutoff(period_str: Optional[str], now: Optional[datetime] = None):
+def resolve_period_cutoff(period_str: str | None, now: datetime | None = None):
     """Return the datetime cutoff for a natural-language period."""
     if not period_str or period_str.lower() == "all":
         return None
-    reference = now or datetime.now()
+    reference = now.astimezone() if now else datetime.now().astimezone()
     month_year_match = re.match(
         r"^\s*(\d+)\s*(months?|years?)\s*$", period_str, re.IGNORECASE
     )
@@ -128,20 +130,17 @@ def resolve_period_cutoff(period_str: Optional[str], now: Optional[datetime] = N
         if not seconds:
             return None
         return reference - timedelta(seconds=seconds)
-    except Exception:
+    except (ValueError, OverflowError):
         return None
 
 
-def parse_iso_timestamp(value: Optional[str]):
-    """Parse ISO timestamps with optional trailing Z and normalize to naive UTC."""
+def parse_iso_timestamp(value: str | None):
+    """Parse ISO timestamps with optional trailing Z as aware local datetimes."""
     if not value:
         return None
     try:
         normalized = value[:-1] + "+00:00" if value.endswith("Z") else value
-        dt = datetime.fromisoformat(normalized)
-        if dt.tzinfo:
-            dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
-        return dt
+        return datetime.fromisoformat(normalized).astimezone()
     except ValueError:
         return None
 
@@ -149,7 +148,7 @@ def parse_iso_timestamp(value: Optional[str]):
 class CSVHandler:
     """Handles CSV storage for widget data with DictWriter/DictReader"""
 
-    def __init__(self, widget_name: str, columns: List[str]):
+    def __init__(self, widget_name: str, columns: list[str]):
         self.filename = f"{widget_name}.csv"
         self.columns = columns
         self._migrate_schema_if_needed()
@@ -197,7 +196,7 @@ class CSVHandler:
                 writer.writeheader()
             writer.writerow(row)
 
-    def read_all(self) -> List[dict]:
+    def read_all(self) -> list[dict]:
         """Read all rows as dicts"""
         if not self.path.exists():
             return []
@@ -258,7 +257,7 @@ def resolve_assets_config():
     return config["paths"]["assets"].get()
 
 
-def resolve_assets_path() -> Optional[Path]:
+def resolve_assets_path() -> Path | None:
     assets_config = resolve_assets_config()
     if assets_config is None:
         return None
@@ -298,16 +297,16 @@ def api_config():
         sections_config = {}
         default_columns = (
             config["widgets"]["columns"].get(int)
-            if "columns" in config["widgets"].keys()
+            if "columns" in config["widgets"]
             else 1
         )
-        if "sections" in config.keys():
+        if config["sections"].exists():
             sections_config = config["sections"].flatten()
             if sections_config is None:
                 sections_config = {}
             if not isinstance(sections_config, dict):
                 raise ValueError("sections config must be a mapping")
-        for key in config["widgets"].keys():
+        for key in config["widgets"]:
             # {widget}.enabled = list
             if key == "enabled":
                 enabled = config["widgets"][key].get()
@@ -332,7 +331,7 @@ def api_config():
             "widgets": widgets_merged,
         }
         return jsonify(payload)
-    except Exception as exc:
+    except (confuse.ConfigError, ValueError) as exc:
         return jsonify(error=str(exc)), 500
 
 
@@ -346,7 +345,7 @@ def api_config_reload():
         reload_config()
         logger.info("Configuration reloaded successfully")
         return jsonify({"status": "ok"})
-    except Exception as exc:
+    except (confuse.ConfigError, OSError) as exc:
         logger.error(f"Configuration reload failed: {exc}")
         return jsonify(error=str(exc)), 500
 
@@ -443,7 +442,7 @@ def api_federation_status():
                 if config_response.status_code == 200:
                     remote_config = config_response.json()
                     health["version"] = remote_config.get("version", "unknown")
-            except Exception:
+            except (httpx.HTTPError, ValueError):
                 health["version"] = "unknown"
         remotes_status[remote_name] = health
 
@@ -482,7 +481,7 @@ def api_proxy_img(remote_name, subpath):
             status=response.status_code,
             headers=headers,
         )
-    except Exception as exc:
+    except httpx.HTTPError as exc:
         logging.getLogger(__name__).error(f"Image proxy error for {remote_name}: {exc}")
         return jsonify({"error": str(exc)}), 502
 
@@ -493,7 +492,7 @@ def favicon():
         configured = Path(config["paths"]["favicon"].as_filename())
         if configured.exists():
             return send_from_directory(str(configured.parent), configured.name)
-    except Exception:
+    except confuse.ConfigError:
         pass
 
     path = WWW / "static" / "favicon.ico"
@@ -559,7 +558,7 @@ def vendor_files(filename):
     return asset_files(filename)
 
 
-def resolve_custom_widget_asset(filename: str) -> Optional[Path]:
+def resolve_custom_widget_asset(filename: str) -> Path | None:
     requested = Path(filename)
     if not requested.parts or requested.parts[0] != "widgets":
         return None
@@ -590,7 +589,7 @@ def static_files(filename):
     return send_from_directory(WWW / "static", filename)
 
 
-_CUSTOM_WIDGET_PATHS: Set[str] = set()
+_CUSTOM_WIDGET_PATHS: set[str] = set()
 
 
 def extend_widget_package_path():
@@ -661,7 +660,7 @@ def register_remote_widget_proxy(widget_name: str, widget_type: str, remote_name
                     status=response.status_code,
                     headers=headers,
                 )
-            except Exception as exc:
+            except httpx.HTTPError as exc:
                 logger.error(f"Proxy error for {widget_name}: {exc}")
                 return jsonify({"error": str(exc)}), 502
 
@@ -720,7 +719,7 @@ def register_merged_widget_proxy(
             response = federation_client.fetch(source_name, path)
             if response.status_code == 200:
                 return (source_name, response.json())
-        except Exception as exc:
+        except (httpx.HTTPError, ValueError) as exc:
             logger.warning(f"Merge fetch from {source_name} failed: {exc}")
         return (source_name, None)
 
@@ -737,7 +736,7 @@ def register_merged_widget_proxy(
                         status=200,
                         mimetype="application/json",
                     )
-            except Exception:
+            except httpx.HTTPError:
                 continue
         return jsonify({"error": "No sources available"}), 502
 
@@ -752,7 +751,7 @@ def register_merged_widget_proxy(
                         status=200,
                         mimetype="application/json",
                     )
-            except Exception:
+            except httpx.HTTPError:
                 continue
         return jsonify({"error": "No sources available"}), 502
 
@@ -826,17 +825,17 @@ def register_widgets():
     try:
         widgets_cfg = config["widgets"]
         enabled = widgets_cfg["enabled"].get(list)
-    except Exception as exc:
+    except confuse.ConfigError as exc:
         logger = logging.getLogger(__name__)
         logger.error(f"Unable to resolve widget configuration: {exc}")
         return
 
-    registered_widget_types: Set[str] = set()
+    registered_widget_types: set[str] = set()
 
     for widget_name in enabled:
         try:
             widget_cfg = widgets_cfg[widget_name].get(dict)
-        except Exception:
+        except confuse.ConfigError:
             logger = logging.getLogger(__name__)
             logger.warning(
                 f"Widget '{widget_name}' has no configuration block; skipping"

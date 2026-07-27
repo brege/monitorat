@@ -25,7 +25,6 @@ import tarfile
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import List
 
 FAKE_SERVER_NAMES = [
     "Valentine",
@@ -227,7 +226,7 @@ def generate_network_log(
             return ip_addresses[1]
         return ip_addresses[0]
 
-    entries: List[NetworkLine] = []
+    entries: list[NetworkLine] = []
     current = start
     while current <= now_value:
         if outage_start <= current <= outage_end:

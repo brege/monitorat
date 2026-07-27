@@ -17,8 +17,8 @@ Usage:
 import argparse
 import atexit
 import os
-import signal
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -257,7 +257,7 @@ def wait_for_server(port: int, timeout: float = 15.0) -> bool:
         try:
             with socket.create_connection(("localhost", port), timeout=1):
                 return True
-        except (ConnectionRefusedError, socket.timeout, OSError):
+        except (TimeoutError, ConnectionRefusedError, OSError):
             time.sleep(0.3)
     return False
 

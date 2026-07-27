@@ -1,28 +1,25 @@
-#!/usr/bin/env python3
-
 import json
 import logging
 import threading
 import time
 from datetime import datetime, timedelta
-from typing import Dict, List, Tuple
 
 import confuse
 import psutil
 import yaml
+from flask import jsonify, request, send_file
 
 from monitorat.monitor import (
-    config,
-    parse_iso_timestamp,
-    resolve_period_cutoff,
     CSVHandler,
-    is_demo_enabled,
-    register_snapshot_provider,
-    get_data_path,
-    reload_config,
+    config,
     find_widget_items_source,
+    get_data_path,
+    is_demo_enabled,
+    parse_iso_timestamp,
+    register_snapshot_provider,
+    reload_config,
+    resolve_period_cutoff,
 )
-from flask import request, send_file, jsonify
 
 from .registry import (
     METRIC_REGISTRY,
@@ -42,18 +39,18 @@ def metrics_config():
 def get_api_prefix():
     try:
         return metrics_config()["api_prefix"].get(str) or "metrics"
-    except Exception:
+    except confuse.ConfigError:
         return "metrics"
 
 
-def get_history_columns() -> List[str]:
+def get_history_columns() -> list[str]:
     columns = metrics_config()["history"]["table"]["columns"].get(list)
     for key in columns:
         METRIC_REGISTRY.get_quantity(key)
     return columns
 
 
-def get_csv_columns() -> List[str]:
+def get_csv_columns() -> list[str]:
     return ["timestamp", *get_history_columns(), "source"]
 
 
@@ -71,7 +68,7 @@ def get_collection_interval():
             interval = legacy.get(int)
         else:
             interval = metrics_config()["daemon"]["interval"].get(int)
-    except Exception:
+    except confuse.ConfigError:
         interval = metrics_config()["daemon"]["interval"].get(int)
     return interval if interval > 0 else 60
 
@@ -80,14 +77,14 @@ def is_snapshots_enabled() -> bool:
     return metrics_config()["snapshots"]["enabled"].get(bool)
 
 
-def get_snapshot_keys() -> List[str]:
+def get_snapshot_keys() -> list[str]:
     keys = metrics_config()["snapshots"]["quantities"].get(list)
     for key in keys:
         METRIC_REGISTRY.get_quantity(key)
     return keys
 
 
-def get_chart_quantities() -> List[str]:
+def get_chart_quantities() -> list[str]:
     chart_node = metrics_config()["history"]["chart"]["quantities"]
     if chart_node.exists():
         return chart_node.get(list)
@@ -111,17 +108,17 @@ def get_chart_quantities() -> List[str]:
     return chart_quantities
 
 
-def get_storage_mounts() -> List[str]:
+def get_storage_mounts() -> list[str]:
     return metrics_config()["snapshots"]["storage"]["mounts"].get(list)
 
 
-def get_threshold_settings() -> Dict[str, Dict[str, float]]:
+def get_threshold_settings() -> dict[str, dict[str, float]]:
     return metrics_config()["thresholds"].get(dict)
 
 
 def downsample_lttb(
-    data: List[dict], target_points: int, value_key: str = "cpu_percent"
-) -> List[dict]:
+    data: list[dict], target_points: int, value_key: str = "cpu_percent"
+) -> list[dict]:
     """
     Downsample time series data using Largest Triangle Three Buckets (LTTB).
     Preserves visual shape while reducing point count.
@@ -136,15 +133,13 @@ def downsample_lttb(
     for i in range(target_points - 2):
         bucket_start = int((i + 1) * bucket_size) + 1
         bucket_end = int((i + 2) * bucket_size) + 1
-        if bucket_end > n - 1:
-            bucket_end = n - 1
+        bucket_end = min(bucket_end, n - 1)
 
         avg_x = 0
         avg_y = 0
         next_start = int((i + 2) * bucket_size) + 1
         next_end = int((i + 3) * bucket_size) + 1
-        if next_end > n - 1:
-            next_end = n - 1
+        next_end = min(next_end, n - 1)
         count = next_end - next_start
         if count > 0:
             for j in range(next_start, next_end):
@@ -183,7 +178,7 @@ def downsample_lttb(
 
 
 def get_metric_status(
-    metric_key: str, value: float, thresholds: Dict[str, float]
+    metric_key: str, value: float, thresholds: dict[str, float]
 ) -> str:
     comparator = value
     if metric_key == "load_1min" and thresholds.get("normalize_per_cpu", True):
@@ -201,10 +196,10 @@ def get_metric_status(
 
 
 def build_metric_statuses(
-    values: Dict[str, MetricValue],
-    thresholds: Dict[str, Dict[str, float]],
-) -> Dict[str, str]:
-    statuses: Dict[str, str] = {}
+    values: dict[str, MetricValue],
+    thresholds: dict[str, dict[str, float]],
+) -> dict[str, str]:
+    statuses: dict[str, str] = {}
     for key, rules in thresholds.items():
         value = values[key].value
         if not isinstance(value, (int, float)):
@@ -213,12 +208,12 @@ def build_metric_statuses(
     return statuses
 
 
-def collect_metrics() -> Tuple[
+def collect_metrics() -> tuple[
     MetricContext,
-    Dict[str, MetricValue],
-    Dict[str, str],
-    List[str],
-    List[str],
+    dict[str, MetricValue],
+    dict[str, str],
+    list[str],
+    list[str],
 ]:
     history_keys = get_history_columns()
     snapshot_keys = get_snapshot_keys() if is_snapshots_enabled() else []
@@ -231,7 +226,7 @@ def collect_metrics() -> Tuple[
         "storage_percent",
     ]
 
-    collection_keys: List[str] = []
+    collection_keys: list[str] = []
     for key in history_keys + snapshot_keys + threshold_keys + alert_keys:
         if key not in collection_keys:
             collection_keys.append(key)
@@ -243,7 +238,7 @@ def collect_metrics() -> Tuple[
 
 
 def log_metrics_to_csv(
-    values: Dict[str, MetricValue],
+    values: dict[str, MetricValue],
     timestamp: datetime,
     source: str,
 ) -> None:
@@ -253,7 +248,7 @@ def log_metrics_to_csv(
     csv_handler.append(row)
 
 
-def get_demo_metrics() -> Dict[str, object]:
+def get_demo_metrics() -> dict[str, object]:
     snapshot_path = get_data_path() / "snapshot.jsonl"
     if not snapshot_path.exists():
         raise FileNotFoundError("snapshot.jsonl not found")
@@ -290,9 +285,9 @@ def get_demo_metrics() -> Dict[str, object]:
 
 
 def serialize_metric_values(
-    values: Dict[str, MetricValue], keys: List[str]
-) -> Dict[str, Dict[str, MetricValueType]]:
-    serialized: Dict[str, Dict[str, MetricValueType]] = {}
+    values: dict[str, MetricValue], keys: list[str]
+) -> dict[str, dict[str, MetricValueType]]:
+    serialized: dict[str, dict[str, MetricValueType]] = {}
     for key in keys:
         value = values[key]
         serialized[key] = {
@@ -335,12 +330,19 @@ def _metrics_collector():
             if history_keys:
                 log_metrics_to_csv(values, context.timestamp, source="daemon")
             check_metric_alerts(values)
-        except Exception as error:
+        except (
+            OSError,
+            KeyError,
+            TypeError,
+            ValueError,
+            confuse.ConfigError,
+            psutil.Error,
+        ) as error:
             logger.error(f"Metrics daemon error: {error}")
         time.sleep(interval)
 
 
-def check_metric_alerts(values: Dict[str, MetricValue]) -> None:
+def check_metric_alerts(values: dict[str, MetricValue]) -> None:
     metric_checks = {
         "high_load": {
             "key": "load_1min",
@@ -366,7 +368,7 @@ def check_metric_alerts(values: Dict[str, MetricValue]) -> None:
 
     try:
         alerts_config = config["alerts"].get()
-    except Exception:
+    except confuse.NotFoundError:
         return
     if not alerts_config:
         return
@@ -463,7 +465,7 @@ def register_routes(app):
         if is_demo_enabled():
             try:
                 payload = get_demo_metrics()
-            except Exception as error:
+            except (OSError, KeyError, ValueError) as error:
                 logger.warning("Failed to read demo metrics snapshot: %s", error)
                 context, values, statuses, _, snapshot_keys = collect_metrics()
                 payload = {
@@ -542,7 +544,7 @@ def register_routes(app):
                 status=200,
                 mimetype="application/json",
             )
-        except Exception as e:
+        except (OSError, KeyError, ValueError, confuse.ConfigError) as e:
             return app.response_class(
                 response=json.dumps({"error": str(e)}),
                 status=500,
@@ -565,9 +567,9 @@ def register_routes(app):
                 download_name="metrics.csv",
                 mimetype="text/csv",
             )
-        except Exception as e:
+        except (OSError, confuse.ConfigError) as e:
             return app.response_class(
-                response=f"Error downloading CSV: {str(e)}",
+                response=f"Error downloading CSV: {e!s}",
                 status=500,
                 mimetype="text/plain",
             )

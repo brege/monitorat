@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Observer daemon: generic event detection and storage pipeline.
 
@@ -11,10 +10,10 @@ import json
 import logging
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Callable, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -26,13 +25,13 @@ class Event:
     timestamp: str
     widget: str
     type: str
-    key: Optional[str]
+    key: str | None
     status: str
-    value: Optional[float]
-    threshold: Optional[float]
+    value: float | None
+    threshold: float | None
     message: str
     source: str
-    details: Optional[dict] = None
+    details: dict | None = None
 
     def to_dict(self):
         result = {k: v for k, v in asdict(self).items() if v is not None}
@@ -55,23 +54,22 @@ class EventStore:
                 handle.write(json.dumps(event.to_dict()) + "\n")
         return True
 
-    def read_all(self, widget: Optional[str] = None, limit: int = 1000) -> list:
+    def read_all(self, widget: str | None = None, limit: int = 1000) -> list:
         if not self.path.exists():
             return []
         events = []
-        with self._lock:
-            with open(self.path, "r", encoding="utf-8") as handle:
-                for line in handle:
-                    line = line.strip()
-                    if not line:
+        with self._lock, open(self.path, "r", encoding="utf-8") as handle:
+            for line in handle:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    event = json.loads(line)
+                    if widget and event.get("widget") != widget:
                         continue
-                    try:
-                        event = json.loads(line)
-                        if widget and event.get("widget") != widget:
-                            continue
-                        events.append(event)
-                    except json.JSONDecodeError:
-                        continue
+                    events.append(event)
+                except json.JSONDecodeError:
+                    continue
         events.sort(key=lambda e: e.get("timestamp", ""), reverse=True)
         if limit <= 0:
             return events
@@ -84,7 +82,7 @@ class EventStore:
 
         from datetime import timedelta
 
-        cutoff_dt = datetime.now() - timedelta(days=max_age_days)
+        cutoff_dt = datetime.now().astimezone() - timedelta(days=max_age_days)
         cutoff = cutoff_dt.isoformat()
 
         kept = []
@@ -170,7 +168,7 @@ class Observer:
         self.interval_seconds = interval_seconds
 
         self.event_store = EventStore(data_path / "events.jsonl")
-        self.startup_time = datetime.now().isoformat()
+        self.startup_time = datetime.now().astimezone().isoformat()
 
         self._thread = None
         self._running = False
@@ -212,8 +210,8 @@ class Observer:
         while self._running:
             try:
                 delay_seconds = self._tick()
-            except Exception as error:
-                logger.error(f"Observer tick error: {error}")
+            except Exception:
+                logger.exception("Observer tick error")
                 delay_seconds = 1.0
             time.sleep(max(0.25, delay_seconds))
 
@@ -234,8 +232,8 @@ class Observer:
                 events = registration.handler(self)
                 if events:
                     logger.debug(f"Source '{name}' produced {len(events)} events")
-            except Exception as error:
-                logger.error(f"Observer source '{name}' error: {error}")
+            except Exception:
+                logger.exception(f"Observer source '{name}' error")
 
             registration.next_run_at = now + registration.interval_seconds
             next_due_in = min(next_due_in, registration.interval_seconds)
@@ -243,10 +241,10 @@ class Observer:
         return max(0.25, next_due_in)
 
 
-_observer_instance: Optional[Observer] = None
+_observer_instance: Observer | None = None
 
 
-def get_observer() -> Optional[Observer]:
+def get_observer() -> Observer | None:
     """Get the global observer instance."""
     return _observer_instance
 

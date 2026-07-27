@@ -7,53 +7,51 @@ To add a new observable (quantity):
 4) If it should influence status, add a thresholds entry and set status_key if needed.
 """
 
+import os
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Callable, Dict, Iterable, List, Optional, Tuple, TypeVar, cast
+from typing import TypeVar, cast
 
-import os
 import psutil
 
-
-MetricValueType = Optional[float | str]
+MetricValueType = float | str | None
 T = TypeVar("T")
 
 
-def identity_value(value: MetricValueType) -> Optional[float]:
+def identity_value(value: MetricValueType) -> float | None:
     if isinstance(value, (int, float)):
         return float(value)
     return None
 
 
 class MetricContext:
-    def __init__(self, storage_mounts: List[str]):
-        self.timestamp = datetime.now()
+    def __init__(self, storage_mounts: list[str]):
+        self.timestamp = datetime.now().astimezone()
         self.storage_mounts = storage_mounts
-        self._cache: Dict[str, object] = {}
+        self._cache: dict[str, object] = {}
 
     def _cache_value(self, key: str, value: T) -> T:
         self._cache[key] = value
         return value
 
-    def _get_cached(self, key: str) -> Optional[object]:
+    def _get_cached(self, key: str) -> object | None:
         return self._cache.get(key)
 
-    def get_cpu_percent(self) -> Optional[float]:
-        cached = cast(Optional[float], self._get_cached("cpu_percent"))
+    def get_cpu_percent(self) -> float | None:
+        cached = cast(float | None, self._get_cached("cpu_percent"))
         if cached is not None:
             return cached
         return self._cache_value("cpu_percent", psutil.cpu_percent(interval=0.1))
 
-    def get_memory_percent(self) -> Optional[float]:
-        cached = cast(Optional[float], self._get_cached("memory_percent"))
+    def get_memory_percent(self) -> float | None:
+        cached = cast(float | None, self._get_cached("memory_percent"))
         if cached is not None:
             return cached
         return self._cache_value("memory_percent", psutil.virtual_memory().percent)
 
-    def get_memory_usage(self) -> Optional[Tuple[int, int, float]]:
-        cached = cast(
-            Optional[Tuple[int, int, float]], self._get_cached("memory_usage")
-        )
+    def get_memory_usage(self) -> tuple[int, int, float] | None:
+        cached = cast(tuple[int, int, float] | None, self._get_cached("memory_usage"))
         if cached is not None:
             return cached
         memory = psutil.virtual_memory()
@@ -73,9 +71,9 @@ class MetricContext:
             return cached
         return self._cache_value("network_io", psutil.net_io_counters())
 
-    def get_load_averages(self) -> Optional[Tuple[float, float, float]]:
+    def get_load_averages(self) -> tuple[float, float, float] | None:
         cached = cast(
-            Optional[Tuple[float, float, float]], self._get_cached("load_averages")
+            tuple[float, float, float] | None, self._get_cached("load_averages")
         )
         if cached is not None:
             return cached
@@ -84,8 +82,8 @@ class MetricContext:
         except OSError:
             return self._cache_value("load_averages", None)
 
-    def get_temperature_c(self) -> Optional[float]:
-        cached = cast(Optional[float], self._get_cached("temperature_c"))
+    def get_temperature_c(self) -> float | None:
+        cached = cast(float | None, self._get_cached("temperature_c"))
         if cached is not None:
             return cached
         sensors_temperatures = getattr(psutil, "sensors_temperatures", None)
@@ -101,7 +99,7 @@ class MetricContext:
 
         # Select a plausible temperature across known sensor groups.
         for sensor_name in ("coretemp", "k10temp", "cpu_thermal"):
-            if sensor_name in sensors and sensors[sensor_name]:
+            if sensors.get(sensor_name):
                 values = [sensor.current for sensor in sensors[sensor_name]]
                 if values:
                     return self._cache_value("temperature_c", max(values))
@@ -113,8 +111,8 @@ class MetricContext:
 
         return self._cache_value("temperature_c", None)
 
-    def get_battery_percent(self) -> Optional[float]:
-        cached = cast(Optional[float], self._get_cached("battery_percent"))
+    def get_battery_percent(self) -> float | None:
+        cached = cast(float | None, self._get_cached("battery_percent"))
         if cached is not None:
             return cached
         sensors_battery = getattr(psutil, "sensors_battery", None)
@@ -128,22 +126,22 @@ class MetricContext:
             return self._cache_value("battery_percent", None)
         return self._cache_value("battery_percent", battery.percent)
 
-    def get_disk_percent(self) -> Optional[float]:
-        cached = cast(Optional[float], self._get_cached("disk_percent"))
+    def get_disk_percent(self) -> float | None:
+        cached = cast(float | None, self._get_cached("disk_percent"))
         if cached is not None:
             return cached
         usage = self.get_disk_usage()
         return self._cache_value("disk_percent", usage[2] if usage else None)
 
-    def get_storage_percent(self) -> Optional[float]:
-        cached = cast(Optional[float], self._get_cached("storage_percent"))
+    def get_storage_percent(self) -> float | None:
+        cached = cast(float | None, self._get_cached("storage_percent"))
         if cached is not None:
             return cached
         usage = self.get_storage_usage()
         return self._cache_value("storage_percent", usage[2] if usage else None)
 
-    def get_uptime_seconds(self) -> Optional[float]:
-        cached = cast(Optional[float], self._get_cached("uptime_seconds"))
+    def get_uptime_seconds(self) -> float | None:
+        cached = cast(float | None, self._get_cached("uptime_seconds"))
         if cached is not None:
             return cached
         try:
@@ -154,17 +152,15 @@ class MetricContext:
         except (OSError, ValueError, IndexError):
             return self._cache_value("uptime_seconds", None)
 
-    def get_disk_usage(self) -> Optional[Tuple[int, int, float]]:
-        cached = cast(Optional[Tuple[int, int, float]], self._get_cached("disk_usage"))
+    def get_disk_usage(self) -> tuple[int, int, float] | None:
+        cached = cast(tuple[int, int, float] | None, self._get_cached("disk_usage"))
         if cached is not None:
             return cached
         usage = psutil.disk_usage("/")
         return self._cache_value("disk_usage", (usage.used, usage.total, usage.percent))
 
-    def get_storage_usage(self) -> Optional[Tuple[int, int, float]]:
-        cached = cast(
-            Optional[Tuple[int, int, float]], self._get_cached("storage_usage")
-        )
+    def get_storage_usage(self) -> tuple[int, int, float] | None:
+        cached = cast(tuple[int, int, float] | None, self._get_cached("storage_usage"))
         if cached is not None:
             return cached
         for path in self.storage_mounts:
@@ -183,9 +179,9 @@ class MetricQuantity:
     label: str
     unit: str
     collect: Callable[[MetricContext], MetricValueType]
-    title: Optional[str] = None
-    status_key: Optional[str] = None
-    csv_value: Callable[[MetricValueType], Optional[float]] = identity_value
+    title: str | None = None
+    status_key: str | None = None
+    csv_value: Callable[[MetricValueType], float | None] = identity_value
 
 
 @dataclass(frozen=True)
@@ -200,13 +196,13 @@ class MetricRegistry:
     def __init__(self, quantities: Iterable[MetricQuantity]):
         self._quantities = {quantity.key: quantity for quantity in quantities}
 
-    def list_quantities(self) -> List[MetricQuantity]:
+    def list_quantities(self) -> list[MetricQuantity]:
         return list(self._quantities.values())
 
     def get_quantity(self, key: str) -> MetricQuantity:
         return self._quantities[key]
 
-    def serialize_quantities(self) -> List[Dict[str, str]]:
+    def serialize_quantities(self) -> list[dict[str, str]]:
         return [
             {
                 "key": quantity.key,
@@ -220,8 +216,8 @@ class MetricRegistry:
 
     def collect_values(
         self, keys: Iterable[str], context: MetricContext
-    ) -> Dict[str, MetricValue]:
-        values: Dict[str, MetricValue] = {}
+    ) -> dict[str, MetricValue]:
+        values: dict[str, MetricValue] = {}
         for key in keys:
             quantity = self._quantities[key]
             value = quantity.collect(context)
@@ -234,38 +230,38 @@ class MetricRegistry:
         return values
 
     def build_csv_row(
-        self, keys: Iterable[str], values: Dict[str, MetricValue]
-    ) -> Dict[str, Optional[float]]:
-        row: Dict[str, Optional[float]] = {}
+        self, keys: Iterable[str], values: dict[str, MetricValue]
+    ) -> dict[str, float | None]:
+        row: dict[str, float | None] = {}
         for key in keys:
             quantity = self._quantities[key]
             row[key] = quantity.csv_value(values[key].value)
         return row
 
 
-def build_metric_context(storage_mounts: List[str]) -> MetricContext:
+def build_metric_context(storage_mounts: list[str]) -> MetricContext:
     return MetricContext(storage_mounts)
 
 
-def bytes_to_megabytes(value: Optional[int]) -> Optional[float]:
+def bytes_to_megabytes(value: int | None) -> float | None:
     if value is None:
         return None
     return value / (1024**2)
 
 
-def format_gigabytes(value: Optional[int]) -> Optional[str]:
+def format_gigabytes(value: int | None) -> str | None:
     if value is None:
         return None
     return f"{value / (1024**3):.1f}GB"
 
 
-def format_terabytes(value: Optional[int]) -> Optional[str]:
+def format_terabytes(value: int | None) -> str | None:
     if value is None:
         return None
     return f"{value / (1024**4):.1f}TB"
 
 
-def get_core_quantities() -> List[MetricQuantity]:
+def get_core_quantities() -> list[MetricQuantity]:
     return [
         MetricQuantity(
             key="uptime_seconds",
@@ -422,7 +418,7 @@ def get_core_quantities() -> List[MetricQuantity]:
 
 
 def build_registry(
-    extra_quantities: Optional[Iterable[MetricQuantity]] = None,
+    extra_quantities: Iterable[MetricQuantity] | None = None,
 ) -> MetricRegistry:
     quantities = list(get_core_quantities())
     if extra_quantities:

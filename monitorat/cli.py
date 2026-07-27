@@ -1,9 +1,10 @@
-#!/usr/bin/env python3
 import argparse
 import importlib.metadata
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
+
+import confuse
 
 from monitorat.config import config_manager, get_widgets_paths, set_project_config_path
 
@@ -19,7 +20,7 @@ def command_ls_widgets(args):
     try:
         config_obj = config_manager.get()
         enabled_widgets = config_obj["widgets"]["enabled"].get(list)
-    except Exception as exc:
+    except confuse.ConfigError as exc:
         print(f"Error reading configuration: {exc}", file=sys.stderr)
         sys.exit(1)
 
@@ -49,7 +50,7 @@ def get_widget_type(widget_name: str, config_obj) -> str:
     try:
         widget_cfg = config_obj["widgets"][widget_name].get(dict)
         return widget_cfg.get("type", widget_name)
-    except Exception:
+    except confuse.ConfigError:
         return widget_name
 
 
@@ -103,7 +104,8 @@ def get_custom_widgets() -> dict:
 
 def command_server(args):
     """Run the development server."""
-    from monitorat.monitor import app as flask_app, is_demo_enabled
+    from monitorat.monitor import app as flask_app
+    from monitorat.monitor import is_demo_enabled
 
     mode_label = "on" if is_demo_enabled() else "off"
     print(f" * Demo mode: {mode_label}")

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Network observer source: registers with the observer daemon.
 
@@ -9,21 +8,22 @@ import json
 import logging
 from datetime import datetime
 
+from monitorat.monitor import config
 from monitorat.observer import (
     Event,
     Observer,
-    register_observer_source,
     get_observer,
+    register_observer_source,
 )
-from monitorat.monitor import config
+
 from .analysis import (
-    analyze_log_file,
-    get_log_file_path,
-    get_expected_interval,
-    parse_log,
-    detect_alerts,
     Alert,
     LogEntry,
+    analyze_log_file,
+    detect_alerts,
+    get_expected_interval,
+    get_log_file_path,
+    parse_log,
 )
 
 logger = logging.getLogger(__name__)
@@ -113,6 +113,9 @@ def read_last_checkpoint(path, source: str) -> datetime | None:
                 timestamp = datetime.fromisoformat(log_time)
             except ValueError:
                 continue
+            # Records stored without an offset are local wall clock.
+            if timestamp.tzinfo is None:
+                timestamp = timestamp.astimezone()
             if last_time is None or timestamp > last_time:
                 last_time = timestamp
     return last_time
@@ -144,6 +147,9 @@ def read_last_event_time(path, source: str) -> datetime | None:
                 timestamp = datetime.fromisoformat(timestamp_raw)
             except ValueError:
                 continue
+            # Records stored without an offset are local wall clock.
+            if timestamp.tzinfo is None:
+                timestamp = timestamp.astimezone()
             if last_time is None or timestamp > last_time:
                 last_time = timestamp
     return last_time
@@ -197,7 +203,7 @@ def process_network_log_from_path(
     try:
         with open(log_path, "r", encoding="utf-8") as handle:
             text = handle.read()
-    except IOError as error:
+    except OSError as error:
         logger.error(f"Failed to read network log: {error}")
         return []
 

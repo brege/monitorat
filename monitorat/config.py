@@ -1,39 +1,42 @@
-#!/usr/bin/env python3
-from pathlib import Path
+import logging
 import threading
+from collections.abc import Callable
 from contextlib import contextmanager
 from contextvars import ContextVar
+from pathlib import Path
+
 import confuse
-from typing import Callable, List, Optional
 import yaml
 
 __all__ = [
     "ConfigManager",
     "ConfigProxy",
-    "config_manager",
     "config",
-    "get_config",
-    "reload_config",
-    "register_config_listener",
-    "get_widgets_paths",
-    "get_primary_config_path",
+    "config_manager",
     "find_widget_items_source",
-    "load_widget_items_from_file",
-    "write_widget_items_to_file",
-    "set_project_config_path",
+    "get_config",
+    "get_primary_config_path",
     "get_project_config_dir",
     "get_project_config_path",
+    "get_widgets_paths",
+    "load_widget_items_from_file",
+    "register_config_listener",
+    "reload_config",
     "set_active_config_manager",
+    "set_project_config_path",
+    "write_widget_items_to_file",
 ]
+
+logger = logging.getLogger(__name__)
 
 
 class ConfigManager:
     """Own the confuse.Configuration instance and provide reload hooks."""
 
-    def __init__(self, config_path: Optional[Path] = None) -> None:
+    def __init__(self, config_path: Path | None = None) -> None:
         self._project_config = config_path
         self._lock = threading.Lock()
-        self._callbacks: List[Callable[[confuse.Configuration], None]] = []
+        self._callbacks: list[Callable[[confuse.Configuration], None]] = []
         self._config = self._build_config()
 
     def _resolve_application_name(self) -> str:
@@ -172,7 +175,7 @@ class ConfigManager:
             base_for_paths=True,
         )
 
-    def _load_includes_from_file(self, config_path: Path, loader) -> List[str]:
+    def _load_includes_from_file(self, config_path: Path, loader) -> list[str]:
         data = confuse.load_yaml(str(config_path), loader=loader)
         if not isinstance(data, dict):
             return []
@@ -180,10 +183,10 @@ class ConfigManager:
 
     def _resolve_include_paths(
         self,
-        includes: List[str],
+        includes: list[str],
         config_directory: Path,
-        default_config_directory: Optional[Path],
-    ) -> List[Path]:
+        default_config_directory: Path | None,
+    ) -> list[Path]:
         include_paths = []
         for include in includes:
             include_path = Path(include)
@@ -205,7 +208,7 @@ class ConfigManager:
     def _insert_include_sources(
         self,
         config_object: confuse.Configuration,
-        include_paths: List[Path],
+        include_paths: list[Path],
         base_for_paths: bool,
     ) -> None:
         insert_index = self._find_default_insert_index(config_object)
@@ -235,7 +238,7 @@ class ConfigManager:
 
     def _discover_widget_default_paths(
         self, default_config_directory: Path
-    ) -> List[Path]:
+    ) -> list[Path]:
         widgets_root = default_config_directory / "widgets"
         if not widgets_root.exists():
             return []
@@ -265,8 +268,8 @@ class ConfigManager:
             for callback in list(self._callbacks):
                 try:
                     callback(reloaded)
-                except Exception as exc:
-                    print(f"Config reload callback failed: {exc}")
+                except Exception:
+                    logger.exception("Config reload callback failed")
             return reloaded
 
     def register_callback(
@@ -274,12 +277,12 @@ class ConfigManager:
     ) -> None:
         self._callbacks.append(callback)
 
-    def get_project_config_dir(self) -> Optional[Path]:
+    def get_project_config_dir(self) -> Path | None:
         if self._project_config is None:
             return None
         return self._project_config.expanduser().parent
 
-    def get_project_config_path(self) -> Optional[Path]:
+    def get_project_config_path(self) -> Path | None:
         if self._project_config is None:
             return None
         return self._project_config.expanduser()
@@ -305,7 +308,7 @@ class ConfigProxy:
 
 
 _default_config_manager = ConfigManager()
-_active_config_manager: ContextVar[Optional[ConfigManager]] = ContextVar(
+_active_config_manager: ContextVar[ConfigManager | None] = ContextVar(
     "monitorat_active_config_manager", default=None
 )
 
@@ -362,15 +365,15 @@ def set_project_config_path(config_path: Path) -> confuse.Configuration:
     return _get_active_config_manager().set_project_config(config_path)
 
 
-def get_project_config_dir() -> Optional[Path]:
+def get_project_config_dir() -> Path | None:
     return _get_active_config_manager().get_project_config_dir()
 
 
-def get_project_config_path() -> Optional[Path]:
+def get_project_config_path() -> Path | None:
     return _get_active_config_manager().get_project_config_path()
 
 
-def get_primary_config_path() -> Optional[Path]:
+def get_primary_config_path() -> Path | None:
     project_path = get_project_config_path()
     if project_path:
         return project_path
@@ -382,14 +385,14 @@ def _load_yaml_mapping(path: Path) -> dict:
     if data is None:
         return {}
     if not isinstance(data, dict):
-        raise ValueError(f"Config file must be a mapping: {path}")
+        raise TypeError(f"Config file must be a mapping: {path}")
     return data
 
 
 def _resolve_include_path(
     include: str,
     config_directory: Path,
-    default_config_directory: Optional[Path],
+    default_config_directory: Path | None,
     allow_default: bool,
 ) -> Path:
     include_path = Path(include)
@@ -422,10 +425,10 @@ def _collect_config_sources(
         seen.remove(resolved)
         return sources
     if not isinstance(includes, list):
-        raise ValueError(f"Includes must be a list in {config_path}")
+        raise TypeError(f"Includes must be a list in {config_path}")
     for include in includes:
         if not isinstance(include, str):
-            raise ValueError(f"Includes must be a list of file paths in {config_path}")
+            raise TypeError(f"Includes must be a list of file paths in {config_path}")
         include_path = _resolve_include_path(
             include,
             config_path.parent,
@@ -475,17 +478,17 @@ def load_widget_items_from_file(path: Path, widget_name: str) -> dict:
     data = _load_yaml_mapping(path)
     widgets = data.get("widgets", {})
     if not isinstance(widgets, dict):
-        raise ValueError(f"widgets must be a mapping in {path}")
+        raise TypeError(f"widgets must be a mapping in {path}")
     widget_config = widgets.get(widget_name)
     if widget_config is None:
         return {}
     if not isinstance(widget_config, dict):
-        raise ValueError(f"widgets.{widget_name} must be a mapping in {path}")
+        raise TypeError(f"widgets.{widget_name} must be a mapping in {path}")
     items = widget_config.get("items")
     if items is None:
         return {}
     if not isinstance(items, dict):
-        raise ValueError(f"widgets.{widget_name}.items must be a mapping in {path}")
+        raise TypeError(f"widgets.{widget_name}.items must be a mapping in {path}")
     return dict(items)
 
 
@@ -500,13 +503,13 @@ def write_widget_items_to_file(
         widgets = {}
         data["widgets"] = widgets
     if not isinstance(widgets, dict):
-        raise ValueError(f"widgets must be a mapping in {path}")
+        raise TypeError(f"widgets must be a mapping in {path}")
     widget_config = widgets.get(widget_name)
     if widget_config is None:
         widget_config = {}
         widgets[widget_name] = widget_config
     if not isinstance(widget_config, dict):
-        raise ValueError(f"widgets.{widget_name} must be a mapping in {path}")
+        raise TypeError(f"widgets.{widget_name} must be a mapping in {path}")
     widget_config["items"] = items
     path.write_text(
         yaml.safe_dump(data, sort_keys=False, default_flow_style=False),
@@ -514,7 +517,7 @@ def write_widget_items_to_file(
     )
 
 
-def get_widgets_paths() -> List[Path]:
+def get_widgets_paths() -> list[Path]:
     """Return list of widget search paths from config."""
     widgets_cfg = config["paths"]["widgets"].get(list)
     return [Path(p).expanduser() for p in widgets_cfg]

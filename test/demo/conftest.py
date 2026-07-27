@@ -2,7 +2,6 @@ import subprocess
 import sys
 
 import pytest
-
 from helpers import PROJECT_ROOT, build_env, tail, wait_for_http
 
 DEMO_PORTS = {

@@ -2,11 +2,10 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 import sys
+from pathlib import Path
 
 import yaml
-
 
 ALLOWED_DEFAULT_KEYS = {"summary", "lang"}
 ALLOWED_DOC_KEYS = {
@@ -25,7 +24,7 @@ def load_manifest(manifest_path: Path) -> dict:
         raise FileNotFoundError(f"Manifest not found: {manifest_path}")
     data = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
-        raise ValueError("Manifest must be a mapping.")
+        raise TypeError("Manifest must be a mapping.")
     return data
 
 
@@ -33,7 +32,7 @@ def validate_defaults(defaults: dict) -> dict:
     if defaults is None:
         return {}
     if not isinstance(defaults, dict):
-        raise ValueError("Manifest defaults must be a mapping.")
+        raise TypeError("Manifest defaults must be a mapping.")
     unknown_keys = set(defaults) - ALLOWED_DEFAULT_KEYS
     if unknown_keys:
         raise ValueError(f"Unknown defaults keys: {sorted(unknown_keys)}")
@@ -45,7 +44,7 @@ def validate_documents(documents: list) -> list:
         raise ValueError("Manifest documents must be a non-empty list.")
     for index, doc in enumerate(documents):
         if not isinstance(doc, dict):
-            raise ValueError(f"Document entry at index {index} must be a mapping.")
+            raise TypeError(f"Document entry at index {index} must be a mapping.")
         unknown_keys = set(doc) - ALLOWED_DOC_KEYS
         if unknown_keys:
             raise ValueError(

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Metrics observer source: emits threshold breach events from metrics history.
 """
@@ -11,13 +10,13 @@ from pathlib import Path
 
 import psutil
 
+from monitorat.monitor import config, get_data_path, parse_iso_timestamp
 from monitorat.observer import (
     Event,
     Observer,
-    register_observer_source,
     get_observer,
+    register_observer_source,
 )
-from monitorat.monitor import config, get_data_path, parse_iso_timestamp
 
 from .registry import METRIC_REGISTRY
 
@@ -91,6 +90,9 @@ def read_last_checkpoint(path: Path, source: str) -> datetime | None:
                 timestamp = datetime.fromisoformat(row_time)
             except ValueError:
                 continue
+            # Records stored without an offset predate aware timestamps.
+            if timestamp.tzinfo is None:
+                timestamp = timestamp.astimezone()
             if last_time is None or timestamp > last_time:
                 last_time = timestamp
     return last_time
@@ -122,6 +124,9 @@ def read_last_event_time(path: Path, source: str) -> datetime | None:
                 timestamp = datetime.fromisoformat(timestamp_raw)
             except ValueError:
                 continue
+            # Records stored without an offset predate aware timestamps.
+            if timestamp.tzinfo is None:
+                timestamp = timestamp.astimezone()
             if last_time is None or timestamp > last_time:
                 last_time = timestamp
     return last_time

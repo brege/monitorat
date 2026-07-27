@@ -1,7 +1,8 @@
-#!/usr/bin/env python3
 import hmac
 import logging
-from flask import request, jsonify
+
+import confuse
+from flask import jsonify, request
 from flask_httpauth import HTTPTokenAuth
 
 from monitorat.config import config
@@ -14,7 +15,7 @@ auth = HTTPTokenAuth(scheme="Bearer")
 def get_api_key():
     try:
         return config["auth"]["api_key"].get(str)
-    except Exception:
+    except confuse.ConfigError:
         return None
 
 

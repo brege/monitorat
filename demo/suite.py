@@ -14,7 +14,6 @@ from werkzeug.wrappers import Response
 
 from monitorat.config import ConfigManager, set_active_config_manager
 
-
 DEMO_DIR = Path(__file__).resolve().parent
 PREFIX_TO_CONFIG = {
     "/": DEMO_DIR / "simple" / "config.yaml",

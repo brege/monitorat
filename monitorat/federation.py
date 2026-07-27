@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
 import logging
-from typing import Optional
 from urllib.parse import urljoin
 
+import confuse
 import httpx
 
 from monitorat.config import config
@@ -14,30 +13,30 @@ class FederationClient:
     """HTTP client for fetching from remote monitorat instances."""
 
     def __init__(self):
-        self._client: Optional[httpx.Client] = None
+        self._client: httpx.Client | None = None
 
     @property
     def enabled(self) -> bool:
         try:
             return config["federation"]["enabled"].get(bool)
-        except Exception:
+        except confuse.ConfigError:
             return False
 
     @property
     def timeout(self) -> float:
         try:
             return config["federation"]["timeout"].get(float)
-        except Exception:
+        except confuse.ConfigError:
             try:
                 return config["federation"]["timeout_seconds"].get(float)
-            except Exception:
+            except confuse.ConfigError:
                 return 10.0
 
     @property
     def remotes(self) -> list:
         try:
             return config["federation"]["remotes"].get(list)
-        except Exception:
+        except confuse.ConfigError:
             return []
 
     @property
@@ -46,7 +45,7 @@ class FederationClient:
             self._client = httpx.Client(timeout=self.timeout)
         return self._client
 
-    def get_remote(self, name: str) -> Optional[dict]:
+    def get_remote(self, name: str) -> dict | None:
         """Get remote config by name."""
         for remote in self.remotes:
             if remote.get("name") == name:
@@ -131,7 +130,7 @@ class FederationClient:
                 "error": f"Connection failed: {exc}",
                 "latency_ms": None,
             }
-        except Exception as exc:
+        except (httpx.HTTPError, httpx.InvalidURL) as exc:
             return {
                 "ok": False,
                 "status_code": None,

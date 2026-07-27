@@ -1,24 +1,25 @@
-from flask import request, jsonify, send_file
-from subprocess import run, PIPE, TimeoutExpired
-from json import loads
-from datetime import datetime
-import logging
-from typing import List
-from pathlib import Path
 import json
+import logging
+from datetime import datetime
+from json import loads
+from pathlib import Path
+from subprocess import TimeoutExpired, run
+
+import confuse
+from flask import jsonify, request, send_file
 
 from monitorat.monitor import (
     CSVHandler,
-    parse_iso_timestamp,
-    resolve_period_cutoff,
     config,
     is_demo_enabled,
+    parse_iso_timestamp,
+    resolve_period_cutoff,
 )
 
 SPEEDTEST = "speedtest-cli"
 logger = logging.getLogger(__name__)
 
-SPEEDTEST_COLUMNS: List[str] = [
+SPEEDTEST_COLUMNS: list[str] = [
     "timestamp",
     "download",
     "upload",
@@ -43,7 +44,7 @@ def get_enabled_metrics():
     try:
         enabled = config["widgets"]["speedtest"]["enabled"].get(list)
         return enabled if enabled else None
-    except Exception:
+    except confuse.ConfigError:
         return None
 
 
@@ -62,7 +63,11 @@ def speedtest_run():
 
     try:
         proc = run(
-            [SPEEDTEST, "--json"], stdout=PIPE, stderr=PIPE, text=True, timeout=100
+            [SPEEDTEST, "--json"],
+            capture_output=True,
+            text=True,
+            timeout=100,
+            check=False,
         )
     except TimeoutExpired:
         logger.error("Speedtest timed out after 100 seconds")
@@ -107,7 +112,7 @@ def speedtest_run():
                 server=parsed["server"].get("sponsor"),
                 ip_address=parsed.get("client", {}).get("ip"),
             )
-        except Exception as e:
+        except (OSError, KeyError, TypeError, ValueError) as e:
             logger.error(f"Error parsing speedtest results: {e}")
             return jsonify(success=False, error=str(e)), 500
 
@@ -123,12 +128,12 @@ def speedtest_history():
         all_rows = csv_handler.read_all()
         recent = all_rows[-limit:]
         return jsonify(entries=[row for row in reversed(recent)])
-    except Exception as exc:
+    except (OSError, confuse.ConfigError) as exc:
         return jsonify(error=str(exc)), 500
 
 
 def speedtest_chart():
-    now = datetime.now()
+    now = datetime.now().astimezone()
 
     period = request.args.get("period", default="all", type=str)
     period_cutoff = resolve_period_cutoff(period, now=now)
@@ -184,7 +189,7 @@ def speedtest_chart():
             )
 
         return jsonify({"entries": entries})
-    except Exception as exc:
+    except (OSError, confuse.ConfigError) as exc:
         return jsonify(error=str(exc)), 500
 
 
@@ -200,8 +205,8 @@ def speedtest_csv():
             download_name="speedtest.csv",
             mimetype="text/csv",
         )
-    except Exception as e:
-        return f"Error downloading CSV: {str(e)}", 500
+    except (OSError, confuse.ConfigError) as e:
+        return f"Error downloading CSV: {e!s}", 500
 
 
 def register_routes(app):

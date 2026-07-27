@@ -1,10 +1,12 @@
-from flask import Response, abort, jsonify, request, send_from_directory
 import html
-from pathlib import Path
 import logging
 import re
 import shutil
 from datetime import datetime
+from pathlib import Path
+
+import confuse
+from flask import Response, abort, jsonify, request, send_from_directory
 
 from monitorat.monitor import BASE, config, get_project_config_dir
 
@@ -59,8 +61,8 @@ def resolve_display_path(doc_file: Path) -> str:
         config_root = Path(config.config_dir()).resolve()
         if config_root not in roots:
             roots.append(config_root)
-    except Exception:
-        pass
+    except (OSError, confuse.ConfigError) as error:
+        logging.getLogger(__name__).debug("Config dir unavailable: %s", error)
     roots.append(BASE.resolve())
 
     for root in roots:
@@ -168,7 +170,7 @@ def register_routes(app, instance="wiki"):
         if doc_file.exists():
             backup_dir = doc_file.parent / ".versions"
             backup_dir.mkdir(exist_ok=True)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now().astimezone().strftime("%Y%m%d_%H%M%S")
             backup_name = f"{doc_file.stem}_{timestamp}{doc_file.suffix}"
             shutil.copy2(doc_file, backup_dir / backup_name)
 
@@ -188,8 +190,9 @@ def register_routes(app, instance="wiki"):
     @app.route("/api/wiki/versions", endpoint=f"wiki_versions_{instance}")
     def wiki_versions():
         """List available backup versions for a document."""
-        from flask import request
         from datetime import datetime
+
+        from flask import request
 
         file_path = request.args.get("path")
         if not file_path:
@@ -206,7 +209,7 @@ def register_routes(app, instance="wiki"):
         for backup in sorted(versions_dir.glob(pattern), reverse=True):
             timestamp_str = backup.stem.replace(doc_file.stem + "_", "")
             try:
-                dt = datetime.strptime(timestamp_str, "%Y%m%d_%H%M%S")
+                dt = datetime.strptime(timestamp_str, "%Y%m%d_%H%M%S").astimezone()
                 label = dt.strftime("%Y-%m-%d %H:%M:%S")
             except ValueError:
                 label = timestamp_str

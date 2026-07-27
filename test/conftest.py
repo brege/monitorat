@@ -39,7 +39,7 @@ def pytest_sessionstart(session):
         raise RuntimeError(f"missing fixture archive: {FIXTURE_ARCHIVE}")
     reset_fixtures()
     with tarfile.open(FIXTURE_ARCHIVE, "r:gz") as archive:
-        archive.extractall(PROJECT_ROOT)
+        archive.extractall(PROJECT_ROOT, filter="data")
 
 
 def pytest_sessionfinish(session, exitstatus):

@@ -1,23 +1,24 @@
-#!/usr/bin/env python3
-
 import json
 import logging
 import os
 import re
+import shutil
+import subprocess
 from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
-import shutil
-import subprocess
+
+import confuse
+import yaml
 
 from monitorat.monitor import (
     config,
-    register_snapshot_provider,
+    find_widget_items_source,
     get_data_path,
     is_demo_enabled,
-    reload_config,
-    find_widget_items_source,
     load_widget_items_from_file,
+    register_snapshot_provider,
+    reload_config,
     write_widget_items_to_file,
 )
 
@@ -38,7 +39,7 @@ def services_items():
 def services_edit_enabled() -> bool:
     try:
         return config["site"]["editing"].get(bool)
-    except Exception:
+    except confuse.ConfigError:
         return False
 
 
@@ -72,7 +73,7 @@ def serialize_services_yaml(items: dict) -> str:
             "user",
             "chrome",
         ]
-        remaining_keys = [key for key in service.keys() if key not in ordered_keys]
+        remaining_keys = [key for key in service if key not in ordered_keys]
         for key in ordered_keys + sorted(remaining_keys):
             if key not in service:
                 continue
@@ -93,7 +94,7 @@ def normalize_service_entry(service_id: str, service: dict) -> dict:
     if not isinstance(service_id, str) or not service_id.strip():
         raise ValueError("Service id must be a non-empty string.")
     if not isinstance(service, dict):
-        raise ValueError("Service entry must be a mapping.")
+        raise TypeError("Service entry must be a mapping.")
 
     name = service.get("name") or service_id
     url = service.get("url")
@@ -108,18 +109,18 @@ def normalize_service_entry(service_id: str, service: dict) -> dict:
     if url is None:
         url = ""
     if not isinstance(url, str):
-        raise ValueError("Service url must be a string.")
+        raise TypeError("Service url must be a string.")
     url = url.strip()
 
     if local is not None:
         if not isinstance(local, str):
-            raise ValueError("Service local must be a string.")
+            raise TypeError("Service local must be a string.")
         local = local.strip() or None
 
     if icon is None:
         icon = ""
     if not isinstance(icon, str):
-        raise ValueError("Service icon must be a string.")
+        raise TypeError("Service icon must be a string.")
     icon = icon.strip()
 
     def normalize_list(value, field_name):
@@ -131,11 +132,11 @@ def normalize_service_entry(service_id: str, service: dict) -> dict:
             result = []
             for item in value:
                 if not isinstance(item, str):
-                    raise ValueError(f"Service {field_name} items must be strings.")
+                    raise TypeError(f"Service {field_name} items must be strings.")
                 if item.strip():
                     result.append(item.strip())
             return result
-        raise ValueError(
+        raise TypeError(
             f"Service {field_name} must be a list or comma-separated string."
         )
 
@@ -150,7 +151,7 @@ def normalize_service_entry(service_id: str, service: dict) -> dict:
         else:
             raise ValueError("Service user must be true or false.")
     elif not isinstance(user, bool):
-        raise ValueError("Service user must be true or false.")
+        raise TypeError("Service user must be true or false.")
 
     if isinstance(chrome, str):
         lowered = chrome.strip().lower()
@@ -159,7 +160,7 @@ def normalize_service_entry(service_id: str, service: dict) -> dict:
         else:
             raise ValueError("Service chrome must be true or false.")
     elif not isinstance(chrome, bool):
-        raise ValueError("Service chrome must be true or false.")
+        raise TypeError("Service chrome must be true or false.")
 
     normalized = dict(service)
     normalized["name"] = name
@@ -246,6 +247,7 @@ def get_docker_status(services_config: dict) -> dict:
             capture_output=True,
             text=True,
             timeout=10,
+            check=False,
         )
 
         status_schema = load_status_schema()
@@ -280,7 +282,7 @@ def get_docker_status(services_config: dict) -> dict:
                     not_running_entry
                 )
 
-    except Exception as exception:
+    except (OSError, subprocess.SubprocessError) as exception:
         logger.error(f"Docker command exception: {exception}")
         status_schema = load_status_schema()
         docker_schema = status_schema["docker"]
@@ -314,7 +316,7 @@ def get_systemd_status():
     for service_info in services_config.values():
         is_user_service = service_info.get("user", False)
         if not isinstance(is_user_service, bool):
-            raise ValueError("Service entry user flag must be a boolean.")
+            raise TypeError("Service entry user flag must be a boolean.")
         if "services" in service_info:
             for service in service_info["services"]:
                 try:
@@ -330,6 +332,7 @@ def get_systemd_status():
                         capture_output=True,
                         text=True,
                         timeout=5,
+                        check=False,
                     )
                     returncode_key = str(result.returncode)
                     entry = returncode_map.get(returncode_key)
@@ -346,7 +349,7 @@ def get_systemd_status():
                     service_statuses[service] = build_status_entry(
                         entry or error_entry, reason=reason
                     )
-                except Exception as exception:
+                except (OSError, subprocess.SubprocessError) as exception:
                     logger.error(f"Error checking service {service}: {exception}")
                     service_statuses[service] = build_status_entry(
                         error_entry, reason=str(exception)
@@ -367,6 +370,7 @@ def get_systemd_status():
                         capture_output=True,
                         text=True,
                         timeout=5,
+                        check=False,
                     )
                     returncode_key = str(result.returncode)
                     entry = returncode_map.get(returncode_key)
@@ -383,7 +387,7 @@ def get_systemd_status():
                     service_statuses[timer] = build_status_entry(
                         entry or error_entry, reason=reason
                     )
-                except Exception as exception:
+                except (OSError, subprocess.SubprocessError) as exception:
                     logger.error(f"Error checking timer {timer}: {exception}")
                     service_statuses[timer] = build_status_entry(
                         error_entry, reason=str(exception)
@@ -463,7 +467,7 @@ def register_routes(app):
 
         try:
             edit_path = find_widget_items_source("services")
-        except Exception as error:
+        except (OSError, ValueError, yaml.YAMLError) as error:
             return jsonify({"error": str(error)}), 500
 
         service_key = request.args.get("service")
@@ -494,7 +498,7 @@ def register_routes(app):
 
         try:
             edit_path = find_widget_items_source("services")
-        except Exception as error:
+        except (OSError, ValueError, yaml.YAMLError) as error:
             return jsonify({"error": str(error)}), 500
 
         payload = request.get_json()
@@ -510,7 +514,7 @@ def register_routes(app):
 
         try:
             normalized_entry = normalize_service_entry(target_key, service_entry)
-        except ValueError as error:
+        except (TypeError, ValueError) as error:
             return jsonify({"error": str(error)}), 400
 
         existing_items = load_widget_items_from_file(edit_path, "services")
@@ -531,7 +535,7 @@ def register_routes(app):
 
         try:
             edit_path = find_widget_items_source("services")
-        except Exception as error:
+        except (OSError, ValueError, yaml.YAMLError) as error:
             return jsonify({"error": str(error)}), 500
 
         service_key = request.args.get("service")
@@ -572,7 +576,7 @@ def register_routes(app):
 
         filename = sanitize_icon_filename(Path(original_name).stem)
         if not filename:
-            filename = f"service-{int(datetime.now().timestamp())}"
+            filename = f"service-{int(datetime.now().astimezone().timestamp())}"
         filename = f"{filename}{extension}"
 
         img_root = Path(config["paths"]["img"].as_filename())
@@ -582,7 +586,8 @@ def register_routes(app):
         target_path = upload_dir / filename
         if target_path.exists():
             filename = (
-                f"{target_path.stem}-{int(datetime.now().timestamp())}{extension}"
+                f"{target_path.stem}-"
+                f"{int(datetime.now().astimezone().timestamp())}{extension}"
             )
             target_path = upload_dir / filename
 

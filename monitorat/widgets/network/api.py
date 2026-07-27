@@ -1,14 +1,16 @@
-#!/usr/bin/env python3
-from flask import jsonify, Response
-from pathlib import Path
-from monitorat.monitor import config, get_data_path, is_demo_enabled
 import logging
+import socket
 import threading
 import time
-import socket
-import urllib.request
 import urllib.error
+import urllib.request
 from datetime import datetime
+from pathlib import Path
+
+import confuse
+from flask import Response, jsonify
+
+from monitorat.monitor import config, get_data_path, is_demo_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +27,7 @@ def is_chirper_enabled():
             return network_config()["chirper"]["enabled"].get(bool)
         # Chirper is disabled when external is a string (use external source)
         return False
-    except Exception:
+    except confuse.ConfigError:
         return False
 
 
@@ -33,7 +35,7 @@ def get_chirper_interval():
     try:
         interval = network_config()["chirper"]["interval"].get(int)
         return interval if interval > 0 else 300
-    except Exception:
+    except confuse.ConfigError:
         return 300
 
 
@@ -43,7 +45,7 @@ def get_ip_source_url():
         if mode == "ipv6":
             return "https://ipv6.icanhazip.com"
         return "https://ipv4.icanhazip.com"
-    except Exception:
+    except confuse.ConfigError:
         return "https://ipv4.icanhazip.com"
 
 
@@ -55,7 +57,7 @@ def get_log_file_path():
         if not log_path.is_absolute():
             log_path = get_data_path() / log_path
         return log_path
-    except Exception:
+    except confuse.ConfigError:
         return None
 
 
@@ -68,7 +70,7 @@ def fetch_external_ip():
         with urllib.request.urlopen(request, timeout=5) as response:
             ip = response.read().decode("utf-8").strip()
             return ip if ip else None
-    except Exception as e:
+    except (OSError, ValueError) as e:
         logger.debug(f"Failed to fetch IP from {get_ip_source_url()}: {e}")
         return None
 
@@ -84,7 +86,7 @@ def append_log_entry(ip_address):
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Format timestamp like syslog: "Nov 19 14:35:42"
-        now = datetime.now()
+        now = datetime.now().astimezone()
         timestamp = now.strftime("%b %d %H:%M:%S")
         hostname = socket.gethostname()
         service_name = "monitor-network"
@@ -97,7 +99,7 @@ def append_log_entry(ip_address):
 
         logger.debug(f"Chirper logged IP {ip_address}")
         return True
-    except Exception as e:
+    except OSError as e:
         logger.error(f"Failed to append log entry: {e}")
         return False
 
@@ -114,7 +116,7 @@ def _prewarm_cache():
 
                 analyze_log_file(log_path)
                 logger.info("Network analysis cache warmed")
-        except Exception as e:
+        except (OSError, ValueError) as e:
             logger.debug(f"Cache warm skipped: {e}")
 
     threading.Thread(target=warm, daemon=True).start()
@@ -158,11 +160,11 @@ def register_routes(app):
             except PermissionError:
                 logger.error(f"Permission denied reading log file: {log_path}")
                 return jsonify({"error": "Permission denied reading log file"}), 403
-            except Exception as e:
+            except OSError as e:
                 logger.error(f"Error reading log file {log_path}: {e}")
-                return jsonify({"error": f"Error reading log file: {str(e)}"}), 500
+                return jsonify({"error": f"Error reading log file: {e!s}"}), 500
 
-        except Exception as exc:
+        except OSError as exc:
             return jsonify({"error": str(exc)}), 500
 
     @app.route("/api/network/schema", methods=["GET"])
@@ -190,6 +192,8 @@ def register_routes(app):
             from .analysis import (
                 analyze_log_file,
                 serialize_alert,
+            )
+            from .analysis import (
                 get_log_file_path as get_log_path,
             )
 
@@ -255,6 +259,8 @@ def register_routes(app):
         from .analysis import (
             analyze_log_file,
             serialize_window_stats,
+        )
+        from .analysis import (
             get_log_file_path as get_log_path,
         )
 
@@ -336,6 +342,6 @@ def _chirper_worker():
             ip = fetch_external_ip()
             if ip:
                 append_log_entry(ip)
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Chirper daemon error: {e}")
         time.sleep(interval)

@@ -5,9 +5,9 @@ repos:
     hooks:
       - id: biome-check
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.5  # Check for latest version
+    rev: v0.16.0
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: [--fix]
       - id: ruff-format
   - repo: local

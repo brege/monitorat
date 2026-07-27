@@ -1,8 +1,8 @@
 import pytest
 import yaml
+from helpers import PROJECT_ROOT
 
 from monitorat.config import ConfigManager
-from helpers import PROJECT_ROOT
 
 pytestmark = pytest.mark.demo
 

@@ -45,6 +45,7 @@ monitorat = "monitorat.cli:main"
 [dependency-groups]
 dev = [
   "pytest>=8.4.0",
+  "ruff>=0.16.0",
   "ty>=0.0.17",
 ]
 
